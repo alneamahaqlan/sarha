@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(php --version)",
+      "PowerShell(composer --version)",
+      "PowerShell($env:Path = \"C:\\\\laragon\\\\bin\\\\php\\\\php8.3.14;C:\\\\laragon\\\\bin\\\\composer;\" + $env:Path; php --version; composer --version)",
+      "Bash(where cloudflared.exe)",
+      "Read(//c/Users/AQLAN/**)",
+      "Read(//c/Windows/System32/**)"
+    ]
+  }
+}

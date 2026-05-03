@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'phone',
+        'otp_code',
+        'otp_expires_at',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'otp_code',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'otp_expires_at' => 'datetime',
+            'is_active' => 'boolean',
+        ];
+    }
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    public function priceQuoteRequests()
+    {
+        return $this->hasMany(PriceQuoteRequest::class);
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(PlatformNotification::class, 'notifiable');
+    }
+}
