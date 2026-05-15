@@ -8,9 +8,9 @@
 
     {{-- Breadcrumb --}}
     <nav class="text-sm text-gray-500 mb-6">
-        <a href="{{ route('home') }}" class="hover:text-purple-600">@lang('site.breadcrumb_home')</a>
+        <a href="{{ route('home') }}" class="hover:text-teal-600">@lang('site.breadcrumb_home')</a>
         <span class="mx-2">/</span>
-        <a href="{{ route('search') }}" class="hover:text-purple-600">@lang('site.breadcrumb_clinics')</a>
+        <a href="{{ route('search') }}" class="hover:text-teal-600">@lang('site.breadcrumb_clinics')</a>
         <span class="mx-2">/</span>
         <span class="text-gray-800">{{ $clinic->name }}</span>
     </nav>
@@ -49,7 +49,7 @@
                     @if($clinic->categories->isNotEmpty())
                         <div class="flex flex-wrap gap-2 mt-4">
                             @foreach($clinic->categories as $cat)
-                                <span class="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-sm">
+                                <span class="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
                                     {{ $cat->emoji ?? '' }} {{ $cat->display_name }}
                                 </span>
                             @endforeach
@@ -81,7 +81,7 @@
                                 </div>
                                 <div class="text-end ms-4">
                                     @if($service->price)
-                                        <span class="text-purple-700 font-bold">
+                                        <span class="text-teal-700 font-bold">
                                             @if($service->old_price)
                                                 <span class="line-through text-gray-400 text-sm me-1">{{ number_format($service->old_price) }}</span>
                                             @endif
@@ -122,14 +122,14 @@
                 <h3 class="font-bold text-gray-800 mb-4">@lang('site.contact_info')</h3>
                 <div class="space-y-3">
                     @if($clinic->phone)
-                        <a href="tel:{{ $clinic->phone }}" class="flex items-center gap-3 text-gray-700 hover:text-purple-600">
-                            <span class="bg-purple-50 p-2 rounded-lg">📞</span>
+                        <a href="tel:{{ $clinic->phone }}" class="flex items-center gap-3 text-gray-700 hover:text-teal-600">
+                            <span class="bg-teal-50 p-2 rounded-lg">📞</span>
                             <span dir="ltr">{{ $clinic->phone }}</span>
                         </a>
                     @endif
                     @if($clinic->email)
                         <div class="flex items-center gap-3 text-gray-700">
-                            <span class="bg-purple-50 p-2 rounded-lg">✉️</span>
+                            <span class="bg-teal-50 p-2 rounded-lg">✉️</span>
                             <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
                         </div>
                     @endif
@@ -165,17 +165,17 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.full_name')</label>
                         <input type="text" name="customer_name" value="{{ old('customer_name', auth('web')->user()?->name) }}"
-                               required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                               required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.phone_number')</label>
                         <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth('web')->user()?->phone) }}"
-                               required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" dir="ltr">
+                               required class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
                     </div>
                     @if($clinic->services->isNotEmpty())
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.requested_service')</label>
-                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">
+                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
                                 <option value="">@lang('site.not_specified')</option>
                                 @foreach($clinic->services as $svc)
                                     <option value="{{ $svc->id }}">{{ $svc->name }}</option>
@@ -185,9 +185,9 @@
                     @endif
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.notes_optional')</label>
-                        <textarea name="notes" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400">{{ old('notes') }}</textarea>
+                        <textarea name="notes" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">{{ old('notes') }}</textarea>
                     </div>
-                    <button type="submit" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                    <button type="submit" class="w-full bg-teal-600 text-white py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
                         @lang('site.submit_booking')
                     </button>
                 </form>

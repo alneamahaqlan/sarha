@@ -20,7 +20,7 @@ class BookingResource extends Resource
     protected static ?string $translationKey = 'booking';
     protected static ?string $model = Booking::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
-    protected static string|\UnitEnum|null $navigationGroup = 'إدارة العيادات';
+    protected static string|\UnitEnum|null $navigationGroup = 'إدارة المجمعات';
     protected static ?string $navigationLabel = 'طلبات الحجز';
     protected static ?string $modelLabel = 'طلب حجز';
     protected static ?string $pluralModelLabel = 'طلبات الحجز';
@@ -30,7 +30,7 @@ class BookingResource extends Resource
     {
         return $schema->components([
             Forms\Components\Select::make('clinic_id')
-                ->label('العيادة')->relationship('clinic', 'name')->searchable()->required(),
+                ->label('المجمع')->relationship('clinic', 'name')->searchable()->required(),
             Forms\Components\TextInput::make('customer_name')->label('اسم العميل')->required(),
             Forms\Components\TextInput::make('customer_phone')->label('رقم الهاتف')->required()->tel(),
             Forms\Components\Select::make('service_id')
@@ -47,7 +47,7 @@ class BookingResource extends Resource
                 ])->required(),
             Forms\Components\DateTimePicker::make('appointment_at')->label('موعد'),
             Forms\Components\Textarea::make('notes')->label('ملاحظات العميل')->rows(3),
-            Forms\Components\Textarea::make('clinic_notes')->label('ملاحظات العيادة')->rows(3),
+            Forms\Components\Textarea::make('clinic_notes')->label('ملاحظات المجمع')->rows(3),
         ]);
     }
 
@@ -55,7 +55,7 @@ class BookingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic.name')->label('العيادة')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('customer_name')->label('العميل')->searchable(),
                 Tables\Columns\TextColumn::make('customer_phone')->label('الهاتف'),
                 Tables\Columns\TextColumn::make('service.name')->label('الخدمة'),
@@ -83,7 +83,7 @@ class BookingResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')->label('الحالة')
                     ->options(['new' => 'جديد', 'contacted' => 'تم التواصل', 'appointment_set' => 'تم تحديد موعد', 'completed' => 'مكتمل', 'no_show' => 'لم يحضر', 'cancelled' => 'ملغي']),
-                Tables\Filters\SelectFilter::make('clinic_id')->label('العيادة')->relationship('clinic', 'name'),
+                Tables\Filters\SelectFilter::make('clinic_id')->label('المجمع')->relationship('clinic', 'name'),
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([

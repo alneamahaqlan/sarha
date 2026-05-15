@@ -28,11 +28,19 @@ class ClinicController extends Controller
     {
         $clinic = Clinic::where('slug', $slug)->where('status', 'active')->firstOrFail();
 
+        if (auth('web')->check() && ! auth('web')->user()->is_active) {
+            return back()->withErrors([
+                'account' => __('site.account_blocked'),
+            ])->withInput();
+        }
+
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_phone' => 'required|string|max:20|regex:/^05\d{8}$/',
             'service_id' => 'nullable|exists:services,id',
             'notes' => 'nullable|string|max:1000',
+        ], [
+            'customer_phone.regex' => __('site.phone_invalid'),
         ]);
 
         Booking::create([

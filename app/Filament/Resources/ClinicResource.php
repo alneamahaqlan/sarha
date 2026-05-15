@@ -23,10 +23,10 @@ class ClinicResource extends Resource
     protected static ?string $translationKey = 'clinic';
     protected static ?string $model = Clinic::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
-    protected static string|\UnitEnum|null $navigationGroup = 'إدارة العيادات';
-    protected static ?string $navigationLabel = 'العيادات';
-    protected static ?string $modelLabel = 'عيادة';
-    protected static ?string $pluralModelLabel = 'العيادات';
+    protected static string|\UnitEnum|null $navigationGroup = 'إدارة المجمعات';
+    protected static ?string $navigationLabel = 'المجمعات';
+    protected static ?string $modelLabel = 'مجمع';
+    protected static ?string $pluralModelLabel = 'المجمعات';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
@@ -34,7 +34,7 @@ class ClinicResource extends Resource
         return $schema->components([
             Tabs::make()->tabs([
                 Tabs\Tab::make('المعلومات الأساسية')->schema([
-                    Forms\Components\TextInput::make('name')->label('اسم العيادة')->required()->maxLength(255),
+                    Forms\Components\TextInput::make('name')->label('اسم المجمع')->required()->maxLength(255),
                     Forms\Components\TextInput::make('slug')->label('الرابط المختصر')->unique(ignoreRecord: true)->maxLength(255),
                     Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel()->maxLength(20),
                     Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email()->maxLength(255),
@@ -46,7 +46,7 @@ class ClinicResource extends Resource
                         ->options(City::where('is_active', true)->orderBy('name')->pluck('name', 'id'))
                         ->searchable()->required(),
                     Forms\Components\Textarea::make('address')->label('العنوان')->rows(2),
-                    Forms\Components\Textarea::make('description')->label('وصف العيادة')->rows(4),
+                    Forms\Components\Textarea::make('description')->label('وصف المجمع')->rows(4),
                 ])->columns(2),
                 Tabs\Tab::make('التصنيفات')->schema([
                     Forms\Components\CheckboxList::make('categories')->label('التخصصات')
@@ -59,7 +59,7 @@ class ClinicResource extends Resource
                         ->options(['basic' => 'أساسي (300 ريال)', 'premium' => 'مميز (400 ريال)']),
                     Forms\Components\DateTimePicker::make('subscription_starts_at')->label('بداية الاشتراك'),
                     Forms\Components\DateTimePicker::make('subscription_ends_at')->label('نهاية الاشتراك'),
-                    Forms\Components\Toggle::make('is_featured')->label('عيادة مميزة'),
+                    Forms\Components\Toggle::make('is_featured')->label('مجمع مميز'),
                     Forms\Components\Textarea::make('rejection_reason')->label('سبب الرفض')
                         ->visible(fn(Forms\Get $get) => $get('status') === 'rejected')->rows(3),
                 ])->columns(2),
@@ -84,7 +84,7 @@ class ClinicResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\ImageColumn::make('logo')->label('الشعار')->circular(),
-                Tables\Columns\TextColumn::make('name')->label('اسم العيادة')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('name')->label('اسم المجمع')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('city.name')->label('المدينة')->sortable(),
                 Tables\Columns\TextColumn::make('phone')->label('الهاتف'),
                 Tables\Columns\TextColumn::make('status')->label('الحالة')->badge()
@@ -121,11 +121,17 @@ class ClinicResource extends Resource
                 \Filament\Actions\Action::make('activate')->label('تفعيل')
                     ->icon('heroicon-o-check-circle')->color('success')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status !== 'active')
-                    ->action(fn(Clinic $record) => $record->update(['status' => 'active'])),
+                    ->action(function (Clinic $record) {
+                        $record->update(['status' => 'active']);
+                        \App\Services\AuditLogService::log('activated_Clinic', $record);
+                    }),
                 \Filament\Actions\Action::make('suspend')->label('إيقاف')
                     ->icon('heroicon-o-no-symbol')->color('danger')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'active')
-                    ->action(fn(Clinic $record) => $record->update(['status' => 'suspended'])),
+                    ->action(function (Clinic $record) {
+                        $record->update(['status' => 'suspended']);
+                        \App\Services\AuditLogService::log('suspended_Clinic', $record);
+                    }),
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

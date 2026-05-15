@@ -33,17 +33,17 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <a href="{{ route('home') }}" class="flex items-center gap-2">
-                <span class="text-2xl font-bold text-purple-600">@lang('site.brand')</span>
+                <span class="text-2xl font-bold text-teal-600">@lang('site.brand')</span>
             </a>
 
             <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('search') }}" class="text-gray-600 hover:text-purple-600 transition-colors">@lang('site.nav_search')</a>
+                <a href="{{ route('search') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_search')</a>
             </div>
 
             <div class="flex items-center gap-3">
                 {{-- Language switcher --}}
                 <a href="{{ route('lang.switch', $altLocale) }}"
-                   class="text-sm text-gray-600 hover:text-purple-600 transition-colors px-2 py-1 border border-gray-200 rounded-lg"
+                   class="text-sm text-gray-600 hover:text-teal-600 transition-colors px-2 py-1 border border-gray-200 rounded-lg"
                    title="@lang('site.language')">
                     {{ $altLocale === 'en' ? 'English' : 'العربية' }}
                 </a>
@@ -55,7 +55,7 @@
                         <button type="submit" class="text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors">
+                    <a href="{{ route('login') }}" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors">
                         @lang('site.nav_login')
                     </a>
                 @endauth
@@ -90,7 +90,7 @@
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_for_clinics')</h4>
                 <p class="text-sm mb-3">@lang('site.footer_for_clinics_desc')</p>
-                <a href="#" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors inline-block">
+                <a href="#" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors inline-block">
                     @lang('site.nav_register_clinic')
                 </a>
             </div>

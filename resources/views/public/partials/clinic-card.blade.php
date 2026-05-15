@@ -6,14 +6,14 @@
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
     @else
-        <div class="h-40 bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+        <div class="h-40 bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
             <span class="text-5xl">🏥</span>
         </div>
     @endif
 
     <div class="p-4">
         <div class="flex items-start justify-between mb-2">
-            <h3 class="font-bold text-gray-800 group-hover:text-purple-600 transition-colors leading-snug">
+            <h3 class="font-bold text-gray-800 group-hover:text-teal-600 transition-colors leading-snug">
                 {{ $clinic->name }}
             </h3>
             @if($clinic->is_featured)
@@ -32,7 +32,7 @@
         @if($clinic->categories->isNotEmpty())
             <div class="flex flex-wrap gap-1">
                 @foreach($clinic->categories->take(3) as $cat)
-                    <span class="bg-purple-50 text-purple-600 text-xs px-2 py-0.5 rounded-full">
+                    <span class="bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full">
                         {{ $cat->emoji ?? '' }} {{ $cat->display_name }}
                     </span>
                 @endforeach

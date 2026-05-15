@@ -29,8 +29,8 @@ class StatsOverviewWidget extends BaseWidget
         $totalUsers = User::where('is_active', true)->count();
 
         return [
-            Stat::make('العيادات النشطة', $activeClinics)
-                ->description($pendingClinics . ' عيادة قيد المراجعة')
+            Stat::make('المجمعات النشطة', $activeClinics)
+                ->description($pendingClinics . ' مجمع قيد المراجعة')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('success')
                 ->icon('heroicon-o-building-office-2'),

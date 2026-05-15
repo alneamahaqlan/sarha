@@ -110,11 +110,11 @@ class DatabaseSeeder extends Seeder
 
         $clinicsData = [
             ['name' => 'مركز الرياض للأسنان', 'city' => 'الرياض', 'subscription_type' => 'premium', 'status' => 'active', 'is_featured' => true, 'cats' => ['Dentistry']],
-            ['name' => 'عيادة الجمال والجلدية', 'city' => 'جدة', 'subscription_type' => 'basic', 'status' => 'active', 'is_featured' => false, 'cats' => ['Dermatology']],
+            ['name' => 'مجمع الجمال والجلدية', 'city' => 'جدة', 'subscription_type' => 'basic', 'status' => 'active', 'is_featured' => false, 'cats' => ['Dermatology']],
             ['name' => 'مركز البصر للعيون', 'city' => 'الرياض', 'subscription_type' => 'premium', 'status' => 'active', 'is_featured' => true, 'cats' => ['Ophthalmology']],
-            ['name' => 'عيادة أطفال المستقبل', 'city' => 'الدمام', 'subscription_type' => 'basic', 'status' => 'active', 'is_featured' => false, 'cats' => ['Pediatrics']],
+            ['name' => 'مجمع أطفال المستقبل', 'city' => 'الدمام', 'subscription_type' => 'basic', 'status' => 'active', 'is_featured' => false, 'cats' => ['Pediatrics']],
             ['name' => 'مركز العظام والمفاصل', 'city' => 'الرياض', 'subscription_type' => 'premium', 'status' => 'active', 'is_featured' => true, 'cats' => ['Orthopedics']],
-            ['name' => 'عيادة القلب التخصصية', 'city' => 'جدة', 'subscription_type' => 'basic', 'status' => 'pending', 'is_featured' => false, 'cats' => ['Cardiology']],
+            ['name' => 'مجمع القلب التخصصي', 'city' => 'جدة', 'subscription_type' => 'basic', 'status' => 'pending', 'is_featured' => false, 'cats' => ['Cardiology']],
         ];
 
         foreach ($clinicsData as $data) {
@@ -133,7 +133,7 @@ class DatabaseSeeder extends Seeder
                     'subscription_starts_at' => now()->subDays(30),
                     'subscription_ends_at' => now()->addDays(60),
                     'is_featured' => $data['is_featured'],
-                    'description' => 'عيادة متخصصة تقدم أفضل الخدمات الطبية بأحدث التقنيات وأمهر الكوادر.',
+                    'description' => 'مجمع متخصص يقدم أفضل الخدمات الطبية بأحدث التقنيات وأمهر الكوادر.',
                 ]
             );
 

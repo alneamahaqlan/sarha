@@ -4,13 +4,13 @@ return [
     // Brand & meta
     'brand' => 'Saerha',
     'tagline' => 'Medical services platform',
-    'meta_description' => 'Search, compare, and book the best clinics and medical services in Saudi Arabia',
+    'meta_description' => 'Search, compare, and book the best complexs and medical services in Saudi Arabia',
 
     // Navigation
-    'nav_search' => 'Find a clinic',
+    'nav_search' => 'Find a complex',
     'nav_login' => 'Sign in',
     'nav_logout' => 'Sign out',
-    'nav_register_clinic' => 'List your clinic',
+    'nav_register_complex' => 'List your complex',
 
     // Language
     'language' => 'Language',
@@ -19,18 +19,18 @@ return [
     'switch_to_english' => 'العربية',
 
     // Home page
-    'hero_title' => 'Find the best clinics',
+    'hero_title' => 'Find the best complexs',
     'hero_subtitle' => 'Compare prices and services, book appointments in seconds',
-    'search_placeholder' => 'Search by specialty or clinic name...',
+    'search_placeholder' => 'Search by specialty or complex name...',
     'search_all_cities' => 'All cities',
     'search_all_categories' => 'All specialties',
     'search_button' => 'Search',
     'browse_categories' => 'Browse specialties',
-    'featured_clinics' => 'Featured clinics',
+    'featured_complexs' => 'Featured complexs',
     'view_all' => 'View all',
-    'cta_title' => 'Own a clinic?',
-    'cta_subtitle' => 'Join thousands of clinics on Saerha and reach more patients.',
-    'cta_button' => 'List your clinic now',
+    'cta_title' => 'Own a complex?',
+    'cta_subtitle' => 'Join thousands of complexs on Saerha and reach more patients.',
+    'cta_button' => 'List your complex now',
 
     // Search page
     'search_results' => ':count results',
@@ -38,14 +38,14 @@ return [
     'clear_filters' => 'Clear filters',
     'no_results_title' => 'No results',
     'no_results_subtitle' => 'Try different keywords or adjust the filters',
-    'search_clinic_or_specialty' => 'Clinic name or specialty...',
+    'search_complex_or_specialty' => 'Complex name or specialty...',
 
-    // Clinic detail
+    // Complex detail
     'breadcrumb_home' => 'Home',
-    'breadcrumb_clinics' => 'Clinics',
-    'about_clinic' => 'About the clinic',
+    'breadcrumb_complexs' => 'Complexs',
+    'about_complex' => 'About the complex',
     'services_and_prices' => 'Services & prices',
-    'clinic_articles' => 'Clinic articles',
+    'complex_articles' => 'Complex articles',
     'contact_info' => 'Contact information',
     'book_appointment' => 'Book an appointment',
     'full_name' => 'Full name',
@@ -57,7 +57,7 @@ return [
     'call_for_inquiry' => 'Call for inquiry',
     'currency_sar' => 'SAR',
     'featured' => 'Featured',
-    'booking_success' => 'Booking request sent successfully! The clinic will contact you shortly.',
+    'booking_success' => 'Booking request sent successfully! The complex will contact you shortly.',
 
     // Auth (OTP)
     'login_title' => 'Sign in',
@@ -69,11 +69,13 @@ return [
     'change_phone' => 'Change phone number',
     'otp_invalid' => 'Invalid or expired verification code',
     'dev_code' => '[dev: :code]',
+    'account_blocked' => 'Your account is suspended. Please contact support.',
+    'phone_invalid' => 'Phone must start with 05 and be 10 digits long',
 
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',
     'footer_quick_links' => 'Quick links',
-    'footer_for_clinics' => 'Own a clinic?',
-    'footer_for_clinics_desc' => 'Join Saerha and showcase your services to thousands of patients.',
+    'footer_for_complexs' => 'Own a complex?',
+    'footer_for_complexs_desc' => 'Join Saerha and showcase your services to thousands of patients.',
     'footer_rights' => '© :year Saerha. All rights reserved.',
 ];

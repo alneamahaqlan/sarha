@@ -48,7 +48,7 @@ class CategoryResource extends Resource
                 Tables\Columns\TextColumn::make('emoji')->label(''),
                 Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('slug')->label('الرابط'),
-                Tables\Columns\TextColumn::make('clinics_count')->label('عدد العيادات')->counts('clinics'),
+                Tables\Columns\TextColumn::make('clinics_count')->label('عدد المجمعات')->counts('clinics'),
                 Tables\Columns\IconColumn::make('is_active')->label('نشط')->boolean(),
                 Tables\Columns\TextColumn::make('sort_order')->label('الترتيب')->sortable(),
             ])

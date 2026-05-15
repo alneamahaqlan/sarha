@@ -47,7 +47,7 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make('إدارة العيادات')->label(fn() => __('admin.group_clinics')),
+                NavigationGroup::make('إدارة المجمعات')->label(fn() => __('admin.group_clinics')),
                 NavigationGroup::make('المحتوى والخدمات')->label(fn() => __('admin.group_content')),
                 NavigationGroup::make('المبيعات والاشتراكات')->label(fn() => __('admin.group_sales')),
                 NavigationGroup::make('تقارير وإحصائيات')->label(fn() => __('admin.group_reports')),

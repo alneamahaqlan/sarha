@@ -34,9 +34,23 @@ class ServiceResource extends Resource
         return $schema->components([
             Forms\Components\TextInput::make('name')->label('اسم الخدمة')->required()->maxLength(255),
             Forms\Components\Textarea::make('description')->label('وصف الخدمة')->rows(3),
-            Forms\Components\TextInput::make('price')->label('السعر (ريال)')->numeric()->minValue(0),
-            Forms\Components\TextInput::make('old_price')->label('السعر القديم (ريال)')->numeric()->minValue(0),
-            Forms\Components\DateTimePicker::make('offer_expires_at')->label('انتهاء العرض'),
+            Forms\Components\TextInput::make('price')
+                ->label('السعر (ريال)')->required()->numeric()->minValue(0)->live(onBlur: true),
+            Forms\Components\TextInput::make('old_price')
+                ->label('السعر القديم (ريال)')->numeric()->minValue(0)->live(onBlur: true)
+                ->helperText('عند تعبئته يجب أن يكون أكبر من السعر الحالي، ويصبح تاريخ انتهاء العرض إلزامياً')
+                ->rules([
+                    fn (\Filament\Schemas\Components\Utilities\Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                        if ($value !== null && $value !== '' && (float) $value <= (float) $get('price')) {
+                            $fail('السعر القديم يجب أن يكون أكبر من السعر الحالي');
+                        }
+                    },
+                ]),
+            Forms\Components\DateTimePicker::make('offer_expires_at')
+                ->label('انتهاء العرض')
+                ->minDate(now()->addDay())
+                ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => filled($get('old_price')))
+                ->helperText('مطلوب عند وجود سعر قديم (لإظهار شارة العرض)'),
             Forms\Components\Toggle::make('is_active')->label('نشط')->default(true),
             Forms\Components\TextInput::make('sort_order')->label('ترتيب العرض')->numeric()->default(0),
         ]);

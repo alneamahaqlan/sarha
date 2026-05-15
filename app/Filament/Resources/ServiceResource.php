@@ -28,11 +28,24 @@ class ServiceResource extends Resource
     {
         return $schema->components([
             Forms\Components\Select::make('clinic_id')
-                ->label('العيادة')->relationship('clinic', 'name')->searchable()->required(),
+                ->label('المجمع')->relationship('clinic', 'name')->searchable()->required(),
             Forms\Components\TextInput::make('name')->label('اسم الخدمة')->required()->maxLength(255),
             Forms\Components\Textarea::make('description')->label('الوصف')->rows(2),
-            Forms\Components\TextInput::make('price')->label('السعر (ريال)')->numeric(),
-            Forms\Components\TextInput::make('old_price')->label('السعر القديم (ريال)')->numeric(),
+            Forms\Components\TextInput::make('price')
+                ->label('السعر (ريال)')->required()->numeric()->minValue(0)->live(onBlur: true),
+            Forms\Components\TextInput::make('old_price')
+                ->label('السعر القديم (ريال)')->numeric()->minValue(0)->live(onBlur: true)
+                ->rules([
+                    fn (\Filament\Schemas\Components\Utilities\Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                        if ($value !== null && $value !== '' && (float) $value <= (float) $get('price')) {
+                            $fail('السعر القديم يجب أن يكون أكبر من السعر الحالي');
+                        }
+                    },
+                ]),
+            Forms\Components\DateTimePicker::make('offer_expires_at')
+                ->label('انتهاء العرض')
+                ->minDate(now()->addDay())
+                ->required(fn (\Filament\Schemas\Components\Utilities\Get $get) => filled($get('old_price'))),
             Forms\Components\Toggle::make('is_active')->label('نشط')->default(true),
         ]);
     }
@@ -41,14 +54,14 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic.name')->label('العيادة')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('name')->label('الخدمة')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('price')->label('السعر')->suffix(' ريال')->sortable(),
                 Tables\Columns\IconColumn::make('is_active')->label('نشط')->boolean(),
                 Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإضافة')->date('Y/m/d')->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('clinic_id')->label('العيادة')->relationship('clinic', 'name'),
+                Tables\Filters\SelectFilter::make('clinic_id')->label('المجمع')->relationship('clinic', 'name'),
             ])
             ->actions([\Filament\Actions\EditAction::make(), \Filament\Actions\DeleteAction::make()])
             ->defaultSort('created_at', 'desc');

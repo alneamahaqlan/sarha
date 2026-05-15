@@ -18,7 +18,7 @@ class LatestBookingsWidget extends BaseWidget
         return $table
             ->query(Booking::latest()->limit(10))
             ->columns([
-                Tables\Columns\TextColumn::make('clinic.name')->label('العيادة')->searchable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->searchable(),
                 Tables\Columns\TextColumn::make('customer_name')->label('العميل'),
                 Tables\Columns\TextColumn::make('customer_phone')->label('الهاتف'),
                 Tables\Columns\TextColumn::make('service.name')->label('الخدمة')->default('—'),

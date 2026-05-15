@@ -18,7 +18,7 @@ class UserResource extends Resource
     protected static ?string $translationKey = 'user';
     protected static ?string $model = User::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
-    protected static string|\UnitEnum|null $navigationGroup = 'إدارة العيادات';
+    protected static string|\UnitEnum|null $navigationGroup = 'إدارة المجمعات';
     protected static ?string $navigationLabel = 'العملاء';
     protected static ?string $modelLabel = 'عميل';
     protected static ?string $pluralModelLabel = 'العملاء';

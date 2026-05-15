@@ -16,9 +16,19 @@ class OtpController extends Controller
 
     public function sendOtp(Request $request)
     {
-        $request->validate(['phone' => 'required|string|max:20']);
+        $request->validate([
+            'phone' => 'required|string|regex:/^05\d{8}$/',
+        ], [
+            'phone.regex' => __('site.phone_invalid'),
+        ]);
 
         $phone = $request->phone;
+
+        $existing = User::where('phone', $phone)->first();
+        if ($existing && ! $existing->is_active) {
+            return back()->withErrors(['phone' => __('site.account_blocked')])->withInput();
+        }
+
         $otp = OtpCode::generate($phone);
 
         // TODO: Send via Unifonic SMS
@@ -56,6 +66,10 @@ class OtpController extends Controller
             ['phone' => $request->phone],
             ['name' => 'مستخدم', 'is_active' => true]
         );
+
+        if (! $user->is_active) {
+            return back()->withErrors(['phone' => __('site.account_blocked')])->withInput();
+        }
 
         auth('web')->login($user, remember: true);
 

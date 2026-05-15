@@ -28,7 +28,7 @@ class SubscriptionResource extends Resource
     {
         return $schema->components([
             Forms\Components\Select::make('clinic_id')
-                ->label('العيادة')->relationship('clinic', 'name')->searchable()->required(),
+                ->label('المجمع')->relationship('clinic', 'name')->searchable()->required(),
             Forms\Components\Select::make('type')
                 ->label('نوع الاشتراك')
                 ->options(['basic' => 'أساسي (300 ريال)', 'premium' => 'مميز (400 ريال)'])
@@ -50,7 +50,7 @@ class SubscriptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic.name')->label('العيادة')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('type')->label('النوع')->badge()
                     ->formatStateUsing(fn($state) => $state === 'premium' ? 'مميز' : 'أساسي')
                     ->color(fn($state) => $state === 'premium' ? 'warning' : 'primary'),

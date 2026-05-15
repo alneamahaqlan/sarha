@@ -15,8 +15,8 @@ class ClinicProfile extends Page implements HasForms
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
     protected static string|\UnitEnum|null $navigationGroup = 'الإعدادات';
-    protected static ?string $navigationLabel = 'ملف العيادة';
-    protected static ?string $title = 'ملف العيادة';
+    protected static ?string $navigationLabel = 'ملف المجمع';
+    protected static ?string $title = 'ملف المجمع';
     protected static ?int $navigationSort = 10;
 
     protected string $view = 'filament.clinic.pages.clinic-profile';
@@ -34,11 +34,11 @@ class ClinicProfile extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->components([
-                Forms\Components\TextInput::make('name')->label('اسم العيادة')->required(),
+                Forms\Components\TextInput::make('name')->label('اسم المجمع')->required(),
                 Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel(),
                 Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email(),
                 Forms\Components\Textarea::make('address')->label('العنوان')->rows(2),
-                Forms\Components\Textarea::make('description')->label('وصف العيادة')->rows(4),
+                Forms\Components\Textarea::make('description')->label('وصف المجمع')->rows(4),
                 Forms\Components\TextInput::make('website')->label('الموقع الإلكتروني')->url(),
                 Forms\Components\TextInput::make('instagram')->label('إنستقرام'),
                 Forms\Components\TextInput::make('twitter')->label('تويتر/X'),

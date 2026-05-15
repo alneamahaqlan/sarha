@@ -42,7 +42,7 @@ class BookingResource extends Resource
                     'no_show' => 'لم يحضر', 'cancelled' => 'ملغي',
                 ])->required(),
             Forms\Components\DateTimePicker::make('appointment_at')->label('موعد'),
-            Forms\Components\Textarea::make('clinic_notes')->label('ملاحظات العيادة')->rows(3),
+            Forms\Components\Textarea::make('clinic_notes')->label('ملاحظات المجمع')->rows(3),
         ]);
     }
 

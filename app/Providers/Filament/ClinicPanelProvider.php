@@ -31,7 +31,7 @@ class ClinicPanelProvider extends PanelProvider
             ->login()
             ->authGuard('clinic')
             ->colors([
-                'primary' => Color::hex('#0EA5E9'),
+                'primary' => Color::hex('#0066CC'),
             ])
             ->brandName(fn() => __('admin.clinic_brand'))
             ->discoverResources(in: app_path('Filament/Clinic/Resources'), for: 'App\Filament\Clinic\Resources')

@@ -3,10 +3,10 @@
 return [
     // Brand
     'admin_brand' => 'Saerha — Admin Panel',
-    'clinic_brand' => 'Saerha — Clinic Panel',
+    'clinic_brand' => 'Saerha — Complex Panel',
 
     // Navigation groups (admin)
-    'group_clinics' => 'Clinic Management',
+    'group_clinics' => 'Complex Management',
     'group_content' => 'Content & Services',
     'group_sales' => 'Sales & Subscriptions',
     'group_reports' => 'Reports & Analytics',
@@ -19,8 +19,8 @@ return [
     'group_settings' => 'Settings',
 
     // Resource labels (admin)
-    'res_clinics' => 'Clinics',
-    'res_clinic' => 'Clinic',
+    'res_clinics' => 'Complexes',
+    'res_clinic' => 'Complex',
     'res_users' => 'Customers',
     'res_user' => 'Customer',
     'res_admins' => 'Administrators',

@@ -29,7 +29,7 @@ class ArticleResource extends Resource
     {
         return $schema->components([
             Forms\Components\Select::make('clinic_id')
-                ->label('العيادة')->relationship('clinic', 'name')->searchable()->required(),
+                ->label('المجمع')->relationship('clinic', 'name')->searchable()->required(),
             Forms\Components\TextInput::make('title')->label('العنوان')->required()->maxLength(255),
             Forms\Components\TextInput::make('slug')->label('الرابط')->unique(ignoreRecord: true),
             Forms\Components\Textarea::make('excerpt')->label('مقتطف')->rows(2),
@@ -43,14 +43,14 @@ class ArticleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')->label('العنوان')->searchable()->sortable()->limit(50),
-                Tables\Columns\TextColumn::make('clinic.name')->label('العيادة')->sortable(),
+                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean(),
                 Tables\Columns\IconColumn::make('ai_generated')->label('AI')->boolean(),
                 Tables\Columns\TextColumn::make('views_count')->label('المشاهدات')->sortable(),
                 Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإنشاء')->date('Y/m/d')->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('clinic_id')->label('العيادة')->relationship('clinic', 'name'),
+                Tables\Filters\SelectFilter::make('clinic_id')->label('المجمع')->relationship('clinic', 'name'),
                 Tables\Filters\TernaryFilter::make('is_published')->label('الحالة')->trueLabel('منشور')->falseLabel('مسودة'),
             ])
             ->actions([\Filament\Actions\EditAction::make(), \Filament\Actions\DeleteAction::make()])

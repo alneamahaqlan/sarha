@@ -3,30 +3,30 @@
 return [
     // Brand
     'admin_brand' => 'سعرها — لوحة التحكم',
-    'clinic_brand' => 'سعرها — لوحة العيادة',
+    'clinic_brand' => 'سعرها — لوحة المجمع',
 
     // Navigation groups (admin)
-    'group_clinics' => 'إدارة العيادات',
+    'group_clinics' => 'إدارة المجمعات',
     'group_content' => 'المحتوى والخدمات',
     'group_sales' => 'المبيعات والاشتراكات',
     'group_reports' => 'تقارير وإحصائيات',
     'group_system' => 'إعدادات النظام',
 
-    // Navigation groups (clinic)
+    // Navigation groups (clinic panel)
     'group_my_services' => 'إدارة خدماتي',
     'group_bookings' => 'الحجوزات والعملاء',
     'group_articles' => 'المحتوى والمقالات',
     'group_settings' => 'الإعدادات',
 
     // Resource labels (admin)
-    'res_clinics' => 'العيادات',
-    'res_clinic' => 'عيادة',
+    'res_clinics' => 'المجمعات',
+    'res_clinic' => 'مجمع',
     'res_users' => 'العملاء',
     'res_user' => 'عميل',
     'res_admins' => 'المسؤولون',
     'res_admin' => 'مسؤول',
-    'res_bookings' => 'طلبات الحجز',
-    'res_booking' => 'طلب حجز',
+    'res_bookings' => 'طلبات التواصل',
+    'res_booking' => 'طلب تواصل',
     'res_subscriptions' => 'الاشتراكات',
     'res_subscription' => 'اشتراك',
     'res_sales_leads' => 'العملاء المحتملون',
@@ -47,5 +47,5 @@ return [
     'res_my_services' => 'خدماتي',
     'res_my_article' => 'مقال',
     'res_my_articles' => 'مقالاتي',
-    'res_clinic_profile' => 'ملف العيادة',
+    'res_clinic_profile' => 'ملف المجمع',
 ];

@@ -4,13 +4,13 @@ return [
     // Brand & meta
     'brand' => 'سعرها',
     'tagline' => 'منصة الخدمات الطبية',
-    'meta_description' => 'ابحث وقارن وأحجز أفضل العيادات والخدمات الطبية في المملكة العربية السعودية',
+    'meta_description' => 'ابحث وقارن وأحجز أفضل المجمعات والخدمات الطبية في المملكة العربية السعودية',
 
     // Navigation
-    'nav_search' => 'ابحث عن عيادة',
+    'nav_search' => 'ابحث عن مجمع',
     'nav_login' => 'تسجيل الدخول',
     'nav_logout' => 'خروج',
-    'nav_register_clinic' => 'سجّل عيادتك',
+    'nav_register_clinic' => 'سجّل مجمعك',
 
     // Language
     'language' => 'اللغة',
@@ -19,18 +19,18 @@ return [
     'switch_to_english' => 'English',
 
     // Home page
-    'hero_title' => 'ابحث عن أفضل العيادات',
+    'hero_title' => 'ابحث عن أفضل المجمعات',
     'hero_subtitle' => 'قارن الأسعار والخدمات واحجز موعدك بسهولة',
-    'search_placeholder' => 'ابحث عن تخصص أو عيادة...',
+    'search_placeholder' => 'ابحث عن تخصص أو مجمع...',
     'search_all_cities' => 'كل المدن',
     'search_all_categories' => 'كل التخصصات',
     'search_button' => 'بحث',
     'browse_categories' => 'تصفح التخصصات',
-    'featured_clinics' => 'عيادات مميزة',
+    'featured_clinics' => 'مجمعات مميزة',
     'view_all' => 'عرض الكل',
-    'cta_title' => 'هل تملك عيادة؟',
-    'cta_subtitle' => 'انضم إلى آلاف العيادات على منصة سعرها واحصل على المزيد من العملاء.',
-    'cta_button' => 'سجّل عيادتك الآن',
+    'cta_title' => 'هل تملك مجمع؟',
+    'cta_subtitle' => 'انضم إلى آلاف المجمعات على منصة سعرها واحصل على المزيد من العملاء.',
+    'cta_button' => 'سجّل مجمعك الآن',
 
     // Search page
     'search_results' => ':count نتيجة',
@@ -38,14 +38,14 @@ return [
     'clear_filters' => 'مسح الفلاتر',
     'no_results_title' => 'لا توجد نتائج',
     'no_results_subtitle' => 'جرّب البحث بكلمات مختلفة أو غيّر الفلاتر',
-    'search_clinic_or_specialty' => 'اسم العيادة أو التخصص...',
+    'search_clinic_or_specialty' => 'اسم المجمع أو التخصص...',
 
     // Clinic detail
     'breadcrumb_home' => 'الرئيسية',
-    'breadcrumb_clinics' => 'عيادات',
-    'about_clinic' => 'نبذة عن العيادة',
+    'breadcrumb_clinics' => 'مجمعات',
+    'about_clinic' => 'نبذة عن المجمع',
     'services_and_prices' => 'الخدمات والأسعار',
-    'clinic_articles' => 'مقالات العيادة',
+    'clinic_articles' => 'مقالات المجمع',
     'contact_info' => 'معلومات التواصل',
     'book_appointment' => 'احجز موعداً',
     'full_name' => 'الاسم الكامل',
@@ -57,7 +57,7 @@ return [
     'call_for_inquiry' => 'اتصل للاستفسار',
     'currency_sar' => 'ريال',
     'featured' => 'مميزة',
-    'booking_success' => 'تم إرسال طلب الحجز بنجاح! سيتواصل معك فريق العيادة قريباً.',
+    'booking_success' => 'تم إرسال طلب الحجز بنجاح! سيتواصل معك فريق المجمع قريباً.',
 
     // Auth (OTP)
     'login_title' => 'تسجيل الدخول',
@@ -69,11 +69,13 @@ return [
     'change_phone' => 'تغيير رقم الهاتف',
     'otp_invalid' => 'رمز التحقق غير صحيح أو منتهي الصلاحية',
     'dev_code' => '[تطوير: :code]',
+    'account_blocked' => 'حسابك معلّق، يرجى التواصل مع الإدارة',
+    'phone_invalid' => 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام',
 
     // Footer
     'footer_about' => 'منصة متخصصة للبحث والمقارنة وحجز الخدمات الطبية في المملكة العربية السعودية.',
     'footer_quick_links' => 'روابط سريعة',
-    'footer_for_clinics' => 'هل تملك عيادة؟',
+    'footer_for_clinics' => 'هل تملك مجمع؟',
     'footer_for_clinics_desc' => 'انضم إلى منصة سعرها واعرض خدماتك لآلاف العملاء.',
     'footer_rights' => '© :year سعرها. جميع الحقوق محفوظة.',
 ];

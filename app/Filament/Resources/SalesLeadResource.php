@@ -28,7 +28,7 @@ class SalesLeadResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\TextInput::make('clinic_name')->label('اسم العيادة')->required(),
+            Forms\Components\TextInput::make('clinic_name')->label('اسم المجمع')->required(),
             Forms\Components\TextInput::make('contact_name')->label('اسم المسؤول'),
             Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel(),
             Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email(),
@@ -53,7 +53,7 @@ class SalesLeadResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic_name')->label('العيادة')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('clinic_name')->label('المجمع')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('contact_name')->label('المسؤول'),
                 Tables\Columns\TextColumn::make('phone')->label('الهاتف'),
                 Tables\Columns\TextColumn::make('city.name')->label('المدينة'),
