@@ -12,6 +12,6 @@ class ListSubscriptions extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\CreateAction::make()->label('إضافة اشتراك')];
+        return [Actions\CreateAction::make()->label(__('admin.actions.create') . ' ' . __('admin.res_subscription'))];
     }
 }

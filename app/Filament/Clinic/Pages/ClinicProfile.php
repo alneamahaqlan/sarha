@@ -15,13 +15,21 @@ class ClinicProfile extends Page implements HasForms
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-office-2';
     protected static string|\UnitEnum|null $navigationGroup = 'الإعدادات';
-    protected static ?string $navigationLabel = 'ملف المجمع';
-    protected static ?string $title = 'ملف المجمع';
     protected static ?int $navigationSort = 10;
 
     protected string $view = 'filament.clinic.pages.clinic-profile';
 
     public ?array $data = [];
+
+    public static function getNavigationLabel(): string
+    {
+        return __('admin.res_clinic_profile');
+    }
+
+    public function getTitle(): string
+    {
+        return __('admin.res_clinic_profile');
+    }
 
     public function mount(): void
     {
@@ -34,18 +42,18 @@ class ClinicProfile extends Page implements HasForms
         return $schema
             ->statePath('data')
             ->components([
-                Forms\Components\TextInput::make('name')->label('اسم المجمع')->required(),
-                Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel(),
-                Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email(),
-                Forms\Components\Textarea::make('address')->label('العنوان')->rows(2),
-                Forms\Components\Textarea::make('description')->label('وصف المجمع')->rows(4),
-                Forms\Components\TextInput::make('website')->label('الموقع الإلكتروني')->url(),
-                Forms\Components\TextInput::make('instagram')->label('إنستقرام'),
-                Forms\Components\TextInput::make('twitter')->label('تويتر/X'),
-                Forms\Components\TextInput::make('snapchat')->label('سناب شات'),
-                Forms\Components\FileUpload::make('logo')->label('الشعار')->image()->directory('clinics/logos'),
+                Forms\Components\TextInput::make('name')->label(__('admin.fields.name_clinic'))->required(),
+                Forms\Components\TextInput::make('phone')->label(__('admin.fields.phone'))->required()->tel(),
+                Forms\Components\TextInput::make('email')->label(__('admin.fields.email'))->email(),
+                Forms\Components\Textarea::make('address')->label(__('admin.fields.address'))->rows(2),
+                Forms\Components\Textarea::make('description')->label(__('admin.fields.description_clinic'))->rows(4),
+                Forms\Components\TextInput::make('website')->label(__('admin.fields.website'))->url(),
+                Forms\Components\TextInput::make('instagram')->label(__('admin.fields.instagram')),
+                Forms\Components\TextInput::make('twitter')->label(__('admin.fields.twitter')),
+                Forms\Components\TextInput::make('snapchat')->label(__('admin.fields.snapchat')),
+                Forms\Components\FileUpload::make('logo')->label(__('admin.fields.logo'))->image()->directory('clinics/logos'),
                 Forms\Components\TextInput::make('password')
-                    ->label('كلمة مرور جديدة')->password()
+                    ->label(__('admin.fields.new_password'))->password()
                     ->dehydrateStateUsing(fn($state) => filled($state) ? bcrypt($state) : null)
                     ->dehydrated(fn($state) => filled($state)),
             ])->columns(2);
@@ -56,14 +64,14 @@ class ClinicProfile extends Page implements HasForms
         $data = $this->form->getState();
         auth('clinic')->user()->update(array_filter($data, fn($v) => $v !== null));
 
-        Notification::make()->title('تم حفظ التغييرات بنجاح')->success()->send();
+        Notification::make()->title(__('admin.validation.profile_saved'))->success()->send();
     }
 
     protected function getFormActions(): array
     {
         return [
             \Filament\Actions\Action::make('save')
-                ->label('حفظ التغييرات')
+                ->label(__('admin.actions.save_changes'))
                 ->action('save'),
         ];
     }

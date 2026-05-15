@@ -12,6 +12,6 @@ class ListUsers extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\CreateAction::make()->label('إضافة عميل')];
+        return [Actions\CreateAction::make()->label(__('admin.actions.create') . ' ' . __('admin.res_user'))];
     }
 }

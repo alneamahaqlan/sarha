@@ -20,24 +20,21 @@ class CategoryResource extends Resource
     protected static ?string $model = Category::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-tag';
     protected static string|\UnitEnum|null $navigationGroup = 'إعدادات النظام';
-    protected static ?string $navigationLabel = 'التخصصات';
-    protected static ?string $modelLabel = 'تخصص';
-    protected static ?string $pluralModelLabel = 'التخصصات';
     protected static ?int $navigationSort = 11;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Forms\Components\TextInput::make('name')
-                ->label('الاسم (عربي)')->required()
+                ->label(__('admin.fields.name_ar'))->required()
                 ->live(onBlur: true)
                 ->afterStateUpdated(fn($state, Forms\Set $set) => $set('slug', Str::slug($state))),
-            Forms\Components\TextInput::make('name_en')->label('الاسم (إنجليزي)'),
-            Forms\Components\TextInput::make('slug')->label('الرابط')->required()->unique(ignoreRecord: true),
-            Forms\Components\TextInput::make('emoji')->label('الإيموجي')->maxLength(5),
-            Forms\Components\TextInput::make('icon')->label('الأيقونة'),
-            Forms\Components\Toggle::make('is_active')->label('نشط')->default(true),
-            Forms\Components\TextInput::make('sort_order')->label('الترتيب')->numeric()->default(0),
+            Forms\Components\TextInput::make('name_en')->label(__('admin.fields.name_en')),
+            Forms\Components\TextInput::make('slug')->label(__('admin.fields.slug_short'))->required()->unique(ignoreRecord: true),
+            Forms\Components\TextInput::make('emoji')->label(__('admin.fields.emoji'))->maxLength(5),
+            Forms\Components\TextInput::make('icon')->label(__('admin.fields.icon')),
+            Forms\Components\Toggle::make('is_active')->label(__('admin.fields.is_active'))->default(true),
+            Forms\Components\TextInput::make('sort_order')->label(__('admin.fields.sort_order_short'))->numeric()->default(0),
         ]);
     }
 
@@ -46,11 +43,11 @@ class CategoryResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('emoji')->label(''),
-                Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('slug')->label('الرابط'),
-                Tables\Columns\TextColumn::make('clinics_count')->label('عدد المجمعات')->counts('clinics'),
-                Tables\Columns\IconColumn::make('is_active')->label('نشط')->boolean(),
-                Tables\Columns\TextColumn::make('sort_order')->label('الترتيب')->sortable(),
+                Tables\Columns\TextColumn::make('name')->label(__('admin.fields.name'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('slug')->label(__('admin.fields.slug_short')),
+                Tables\Columns\TextColumn::make('clinics_count')->label(__('admin.fields.clinics_count'))->counts('clinics'),
+                Tables\Columns\IconColumn::make('is_active')->label(__('admin.fields.is_active'))->boolean(),
+                Tables\Columns\TextColumn::make('sort_order')->label(__('admin.fields.sort_order_short'))->sortable(),
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),

@@ -29,25 +29,25 @@ class StatsOverviewWidget extends BaseWidget
         $totalUsers = User::where('is_active', true)->count();
 
         return [
-            Stat::make('المجمعات النشطة', $activeClinics)
-                ->description($pendingClinics . ' مجمع قيد المراجعة')
+            Stat::make(__('admin.widgets.active_clinics'), $activeClinics)
+                ->description(__('admin.widgets.pending_clinics_count', ['count' => $pendingClinics]))
                 ->descriptionIcon('heroicon-m-clock')
                 ->color('success')
                 ->icon('heroicon-o-building-office-2'),
 
-            Stat::make('طلبات الحجز اليوم', $todayBookings)
-                ->description($monthBookings . ' طلب هذا الشهر')
+            Stat::make(__('admin.widgets.today_bookings'), $todayBookings)
+                ->description(__('admin.widgets.month_bookings_count', ['count' => $monthBookings]))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('primary')
                 ->icon('heroicon-o-calendar'),
 
-            Stat::make('الاشتراكات النشطة', $activeSubscriptions)
-                ->description(number_format($monthRevenue) . ' ريال إيرادات الشهر')
+            Stat::make(__('admin.widgets.active_subscriptions'), $activeSubscriptions)
+                ->description(__('admin.widgets.month_revenue', ['amount' => number_format($monthRevenue)]))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('warning')
                 ->icon('heroicon-o-credit-card'),
 
-            Stat::make('العملاء المسجلون', $totalUsers)
+            Stat::make(__('admin.widgets.registered_users'), $totalUsers)
                 ->descriptionIcon('heroicon-m-users')
                 ->color('info')
                 ->icon('heroicon-o-users'),

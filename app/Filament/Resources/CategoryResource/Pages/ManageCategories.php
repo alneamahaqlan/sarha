@@ -13,7 +13,7 @@ class ManageCategories extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('إضافة تخصص'),
+            Actions\CreateAction::make()->label(__('admin.actions.create') . ' ' . __('admin.res_category')),
         ];
     }
 }

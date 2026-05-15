@@ -13,7 +13,7 @@ class ManageCities extends ManageRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('إضافة مدينة'),
+            Actions\CreateAction::make()->label(__('admin.actions.create') . ' ' . __('admin.res_city')),
         ];
     }
 }

@@ -19,30 +19,35 @@ class SubscriptionResource extends Resource
     protected static ?string $model = Subscription::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
     protected static string|\UnitEnum|null $navigationGroup = 'المبيعات والاشتراكات';
-    protected static ?string $navigationLabel = 'الاشتراكات';
-    protected static ?string $modelLabel = 'اشتراك';
-    protected static ?string $pluralModelLabel = 'الاشتراكات';
     protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
             Forms\Components\Select::make('clinic_id')
-                ->label('المجمع')->relationship('clinic', 'name')->searchable()->required(),
+                ->label(__('admin.fields.name_clinic'))->relationship('clinic', 'name')->searchable()->required(),
             Forms\Components\Select::make('type')
-                ->label('نوع الاشتراك')
-                ->options(['basic' => 'أساسي (300 ريال)', 'premium' => 'مميز (400 ريال)'])
+                ->label(__('admin.fields.subscription_type'))
+                ->options([
+                    'basic'   => __('admin.plan.basic_priced'),
+                    'premium' => __('admin.plan.premium_priced'),
+                ])
                 ->required()->live()
                 ->afterStateUpdated(fn($state, Forms\Set $set) => $set('amount', $state === 'premium' ? 400 : 300)),
-            Forms\Components\TextInput::make('amount')->label('المبلغ (ريال)')->numeric()->required(),
-            Forms\Components\DateTimePicker::make('starts_at')->label('بداية الاشتراك')->required(),
-            Forms\Components\DateTimePicker::make('ends_at')->label('نهاية الاشتراك')->required(),
+            Forms\Components\TextInput::make('amount')->label(__('admin.fields.amount_sar'))->numeric()->required(),
+            Forms\Components\DateTimePicker::make('starts_at')->label(__('admin.fields.subscription_starts_at'))->required(),
+            Forms\Components\DateTimePicker::make('ends_at')->label(__('admin.fields.subscription_ends_at'))->required(),
             Forms\Components\Select::make('status')
-                ->label('الحالة')
-                ->options(['active' => 'نشط', 'expired' => 'منتهي', 'cancelled' => 'ملغي', 'pending_payment' => 'في انتظار الدفع'])
+                ->label(__('admin.fields.status'))
+                ->options([
+                    'active'          => __('admin.status.active'),
+                    'expired'         => __('admin.status.expired'),
+                    'cancelled'       => __('admin.status.cancelled'),
+                    'pending_payment' => __('admin.status.pending_payment'),
+                ])
                 ->required(),
-            Forms\Components\TextInput::make('moyasar_payment_id')->label('رقم معاملة ميسر'),
-            Forms\Components\Textarea::make('notes')->label('ملاحظات')->rows(3),
+            Forms\Components\TextInput::make('moyasar_payment_id')->label(__('admin.fields.moyasar_payment_id')),
+            Forms\Components\Textarea::make('notes')->label(__('admin.fields.notes'))->rows(3),
         ]);
     }
 
@@ -50,26 +55,32 @@ class SubscriptionResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic.name')->label('المجمع')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('type')->label('النوع')->badge()
-                    ->formatStateUsing(fn($state) => $state === 'premium' ? 'مميز' : 'أساسي')
+                Tables\Columns\TextColumn::make('clinic.name')->label(__('admin.fields.name_clinic'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('type')->label(__('admin.fields.plan_type'))->badge()
+                    ->formatStateUsing(fn($state) => __('admin.plan.' . $state))
                     ->color(fn($state) => $state === 'premium' ? 'warning' : 'primary'),
-                Tables\Columns\TextColumn::make('amount')->label('المبلغ')->suffix(' ريال')->sortable(),
-                Tables\Columns\TextColumn::make('starts_at')->label('البداية')->date('Y/m/d'),
-                Tables\Columns\TextColumn::make('ends_at')->label('النهاية')->date('Y/m/d')->sortable(),
-                Tables\Columns\TextColumn::make('status')->label('الحالة')->badge()
-                    ->formatStateUsing(fn($state) => match($state) {
-                        'active' => 'نشط', 'expired' => 'منتهي',
-                        'cancelled' => 'ملغي', 'pending_payment' => 'في انتظار الدفع', default => $state,
-                    })
+                Tables\Columns\TextColumn::make('amount')->label(__('admin.fields.amount'))->suffix(' ' . __('site.currency_sar'))->sortable(),
+                Tables\Columns\TextColumn::make('starts_at')->label(__('admin.fields.starts_at'))->date('Y/m/d'),
+                Tables\Columns\TextColumn::make('ends_at')->label(__('admin.fields.ends_at'))->date('Y/m/d')->sortable(),
+                Tables\Columns\TextColumn::make('status')->label(__('admin.fields.status'))->badge()
+                    ->formatStateUsing(fn($state) => __('admin.status.' . $state))
                     ->color(fn($state) => match($state) {
                         'active' => 'success', 'expired', 'cancelled' => 'danger', default => 'warning',
                     }),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإنشاء')->date('Y/m/d')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->label(__('admin.fields.created_at'))->date('Y/m/d')->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('type')->label('النوع')->options(['basic' => 'أساسي', 'premium' => 'مميز']),
-                Tables\Filters\SelectFilter::make('status')->label('الحالة')->options(['active' => 'نشط', 'expired' => 'منتهي', 'cancelled' => 'ملغي']),
+                Tables\Filters\SelectFilter::make('type')->label(__('admin.fields.plan_type'))
+                    ->options([
+                        'basic'   => __('admin.plan.basic'),
+                        'premium' => __('admin.plan.premium'),
+                    ]),
+                Tables\Filters\SelectFilter::make('status')->label(__('admin.fields.status'))
+                    ->options([
+                        'active'    => __('admin.status.active'),
+                        'expired'   => __('admin.status.expired'),
+                        'cancelled' => __('admin.status.cancelled'),
+                    ]),
             ])
             ->actions([\Filament\Actions\EditAction::make()])
             ->defaultSort('created_at', 'desc');
@@ -78,9 +89,9 @@ class SubscriptionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSubscriptions::route('/'),
+            'index'  => Pages\ListSubscriptions::route('/'),
             'create' => Pages\CreateSubscription::route('/create'),
-            'edit' => Pages\EditSubscription::route('/{record}/edit'),
+            'edit'   => Pages\EditSubscription::route('/{record}/edit'),
         ];
     }
 }

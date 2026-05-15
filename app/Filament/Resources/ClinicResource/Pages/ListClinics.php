@@ -13,7 +13,7 @@ class ListClinics extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('إضافة مجمع'),
+            Actions\CreateAction::make()->label(__('admin.actions.add_clinic')),
         ];
     }
 }

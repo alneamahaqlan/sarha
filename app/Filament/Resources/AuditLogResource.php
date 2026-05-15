@@ -18,9 +18,6 @@ class AuditLogResource extends Resource
     protected static ?string $model = AuditLog::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shield-check';
     protected static string|\UnitEnum|null $navigationGroup = 'إعدادات النظام';
-    protected static ?string $navigationLabel = 'سجل المراجعة';
-    protected static ?string $modelLabel = 'سجل';
-    protected static ?string $pluralModelLabel = 'سجل المراجعة';
     protected static ?int $navigationSort = 20;
 
     public static function canCreate(): bool { return false; }
@@ -36,16 +33,16 @@ class AuditLogResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('admin_name')->label('المسؤول')->searchable(),
-                Tables\Columns\TextColumn::make('action')->label('الإجراء')->searchable(),
-                Tables\Columns\TextColumn::make('model_type')->label('النوع')
+                Tables\Columns\TextColumn::make('admin_name')->label(__('admin.fields.admin_name'))->searchable(),
+                Tables\Columns\TextColumn::make('action')->label(__('admin.fields.action'))->searchable(),
+                Tables\Columns\TextColumn::make('model_type')->label(__('admin.fields.model_type'))
                     ->formatStateUsing(fn($state) => class_basename($state ?? '')),
-                Tables\Columns\TextColumn::make('model_id')->label('المعرف'),
-                Tables\Columns\TextColumn::make('ip_address')->label('عنوان IP'),
-                Tables\Columns\TextColumn::make('created_at')->label('التاريخ')->dateTime('Y/m/d H:i')->sortable(),
+                Tables\Columns\TextColumn::make('model_id')->label(__('admin.fields.model_id')),
+                Tables\Columns\TextColumn::make('ip_address')->label(__('admin.fields.ip_address')),
+                Tables\Columns\TextColumn::make('created_at')->label(__('admin.fields.date'))->dateTime('Y/m/d H:i')->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('admin_id')->label('المسؤول')->relationship('admin', 'name'),
+                Tables\Filters\SelectFilter::make('admin_id')->label(__('admin.fields.admin'))->relationship('admin', 'name'),
             ])
             ->defaultSort('created_at', 'desc');
     }

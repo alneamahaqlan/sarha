@@ -20,32 +20,37 @@ class SalesLeadResource extends Resource
     protected static ?string $model = SalesLead::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-funnel';
     protected static string|\UnitEnum|null $navigationGroup = 'المبيعات والاشتراكات';
-    protected static ?string $navigationLabel = 'خط المبيعات';
-    protected static ?string $modelLabel = 'عميل محتمل';
-    protected static ?string $pluralModelLabel = 'العملاء المحتملون';
     protected static ?int $navigationSort = 2;
+
+    private static function leadStatusOptions(): array
+    {
+        return [
+            'new'         => __('admin.status.new'),
+            'contacted'   => __('admin.status.contacted'),
+            'interested'  => __('admin.status.interested'),
+            'negotiating' => __('admin.status.negotiating'),
+            'converted'   => __('admin.status.converted'),
+            'lost'        => __('admin.status.lost'),
+        ];
+    }
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\TextInput::make('clinic_name')->label('اسم المجمع')->required(),
-            Forms\Components\TextInput::make('contact_name')->label('اسم المسؤول'),
-            Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel(),
-            Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email(),
-            Forms\Components\Select::make('city_id')->label('المدينة')->relationship('city', 'name')->searchable(),
+            Forms\Components\TextInput::make('clinic_name')->label(__('admin.fields.clinic_name'))->required(),
+            Forms\Components\TextInput::make('contact_name')->label(__('admin.fields.contact_name')),
+            Forms\Components\TextInput::make('phone')->label(__('admin.fields.phone'))->required()->tel(),
+            Forms\Components\TextInput::make('email')->label(__('admin.fields.email'))->email(),
+            Forms\Components\Select::make('city_id')->label(__('admin.fields.city'))->relationship('city', 'name')->searchable(),
             Forms\Components\Select::make('status')
-                ->label('الحالة')
-                ->options([
-                    'new' => 'جديد', 'contacted' => 'تم التواصل',
-                    'interested' => 'مهتم', 'negotiating' => 'جاري التفاوض',
-                    'converted' => 'تحول لعميل', 'lost' => 'خسر',
-                ])->required(),
+                ->label(__('admin.fields.status'))
+                ->options(self::leadStatusOptions())->required(),
             Forms\Components\Select::make('assigned_to')
-                ->label('مسؤول المبيعات')
+                ->label(__('admin.fields.assigned_to'))
                 ->options(Admin::whereIn('role', ['sales', 'admin'])->pluck('name', 'id'))
                 ->searchable(),
-            Forms\Components\DateTimePicker::make('next_follow_up_at')->label('موعد المتابعة التالي'),
-            Forms\Components\Textarea::make('notes')->label('ملاحظات')->rows(4),
+            Forms\Components\DateTimePicker::make('next_follow_up_at')->label(__('admin.fields.next_follow_up_at')),
+            Forms\Components\Textarea::make('notes')->label(__('admin.fields.notes'))->rows(4),
         ]);
     }
 
@@ -53,26 +58,22 @@ class SalesLeadResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('clinic_name')->label('المجمع')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('contact_name')->label('المسؤول'),
-                Tables\Columns\TextColumn::make('phone')->label('الهاتف'),
-                Tables\Columns\TextColumn::make('city.name')->label('المدينة'),
-                Tables\Columns\TextColumn::make('status')->label('الحالة')->badge()
-                    ->formatStateUsing(fn($state) => match($state) {
-                        'new' => 'جديد', 'contacted' => 'تم التواصل',
-                        'interested' => 'مهتم', 'negotiating' => 'جاري التفاوض',
-                        'converted' => 'تحول لعميل', 'lost' => 'خسر', default => $state,
-                    })
+                Tables\Columns\TextColumn::make('clinic_name')->label(__('admin.fields.name_clinic'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('contact_name')->label(__('admin.fields.contact_name')),
+                Tables\Columns\TextColumn::make('phone')->label(__('admin.fields.phone')),
+                Tables\Columns\TextColumn::make('city.name')->label(__('admin.fields.city')),
+                Tables\Columns\TextColumn::make('status')->label(__('admin.fields.status'))->badge()
+                    ->formatStateUsing(fn($state) => __('admin.status.' . $state))
                     ->color(fn($state) => match($state) {
                         'new' => 'info', 'contacted', 'interested' => 'warning',
                         'negotiating' => 'primary', 'converted' => 'success', 'lost' => 'danger', default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('next_follow_up_at')->label('المتابعة التالية')->dateTime('Y/m/d H:i'),
-                Tables\Columns\TextColumn::make('assignedAdmin.name')->label('المسؤول'),
+                Tables\Columns\TextColumn::make('next_follow_up_at')->label(__('admin.fields.next_follow_up_short'))->dateTime('Y/m/d H:i'),
+                Tables\Columns\TextColumn::make('assignedAdmin.name')->label(__('admin.fields.assigned_to_short')),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')->label('الحالة')
-                    ->options(['new' => 'جديد', 'contacted' => 'تم التواصل', 'interested' => 'مهتم', 'negotiating' => 'جاري التفاوض', 'converted' => 'تحول', 'lost' => 'خسر']),
+                Tables\Filters\SelectFilter::make('status')->label(__('admin.fields.status'))
+                    ->options(self::leadStatusOptions()),
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),
@@ -84,9 +85,9 @@ class SalesLeadResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSalesLeads::route('/'),
+            'index'  => Pages\ListSalesLeads::route('/'),
             'create' => Pages\CreateSalesLead::route('/create'),
-            'edit' => Pages\EditSalesLead::route('/{record}/edit'),
+            'edit'   => Pages\EditSalesLead::route('/{record}/edit'),
         ];
     }
 }

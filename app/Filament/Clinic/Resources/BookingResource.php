@@ -19,10 +19,19 @@ class BookingResource extends Resource
     protected static ?string $model = Booking::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
     protected static string|\UnitEnum|null $navigationGroup = 'الحجوزات والعملاء';
-    protected static ?string $navigationLabel = 'طلبات الحجز';
-    protected static ?string $modelLabel = 'طلب حجز';
-    protected static ?string $pluralModelLabel = 'طلبات الحجز';
     protected static ?int $navigationSort = 1;
+
+    private static function bookingStatusOptions(): array
+    {
+        return [
+            'new'             => __('admin.status.new'),
+            'contacted'       => __('admin.status.contacted'),
+            'appointment_set' => __('admin.status.appointment_set'),
+            'completed'       => __('admin.status.completed'),
+            'no_show'         => __('admin.status.no_show'),
+            'cancelled'       => __('admin.status.cancelled'),
+        ];
+    }
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
@@ -32,17 +41,13 @@ class BookingResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\TextInput::make('customer_name')->label('اسم العميل')->disabled(),
-            Forms\Components\TextInput::make('customer_phone')->label('رقم الهاتف')->disabled(),
+            Forms\Components\TextInput::make('customer_name')->label(__('admin.fields.customer_name'))->disabled(),
+            Forms\Components\TextInput::make('customer_phone')->label(__('admin.fields.phone'))->disabled(),
             Forms\Components\Select::make('status')
-                ->label('الحالة')
-                ->options([
-                    'new' => 'جديد', 'contacted' => 'تم التواصل',
-                    'appointment_set' => 'تم تحديد موعد', 'completed' => 'مكتمل',
-                    'no_show' => 'لم يحضر', 'cancelled' => 'ملغي',
-                ])->required(),
-            Forms\Components\DateTimePicker::make('appointment_at')->label('موعد'),
-            Forms\Components\Textarea::make('clinic_notes')->label('ملاحظات المجمع')->rows(3),
+                ->label(__('admin.fields.status'))
+                ->options(self::bookingStatusOptions())->required(),
+            Forms\Components\DateTimePicker::make('appointment_at')->label(__('admin.fields.appointment_at')),
+            Forms\Components\Textarea::make('clinic_notes')->label(__('admin.fields.notes_clinic'))->rows(3),
         ]);
     }
 
@@ -50,26 +55,22 @@ class BookingResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('customer_name')->label('العميل')->searchable(),
-                Tables\Columns\TextColumn::make('customer_phone')->label('الهاتف'),
-                Tables\Columns\TextColumn::make('service.name')->label('الخدمة')->default('—'),
-                Tables\Columns\TextColumn::make('status')->label('الحالة')->badge()
+                Tables\Columns\TextColumn::make('customer_name')->label(__('admin.fields.customer_name'))->searchable(),
+                Tables\Columns\TextColumn::make('customer_phone')->label(__('admin.fields.phone')),
+                Tables\Columns\TextColumn::make('service.name')->label(__('admin.fields.service'))->default(__('admin.fields.default_dash')),
+                Tables\Columns\TextColumn::make('status')->label(__('admin.fields.status'))->badge()
                     ->color(fn($state) => match($state) {
                         'new' => 'info', 'contacted' => 'warning',
                         'appointment_set' => 'primary', 'completed' => 'success',
                         default => 'danger',
                     })
-                    ->formatStateUsing(fn($state) => match($state) {
-                        'new' => 'جديد', 'contacted' => 'تم التواصل',
-                        'appointment_set' => 'تم تحديد موعد', 'completed' => 'مكتمل',
-                        'no_show' => 'لم يحضر', 'cancelled' => 'ملغي', default => $state,
-                    }),
-                Tables\Columns\TextColumn::make('appointment_at')->label('الموعد')->dateTime('Y/m/d H:i'),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الطلب')->since()->sortable(),
+                    ->formatStateUsing(fn($state) => __('admin.status.' . $state)),
+                Tables\Columns\TextColumn::make('appointment_at')->label(__('admin.fields.appointment_at'))->dateTime('Y/m/d H:i'),
+                Tables\Columns\TextColumn::make('created_at')->label(__('admin.fields.created_at_request'))->since()->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('status')->label('الحالة')
-                    ->options(['new' => 'جديد', 'contacted' => 'تم التواصل', 'appointment_set' => 'تم تحديد موعد', 'completed' => 'مكتمل', 'no_show' => 'لم يحضر', 'cancelled' => 'ملغي']),
+                Tables\Filters\SelectFilter::make('status')->label(__('admin.fields.status'))
+                    ->options(self::bookingStatusOptions()),
             ])
             ->actions([\Filament\Actions\EditAction::make()])
             ->defaultSort('created_at', 'desc');
@@ -79,7 +80,7 @@ class BookingResource extends Resource
     {
         return [
             'index' => Pages\ListClinicBookings::route('/'),
-            'edit' => Pages\EditClinicBooking::route('/{record}/edit'),
+            'edit'  => Pages\EditClinicBooking::route('/{record}/edit'),
         ];
     }
 }

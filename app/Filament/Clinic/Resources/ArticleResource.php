@@ -20,9 +20,6 @@ class ArticleResource extends Resource
     protected static ?string $model = Article::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected static string|\UnitEnum|null $navigationGroup = 'المحتوى والمقالات';
-    protected static ?string $navigationLabel = 'مقالاتي';
-    protected static ?string $modelLabel = 'مقال';
-    protected static ?string $pluralModelLabel = 'المقالات';
     protected static ?int $navigationSort = 1;
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
@@ -34,14 +31,14 @@ class ArticleResource extends Resource
     {
         return $schema->components([
             Forms\Components\TextInput::make('title')
-                ->label('عنوان المقال')->required()->maxLength(255)
+                ->label(__('admin.fields.title_article'))->required()->maxLength(255)
                 ->live(onBlur: true)
                 ->afterStateUpdated(fn($state, Forms\Set $set) => $set('slug', Str::slug($state))),
-            Forms\Components\TextInput::make('slug')->label('الرابط')->required()->unique(ignoreRecord: true),
-            Forms\Components\Textarea::make('excerpt')->label('مقتطف')->rows(2)->maxLength(300),
-            Forms\Components\RichEditor::make('body')->label('محتوى المقال')->required()->columnSpanFull(),
-            Forms\Components\FileUpload::make('cover_image')->label('صورة المقال')->image()->directory('articles'),
-            Forms\Components\Toggle::make('is_published')->label('منشور')->default(false),
+            Forms\Components\TextInput::make('slug')->label(__('admin.fields.slug_short'))->required()->unique(ignoreRecord: true),
+            Forms\Components\Textarea::make('excerpt')->label(__('admin.fields.excerpt'))->rows(2)->maxLength(300),
+            Forms\Components\RichEditor::make('body')->label(__('admin.fields.body'))->required()->columnSpanFull(),
+            Forms\Components\FileUpload::make('cover_image')->label(__('admin.fields.cover_image'))->image()->directory('articles'),
+            Forms\Components\Toggle::make('is_published')->label(__('admin.fields.is_published'))->default(false),
         ])->columns(2);
     }
 
@@ -49,9 +46,9 @@ class ArticleResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')->label('العنوان')->searchable()->sortable(),
-                Tables\Columns\IconColumn::make('is_published')->label('منشور')->boolean(),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ الإنشاء')->date('Y/m/d')->sortable(),
+                Tables\Columns\TextColumn::make('title')->label(__('admin.fields.title'))->searchable()->sortable(),
+                Tables\Columns\IconColumn::make('is_published')->label(__('admin.fields.is_published'))->boolean(),
+                Tables\Columns\TextColumn::make('created_at')->label(__('admin.fields.created_at'))->date('Y/m/d')->sortable(),
             ])
             ->actions([
                 \Filament\Actions\EditAction::make(),
@@ -63,9 +60,9 @@ class ArticleResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListArticles::route('/'),
+            'index'  => Pages\ListArticles::route('/'),
             'create' => Pages\CreateArticle::route('/create'),
-            'edit' => Pages\EditArticle::route('/{record}/edit'),
+            'edit'   => Pages\EditArticle::route('/{record}/edit'),
         ];
     }
 }

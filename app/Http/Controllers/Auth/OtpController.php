@@ -64,7 +64,7 @@ class OtpController extends Controller
 
         $user = User::firstOrCreate(
             ['phone' => $request->phone],
-            ['name' => 'مستخدم', 'is_active' => true]
+            ['name' => __('admin.widgets.default_user_name'), 'is_active' => true]
         );
 
         if (! $user->is_active) {

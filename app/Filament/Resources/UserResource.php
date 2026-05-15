@@ -19,18 +19,15 @@ class UserResource extends Resource
     protected static ?string $model = User::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
     protected static string|\UnitEnum|null $navigationGroup = 'إدارة المجمعات';
-    protected static ?string $navigationLabel = 'العملاء';
-    protected static ?string $modelLabel = 'عميل';
-    protected static ?string $pluralModelLabel = 'العملاء';
     protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\TextInput::make('name')->label('الاسم')->required(),
-            Forms\Components\TextInput::make('phone')->label('رقم الهاتف')->required()->tel()->unique(ignoreRecord: true),
-            Forms\Components\TextInput::make('email')->label('البريد الإلكتروني')->email(),
-            Forms\Components\Toggle::make('is_active')->label('نشط')->default(true),
+            Forms\Components\TextInput::make('name')->label(__('admin.fields.name'))->required(),
+            Forms\Components\TextInput::make('phone')->label(__('admin.fields.phone'))->required()->tel()->unique(ignoreRecord: true),
+            Forms\Components\TextInput::make('email')->label(__('admin.fields.email'))->email(),
+            Forms\Components\Toggle::make('is_active')->label(__('admin.fields.is_active'))->default(true),
         ]);
     }
 
@@ -38,15 +35,17 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('phone')->label('الهاتف')->searchable(),
-                Tables\Columns\TextColumn::make('email')->label('البريد'),
-                Tables\Columns\TextColumn::make('bookings_count')->label('طلبات الحجز')->counts('bookings'),
-                Tables\Columns\IconColumn::make('is_active')->label('نشط')->boolean(),
-                Tables\Columns\TextColumn::make('created_at')->label('تاريخ التسجيل')->date('Y/m/d')->sortable(),
+                Tables\Columns\TextColumn::make('name')->label(__('admin.fields.name'))->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('phone')->label(__('admin.fields.phone'))->searchable(),
+                Tables\Columns\TextColumn::make('email')->label(__('admin.fields.email_short')),
+                Tables\Columns\TextColumn::make('bookings_count')->label(__('admin.fields.bookings_count'))->counts('bookings'),
+                Tables\Columns\IconColumn::make('is_active')->label(__('admin.fields.is_active'))->boolean(),
+                Tables\Columns\TextColumn::make('created_at')->label(__('admin.fields.created_at_register'))->date('Y/m/d')->sortable(),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('is_active')->label('الحالة')->trueLabel('نشط')->falseLabel('موقوف'),
+                Tables\Filters\TernaryFilter::make('is_active')->label(__('admin.fields.status'))
+                    ->trueLabel(__('admin.status.true_active'))
+                    ->falseLabel(__('admin.status.false_suspended')),
             ])
             ->actions([\Filament\Actions\EditAction::make()])
             ->defaultSort('created_at', 'desc');
@@ -55,9 +54,9 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
+            'index'  => Pages\ListUsers::route('/'),
             'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'edit'   => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }

@@ -25,24 +25,33 @@ class ClinicStatsWidget extends BaseWidget
         $clinic = auth('clinic')->user();
 
         return [
-            Stat::make('طلبات الحجز الجديدة', $newBookings)
-                ->description('من إجمالي ' . $totalBookings . ' طلب')
+            Stat::make(__('admin.widgets.new_bookings'), $newBookings)
+                ->description(__('admin.widgets.of_total_bookings', ['count' => $totalBookings]))
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color($newBookings > 0 ? 'warning' : 'success')
                 ->icon('heroicon-o-bell'),
 
-            Stat::make('حجوزات هذا الشهر', $monthBookings)
+            Stat::make(__('admin.widgets.monthly_bookings'), $monthBookings)
                 ->descriptionIcon('heroicon-m-chart-bar')
                 ->color('primary')
                 ->icon('heroicon-o-calendar'),
 
-            Stat::make('خدماتي النشطة', $totalServices)
+            Stat::make(__('admin.widgets.my_active_services'), $totalServices)
                 ->descriptionIcon('heroicon-m-sparkles')
                 ->color('success')
                 ->icon('heroicon-o-sparkles'),
 
-            Stat::make('حالة الاشتراك', $clinic?->subscription_type === 'premium' ? 'مميز ⭐' : 'أساسي')
-                ->description($clinic?->subscription_ends_at ? 'ينتهي: ' . $clinic->subscription_ends_at->format('Y/m/d') : 'غير محدد')
+            Stat::make(
+                __('admin.widgets.subscription_status'),
+                $clinic?->subscription_type === 'premium'
+                    ? __('admin.plan.premium_with_star')
+                    : __('admin.plan.basic')
+            )
+                ->description(
+                    $clinic?->subscription_ends_at
+                        ? __('admin.widgets.subscription_ends_label', ['date' => $clinic->subscription_ends_at->format('Y/m/d')])
+                        : __('admin.widgets.subscription_undefined')
+                )
                 ->color($clinic?->isSubscriptionActive() ? 'success' : 'danger')
                 ->icon('heroicon-o-credit-card'),
         ];

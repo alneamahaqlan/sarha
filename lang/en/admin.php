@@ -1,35 +1,41 @@
 <?php
 
 return [
+    // ============================================
     // Brand
+    // ============================================
     'admin_brand' => 'Saerha — Admin Panel',
     'clinic_brand' => 'Saerha — Complex Panel',
 
+    // ============================================
     // Navigation groups (admin)
+    // ============================================
     'group_clinics' => 'Complex Management',
     'group_content' => 'Content & Services',
     'group_sales' => 'Sales & Subscriptions',
     'group_reports' => 'Reports & Analytics',
     'group_system' => 'System Settings',
 
-    // Navigation groups (clinic)
+    // Navigation groups (clinic panel)
     'group_my_services' => 'My Services',
     'group_bookings' => 'Bookings & Customers',
     'group_articles' => 'Content & Articles',
     'group_settings' => 'Settings',
 
-    // Resource labels (admin)
+    // ============================================
+    // Resource labels
+    // ============================================
     'res_clinics' => 'Complexes',
     'res_clinic' => 'Complex',
     'res_users' => 'Customers',
     'res_user' => 'Customer',
     'res_admins' => 'Administrators',
     'res_admin' => 'Administrator',
-    'res_bookings' => 'Bookings',
+    'res_bookings' => 'Booking Requests',
     'res_booking' => 'Booking',
     'res_subscriptions' => 'Subscriptions',
     'res_subscription' => 'Subscription',
-    'res_sales_leads' => 'Leads',
+    'res_sales_leads' => 'Sales Leads',
     'res_sales_lead' => 'Lead',
     'res_categories' => 'Specialties',
     'res_category' => 'Specialty',
@@ -40,12 +46,250 @@ return [
     'res_services' => 'Services',
     'res_service' => 'Service',
     'res_audit_logs' => 'Audit Log',
-    'res_audit_log' => 'Audit Entry',
-
-    // Clinic panel resources
+    'res_audit_log' => 'Entry',
     'res_my_service' => 'Service',
     'res_my_services' => 'My Services',
     'res_my_article' => 'Article',
     'res_my_articles' => 'My Articles',
-    'res_clinic_profile' => 'Clinic Profile',
+    'res_clinic_profile' => 'Complex Profile',
+
+    // ============================================
+    // Form/Table field labels
+    // ============================================
+    'fields' => [
+        // Identity
+        'name' => 'Name',
+        'name_ar' => 'Name (Arabic)',
+        'name_en' => 'Name (English)',
+        'name_clinic' => 'Complex name',
+        'name_service' => 'Service name',
+        'name_city_ar' => 'City name (Arabic)',
+        'name_city_en' => 'City name (English)',
+        'name_arabic' => 'Arabic name',
+        'slug' => 'Short URL',
+        'slug_short' => 'Slug',
+
+        // Contact
+        'phone' => 'Phone number',
+        'phone_customer' => 'Customer phone',
+        'email' => 'Email address',
+        'email_short' => 'Email',
+        'password' => 'Password',
+        'new_password' => 'New password',
+
+        // Location
+        'city' => 'City',
+        'address' => 'Address',
+
+        // Description / content
+        'description' => 'Description',
+        'description_clinic' => 'Complex description',
+        'description_service' => 'Service description',
+        'description_short' => 'Description',
+        'notes' => 'Notes',
+        'notes_customer' => 'Customer notes',
+        'notes_clinic' => 'Complex notes',
+        'notes_sales' => 'Sales notes',
+
+        // Article
+        'title' => 'Title',
+        'title_article' => 'Article title',
+        'excerpt' => 'Excerpt',
+        'body' => 'Article body',
+        'cover_image' => 'Cover image',
+        'image' => 'Image',
+        'logo' => 'Logo',
+        'gallery' => 'Photo gallery',
+        'ai_generated' => 'AI-generated content',
+        'ai_short' => 'AI',
+        'views_count' => 'Views',
+
+        // Social
+        'website' => 'Website',
+        'instagram' => 'Instagram',
+        'twitter' => 'Twitter / X',
+        'snapchat' => 'Snapchat',
+        'google_place_id' => 'Google Place ID',
+
+        // Status / flags
+        'status' => 'Status',
+        'is_active' => 'Active',
+        'is_featured' => 'Featured',
+        'is_featured_clinic' => 'Featured complex',
+        'is_published' => 'Published',
+        'rejection_reason' => 'Rejection reason',
+
+        // Subscription
+        'subscription_type' => 'Subscription plan',
+        'subscription_starts_at' => 'Subscription starts',
+        'subscription_ends_at' => 'Subscription ends',
+        'subscription_ends_short' => 'Ends on',
+        'subscription' => 'Subscription',
+        'plan_type' => 'Plan',
+        'starts_at' => 'Starts',
+        'ends_at' => 'Ends',
+        'amount' => 'Amount',
+        'amount_sar' => 'Amount (SAR)',
+        'moyasar_payment_id' => 'Moyasar payment ID',
+
+        // Service
+        'price' => 'Price',
+        'price_sar' => 'Price (SAR)',
+        'old_price' => 'Old price',
+        'old_price_sar' => 'Old price (SAR)',
+        'offer_expires_at' => 'Offer expires at',
+
+        // Booking
+        'customer_name' => 'Customer name',
+        'service' => 'Service',
+        'appointment_at' => 'Appointment',
+
+        // Categories / taxonomy
+        'category' => 'Specialty',
+        'categories' => 'Specialties',
+        'emoji' => 'Emoji',
+        'icon' => 'Icon',
+        'clinics_count' => 'Complexes',
+
+        // Admin/User
+        'admin' => 'Administrator',
+        'admin_name' => 'Administrator',
+        'role' => 'Role',
+        'bookings_count' => 'Bookings',
+
+        // Sales lead
+        'clinic_name' => 'Complex name',
+        'contact_name' => 'Contact name',
+        'next_follow_up_at' => 'Next follow-up',
+        'next_follow_up_short' => 'Follow-up',
+        'assigned_to' => 'Sales rep',
+        'assigned_to_short' => 'Owner',
+
+        // Audit
+        'action' => 'Action',
+        'model_type' => 'Type',
+        'model_id' => 'ID',
+        'ip_address' => 'IP address',
+
+        // Time
+        'created_at' => 'Created at',
+        'created_at_request' => 'Request date',
+        'created_at_register' => 'Registered',
+        'created_at_add' => 'Added',
+        'updated_at' => 'Updated',
+        'date' => 'Date',
+
+        // Misc
+        'sort_order' => 'Sort order',
+        'sort_order_short' => 'Order',
+        'tabs_basic' => 'Basic info',
+        'tabs_categories' => 'Specialties',
+        'tabs_subscription' => 'Subscription & status',
+        'tabs_social' => 'Social links',
+        'tabs_images' => 'Images',
+        'default_dash' => '—',
+    ],
+
+    // ============================================
+    // Status / enum values
+    // ============================================
+    'status' => [
+        // Clinic
+        'pending' => 'Pending',
+        'active' => 'Active',
+        'suspended' => 'Suspended',
+        'rejected' => 'Rejected',
+
+        // Booking
+        'new' => 'New',
+        'contacted' => 'Contacted',
+        'appointment_set' => 'Appointment set',
+        'completed' => 'Completed',
+        'no_show' => 'No-show',
+        'cancelled' => 'Cancelled',
+
+        // Subscription
+        'expired' => 'Expired',
+        'pending_payment' => 'Pending payment',
+
+        // Sales lead
+        'interested' => 'Interested',
+        'negotiating' => 'Negotiating',
+        'converted' => 'Converted',
+        'converted_short' => 'Converted',
+        'lost' => 'Lost',
+
+        // Generic filter trinary
+        'true_active' => 'Active',
+        'false_suspended' => 'Suspended',
+    ],
+
+    // ============================================
+    // Plan / subscription types
+    // ============================================
+    'plan' => [
+        'basic' => 'Basic',
+        'premium' => 'Premium',
+        'basic_priced' => 'Basic (300 SAR)',
+        'premium_priced' => 'Premium (400 SAR)',
+        'premium_with_star' => 'Premium ⭐',
+    ],
+
+    // ============================================
+    // Admin roles
+    // ============================================
+    'admin_role' => [
+        'super_admin' => 'Super admin',
+        'admin' => 'Admin',
+        'sales' => 'Sales',
+    ],
+
+    // ============================================
+    // Action labels
+    // ============================================
+    'actions' => [
+        'activate' => 'Activate',
+        'suspend' => 'Suspend',
+        'create' => 'Create',
+        'edit' => 'Edit',
+        'view' => 'View',
+        'delete' => 'Delete',
+        'restore' => 'Restore',
+        'save' => 'Save',
+        'save_changes' => 'Save changes',
+        'cancel' => 'Cancel',
+        'add_clinic' => 'Add complex',
+    ],
+
+    // ============================================
+    // Validation messages
+    // ============================================
+    'validation' => [
+        'old_price_higher' => 'Old price must be greater than current price',
+        'old_price_helper' => 'When filled, must be greater than current price and the offer expiry becomes required',
+        'offer_expires_helper' => 'Required when an old price is set (so the offer badge can be displayed)',
+        'profile_saved' => 'Changes saved successfully',
+    ],
+
+    // ============================================
+    // Widget strings
+    // ============================================
+    'widgets' => [
+        'active_clinics' => 'Active complexes',
+        'pending_clinics_count' => ':count complex(es) pending review',
+        'today_bookings' => 'Today\'s bookings',
+        'month_bookings_count' => ':count booking(s) this month',
+        'active_subscriptions' => 'Active subscriptions',
+        'month_revenue' => ':amount SAR revenue this month',
+        'registered_users' => 'Registered customers',
+        'latest_bookings' => 'Latest booking requests',
+        'new_bookings' => 'New booking requests',
+        'of_total_bookings' => 'of :count total',
+        'monthly_bookings' => 'Bookings this month',
+        'my_active_services' => 'My active services',
+        'subscription_status' => 'Subscription status',
+        'subscription_ends_label' => 'Ends: :date',
+        'subscription_undefined' => 'Not set',
+        'default_user_name' => 'Customer',
+    ],
 ];
