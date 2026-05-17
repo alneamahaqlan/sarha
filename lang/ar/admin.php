@@ -197,13 +197,10 @@ return [
         'complaint_type' => 'نوع الشكوى',
         'priority' => 'الأولوية',
         'subject' => 'الموضوع',
-        'description' => 'الوصف',
         'admin_notes' => 'ملاحظات الإدارة',
         'resolution' => 'الحل',
         'assigned_admin' => 'المسؤول المعيّن',
-        'rejection_reason' => 'سبب الرفض',
         'clinic_notified' => 'تم إبلاغ المجمع',
-        'created_at' => 'تاريخ الإنشاء',
     ],
 
     // ============================================
@@ -316,6 +313,15 @@ return [
         'low' => 'منخفضة',
         'medium' => 'متوسطة',
         'high' => 'عالية',
+    ],
+
+    'ai' => [
+        'title_first' => 'أدخل عنوان المقال أولاً',
+        'not_configured' => 'مفتاح Claude API غير مفعّل. أضف ANTHROPIC_API_KEY في .env',
+        'generated' => 'تم التوليد بنجاح ✨',
+        'failed' => 'تعذّر التوليد',
+        'excel_analyzing' => 'يجري تحليل الملف…',
+        'excel_done' => 'تم التحليل',
     ],
 
     'lead_status' => [

@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    // Saerha-specific service credentials
+    'google_maps' => [
+        'key' => env('GOOGLE_MAPS_API_KEY'),
+    ],
+
+    'anthropic' => [
+        'key'   => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-5'),
+    ],
+
+    'unifonic' => [
+        'app_sid'   => env('UNIFONIC_APP_SID'),
+        'sender_id' => env('UNIFONIC_SENDER_ID'),
+    ],
+
+    'moyasar' => [
+        'secret_key'  => env('MOYASAR_SECRET_KEY'),
+        'publishable' => env('MOYASAR_PUBLISHABLE_KEY'),
+    ],
+
 ];

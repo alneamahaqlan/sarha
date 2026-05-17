@@ -25,6 +25,8 @@
         html[lang="ar"] body { font-family: 'Cairo', ui-sans-serif, system-ui, sans-serif; }
         html[lang="en"] body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
     </style>
+
+    @stack('head')
 </head>
 <body class="bg-gray-50 antialiased">
 

@@ -197,13 +197,10 @@ return [
         'complaint_type' => 'Complaint type',
         'priority' => 'Priority',
         'subject' => 'Subject',
-        'description' => 'Description',
         'admin_notes' => 'Admin notes',
         'resolution' => 'Resolution',
         'assigned_admin' => 'Assigned admin',
-        'rejection_reason' => 'Rejection reason',
         'clinic_notified' => 'Complex notified',
-        'created_at' => 'Created at',
     ],
 
     // ============================================
@@ -316,6 +313,15 @@ return [
         'low' => 'Low',
         'medium' => 'Medium',
         'high' => 'High',
+    ],
+
+    'ai' => [
+        'title_first' => 'Please enter the article title first',
+        'not_configured' => 'Claude API key is not configured. Add ANTHROPIC_API_KEY to .env',
+        'generated' => 'Generated successfully ✨',
+        'failed' => 'Generation failed',
+        'excel_analyzing' => 'Analyzing file…',
+        'excel_done' => 'Analysis complete',
     ],
 
     'lead_status' => [

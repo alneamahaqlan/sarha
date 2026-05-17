@@ -111,6 +111,26 @@ return [
     'whatsapp_label' => 'تواصل عبر واتساب',
     'book_now_label' => 'احجز معنا',
 
+    // Sub-clinics
+    'sub_clinics_title' => 'العيادات والأقسام',
+    'services_count' => ':count خدمة',
+
+    // Share
+    'share' => 'مشاركة',
+    'copy_link' => 'نسخ الرابط',
+    'link_copied' => 'تم نسخ الرابط',
+
+    // Clinic page tabs
+    'tab_services' => 'الخدمات والأسعار',
+    'tab_reviews' => 'التقييمات',
+    'tab_articles' => 'المقالات',
+    'tab_about' => 'عن المجمع',
+    'directions_open_maps' => 'افتح في خرائط Google',
+    'no_articles_yet' => 'لا توجد مقالات منشورة بعد',
+    'view_more_services' => 'عرض كل الخدمات',
+    'verified_badge' => 'موثّق',
+    'premium_badge' => 'مميز',
+
     // Search page
     'search_results' => ':count نتيجة',
     'search_results_for' => ':count نتيجة لـ ":query"',

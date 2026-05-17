@@ -111,6 +111,26 @@ return [
     'whatsapp_label' => 'Chat on WhatsApp',
     'book_now_label' => 'Book now',
 
+    // Sub-clinics
+    'sub_clinics_title' => 'Clinics & departments',
+    'services_count' => ':count services',
+
+    // Share
+    'share' => 'Share',
+    'copy_link' => 'Copy link',
+    'link_copied' => 'Link copied',
+
+    // Clinic page tabs
+    'tab_services' => 'Services & prices',
+    'tab_reviews' => 'Reviews',
+    'tab_articles' => 'Articles',
+    'tab_about' => 'About',
+    'directions_open_maps' => 'Open in Google Maps',
+    'no_articles_yet' => 'No published articles yet',
+    'view_more_services' => 'View all services',
+    'verified_badge' => 'Verified',
+    'premium_badge' => 'Premium',
+
     // Search page
     'search_results' => ':count results',
     'search_results_for' => ':count results for ":query"',

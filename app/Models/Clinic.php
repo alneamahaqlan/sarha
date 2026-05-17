@@ -148,4 +148,22 @@ class Clinic extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(Complaint::class);
     }
+
+    public function subClinics()
+    {
+        return $this->hasMany(SubClinic::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    public function whatsappLink(?string $message = null): string
+    {
+        $phone = preg_replace('/\D/', '', $this->phone ?? '');
+        if (str_starts_with($phone, '05')) {
+            $phone = '966' . substr($phone, 1);
+        }
+        $url = 'https://wa.me/' . $phone;
+        if ($message) {
+            $url .= '?text=' . urlencode($message);
+        }
+        return $url;
+    }
 }

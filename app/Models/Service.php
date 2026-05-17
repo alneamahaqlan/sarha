@@ -10,7 +10,8 @@ class Service extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'clinic_id', 'custom_category_id', 'name', 'description',
+        'clinic_id', 'custom_category_id', 'sub_clinic_id',
+        'name', 'description',
         'price', 'old_price', 'offer_expires_at', 'image',
         'is_active', 'sort_order',
     ];
@@ -46,5 +47,10 @@ class Service extends Model
     public function customCategory()
     {
         return $this->belongsTo(CustomCategory::class);
+    }
+
+    public function subClinic()
+    {
+        return $this->belongsTo(SubClinic::class);
     }
 }
