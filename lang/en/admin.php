@@ -57,6 +57,8 @@ return [
     'res_price_quote_requests' => 'Price quote requests',
     'res_price_quote_request' => 'Price quote',
     'res_system_settings' => 'System Settings',
+    'res_system_setting' => 'Setting',
+    'res_system_settings_plural' => 'Settings',
 
     // ============================================
     // Form/Table field labels
@@ -201,6 +203,19 @@ return [
         'resolution' => 'Resolution',
         'assigned_admin' => 'Assigned admin',
         'clinic_notified' => 'Complex notified',
+        'setting_key' => 'Key',
+        'value' => 'Value',
+        'value_type' => 'Type',
+        'group' => 'Group',
+        'label' => 'Label',
+        'license_number' => 'License number',
+        'district' => 'District',
+        'last_contact_at' => 'Last contact',
+        'sales_notes' => 'Sales notes',
+        'service_name' => 'Service name',
+        'clinic_reply' => 'Complex reply',
+        'days_left' => 'Days left',
+        'sub_clinic' => 'Sub clinic',
     ],
 
     // ============================================
@@ -314,6 +329,10 @@ return [
         'medium' => 'Medium',
         'high' => 'High',
     ],
+
+    'lead_converted' => 'Lead ":clinic" converted to an active complex ✓',
+    'subscription_extended' => 'Subscription extended by :days days',
+    'booking_approved' => 'Complex approved and 90-day subscription activated ✓',
 
     'ai' => [
         'title_first' => 'Please enter the article title first',

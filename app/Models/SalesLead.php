@@ -10,15 +10,25 @@ class SalesLead extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'clinic_name', 'contact_name', 'phone', 'email', 'city_id',
-        'status', 'notes', 'assigned_to', 'next_follow_up_at',
+        'clinic_name', 'contact_name', 'phone', 'email', 'license_number',
+        'city_id', 'district', 'address',
+        'status', 'notes', 'sales_notes',
+        'assigned_to', 'next_follow_up_at', 'last_contact_at',
     ];
 
     protected function casts(): array
     {
         return [
             'next_follow_up_at' => 'datetime',
+            'last_contact_at'   => 'datetime',
         ];
+    }
+
+    public function isOverdueFollowup(): bool
+    {
+        return $this->next_follow_up_at
+            && $this->next_follow_up_at->isPast()
+            && ! in_array($this->status, ['converted', 'lost']);
     }
 
     public function city()

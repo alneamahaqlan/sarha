@@ -18,6 +18,11 @@ class CategoryResource extends Resource
 
     protected static ?string $translationKey = 'category';
     protected static ?string $model = Category::class;
+
+    public static function canDelete($record): bool
+    {
+        return $record->clinics()->count() === 0;
+    }
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-tag';
     protected static string|\UnitEnum|null $navigationGroup = 'إعدادات النظام';
     protected static ?int $navigationSort = 11;

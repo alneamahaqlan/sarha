@@ -57,6 +57,8 @@ return [
     'res_price_quote_requests' => 'طلبات عرض السعر',
     'res_price_quote_request' => 'طلب عرض سعر',
     'res_system_settings' => 'إعدادات النظام',
+    'res_system_setting' => 'إعداد',
+    'res_system_settings_plural' => 'الإعدادات',
 
     // ============================================
     // Form/Table field labels
@@ -201,6 +203,19 @@ return [
         'resolution' => 'الحل',
         'assigned_admin' => 'المسؤول المعيّن',
         'clinic_notified' => 'تم إبلاغ المجمع',
+        'setting_key' => 'المفتاح',
+        'value' => 'القيمة',
+        'value_type' => 'النوع',
+        'group' => 'المجموعة',
+        'label' => 'التسمية',
+        'license_number' => 'رقم الترخيص',
+        'district' => 'الحي',
+        'last_contact_at' => 'آخر تواصل',
+        'sales_notes' => 'ملاحظات المبيعات',
+        'service_name' => 'اسم الخدمة',
+        'clinic_reply' => 'رد المجمع',
+        'days_left' => 'أيام متبقية',
+        'sub_clinic' => 'العيادة الفرعية',
     ],
 
     // ============================================
@@ -314,6 +329,10 @@ return [
         'medium' => 'متوسطة',
         'high' => 'عالية',
     ],
+
+    'lead_converted' => 'تم تحويل العميل المحتمل ":clinic" إلى مجمع نشط ✓',
+    'subscription_extended' => 'تم تمديد الاشتراك :days يوماً',
+    'booking_approved' => 'تم اعتماد المجمع وتفعيل اشتراك 90 يوماً ✓',
 
     'ai' => [
         'title_first' => 'أدخل عنوان المقال أولاً',

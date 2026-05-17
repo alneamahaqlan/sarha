@@ -136,13 +136,56 @@ class ClinicResource extends Resource
             ->actions([
                 \Filament\Actions\ViewAction::make(),
                 \Filament\Actions\EditAction::make(),
+
+                \Filament\Actions\Action::make('approve')
+                    ->label(__('admin.actions.approve'))
+                    ->icon('heroicon-o-check-badge')->color('success')->requiresConfirmation()
+                    ->visible(fn(Clinic $record) => $record->status === 'pending')
+                    ->action(function (Clinic $record) {
+                        $record->update([
+                            'status'                 => 'active',
+                            'subscription_type'      => $record->subscription_type ?? 'basic',
+                            'subscription_starts_at' => now(),
+                            'subscription_ends_at'   => now()->addDays(90),
+                        ]);
+                        \App\Models\Subscription::create([
+                            'clinic_id' => $record->id,
+                            'type'      => $record->subscription_type ?? 'basic',
+                            'amount'    => ($record->subscription_type ?? 'basic') === 'premium' ? 400 : 300,
+                            'starts_at' => now(),
+                            'ends_at'   => now()->addDays(90),
+                            'status'    => 'active',
+                        ]);
+                        \App\Services\AuditLogService::log('approved_Clinic', $record);
+                        \Filament\Notifications\Notification::make()
+                            ->title(__('admin.booking_approved'))->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('reject')
+                    ->label(__('admin.actions.reject'))
+                    ->icon('heroicon-o-x-circle')->color('danger')
+                    ->visible(fn(Clinic $record) => $record->status === 'pending')
+                    ->form([
+                        Forms\Components\Textarea::make('rejection_reason')
+                            ->label(__('admin.fields.rejection_reason'))
+                            ->required()->rows(3),
+                    ])
+                    ->action(function (Clinic $record, array $data) {
+                        $record->update([
+                            'status'           => 'rejected',
+                            'rejection_reason' => $data['rejection_reason'],
+                        ]);
+                        \App\Services\AuditLogService::log('rejected_Clinic', $record);
+                    }),
+
                 \Filament\Actions\Action::make('activate')->label(__('admin.actions.activate'))
                     ->icon('heroicon-o-check-circle')->color('success')->requiresConfirmation()
-                    ->visible(fn(Clinic $record) => $record->status !== 'active')
+                    ->visible(fn(Clinic $record) => in_array($record->status, ['suspended', 'rejected']))
                     ->action(function (Clinic $record) {
                         $record->update(['status' => 'active']);
                         \App\Services\AuditLogService::log('activated_Clinic', $record);
                     }),
+
                 \Filament\Actions\Action::make('suspend')->label(__('admin.actions.suspend'))
                     ->icon('heroicon-o-no-symbol')->color('danger')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'active')
@@ -150,6 +193,35 @@ class ClinicResource extends Resource
                         $record->update(['status' => 'suspended']);
                         \App\Services\AuditLogService::log('suspended_Clinic', $record);
                     }),
+
+                \Filament\Actions\Action::make('extend_30')
+                    ->label(__('admin.actions.extend_30'))
+                    ->icon('heroicon-o-plus-circle')->color('warning')->requiresConfirmation()
+                    ->visible(fn(Clinic $record) => $record->status === 'active')
+                    ->action(function (Clinic $record) {
+                        $base = $record->subscription_ends_at?->isFuture()
+                            ? $record->subscription_ends_at
+                            : now();
+                        $record->update(['subscription_ends_at' => $base->copy()->addDays(30)]);
+                        \App\Services\AuditLogService::log('extended_Clinic_30', $record);
+                        \Filament\Notifications\Notification::make()
+                            ->title(__('admin.subscription_extended', ['days' => 30]))->success()->send();
+                    }),
+
+                \Filament\Actions\Action::make('extend_90')
+                    ->label(__('admin.actions.extend_90'))
+                    ->icon('heroicon-o-plus-circle')->color('primary')->requiresConfirmation()
+                    ->visible(fn(Clinic $record) => $record->status === 'active')
+                    ->action(function (Clinic $record) {
+                        $base = $record->subscription_ends_at?->isFuture()
+                            ? $record->subscription_ends_at
+                            : now();
+                        $record->update(['subscription_ends_at' => $base->copy()->addDays(90)]);
+                        \App\Services\AuditLogService::log('extended_Clinic_90', $record);
+                        \Filament\Notifications\Notification::make()
+                            ->title(__('admin.subscription_extended', ['days' => 90]))->success()->send();
+                    }),
+
                 \Filament\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
