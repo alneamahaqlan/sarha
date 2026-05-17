@@ -48,6 +48,31 @@
     </div>
 </section>
 
+{{-- How it works --}}
+<section class="py-14 px-4">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10">
+            <h2 class="text-2xl font-bold text-gray-800">@lang('site.how_it_works_title')</h2>
+            <p class="text-gray-500 mt-2">@lang('site.how_it_works_subtitle')</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @foreach([['🔍', 'how_step_1', 'teal'], ['⚖️', 'how_step_2', 'amber'], ['📞', 'how_step_3', 'emerald']] as $i => [$emoji, $key, $color])
+                <div class="bg-white rounded-xl border border-gray-100 p-6 text-center relative">
+                    <div class="absolute top-3 start-3 w-7 h-7 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 flex items-center justify-center text-sm font-bold">
+                        {{ $i + 1 }}
+                    </div>
+                    <div class="text-5xl mb-3">{{ $emoji }}</div>
+                    <h3 class="font-bold text-gray-800 mb-1">@lang('site.' . $key . '_title')</h3>
+                    <p class="text-sm text-gray-500 leading-relaxed">@lang('site.' . $key . '_desc')</p>
+                </div>
+            @endforeach
+        </div>
+        <div class="mt-6 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-sm text-center">
+            ⚠️ @lang('site.how_not_appointment_notice')
+        </div>
+    </div>
+</section>
+
 {{-- Featured Clinics --}}
 @if($featuredClinics->isNotEmpty())
 <section class="py-12 px-4 bg-gray-50">
@@ -59,6 +84,49 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach($featuredClinics as $clinic)
                 @include('public.partials.clinic-card', ['clinic' => $clinic])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- Top-rated clinics --}}
+@if(($topRatedClinics ?? collect())->isNotEmpty())
+<section class="py-12 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-2xl font-bold text-gray-800">@lang('site.top_rated_clinics')</h2>
+            <a href="{{ route('search', ['sort' => 'top_rated']) }}" class="text-teal-600 text-sm hover:underline">@lang('site.view_all')</a>
+        </div>
+        <p class="text-gray-500 text-sm mb-6">@lang('site.top_rated_subtitle')</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($topRatedClinics as $clinic)
+                @include('public.partials.clinic-card', ['clinic' => $clinic])
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- Best-priced clinics --}}
+@if(($bestPricedClinics ?? collect())->isNotEmpty())
+<section class="py-12 px-4 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex items-center justify-between mb-2">
+            <h2 class="text-2xl font-bold text-gray-800">@lang('site.best_priced_clinics')</h2>
+            <a href="{{ route('search', ['sort' => 'cheapest']) }}" class="text-teal-600 text-sm hover:underline">@lang('site.view_all')</a>
+        </div>
+        <p class="text-gray-500 text-sm mb-6">@lang('site.best_priced_subtitle')</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            @foreach($bestPricedClinics as $clinic)
+                <div class="relative">
+                    @include('public.partials.clinic-card', ['clinic' => $clinic])
+                    @if($clinic->min_price)
+                        <span class="absolute top-3 end-3 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-bold">
+                            {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
+                        </span>
+                    @endif
+                </div>
             @endforeach
         </div>
     </div>

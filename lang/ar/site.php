@@ -32,6 +32,85 @@ return [
     'cta_subtitle' => 'انضم إلى آلاف المجمعات على منصة سعرها واحصل على المزيد من العملاء.',
     'cta_button' => 'سجّل مجمعك الآن',
 
+    // Home extra sections
+    'top_rated_clinics' => 'المجمعات الأعلى تقييماً',
+    'top_rated_subtitle' => 'بناءً على تقييمات Google الفعلية',
+    'best_priced_clinics' => 'الأفضل سعراً',
+    'best_priced_subtitle' => 'مجمعات بأسعار تنافسية ابتداءً من',
+    'how_it_works_title' => 'كيف تعمل المنصة',
+    'how_it_works_subtitle' => 'ثلاث خطوات بسيطة تربطك بأفضل المجمعات',
+    'how_step_1_title' => 'ابحث',
+    'how_step_1_desc' => 'حدّد التخصص والمدينة لتصفح المجمعات المتاحة',
+    'how_step_2_title' => 'قارن',
+    'how_step_2_desc' => 'استعرض الأسعار والخدمات والتقييمات قبل اتخاذ القرار',
+    'how_step_3_title' => 'تواصل',
+    'how_step_3_desc' => 'أرسل طلب تواصل وسيتصل بك فريق المجمع لتأكيد الموعد',
+    'how_not_appointment_notice' => 'طلب التواصل ليس موعداً مؤكداً — المجمع سيتصل بك للتنسيق',
+
+    // Sort options (search page)
+    'sort_by' => 'الترتيب',
+    'sort_featured' => 'الأكثر شهرة',
+    'sort_top_rated' => 'الأعلى تقييماً',
+    'sort_cheapest' => 'السعر من الأقل',
+    'sort_most_booked' => 'الأكثر حجزاً',
+
+    // Similar clinics
+    'similar_clinics' => 'مجمعات مشابهة',
+    'reviews_count_label' => ':count تقييم',
+    'no_reviews_yet' => 'لا توجد تقييمات بعد',
+    'starting_from' => 'يبدأ من :amount ريال',
+
+    // Booking page
+    'booking_page_title' => 'طلب تواصل مع :clinic',
+    'booking_page_notice' => '⚠️ هذا طلب تواصل وليس حجز موعد نهائي — سيتصل بك المجمع خلال يوم عمل لتأكيد الموعد المناسب لك.',
+    'booking_summary' => 'ملخّص الطلب',
+    'booking_target_clinic' => 'المجمع المستهدف',
+    'booking_target_service' => 'الخدمة المطلوبة',
+    'booking_target_city' => 'المدينة',
+
+    // Booking confirmation
+    'booking_confirmed_title' => 'تم استلام طلبك بنجاح',
+    'booking_confirmed_subtitle' => 'سيتواصل معك فريق المجمع خلال يوم عمل واحد.',
+    'booking_reference_label' => 'رقم الطلب',
+    'booking_back_home' => 'العودة للرئيسية',
+    'booking_browse_more' => 'تصفّح مجمعات أخرى',
+
+    // Price quote modal
+    'request_price_quote' => 'اطلب عرض سعر مخصص',
+    'price_quote_subtitle' => 'صف الخدمة المطلوبة وسيتواصل معك المجمع بعرض سعرٍ ضمن 24 ساعة',
+    'service_short_name' => 'اسم الخدمة',
+    'service_description' => 'وصف تفصيلي للخدمة',
+    'submit_quote_request' => 'إرسال الطلب',
+    'price_quote_sent' => 'تم إرسال طلب عرض السعر بنجاح! سيتواصل معك المجمع خلال 24 ساعة.',
+
+    // Working hours
+    'working_hours_title' => 'ساعات العمل',
+    'working_hours_open_now' => 'مفتوح الآن',
+    'working_hours_closed' => 'مغلق',
+    'working_hours_closed_today' => 'مغلق اليوم',
+    'days' => [
+        0 => 'الأحد',
+        1 => 'الإثنين',
+        2 => 'الثلاثاء',
+        3 => 'الأربعاء',
+        4 => 'الخميس',
+        5 => 'الجمعة',
+        6 => 'السبت',
+    ],
+
+    // Reviews block
+    'reviews_block_title' => 'تقييمات Google',
+    'overall_rating' => 'التقييم الإجمالي',
+    'reviews_unlinked' => 'لم يربط هذا المجمع حسابه بـ Google بعد',
+
+    // Toast/feedback
+    'flash_dismiss' => 'إخفاء',
+
+    // Floating buttons
+    'whatsapp_message' => 'مرحباً، أرغب بالاستفسار عن الخدمات في :clinic',
+    'whatsapp_label' => 'تواصل عبر واتساب',
+    'book_now_label' => 'احجز معنا',
+
     // Search page
     'search_results' => ':count نتيجة',
     'search_results_for' => ':count نتيجة لـ ":query"',

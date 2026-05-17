@@ -16,7 +16,12 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/clinic/{slug}', [ClinicController::class, 'show'])->name('clinic.show');
+Route::get('/clinic/{slug}/book', [ClinicController::class, 'bookingForm'])->name('clinic.book.form');
 Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->name('clinic.book');
+Route::post('/clinic/{slug}/quote', [ClinicController::class, 'priceQuote'])->name('clinic.quote');
+Route::get('/booking/{reference}', [ClinicController::class, 'bookingConfirmation'])
+    ->where('reference', '[A-Z0-9-]+')
+    ->name('booking.confirmation');
 
 // Customer OTP auth
 Route::middleware('guest:web')->group(function () {

@@ -32,6 +32,85 @@ return [
     'cta_subtitle' => 'Join thousands of complexs on Saerha and reach more patients.',
     'cta_button' => 'List your complex now',
 
+    // Home extra sections
+    'top_rated_clinics' => 'Top-rated complexes',
+    'top_rated_subtitle' => 'Based on real Google reviews',
+    'best_priced_clinics' => 'Best value',
+    'best_priced_subtitle' => 'Competitive prices starting from',
+    'how_it_works_title' => 'How it works',
+    'how_it_works_subtitle' => 'Three simple steps connect you with the right complex',
+    'how_step_1_title' => 'Search',
+    'how_step_1_desc' => 'Pick a specialty and a city to browse available complexes',
+    'how_step_2_title' => 'Compare',
+    'how_step_2_desc' => 'Review prices, services and ratings before deciding',
+    'how_step_3_title' => 'Contact',
+    'how_step_3_desc' => 'Submit a contact request — the complex team will reach out to confirm a time',
+    'how_not_appointment_notice' => 'A contact request is not a confirmed appointment — the complex will call you to arrange one',
+
+    // Sort options (search page)
+    'sort_by' => 'Sort',
+    'sort_featured' => 'Featured first',
+    'sort_top_rated' => 'Top rated',
+    'sort_cheapest' => 'Lowest price',
+    'sort_most_booked' => 'Most booked',
+
+    // Similar clinics
+    'similar_clinics' => 'Similar complexes',
+    'reviews_count_label' => ':count reviews',
+    'no_reviews_yet' => 'No reviews yet',
+    'starting_from' => 'from :amount SAR',
+
+    // Booking page
+    'booking_page_title' => 'Contact request to :clinic',
+    'booking_page_notice' => '⚠️ This is a contact request, not a confirmed appointment — the complex will call you within one business day to arrange a time.',
+    'booking_summary' => 'Request summary',
+    'booking_target_clinic' => 'Target complex',
+    'booking_target_service' => 'Requested service',
+    'booking_target_city' => 'City',
+
+    // Booking confirmation
+    'booking_confirmed_title' => 'Your request has been received',
+    'booking_confirmed_subtitle' => 'The complex team will contact you within one business day.',
+    'booking_reference_label' => 'Reference',
+    'booking_back_home' => 'Back to home',
+    'booking_browse_more' => 'Browse more complexes',
+
+    // Price quote modal
+    'request_price_quote' => 'Request a custom price quote',
+    'price_quote_subtitle' => 'Describe what you need and the complex will reply with a quote within 24 hours',
+    'service_short_name' => 'Service name',
+    'service_description' => 'Detailed description',
+    'submit_quote_request' => 'Send request',
+    'price_quote_sent' => 'Price quote request sent! The complex will contact you within 24 hours.',
+
+    // Working hours
+    'working_hours_title' => 'Working hours',
+    'working_hours_open_now' => 'Open now',
+    'working_hours_closed' => 'Closed',
+    'working_hours_closed_today' => 'Closed today',
+    'days' => [
+        0 => 'Sunday',
+        1 => 'Monday',
+        2 => 'Tuesday',
+        3 => 'Wednesday',
+        4 => 'Thursday',
+        5 => 'Friday',
+        6 => 'Saturday',
+    ],
+
+    // Reviews block
+    'reviews_block_title' => 'Google reviews',
+    'overall_rating' => 'Overall rating',
+    'reviews_unlinked' => 'This complex has not linked its Google account yet',
+
+    // Toast/feedback
+    'flash_dismiss' => 'Dismiss',
+
+    // Floating buttons
+    'whatsapp_message' => 'Hi, I would like to inquire about services at :clinic',
+    'whatsapp_label' => 'Chat on WhatsApp',
+    'book_now_label' => 'Book now',
+
     // Search page
     'search_results' => ':count results',
     'search_results_for' => ':count results for ":query"',

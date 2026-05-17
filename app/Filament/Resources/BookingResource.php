@@ -57,6 +57,12 @@ class BookingResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('reference_code')
+                    ->label(__('admin.fields.reference_code'))
+                    ->searchable()
+                    ->copyable()
+                    ->badge()
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('clinic.name')->label(__('admin.fields.name_clinic'))->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('customer_name')->label(__('admin.fields.customer_name'))->searchable(),
                 Tables\Columns\TextColumn::make('customer_phone')->label(__('admin.fields.phone')),

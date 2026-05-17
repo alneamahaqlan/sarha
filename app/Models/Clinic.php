@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -60,6 +61,22 @@ class Clinic extends Authenticatable implements FilamentUser
     public function isPremium(): bool
     {
         return $this->subscription_type === 'premium' && $this->isSubscriptionActive();
+    }
+
+    public function scopePubliclyVisible(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'active')
+            ->whereNotNull('subscription_ends_at')
+            ->where('subscription_ends_at', '>=', now());
+    }
+
+    public function scopeRankedForListing(Builder $query): Builder
+    {
+        return $query
+            ->orderByDesc('is_featured')
+            ->orderByRaw("CASE WHEN subscription_type = 'premium' THEN 0 ELSE 1 END")
+            ->latest('created_at');
     }
 
     public function city()
@@ -120,5 +137,15 @@ class Clinic extends Authenticatable implements FilamentUser
     public function notifications()
     {
         return $this->morphMany(PlatformNotification::class, 'notifiable');
+    }
+
+    public function workingHours()
+    {
+        return $this->hasMany(ClinicWorkingHour::class)->orderBy('day_of_week');
+    }
+
+    public function complaints()
+    {
+        return $this->hasMany(Complaint::class);
     }
 }

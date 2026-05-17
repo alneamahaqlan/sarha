@@ -52,6 +52,11 @@ return [
     'res_my_article' => 'Article',
     'res_my_articles' => 'My Articles',
     'res_clinic_profile' => 'Complex Profile',
+    'res_complaints' => 'Complaints',
+    'res_complaint' => 'Complaint',
+    'res_price_quote_requests' => 'Price quote requests',
+    'res_price_quote_request' => 'Price quote',
+    'res_system_settings' => 'System Settings',
 
     // ============================================
     // Form/Table field labels
@@ -188,6 +193,17 @@ return [
         'tabs_social' => 'Social links',
         'tabs_images' => 'Images',
         'default_dash' => '—',
+        'reference_code' => 'Reference',
+        'complaint_type' => 'Complaint type',
+        'priority' => 'Priority',
+        'subject' => 'Subject',
+        'description' => 'Description',
+        'admin_notes' => 'Admin notes',
+        'resolution' => 'Resolution',
+        'assigned_admin' => 'Assigned admin',
+        'rejection_reason' => 'Rejection reason',
+        'clinic_notified' => 'Complex notified',
+        'created_at' => 'Created at',
     ],
 
     // ============================================
@@ -259,6 +275,62 @@ return [
         'save_changes' => 'Save changes',
         'cancel' => 'Cancel',
         'add_clinic' => 'Add complex',
+        'mark_in_review' => 'Mark in review',
+        'resolve' => 'Resolve',
+        'reject' => 'Reject',
+        'notify_clinic' => 'Notify complex',
+        'convert_to_basic' => 'Convert to Basic',
+        'convert_to_premium' => 'Convert to Premium',
+        'approve' => 'Approve',
+        'extend_30' => 'Extend 30 days',
+        'extend_90' => 'Extend 90 days',
+        'generate_excerpt_ai' => 'Generate excerpt with AI',
+        'generate_article_ai' => 'Write article with AI',
+        'analyze_excel_ai' => 'Analyze Excel with AI',
+        'import_from_sheets' => 'Import from Google Sheets',
+        'login_as' => 'Log in as complex',
+    ],
+
+    'tabs' => [
+        'all' => 'All',
+        'today' => 'Today',
+        'this_month' => 'This month',
+        'expiring_soon' => 'Expiring soon',
+    ],
+
+    'complaint_status' => [
+        'new' => 'New',
+        'in_review' => 'In review',
+        'resolved' => 'Resolved',
+        'rejected' => 'Rejected',
+    ],
+
+    'complaint_type' => [
+        'quality' => 'Service quality',
+        'pricing' => 'Pricing',
+        'misleading_info' => 'Misleading info',
+        'other' => 'Other',
+    ],
+
+    'complaint_priority' => [
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+    ],
+
+    'lead_status' => [
+        'new' => 'New',
+        'contacted' => 'Contacted',
+        'interested' => 'Interested',
+        'negotiating' => 'Negotiating',
+        'converted' => 'Converted',
+        'lost' => 'Lost',
+    ],
+
+    'quote_status' => [
+        'new' => 'New',
+        'replied' => 'Replied',
+        'closed' => 'Closed',
     ],
 
     // ============================================

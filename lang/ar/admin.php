@@ -52,6 +52,11 @@ return [
     'res_my_article' => 'مقال',
     'res_my_articles' => 'مقالاتي',
     'res_clinic_profile' => 'ملف المجمع',
+    'res_complaints' => 'الشكاوى',
+    'res_complaint' => 'شكوى',
+    'res_price_quote_requests' => 'طلبات عرض السعر',
+    'res_price_quote_request' => 'طلب عرض سعر',
+    'res_system_settings' => 'إعدادات النظام',
 
     // ============================================
     // Form/Table field labels
@@ -188,6 +193,17 @@ return [
         'tabs_social' => 'وسائل التواصل',
         'tabs_images' => 'الصور',
         'default_dash' => '—',
+        'reference_code' => 'رقم الطلب',
+        'complaint_type' => 'نوع الشكوى',
+        'priority' => 'الأولوية',
+        'subject' => 'الموضوع',
+        'description' => 'الوصف',
+        'admin_notes' => 'ملاحظات الإدارة',
+        'resolution' => 'الحل',
+        'assigned_admin' => 'المسؤول المعيّن',
+        'rejection_reason' => 'سبب الرفض',
+        'clinic_notified' => 'تم إبلاغ المجمع',
+        'created_at' => 'تاريخ الإنشاء',
     ],
 
     // ============================================
@@ -259,6 +275,62 @@ return [
         'save_changes' => 'حفظ التغييرات',
         'cancel' => 'إلغاء',
         'add_clinic' => 'إضافة مجمع',
+        'mark_in_review' => 'قيد المراجعة',
+        'resolve' => 'تم الحل',
+        'reject' => 'رفض',
+        'notify_clinic' => 'تنبيه المجمع',
+        'convert_to_basic' => 'تحويل لأساسية',
+        'convert_to_premium' => 'تحويل لمميزة',
+        'approve' => 'اعتماد',
+        'extend_30' => 'تمديد 30 يوماً',
+        'extend_90' => 'تمديد 90 يوماً',
+        'generate_excerpt_ai' => 'توليد المقدمة بالذكاء',
+        'generate_article_ai' => 'كتابة المقال بالذكاء',
+        'analyze_excel_ai' => 'تحليل Excel بالذكاء',
+        'import_from_sheets' => 'استيراد من Google Sheets',
+        'login_as' => 'دخول كمجمع',
+    ],
+
+    'tabs' => [
+        'all' => 'الكل',
+        'today' => 'اليوم',
+        'this_month' => 'هذا الشهر',
+        'expiring_soon' => 'تنتهي قريباً',
+    ],
+
+    'complaint_status' => [
+        'new' => 'جديدة',
+        'in_review' => 'قيد المراجعة',
+        'resolved' => 'تم الحل',
+        'rejected' => 'مرفوضة',
+    ],
+
+    'complaint_type' => [
+        'quality' => 'جودة الخدمة',
+        'pricing' => 'التسعير',
+        'misleading_info' => 'معلومات مضللة',
+        'other' => 'أخرى',
+    ],
+
+    'complaint_priority' => [
+        'low' => 'منخفضة',
+        'medium' => 'متوسطة',
+        'high' => 'عالية',
+    ],
+
+    'lead_status' => [
+        'new' => 'جديد',
+        'contacted' => 'تم التواصل',
+        'interested' => 'مهتم',
+        'negotiating' => 'جاري التفاوض',
+        'converted' => 'تحول لعميل',
+        'lost' => 'خسر',
+    ],
+
+    'quote_status' => [
+        'new' => 'جديد',
+        'replied' => 'تم الرد',
+        'closed' => 'مغلق',
     ],
 
     // ============================================

@@ -7,7 +7,7 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
     {{-- Search Filters --}}
     <form action="{{ route('search') }}" method="GET" class="bg-white rounded-xl shadow-sm p-5 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <input
                 type="text"
                 name="q"
@@ -28,6 +28,12 @@
                         {{ $cat->emoji ?? '' }} {{ $cat->display_name }}
                     </option>
                 @endforeach
+            </select>
+            <select name="sort" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                <option value="featured" @selected(($sort ?? 'featured') === 'featured')>@lang('site.sort_featured')</option>
+                <option value="top_rated" @selected(($sort ?? '') === 'top_rated')>@lang('site.sort_top_rated')</option>
+                <option value="cheapest" @selected(($sort ?? '') === 'cheapest')>@lang('site.sort_cheapest')</option>
+                <option value="most_booked" @selected(($sort ?? '') === 'most_booked')>@lang('site.sort_most_booked')</option>
             </select>
             <button type="submit" class="bg-teal-600 text-white rounded-lg py-2.5 font-semibold hover:bg-teal-700 transition-colors">
                 @lang('site.search_button')
