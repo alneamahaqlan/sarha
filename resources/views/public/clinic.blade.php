@@ -94,9 +94,22 @@
                     @endif
                 </div>
 
-                {{-- Share + Book CTA --}}
+                {{-- Share + Favorite + Book CTA --}}
                 <div class="flex flex-col gap-3 items-end">
-                    @include('public.partials.share-buttons')
+                    <div class="flex items-center gap-2">
+                        @auth('web')
+                            @php $isFavorited = auth('web')->user()->hasFavorited($clinic); @endphp
+                            <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}">
+                                @csrf
+                                <button type="submit"
+                                        title="{{ $isFavorited ? __('site.favorite_remove') : __('site.favorite_add') }}"
+                                        class="w-9 h-9 rounded-full {{ $isFavorited ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }} flex items-center justify-center transition-colors">
+                                    {{ $isFavorited ? '❤️' : '🤍' }}
+                                </button>
+                            </form>
+                        @endauth
+                        @include('public.partials.share-buttons')
+                    </div>
                     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
                        class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
                         @lang('site.book_appointment')

@@ -131,6 +131,31 @@ return [
     'verified_badge' => 'موثّق',
     'premium_badge' => 'مميز',
 
+    // Smart badges (search results)
+    'badge_top_rated' => 'الأعلى تقييماً',
+    'badge_best_price' => 'الأفضل سعراً',
+    'badge_most_booked' => 'الأكثر حجزاً',
+    'badge_featured_short' => 'مميز',
+
+    // Customer account
+    'account_title' => 'حسابي',
+    'account_profile' => 'الملف الشخصي',
+    'account_my_bookings' => 'طلباتي',
+    'account_my_favorites' => 'المفضلة',
+    'account_logout' => 'تسجيل الخروج',
+    'account_phone_locked' => 'رقم الهاتف يُستخدم لتسجيل الدخول ولا يمكن تعديله من هنا',
+    'account_save' => 'حفظ التغييرات',
+    'account_updated' => 'تم تحديث الحساب بنجاح',
+    'account_no_bookings' => 'ليس لديك طلبات تواصل بعد',
+    'account_no_favorites' => 'لم تضف أي مجمع للمفضلة بعد',
+    'account_start_browsing' => 'تصفّح المجمعات',
+    'favorite_added' => 'تمت إضافة المجمع للمفضلة',
+    'favorite_removed' => 'تمت إزالة المجمع من المفضلة',
+    'favorite_add' => 'إضافة للمفضلة',
+    'favorite_remove' => 'إزالة من المفضلة',
+    'bookings_count' => ':count طلب',
+    'favorites_count' => ':count مفضل',
+
     // Search page
     'search_results' => ':count نتيجة',
     'search_results_for' => ':count نتيجة لـ ":query"',

@@ -46,4 +46,14 @@ class User extends Authenticatable
     {
         return $this->morphMany(PlatformNotification::class, 'notifiable');
     }
+
+    public function favorites()
+    {
+        return $this->belongsToMany(Clinic::class, 'favorites')->withTimestamps();
+    }
+
+    public function hasFavorited(Clinic $clinic): bool
+    {
+        return $this->favorites()->where('clinics.id', $clinic->id)->exists();
+    }
 }

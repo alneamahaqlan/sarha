@@ -51,7 +51,13 @@
                 </a>
 
                 @auth('web')
-                    <span class="text-sm text-gray-700 hidden sm:inline">{{ auth('web')->user()->name }}</span>
+                    <a href="{{ route('account.show') }}"
+                       class="text-sm text-gray-700 hover:text-teal-600 transition-colors flex items-center gap-1.5">
+                        <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold">
+                            {{ mb_substr(auth('web')->user()->name ?: 'م', 0, 1) }}
+                        </span>
+                        <span class="hidden sm:inline">{{ auth('web')->user()->name ?: __('site.account_title') }}</span>
+                    </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>

@@ -131,6 +131,32 @@ return [
     'verified_badge' => 'Verified',
     'premium_badge' => 'Premium',
 
+    // Smart badges (search results)
+    'badge_top_rated' => 'Top rated',
+    'badge_best_price' => 'Best price',
+    'badge_most_booked' => 'Most booked',
+    'badge_featured_short' => 'Featured',
+
+    // Customer account
+    'account_title' => 'My account',
+    'account_profile' => 'Profile',
+    'account_my_bookings' => 'My bookings',
+    'account_my_favorites' => 'Favorites',
+    'account_logout' => 'Sign out',
+    'account_phone_locked' => 'Phone number is used for login and cannot be edited here',
+    'account_save' => 'Save changes',
+    'account_updated' => 'Account updated successfully',
+    'account_no_bookings' => 'You have no contact requests yet',
+    'account_no_favorites' => 'You have not saved any complex yet',
+    'account_start_browsing' => 'Browse complexes',
+    'favorite_added' => 'Added to favorites',
+    'favorite_removed' => 'Removed from favorites',
+    'favorite_add' => 'Add to favorites',
+    'favorite_remove' => 'Remove from favorites',
+    'bookings_count' => ':count requests',
+    'favorites_count' => ':count favorites',
+
+
     // Search page
     'search_results' => ':count results',
     'search_results_for' => ':count results for ":query"',

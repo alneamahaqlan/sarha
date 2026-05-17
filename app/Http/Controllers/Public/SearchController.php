@@ -14,7 +14,11 @@ class SearchController extends Controller
 
     public function index(Request $request)
     {
-        $query = Clinic::publiclyVisible()->with(['city', 'categories']);
+        $query = Clinic::publiclyVisible()
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price');
 
         if ($request->filled('city')) {
             $query->where('city_id', $request->city);

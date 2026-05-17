@@ -2,10 +2,16 @@
 
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\Public\AccountController;
 use App\Http\Controllers\Public\ClinicController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+// SEO
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
+Route::get('/robots.txt', [SitemapController::class, 'robots']);
 
 // Language switcher
 Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
@@ -30,3 +36,12 @@ Route::middleware('guest:web')->group(function () {
     Route::post('/login/verify', [OtpController::class, 'verifyOtp'])->name('login.verify');
 });
 Route::post('/logout', [OtpController::class, 'logout'])->name('logout');
+
+// Customer account area
+Route::middleware('auth:web')->group(function () {
+    Route::get('/account', [AccountController::class, 'show'])->name('account.show');
+    Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
+    Route::get('/account/bookings', [AccountController::class, 'bookings'])->name('account.bookings');
+    Route::get('/account/favorites', [AccountController::class, 'favorites'])->name('account.favorites');
+    Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
+});
