@@ -9,7 +9,7 @@ class UpdateSalesLeadRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user('admin') !== null
-            && $this->user('admin')->can('update', $this->route('sales_lead'));
+            && $this->user('admin')->can('update', $this->route('salesLead'));
     }
 
     public function rules(): array

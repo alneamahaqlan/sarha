@@ -72,4 +72,15 @@ export const clinicsApi = {
     );
     return res.data.data;
   },
+  restore: async (id: number) => {
+    const res = await apiClient.post<SingleResponse<Clinic>>(`/admin/clinics/${id}/restore`);
+    return res.data.data;
+  },
+  bulk: async (action: 'delete' | 'restore' | 'force_delete', ids: number[]) => {
+    const res = await apiClient.post<{ data: { affected: number } }>(`/admin/clinics/bulk`, {
+      action,
+      ids,
+    });
+    return res.data.data;
+  },
 };

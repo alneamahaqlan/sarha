@@ -29,6 +29,7 @@ import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 
 import { useBookings, useDeleteBooking, useRestoreBooking } from '../hooks';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingForm } from '../components/BookingForm';
 import { BookingStatusBadge } from '../components/StatusBadge';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '../types';
@@ -46,15 +47,17 @@ export function BookingsIndex() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Booking | null>(null);
 
+  const debouncedSearch = useDebouncedValue(search, 300);
+
   const queryParams = useMemo(
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { status: statusFilter, clinic_id: clinicFilter, trashed: trashedFilter },
     }),
-    [page, search, statusFilter, clinicFilter, trashedFilter],
+    [page, debouncedSearch, statusFilter, clinicFilter, trashedFilter],
   );
   const { data, isLoading, isFetching } = useBookings(queryParams);
   const { data: clinics } = useClinicLookup();

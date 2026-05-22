@@ -57,3 +57,17 @@ export function useDeleteClinic() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: number) => clinicsApi.delete(id), onSuccess: invalidator(qc) });
 }
+
+export function useRestoreClinic() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => clinicsApi.restore(id), onSuccess: invalidator(qc) });
+}
+
+export function useBulkClinic() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ action, ids }: { action: 'delete' | 'restore' | 'force_delete'; ids: number[] }) =>
+      clinicsApi.bulk(action, ids),
+    onSuccess: invalidator(qc),
+  });
+}

@@ -9,7 +9,7 @@ class ConvertSalesLeadRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user('admin') !== null
-            && $this->user('admin')->can('convert', $this->route('sales_lead'));
+            && $this->user('admin')->can('convert', $this->route('salesLead'));
     }
 
     public function rules(): array

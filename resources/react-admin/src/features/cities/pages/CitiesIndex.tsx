@@ -29,6 +29,7 @@ import { extractMessage, isApiError } from '@/lib/api-client';
 
 import { useCities, useDeleteCity } from '../hooks';
 import { CityForm } from '../components/CityForm';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import type { City } from '../types';
 
 export function CitiesIndex() {
@@ -40,9 +41,11 @@ export function CitiesIndex() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<City | null>(null);
 
+  const debouncedSearch = useDebouncedValue(search, 300);
+
   const queryParams = useMemo(
-    () => ({ page, per_page: 15, search: search.trim() || undefined, sort: 'sort_order' }),
-    [page, search],
+    () => ({ page, per_page: 15, search: debouncedSearch.trim() || undefined, sort: 'sort_order' }),
+    [page, debouncedSearch],
   );
   const { data, isLoading, isFetching } = useCities(queryParams);
   const del = useDeleteCity();

@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\ImpersonationController as ApiImpersonationController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
 use App\Http\Controllers\Api\V1\Shared\NotificationController;
+use App\Http\Controllers\Api\V1\Shared\UploadController;
 use App\Models\Booking;
 use App\Models\Clinic;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +73,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // AI assistant — same AiAssistantService::ask the Filament Livewire chat calls.
         Route::post('ai-chat', [AiChatController::class, 'ask'])->middleware('throttle:30,1')->name('ai-chat.ask');
+
+        // Image uploads (logos, gallery, article covers). Allowed dirs are whitelisted
+        // in UploadFileRequest to match Filament's FileUpload::directory() targets.
+        Route::post('uploads', [UploadController::class, 'store'])->name('uploads.store');
     });
 
     // -------------------- Admin guard --------------------
@@ -116,6 +121,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Clinic — 6 action endpoints (approve/reject/activate/suspend/extend/impersonate)
         // each delegates to ClinicService. Soft-deleted rows reachable via {clinic_trashed}.
         Route::bind('clinic_trashed', fn ($id) => Clinic::withTrashed()->findOrFail($id));
+        Route::post('clinics/bulk', [ClinicController::class, 'bulk'])->name('clinics.bulk');
+        Route::post('clinics/{clinic_trashed}/restore', [ClinicController::class, 'restore'])->name('clinics.restore');
         Route::post('clinics/{clinic}/approve', [ClinicController::class, 'approve'])->name('clinics.approve');
         Route::post('clinics/{clinic}/reject', [ClinicController::class, 'reject'])->name('clinics.reject');
         Route::post('clinics/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate');

@@ -1,14 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Search, Star } from 'lucide-react';
+import { RotateCcw, Search, Star } from 'lucide-react';
+import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useCityLookup } from '@/features/lookups/hooks';
+import { extractMessage } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
-import { useClinics } from '../hooks';
+import { useClinics, useRestoreClinic } from '../hooks';
 import { ClinicActionsMenu } from '../components/ClinicActions';
 import { ClinicPlanBadge, ClinicStatusBadge } from '../components/ClinicBadges';
 import { CLINIC_PLANS, CLINIC_STATUSES, type ClinicPlan, type ClinicStatus } from '../types';
@@ -24,18 +28,22 @@ export function ClinicsIndex() {
   const [cityFilter, setCityFilter] = useState<number | undefined>();
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
 
+  // Server query only fires after 300ms of input idle to avoid hammering on every keystroke.
+  const debouncedSearch = useDebouncedValue(search, 300);
+
   const queryParams = useMemo(
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { status: statusFilter, subscription_type: planFilter, city_id: cityFilter, trashed: trashedFilter },
     }),
-    [page, search, statusFilter, planFilter, cityFilter, trashedFilter],
+    [page, debouncedSearch, statusFilter, planFilter, cityFilter, trashedFilter],
   );
   const { data, isLoading, isFetching } = useClinics(queryParams);
   const { data: cities } = useCityLookup();
+  const restore = useRestoreClinic();
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
@@ -134,7 +142,10 @@ export function ClinicsIndex() {
                     <div className="h-9 w-9 rounded-full bg-[var(--color-muted)]" />
                   )}
                 </TableCell>
-                <TableCell className="font-medium">{clinic.name}</TableCell>
+                <TableCell className="font-medium">
+                  {clinic.name}
+                  {clinic.is_trashed && <Badge variant="danger" className="ms-2">{t('clinics.trashed_badge')}</Badge>}
+                </TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{clinic.city?.name ?? '—'}</TableCell>
                 <TableCell dir="ltr">{clinic.phone}</TableCell>
                 <TableCell><ClinicStatusBadge status={clinic.status} /></TableCell>
@@ -146,7 +157,26 @@ export function ClinicsIndex() {
                   {clinic.is_featured && <Star className="h-4 w-4 fill-amber-400 text-amber-500" />}
                 </TableCell>
                 <TableCell className="text-end">
-                  {!clinic.is_trashed && <ClinicActionsMenu clinic={clinic} />}
+                  {clinic.is_trashed ? (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t('clinics.actions.restore')}
+                      disabled={restore.isPending}
+                      onClick={async () => {
+                        try {
+                          await restore.mutateAsync(clinic.id);
+                          toast.success(t('clinics.actions.restored'));
+                        } catch (err) {
+                          toast.error(extractMessage(err, t('errors.generic')));
+                        }
+                      }}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <ClinicActionsMenu clinic={clinic} />
+                  )}
                 </TableCell>
               </TableRow>
             ))

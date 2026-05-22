@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -23,6 +24,7 @@ const schema = z.object({
   instagram: z.string().max(255).nullish(),
   twitter: z.string().max(255).nullish(),
   snapchat: z.string().max(255).nullish(),
+  logo: z.string().nullish(),
   password: z.string().min(8).optional().or(z.literal('')),
 });
 type FormValues = z.infer<typeof schema>;
@@ -36,7 +38,7 @@ export function ClinicProfilePage() {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '', phone: '', email: '', address: '', description: '',
-      website: '', instagram: '', twitter: '', snapchat: '', password: '',
+      website: '', instagram: '', twitter: '', snapchat: '', logo: '', password: '',
     },
   });
 
@@ -52,6 +54,7 @@ export function ClinicProfilePage() {
         instagram: clinic.instagram ?? '',
         twitter: clinic.twitter ?? '',
         snapchat: clinic.snapchat ?? '',
+        logo: clinic.logo ?? '',
         password: '',
       });
     }
@@ -121,6 +124,14 @@ export function ClinicProfilePage() {
           <div className="space-y-1.5">
             <Label htmlFor="snapchat">{t('clinic_profile.snapchat')}</Label>
             <Input id="snapchat" {...form.register('snapchat')} />
+          </div>
+          <div className="md:col-span-2">
+            <FileUpload
+              label={t('clinic_profile.logo')}
+              value={form.watch('logo')}
+              onChange={(p) => form.setValue('logo', p, { shouldDirty: true })}
+              directory="clinics/logos"
+            />
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="password">{t('clinic_profile.new_password')}</Label>

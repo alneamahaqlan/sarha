@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\BulkClinicRequest;
 use App\Http\Requests\Api\V1\Admin\ExtendClinicRequest;
 use App\Http\Requests\Api\V1\Admin\RejectClinicRequest;
 use App\Http\Requests\Api\V1\Admin\StoreClinicRequest;
@@ -187,5 +188,55 @@ class ClinicController extends Controller
                 'clinic'   => (new ClinicApiResource($clinic->load('city:id,name')))->toArray(request()),
             ],
         ]);
+    }
+
+    /**
+     * Bulk delete / restore / forceDelete on selected clinics.
+     * Mirrors Filament's BulkActionGroup actions, with each row checked via
+     * the corresponding Policy ability so any row that fails authorization
+     * is silently skipped from the count instead of aborting the whole batch.
+     */
+    /**
+     * Restore a soft-deleted clinic. Single-row counterpart to the bulk action.
+     */
+    public function restore(Clinic $clinic_trashed): ClinicApiResource
+    {
+        $this->authorize('restore', $clinic_trashed);
+
+        $clinic_trashed->restore();
+
+        return new ClinicApiResource($clinic_trashed->fresh()->load(['city:id,name', 'categories:id,name']));
+    }
+
+    public function bulk(BulkClinicRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $action = $data['action'];
+        $ids = $data['ids'];
+
+        // Force/Restore need access to soft-deleted rows.
+        $query = Clinic::query()->withoutGlobalScopes([SoftDeletingScope::class])->whereIn('id', $ids);
+
+        $affected = 0;
+
+        foreach ($query->get() as $clinic) {
+            $ability = match ($action) {
+                'delete'        => 'delete',
+                'restore'       => 'restore',
+                'force_delete'  => 'forceDelete',
+            };
+
+            if (! auth('admin')->user()->can($ability, $clinic)) continue;
+
+            match ($action) {
+                'delete'        => $clinic->delete(),
+                'restore'       => $clinic->restore(),
+                'force_delete'  => $clinic->forceDelete(),
+            };
+
+            $affected++;
+        }
+
+        return response()->json(['data' => ['affected' => $affected]]);
     }
 }

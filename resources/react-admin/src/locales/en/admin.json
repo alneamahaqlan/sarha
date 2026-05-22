@@ -316,8 +316,11 @@
       "extended": "Subscription extended by {{days}} days",
       "login_as": "Login as clinic",
       "login_as_title": "Login as {{clinic}}?",
-      "login_as_body": "A red banner will appear at the top indicating impersonation mode."
-    }
+      "login_as_body": "A red banner will appear at the top indicating impersonation mode.",
+      "restore": "Restore",
+      "restored": "Clinic restored"
+    },
+    "trashed_badge": "Trashed"
   },
   "subscriptions": {
     "title": "Subscriptions",
@@ -559,7 +562,14 @@
     "new_password": "New password",
     "password_hint": "Leave blank to keep the current password",
     "save": "Save changes",
-    "saved": "Profile saved"
+    "saved": "Profile saved",
+    "logo": "Clinic logo"
+  },
+  "uploads": {
+    "upload": "Upload image",
+    "change": "Change image",
+    "uploading": "Uploading...",
+    "remove": "Remove image"
   },
   "import_services": {
     "title": "Import services from Excel/CSV",
