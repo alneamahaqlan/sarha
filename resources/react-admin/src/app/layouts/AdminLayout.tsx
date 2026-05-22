@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -21,6 +21,8 @@ const adminNav = [
   { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
   { to: '/admin/categories', label: 'nav.categories', icon: Tag },
   { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+  { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
+  { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
   { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
 ];
 

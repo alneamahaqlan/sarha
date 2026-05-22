@@ -16,6 +16,8 @@ import { ClinicsIndex } from '@/features/clinics/pages/ClinicsIndex';
 import { SubscriptionsIndex } from '@/features/subscriptions/pages/SubscriptionsIndex';
 import { PriceQuotesIndex } from '@/features/price-quotes/pages/PriceQuotesIndex';
 import { AuditLogsIndex } from '@/features/audit-logs/pages/AuditLogsIndex';
+import { SystemSettingsIndex } from '@/features/system-settings/pages/SystemSettingsIndex';
+import { MassNotifyPage } from '@/features/mass-notify/pages/MassNotifyPage';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -57,6 +59,8 @@ export function AppRoutes() {
             <Route path="subscriptions" element={<SubscriptionsIndex />} />
             <Route path="price-quotes" element={<PriceQuotesIndex />} />
             <Route path="audit-logs" element={<AuditLogsIndex />} />
+            <Route path="system-settings" element={<SystemSettingsIndex />} />
+            <Route path="mass-notify" element={<MassNotifyPage />} />
           </Route>
         </Route>
         <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />

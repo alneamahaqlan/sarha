@@ -2,8 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Clinic;
-use App\Services\NotificationService;
+use App\Services\MassNotifyService;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -79,21 +78,7 @@ class MassNotify extends Page implements HasForms
     {
         $payload = $this->form->getState();
 
-        $recipients = match ($payload['audience']) {
-            'premium'   => Clinic::publiclyVisible()->where('subscription_type', 'premium')->get(),
-            'basic'     => Clinic::publiclyVisible()->where('subscription_type', 'basic')->get(),
-            'expiring'  => Clinic::publiclyVisible()
-                ->where('subscription_ends_at', '<=', now()->addDays(10))->get(),
-            default     => Clinic::publiclyVisible()->get(),
-        };
-
-        $sent = app(NotificationService::class)->massNotify($recipients, [
-            'type'     => 'mass_notice',
-            'icon'     => 'heroicon-o-megaphone',
-            'priority' => $payload['priority'],
-            'title'    => $payload['title'],
-            'body'     => $payload['body'],
-        ]);
+        $sent = app(MassNotifyService::class)->send($payload);
 
         Notification::make()
             ->title(__('admin.mass_notify_sent', ['count' => $sent]))

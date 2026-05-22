@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\V1\Admin\PriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Admin\SalesLeadController;
 use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
+use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
+use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
@@ -105,6 +107,15 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('audit-logs', AuditLogController::class)
             ->only(['index', 'show'])
             ->parameters(['audit-logs' => 'auditLog']);
+
+        // System settings — Filament allows edit only (no create/delete). Cache::forget
+        // is fired in the controller, mirroring EditAction::after().
+        Route::apiResource('system-settings', SystemSettingController::class)
+            ->only(['index', 'show', 'update'])
+            ->parameters(['system-settings' => 'systemSetting']);
+
+        // Mass notify — delegates to MassNotifyService (same code the Filament page calls).
+        Route::post('mass-notify', [MassNotifyController::class, 'send'])->name('mass-notify.send');
     });
 
     // -------------------- Clinic guard --------------------

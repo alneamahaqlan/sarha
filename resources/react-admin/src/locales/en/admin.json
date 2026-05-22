@@ -32,7 +32,9 @@
     "clinics": "Clinics",
     "subscriptions": "Subscriptions",
     "price_quotes": "Price quotes",
-    "audit_logs": "Audit log"
+    "audit_logs": "Audit log",
+    "system_settings": "System settings",
+    "mass_notify": "Mass notify"
   },
   "auth": {
     "login_title": "Sign in",
@@ -367,6 +369,38 @@
     "model_id": "ID",
     "ip_address": "IP address",
     "date": "Date"
+  },
+  "system_settings": {
+    "title": "System settings",
+    "subtitle": "Edit platform configuration values",
+    "key": "Key",
+    "label": "Label",
+    "value": "Value",
+    "type": "Type",
+    "saved": "Setting saved"
+  },
+  "mass_notify": {
+    "title": "Mass notify",
+    "subtitle": "Send a notification to a group of clinics at once",
+    "audience": "Audience",
+    "priority": "Priority",
+    "subject": "Subject",
+    "body": "Message",
+    "send": "Send",
+    "confirm_heading": "Confirm send?",
+    "confirm_body": "The notification will be sent to all clinics in the selected audience.",
+    "audiences": {
+      "all": "All clinics",
+      "premium": "Premium clinics",
+      "basic": "Basic clinics",
+      "expiring": "Expiring subscriptions"
+    },
+    "priorities": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    }
   },
   "errors": {
     "generic": "An unexpected error occurred",
