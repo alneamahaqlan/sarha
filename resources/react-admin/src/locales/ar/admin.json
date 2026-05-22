@@ -37,7 +37,8 @@
     "price_quotes": "طلبات التسعير",
     "audit_logs": "سجل التدقيق",
     "system_settings": "إعدادات النظام",
-    "mass_notify": "إشعار جماعي"
+    "mass_notify": "إشعار جماعي",
+    "articles": "المقالات"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -615,5 +616,30 @@
     "validation": "الرجاء التحقق من البيانات المدخلة",
     "unauthorized": "ليس لديك صلاحية لتنفيذ هذا الإجراء",
     "network": "تعذر الاتصال بالخادم"
+  },
+  "admin_articles": {
+    "title": "المقالات",
+    "subtitle": "إدارة المقالات لجميع العيادات",
+    "create": "مقال جديد",
+    "edit": "تعديل المقال",
+    "clinic": "العيادة",
+    "title_field": "العنوان",
+    "slug": "الرابط القصير",
+    "excerpt": "الملخص",
+    "body": "المحتوى",
+    "is_published": "منشور",
+    "ai_generated": "تم توليده بالذكاء الاصطناعي",
+    "views_count": "المشاهدات",
+    "created_at": "تاريخ الإنشاء",
+    "filter_all_clinics": "كل العيادات",
+    "filter_all_statuses": "كل الحالات",
+    "filter_published": "منشور",
+    "filter_draft": "مسودة",
+    "created": "تم إنشاء المقال",
+    "updated": "تم تحديث المقال",
+    "deleted": "تم حذف المقال",
+    "limit_hit": "تم تجاوز حد النشر للخطة — تم الحفظ كمسودة",
+    "delete_confirm_title": "حذف المقال؟",
+    "delete_confirm_body": "سيتم نقل المقال إلى المحذوفات."
   }
 }

@@ -11,6 +11,10 @@ class ArticleResource extends JsonResource
         return [
             'id'            => $this->id,
             'clinic_id'     => $this->clinic_id,
+            'clinic'        => $this->whenLoaded('clinic', fn () => [
+                'id'   => $this->clinic->id,
+                'name' => $this->clinic->name,
+            ]),
             'title'            => $this->title,
             'slug'             => $this->slug,
             'meta_description' => $this->meta_description,

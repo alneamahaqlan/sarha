@@ -23,6 +23,7 @@ const PriceQuotesIndex    = lazy(() => import('@/features/price-quotes/pages/Pri
 const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/AuditLogsIndex').then(m => ({ default: m.AuditLogsIndex })));
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
+const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
 
 const ClinicDashboardPage = lazy(() => import('@/features/clinic/dashboard/pages/ClinicDashboardPage').then(m => ({ default: m.ClinicDashboardPage })));
 const ClinicServicesIndex = lazy(() => import('@/features/clinic/services/pages/ClinicServicesIndex').then(m => ({ default: m.ClinicServicesIndex })));
@@ -78,6 +79,7 @@ export function AppRoutes() {
               <Route path="sales-leads" element={<SalesLeadsIndex />} />
               <Route path="users" element={<UsersIndex />} />
               <Route path="services" element={<ServicesIndex />} />
+              <Route path="articles" element={<ArticlesIndex />} />
               <Route path="cities" element={<CitiesIndex />} />
               <Route path="categories" element={<CategoriesIndex />} />
               <Route path="admins" element={<AdminsIndex />} />

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -21,6 +21,7 @@ const adminNav = [
   { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
   { to: '/admin/users', label: 'nav.users', icon: Users },
   { to: '/admin/services', label: 'nav.services', icon: Sparkles },
+  { to: '/admin/articles', label: 'nav.articles', icon: FileText },
   { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
   { to: '/admin/categories', label: 'nav.categories', icon: Tag },
   { to: '/admin/admins', label: 'nav.admins', icon: Shield },

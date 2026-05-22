@@ -124,6 +124,10 @@ class AuthController extends Controller
                 'audit_logs.viewAny'   => true,
                 'system_settings.update' => true,
                 'mass_notify.send'     => true,
+                'articles.viewAny'     => true,
+                'articles.create'      => true,
+                'articles.update'      => true,
+                'articles.delete'      => true,
             ];
         }
 

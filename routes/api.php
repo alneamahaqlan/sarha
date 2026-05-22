@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminController;
+use App\Http\Controllers\Api\V1\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
@@ -99,6 +100,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('admins', AdminController::class)->parameter('admins', 'admin_user');
 
         Route::apiResource('services', ServiceController::class);
+
+        // Articles — admin cross-clinic management. Observer enforces basic-plan publish limit.
+        Route::apiResource('articles', AdminArticleController::class);
 
         // Booking — restore + forceDestroy need to resolve trashed rows, so we bind
         // the {booking_trashed} param with withTrashed() instead of default scope.

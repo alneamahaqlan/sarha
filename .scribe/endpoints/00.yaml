@@ -512,7 +512,7 @@ endpoints:
         name: directory
         description: ''
         required: true
-        example: clinics/gallery
+        example: articles
         type: string
         enumValues:
           - clinics/logos
@@ -522,7 +522,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      directory: clinics/gallery
+      directory: articles
     fileParameters:
       file: null
     responses: []
@@ -888,7 +888,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -908,7 +908,7 @@ endpoints:
     cleanBodyParameters:
       name: b
       name_en: 'n'
-      is_active: false
+      is_active: true
       sort_order: 16
     fileParameters: []
     responses: []
@@ -1652,7 +1652,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1662,7 +1662,7 @@ endpoints:
       name: b
       phone: ngzmiyvdljnikhwa
       email: breitenberg.gilbert@example.com
-      is_active: true
+      is_active: false
     fileParameters: []
     responses: []
     responseFields: []
@@ -1771,7 +1771,7 @@ endpoints:
         name: role
         description: ''
         required: true
-        example: super_admin
+        example: admin
         type: string
         enumValues:
           - super_admin
@@ -1785,7 +1785,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1795,8 +1795,8 @@ endpoints:
       name: b
       email: zbailey@example.net
       password: architecto
-      role: super_admin
-      is_active: true
+      role: admin
+      is_active: false
     fileParameters: []
     responses: []
     responseFields: []
@@ -1930,7 +1930,7 @@ endpoints:
         name: role
         description: ''
         required: false
-        example: admin
+        example: sales
         type: string
         enumValues:
           - super_admin
@@ -1944,7 +1944,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -1953,8 +1953,8 @@ endpoints:
     cleanBodyParameters:
       name: b
       email: zbailey@example.net
-      role: admin
-      is_active: false
+      role: sales
+      is_active: true
     fileParameters: []
     responses: []
     responseFields: []
@@ -2139,7 +2139,7 @@ endpoints:
         name: is_active
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -2152,7 +2152,7 @@ endpoints:
       price: 60
       old_price: 42
       offer_expires_at: '2052-06-14'
-      is_active: true
+      is_active: false
     fileParameters: []
     responses: []
     responseFields: []
@@ -2386,6 +2386,436 @@ endpoints:
   -
     custom: []
     httpMethods:
+      - GET
+    uri: api/v1/admin/articles
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 401
+        content: '{"message":"Unauthenticated."}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - POST
+    uri: api/v1/admin/articles
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters: []
+    cleanUrlParameters: []
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      clinic_id:
+        custom: []
+        name: clinic_id
+        description: 'The <code>id</code> of an existing record in the clinics table.'
+        required: true
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      title:
+        custom: []
+        name: title
+        description: 'Must not be greater than 255 characters.'
+        required: true
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      slug:
+        custom: []
+        name: slug
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: g
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      body:
+        custom: []
+        name: body
+        description: ''
+        required: true
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      meta_description:
+        custom: []
+        name: meta_description
+        description: 'Must not be greater than 300 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      cover_image:
+        custom: []
+        name: cover_image
+        description: ''
+        required: false
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tags:
+        custom: []
+        name: tags
+        description: ''
+        required: false
+        example:
+          - architecto
+        type: 'string[]'
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      is_published:
+        custom: []
+        name: is_published
+        description: ''
+        required: false
+        example: true
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      ai_generated:
+        custom: []
+        name: ai_generated
+        description: ''
+        required: false
+        example: true
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      clinic_id: 16
+      title: 'n'
+      slug: g
+      body: architecto
+      meta_description: 'n'
+      cover_image: architecto
+      tags:
+        - architecto
+      is_published: true
+      ai_generated: true
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - GET
+    uri: 'api/v1/admin/articles/{id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the article.'
+        required: true
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 16
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses:
+      -
+        custom: []
+        status: 404
+        content: '{"message":"No query results for model [App\\Models\\Article] 16"}'
+        headers:
+          cache-control: 'no-cache, private'
+          content-type: application/json
+          vary: Origin
+        description: null
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - PUT
+      - PATCH
+    uri: 'api/v1/admin/articles/{id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the article.'
+        required: true
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 16
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters:
+      clinic_id:
+        custom: []
+        name: clinic_id
+        description: 'The <code>id</code> of an existing record in the clinics table.'
+        required: false
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      title:
+        custom: []
+        name: title
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      slug:
+        custom: []
+        name: slug
+        description: 'Must not be greater than 255 characters.'
+        required: false
+        example: g
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      body:
+        custom: []
+        name: body
+        description: ''
+        required: false
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      meta_description:
+        custom: []
+        name: meta_description
+        description: 'Must not be greater than 300 characters.'
+        required: false
+        example: 'n'
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      cover_image:
+        custom: []
+        name: cover_image
+        description: ''
+        required: false
+        example: architecto
+        type: string
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      tags:
+        custom: []
+        name: tags
+        description: ''
+        required: false
+        example:
+          - architecto
+        type: 'string[]'
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+      is_published:
+        custom: []
+        name: is_published
+        description: ''
+        required: false
+        example: false
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+      ai_generated:
+        custom: []
+        name: ai_generated
+        description: ''
+        required: false
+        example: false
+        type: boolean
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: true
+        deprecated: false
+    cleanBodyParameters:
+      clinic_id: 16
+      title: 'n'
+      slug: g
+      body: architecto
+      meta_description: 'n'
+      cover_image: architecto
+      tags:
+        - architecto
+      is_published: false
+      ai_generated: false
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
+      - DELETE
+    uri: 'api/v1/admin/articles/{id}'
+    metadata:
+      custom: []
+      groupName: Endpoints
+      groupDescription: ''
+      subgroup: ''
+      subgroupDescription: ''
+      title: ''
+      description: ''
+      authenticated: false
+      deprecated: false
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    urlParameters:
+      id:
+        custom: []
+        name: id
+        description: 'The ID of the article.'
+        required: true
+        example: 16
+        type: integer
+        enumValues: []
+        exampleWasSpecified: false
+        nullable: false
+        deprecated: false
+    cleanUrlParameters:
+      id: 16
+    queryParameters: []
+    cleanQueryParameters: []
+    bodyParameters: []
+    cleanBodyParameters: []
+    fileParameters: []
+    responses: []
+    responseFields: []
+    auth: []
+    controller: null
+    method: null
+    route: null
+  -
+    custom: []
+    httpMethods:
       - POST
     uri: 'api/v1/admin/bookings/{booking_trashed}/restore'
     metadata:
@@ -2581,7 +3011,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: new
+        example: appointment_set
         type: string
         enumValues:
           - new
@@ -2598,7 +3028,7 @@ endpoints:
         name: appointment_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -2631,8 +3061,8 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       service_id: 16
-      status: new
-      appointment_at: '2026-05-22T22:29:37'
+      status: appointment_set
+      appointment_at: '2026-05-22T22:41:56'
       notes: architecto
       clinic_notes: architecto
     fileParameters: []
@@ -2779,7 +3209,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: completed
+        example: new
         type: string
         enumValues:
           - new
@@ -2796,7 +3226,7 @@ endpoints:
         name: appointment_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -2829,8 +3259,8 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       service_id: 16
-      status: completed
-      appointment_at: '2026-05-22T22:29:37'
+      status: new
+      appointment_at: '2026-05-22T22:41:56'
       notes: architecto
       clinic_notes: architecto
     fileParameters: []
@@ -3191,7 +3621,7 @@ endpoints:
         name: type
         description: ''
         required: true
-        example: misleading_info
+        example: pricing
         type: string
         enumValues:
           - quality
@@ -3206,7 +3636,7 @@ endpoints:
         name: priority
         description: ''
         required: true
-        example: medium
+        example: low
         type: string
         enumValues:
           - low
@@ -3290,8 +3720,8 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       customer_email: gilbert32@example.com
-      type: misleading_info
-      priority: medium
+      type: pricing
+      priority: low
       status: in_review
       assigned_admin_id: 16
       subject: 'n'
@@ -3442,7 +3872,7 @@ endpoints:
         name: type
         description: ''
         required: false
-        example: pricing
+        example: quality
         type: string
         enumValues:
           - quality
@@ -3471,7 +3901,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: in_review
+        example: resolved
         type: string
         enumValues:
           - new
@@ -3541,9 +3971,9 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       customer_email: gilbert32@example.com
-      type: pricing
+      type: quality
       priority: medium
-      status: in_review
+      status: resolved
       assigned_admin_id: 16
       subject: 'n'
       description: 'Eius et animi quos velit et.'
@@ -3639,7 +4069,7 @@ endpoints:
         name: plan
         description: ''
         required: true
-        example: basic
+        example: premium
         type: string
         enumValues:
           - basic
@@ -3648,7 +4078,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      plan: basic
+      plan: premium
     fileParameters: []
     responses: []
     responseFields: []
@@ -3812,7 +4242,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: lost
+        example: converted
         type: string
         enumValues:
           - new
@@ -3840,7 +4270,7 @@ endpoints:
         name: next_follow_up_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -3851,7 +4281,7 @@ endpoints:
         name: last_contact_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -3888,10 +4318,10 @@ endpoints:
       city_id: 16
       district: 'n'
       address: architecto
-      status: lost
+      status: converted
       assigned_to: 16
-      next_follow_up_at: '2026-05-22T22:29:37'
-      last_contact_at: '2026-05-22T22:29:37'
+      next_follow_up_at: '2026-05-22T22:41:56'
+      last_contact_at: '2026-05-22T22:41:56'
       notes: architecto
       sales_notes: architecto
     fileParameters: []
@@ -4082,7 +4512,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: interested
+        example: new
         type: string
         enumValues:
           - new
@@ -4110,7 +4540,7 @@ endpoints:
         name: next_follow_up_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4121,7 +4551,7 @@ endpoints:
         name: last_contact_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4158,10 +4588,10 @@ endpoints:
       city_id: 16
       district: 'n'
       address: architecto
-      status: interested
+      status: new
       assigned_to: 16
-      next_follow_up_at: '2026-05-22T22:29:37'
-      last_contact_at: '2026-05-22T22:29:37'
+      next_follow_up_at: '2026-05-22T22:41:56'
+      last_contact_at: '2026-05-22T22:41:56'
       notes: architecto
       sales_notes: architecto
     fileParameters: []
@@ -4242,7 +4672,7 @@ endpoints:
         name: action
         description: ''
         required: true
-        example: restore
+        example: delete
         type: string
         enumValues:
           - delete
@@ -4264,7 +4694,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      action: restore
+      action: delete
       ids:
         - 16
     fileParameters: []
@@ -4788,7 +5218,7 @@ endpoints:
         name: subscription_starts_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4799,7 +5229,7 @@ endpoints:
         name: subscription_ends_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -4810,7 +5240,7 @@ endpoints:
         name: is_featured
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -4928,9 +5358,9 @@ endpoints:
       description: 'Eius et animi quos velit et.'
       status: rejected
       subscription_type: basic
-      subscription_starts_at: '2026-05-22T22:29:37'
-      subscription_ends_at: '2026-05-22T22:29:37'
-      is_featured: true
+      subscription_starts_at: '2026-05-22T22:41:56'
+      subscription_ends_at: '2026-05-22T22:41:56'
+      is_featured: false
       rejection_reason: architecto
       website: 'http://bailey.com/'
       instagram: m
@@ -5130,7 +5560,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: active
+        example: pending
         type: string
         enumValues:
           - pending
@@ -5158,7 +5588,7 @@ endpoints:
         name: subscription_starts_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -5169,7 +5599,7 @@ endpoints:
         name: subscription_ends_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -5180,7 +5610,7 @@ endpoints:
         name: is_featured
         description: ''
         required: false
-        example: false
+        example: true
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -5295,11 +5725,11 @@ endpoints:
       city_id: 16
       address: architecto
       description: 'Eius et animi quos velit et.'
-      status: active
+      status: pending
       subscription_type: basic
-      subscription_starts_at: '2026-05-22T22:29:37'
-      subscription_ends_at: '2026-05-22T22:29:37'
-      is_featured: false
+      subscription_starts_at: '2026-05-22T22:41:56'
+      subscription_ends_at: '2026-05-22T22:41:56'
+      is_featured: true
       rejection_reason: architecto
       website: 'http://bailey.com/'
       instagram: m
@@ -5464,7 +5894,7 @@ endpoints:
         name: starts_at
         description: 'Must be a valid date.'
         required: true
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -5522,7 +5952,7 @@ endpoints:
       clinic_id: 16
       type: basic
       amount: 39
-      starts_at: '2026-05-22T22:29:37'
+      starts_at: '2026-05-22T22:41:56'
       ends_at: '2052-06-14'
       status: active
       moyasar_payment_id: 'n'
@@ -5662,7 +6092,7 @@ endpoints:
         name: starts_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -5673,7 +6103,7 @@ endpoints:
         name: ends_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:37'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -5684,7 +6114,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: expired
+        example: active
         type: string
         enumValues:
           - active
@@ -5720,9 +6150,9 @@ endpoints:
       clinic_id: 16
       type: premium
       amount: 39
-      starts_at: '2026-05-22T22:29:37'
-      ends_at: '2026-05-22T22:29:37'
-      status: expired
+      starts_at: '2026-05-22T22:41:56'
+      ends_at: '2026-05-22T22:41:56'
+      status: active
       moyasar_payment_id: g
       notes: architecto
     fileParameters: []
@@ -5844,7 +6274,7 @@ endpoints:
         name: status
         description: ''
         required: true
-        example: closed
+        example: new
         type: string
         enumValues:
           - new
@@ -5880,7 +6310,7 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       service_name: k
-      status: closed
+      status: new
       description: 'Eius et animi quos velit et.'
       clinic_reply: architecto
     fileParameters: []
@@ -6027,7 +6457,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: new
+        example: replied
         type: string
         enumValues:
           - new
@@ -6063,7 +6493,7 @@ endpoints:
       customer_name: 'n'
       customer_phone: gzmiyvdljnikhway
       service_name: k
-      status: new
+      status: replied
       description: 'Eius et animi quos velit et.'
       clinic_reply: architecto
     fileParameters: []
@@ -6352,7 +6782,7 @@ endpoints:
         name: type
         description: ''
         required: false
-        example: integer
+        example: decimal
         type: string
         enumValues:
           - string
@@ -6398,7 +6828,7 @@ endpoints:
         deprecated: false
     cleanBodyParameters:
       label: b
-      type: integer
+      type: decimal
       group: 'n'
       value: architecto
       description: 'Eius et animi quos velit et.'
@@ -6437,7 +6867,7 @@ endpoints:
         name: audience
         description: ''
         required: true
-        example: basic
+        example: expiring
         type: string
         enumValues:
           - all
@@ -6452,7 +6882,7 @@ endpoints:
         name: priority
         description: ''
         required: true
-        example: urgent
+        example: high
         type: string
         enumValues:
           - low
@@ -6485,8 +6915,8 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      audience: basic
-      priority: urgent
+      audience: expiring
+      priority: high
       title: b
       body: 'n'
     fileParameters: []
@@ -7144,7 +7574,7 @@ endpoints:
         name: status
         description: ''
         required: false
-        example: new
+        example: completed
         type: string
         enumValues:
           - new
@@ -7161,7 +7591,7 @@ endpoints:
         name: appointment_at
         description: 'Must be a valid date.'
         required: false
-        example: '2026-05-22T22:29:38'
+        example: '2026-05-22T22:41:56'
         type: string
         enumValues: []
         exampleWasSpecified: false
@@ -7179,8 +7609,8 @@ endpoints:
         nullable: true
         deprecated: false
     cleanBodyParameters:
-      status: new
-      appointment_at: '2026-05-22T22:29:38'
+      status: completed
+      appointment_at: '2026-05-22T22:41:56'
       clinic_notes: architecto
     fileParameters: []
     responses: []
@@ -7382,7 +7812,7 @@ endpoints:
         name: kind
         description: ''
         required: true
-        example: excerpt
+        example: article
         type: string
         enumValues:
           - excerpt
@@ -7402,7 +7832,7 @@ endpoints:
         nullable: false
         deprecated: false
     cleanBodyParameters:
-      kind: excerpt
+      kind: article
       title: b
     fileParameters: []
     responses: []
@@ -7546,7 +7976,7 @@ endpoints:
         name: is_published
         description: ''
         required: false
-        example: true
+        example: false
         type: boolean
         enumValues: []
         exampleWasSpecified: false
@@ -7560,7 +7990,7 @@ endpoints:
       cover_image: architecto
       tags:
         - architecto
-      is_published: true
+      is_published: false
     fileParameters: []
     responses: []
     responseFields: []

@@ -37,7 +37,8 @@
     "price_quotes": "Price quotes",
     "audit_logs": "Audit log",
     "system_settings": "System settings",
-    "mass_notify": "Mass notify"
+    "mass_notify": "Mass notify",
+    "articles": "Articles"
   },
   "auth": {
     "login_title": "Sign in",
@@ -615,5 +616,30 @@
     "validation": "Please verify the data you entered",
     "unauthorized": "You don't have permission to perform this action",
     "network": "Failed to reach the server"
+  },
+  "admin_articles": {
+    "title": "Articles",
+    "subtitle": "Manage articles across all clinics",
+    "create": "New article",
+    "edit": "Edit article",
+    "clinic": "Clinic",
+    "title_field": "Title",
+    "slug": "Slug",
+    "excerpt": "Excerpt",
+    "body": "Body",
+    "is_published": "Published",
+    "ai_generated": "AI generated",
+    "views_count": "Views",
+    "created_at": "Created",
+    "filter_all_clinics": "All clinics",
+    "filter_all_statuses": "All statuses",
+    "filter_published": "Published",
+    "filter_draft": "Draft",
+    "created": "Article created",
+    "updated": "Article updated",
+    "deleted": "Article deleted",
+    "limit_hit": "The clinic plan publish limit was reached — saved as draft",
+    "delete_confirm_title": "Delete article?",
+    "delete_confirm_body": "The article will be moved to trash."
   }
 }
