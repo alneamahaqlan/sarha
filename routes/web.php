@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/robots.txt', [SitemapController::class, 'robots']);
 
+// Impersonation
+Route::post('/admin/impersonate/{clinic}', [\App\Http\Controllers\ImpersonationController::class, 'start'])
+    ->middleware('auth:admin')->name('impersonate.start');
+Route::post('/impersonate/stop', [\App\Http\Controllers\ImpersonationController::class, 'stop'])
+    ->middleware('auth:clinic')->name('impersonate.stop');
+
 // Language switcher
 Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
     ->whereIn('locale', ['ar', 'en'])

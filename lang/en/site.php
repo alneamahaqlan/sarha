@@ -156,6 +156,22 @@ return [
     'bookings_count' => ':count requests',
     'favorites_count' => ':count favorites',
 
+    // AI chat assistant
+    'ai_chat_title' => 'Smart assistant',
+    'ai_chat_subtitle' => 'Helps you find the best complexes',
+    'ai_welcome' => 'Hello 👋 I am your smart assistant. Ask me about any specialty or city and I will suggest the best complexes.',
+    'ai_input_placeholder' => 'Type your question here...',
+    'ai_thinking' => 'Searching...',
+    'ai_empty' => 'Please type your question first.',
+    'ai_no_match' => 'I could not find matching complexes. Try different words or browse the search page.',
+    'ai_found_matches' => 'I found :count complexes that may match:',
+    'ai_medical_disclaimer' => '⚠️ I do not provide medical diagnosis or prescriptions. Please consult a qualified doctor. However, if you are looking for a complex to visit, here are some suggestions:',
+    'ai_medical_warning' => 'Do not rely on the assistant for diagnosis — see a doctor.',
+    'ai_qp_cheap_dental' => 'I am looking for an affordable dental complex in Riyadh',
+    'ai_qp_best_dermatology' => 'Best top-rated dermatology complex',
+    'ai_qp_pediatric_near' => 'A pediatric complex near me',
+    'ai_qp_compare' => 'Compare the best eye complexes',
+
 
     // Search page
     'search_results' => ':count results',

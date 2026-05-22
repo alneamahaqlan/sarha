@@ -3,7 +3,10 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\SetLocale;
+use Filament\View\PanelsRenderHook;
 use Filament\Http\Middleware\Authenticate;
+use Illuminate\Contracts\View\View as ViewContract;
+use Illuminate\Support\Facades\Blade;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -59,6 +62,10 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-language')
                     ->url(fn() => route('lang.switch', app()->getLocale() === 'ar' ? 'en' : 'ar')),
             ])
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn() => Blade::render('@livewire("notification-bell", ["guard" => "admin"])')
+            )
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

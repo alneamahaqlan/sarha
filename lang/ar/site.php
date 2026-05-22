@@ -156,6 +156,22 @@ return [
     'bookings_count' => ':count طلب',
     'favorites_count' => ':count مفضل',
 
+    // AI chat assistant
+    'ai_chat_title' => 'المساعد الذكي',
+    'ai_chat_subtitle' => 'يساعدك بإيجاد أفضل المجمعات',
+    'ai_welcome' => 'مرحباً 👋 أنا مساعدك الذكي. اسألني عن أي تخصص أو مدينة وسأقترح لك أفضل المجمعات.',
+    'ai_input_placeholder' => 'اكتب سؤالك هنا...',
+    'ai_thinking' => 'جاري البحث...',
+    'ai_empty' => 'اكتب سؤالك أولاً.',
+    'ai_no_match' => 'لم أجد مجمعات مطابقة. جرّب كلمات أخرى أو تصفّح صفحة البحث.',
+    'ai_found_matches' => 'وجدت :count مجمعات قد تناسبك:',
+    'ai_medical_disclaimer' => '⚠️ لا أقدّم تشخيصاً أو وصفات طبية. الرجاء استشارة طبيب مختص. ولكن إن كنت تبحث عن مجمع لزيارته، إليك بعض الاقتراحات:',
+    'ai_medical_warning' => 'لا تعتمد على المساعد للتشخيص — راجع طبيباً.',
+    'ai_qp_cheap_dental' => 'أبحث عن مجمع أسنان رخيص في الرياض',
+    'ai_qp_best_dermatology' => 'أفضل مجمع جلدية وتجميل بتقييم عالي',
+    'ai_qp_pediatric_near' => 'مجمع أطفال قريب مني',
+    'ai_qp_compare' => 'قارن بين أفضل مجمعات العيون',
+
     // Search page
     'search_results' => ':count نتيجة',
     'search_results_for' => ':count نتيجة لـ ":query"',

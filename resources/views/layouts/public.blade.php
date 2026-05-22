@@ -109,5 +109,8 @@
     </div>
 </footer>
 
+{{-- Global AI chat widget --}}
+@livewire('ai-chat')
+
 </body>
 </html>

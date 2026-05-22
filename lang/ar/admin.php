@@ -59,6 +59,8 @@ return [
     'res_system_settings' => 'إعدادات النظام',
     'res_system_setting' => 'إعداد',
     'res_system_settings_plural' => 'الإعدادات',
+    'res_custom_category' => 'تصنيف خاص',
+    'res_custom_categorys' => 'تصنيفاتي الخاصة',
 
     // ============================================
     // Form/Table field labels
@@ -155,6 +157,8 @@ return [
         'category' => 'التخصص',
         'categories' => 'التخصصات',
         'emoji' => 'الإيموجي',
+        'services_count' => 'عدد الخدمات',
+        'file' => 'الملف',
         'icon' => 'الأيقونة',
         'clinics_count' => 'عدد المجمعات',
 
@@ -330,9 +334,85 @@ return [
         'high' => 'عالية',
     ],
 
+    'import_services_title' => 'استيراد الخدمات (Excel/CSV)',
+    'import_analysis_results' => 'نتائج تحليل الأعمدة',
+    'import_no_file' => 'يرجى رفع ملف أولاً',
+    'import_unreadable' => 'تعذّر قراءة الملف',
+    'import_empty' => 'الملف فارغ أو لا يحتوي على صفوف صالحة',
+    'import_no_match' => 'لم يتم التطابق',
+    'import_no_mapping' => 'لا توجد أعمدة قابلة للاستيراد (الثقة <50%)',
+    'import_analyze_first' => 'حلّل الملف أولاً',
+    'import_ai_disabled_heuristic' => 'AI غير مفعّل — تم استخدام مطابقة بسيطة',
+    'import_import_now' => 'استورد :count صف',
+    'import_success' => 'تم استيراد :count خدمة بنجاح ✓',
+
     'lead_converted' => 'تم تحويل العميل المحتمل ":clinic" إلى مجمع نشط ✓',
     'subscription_extended' => 'تم تمديد الاشتراك :days يوماً',
     'booking_approved' => 'تم اعتماد المجمع وتفعيل اشتراك 90 يوماً ✓',
+
+    'impersonation_banner' => 'أنت تدير لوحة المجمع نيابة عن المسؤول :admin — كل إجراء يُسجَّل',
+    'impersonation_stop' => 'إنهاء الجلسة',
+    'impersonation_confirm_heading' => 'الدخول كمجمع ":clinic"؟',
+    'impersonation_confirm_body' => 'سيُسجَّل دخولك في سجل المراجعة، وسيظهر للمجمع تنبيه بدخولك. يمكنك العودة في أي وقت من الشريط الأحمر أعلى الصفحة.',
+
+    'mass_notify_title' => 'إرسال إشعار جماعي',
+    'mass_notify_audience' => 'الفئة المستهدفة',
+    'mass_notify_audience_all' => 'جميع المجمعات النشطة',
+    'mass_notify_audience_premium' => 'المميزة فقط',
+    'mass_notify_audience_basic' => 'الأساسية فقط',
+    'mass_notify_audience_expiring' => 'تنتهي خلال 10 أيام',
+    'mass_notify_urgent' => 'عاجل',
+    'mass_notify_send' => 'إرسال الآن',
+    'mass_notify_sent' => 'تم إرسال الإشعار إلى :count مجمع ✓',
+    'mass_notify_confirm_heading' => 'تأكيد الإرسال',
+    'mass_notify_confirm_body' => 'سيتم إنشاء إشعار داخلي لجميع المستلمين فوراً.',
+
+    'notif' => [
+        'bell_label' => 'الإشعارات',
+        'mark_all_read' => 'تحديد الكل كمقروء',
+        'view_all' => 'عرض كل الإشعارات',
+        'empty' => 'لا توجد إشعارات حالياً',
+        'just_now' => 'الآن',
+
+        'new_booking_title' => 'طلب تواصل جديد',
+        'new_booking_body'  => ':customer أرسل طلب تواصل مع :clinic',
+        'new_booking_clinic_title' => 'طلب تواصل جديد من عميل',
+        'new_booking_clinic_body'  => ':customer (طلب :ref)',
+
+        'new_complaint_title' => 'شكوى جديدة',
+        'new_complaint_body'  => ':subject',
+
+        'new_quote_title' => 'طلب عرض سعر جديد',
+        'new_quote_body'  => 'خدمة: :service',
+
+        'lead_converted_title' => 'تم تحويل عميل محتمل',
+        'lead_converted_body'  => ':clinic أصبح مجمعاً نشطاً',
+
+        'expiring_title' => 'اشتراك يقترب من الانتهاء',
+        'expiring_body'  => 'اشتراك :clinic سينتهي خلال :days يوماً',
+
+        'expired_title' => 'انتهى اشتراكك',
+        'expired_body'  => 'لم يعد مجمعك ظاهراً للزوار — جدّد الاشتراك للعودة.',
+        'expired_title_admin' => 'انتهى اشتراك :clinic',
+        'expired_body_admin'  => 'المجمع لم يعد ظاهراً للزوار.',
+
+        'offer_expiring_title' => 'عروض ستنتهي قريباً',
+        'offer_expiring_body'  => 'لديك :count عرض ستنتهي خلال 3 أيام',
+
+        'approved_title' => 'تم اعتماد مجمعك ✓',
+        'approved_body'  => 'تم تفعيل اشتراكك لمدة 90 يوماً. يمكنك الآن إدارة خدماتك.',
+
+        'rejected_title' => 'تم رفض تسجيل مجمعك',
+        'rejected_body'  => 'السبب: :reason',
+
+        'impersonated_title' => 'دخل مسؤول إلى حسابك',
+        'impersonated_body'  => 'الأدمن :admin يدير لوحتك حالياً للمراجعة',
+
+        'limit_warn_title' => 'قاربت على حد المقالات',
+        'limit_warn_body'  => 'نشرت :used من 5 مقالات هذا الشهر. ترقّى للمميزة لمقالات غير محدودة.',
+        'limit_hit_title' => 'تجاوزت الحد الشهري',
+        'limit_hit_body'  => 'تم حفظ مقالتك كمسودة لأن باقتك الأساسية تسمح بـ 5 مقالات شهرياً.',
+    ],
 
     'ai' => [
         'title_first' => 'أدخل عنوان المقال أولاً',

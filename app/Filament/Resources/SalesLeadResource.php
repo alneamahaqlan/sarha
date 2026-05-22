@@ -136,6 +136,9 @@ class SalesLeadResource extends Resource
             ]);
 
             $lead->update(['status' => 'converted']);
+
+            app(\App\Services\NotificationService::class)->leadConverted($lead, $clinic);
+            app(\App\Services\NotificationService::class)->clinicApproved($clinic);
         });
 
         Notification::make()

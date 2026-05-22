@@ -157,6 +157,7 @@ class ClinicResource extends Resource
                             'status'    => 'active',
                         ]);
                         \App\Services\AuditLogService::log('approved_Clinic', $record);
+                        app(\App\Services\NotificationService::class)->clinicApproved($record);
                         \Filament\Notifications\Notification::make()
                             ->title(__('admin.booking_approved'))->success()->send();
                     }),
@@ -176,6 +177,7 @@ class ClinicResource extends Resource
                             'rejection_reason' => $data['rejection_reason'],
                         ]);
                         \App\Services\AuditLogService::log('rejected_Clinic', $record);
+                        app(\App\Services\NotificationService::class)->clinicRejected($record, $data['rejection_reason']);
                     }),
 
                 \Filament\Actions\Action::make('activate')->label(__('admin.actions.activate'))
@@ -207,6 +209,14 @@ class ClinicResource extends Resource
                         \Filament\Notifications\Notification::make()
                             ->title(__('admin.subscription_extended', ['days' => 30]))->success()->send();
                     }),
+
+                \Filament\Actions\Action::make('login_as')
+                    ->label(__('admin.actions.login_as'))
+                    ->icon('heroicon-o-eye')->color('warning')->requiresConfirmation()
+                    ->modalHeading(fn(Clinic $record) => __('admin.impersonation_confirm_heading', ['clinic' => $record->name]))
+                    ->modalDescription(__('admin.impersonation_confirm_body'))
+                    ->visible(fn(Clinic $record) => $record->status === 'active')
+                    ->action(fn(Clinic $record) => redirect()->route('impersonate.start', $record)),
 
                 \Filament\Actions\Action::make('extend_90')
                     ->label(__('admin.actions.extend_90'))

@@ -59,6 +59,8 @@ return [
     'res_system_settings' => 'System Settings',
     'res_system_setting' => 'Setting',
     'res_system_settings_plural' => 'Settings',
+    'res_custom_category' => 'Custom category',
+    'res_custom_categorys' => 'My custom categories',
 
     // ============================================
     // Form/Table field labels
@@ -155,6 +157,8 @@ return [
         'category' => 'Specialty',
         'categories' => 'Specialties',
         'emoji' => 'Emoji',
+        'services_count' => 'Services count',
+        'file' => 'File',
         'icon' => 'Icon',
         'clinics_count' => 'Complexes',
 
@@ -330,9 +334,85 @@ return [
         'high' => 'High',
     ],
 
+    'import_services_title' => 'Import services (Excel/CSV)',
+    'import_analysis_results' => 'Column analysis results',
+    'import_no_file' => 'Please upload a file first',
+    'import_unreadable' => 'Could not read the file',
+    'import_empty' => 'File is empty or has no valid rows',
+    'import_no_match' => 'No match',
+    'import_no_mapping' => 'No columns can be imported (confidence <50%)',
+    'import_analyze_first' => 'Analyze the file first',
+    'import_ai_disabled_heuristic' => 'AI not configured — used simple heuristic matching',
+    'import_import_now' => 'Import :count rows',
+    'import_success' => ':count services imported successfully ✓',
+
     'lead_converted' => 'Lead ":clinic" converted to an active complex ✓',
     'subscription_extended' => 'Subscription extended by :days days',
     'booking_approved' => 'Complex approved and 90-day subscription activated ✓',
+
+    'impersonation_banner' => 'You are managing this complex panel on behalf of admin :admin — every action is logged',
+    'impersonation_stop' => 'End session',
+    'impersonation_confirm_heading' => 'Log in as ":clinic"?',
+    'impersonation_confirm_body' => 'Your access will be recorded in the audit log, and the complex will be notified. You can return at any time via the red banner at the top.',
+
+    'mass_notify_title' => 'Send mass notification',
+    'mass_notify_audience' => 'Target audience',
+    'mass_notify_audience_all' => 'All active complexes',
+    'mass_notify_audience_premium' => 'Premium only',
+    'mass_notify_audience_basic' => 'Basic only',
+    'mass_notify_audience_expiring' => 'Expiring within 10 days',
+    'mass_notify_urgent' => 'Urgent',
+    'mass_notify_send' => 'Send now',
+    'mass_notify_sent' => 'Notification sent to :count complexes ✓',
+    'mass_notify_confirm_heading' => 'Confirm send',
+    'mass_notify_confirm_body' => 'An in-app notification will be created for all recipients immediately.',
+
+    'notif' => [
+        'bell_label' => 'Notifications',
+        'mark_all_read' => 'Mark all as read',
+        'view_all' => 'View all notifications',
+        'empty' => 'No notifications right now',
+        'just_now' => 'Just now',
+
+        'new_booking_title' => 'New contact request',
+        'new_booking_body'  => ':customer submitted a request to :clinic',
+        'new_booking_clinic_title' => 'New contact request',
+        'new_booking_clinic_body'  => ':customer (ref :ref)',
+
+        'new_complaint_title' => 'New complaint',
+        'new_complaint_body'  => ':subject',
+
+        'new_quote_title' => 'New price quote request',
+        'new_quote_body'  => 'Service: :service',
+
+        'lead_converted_title' => 'Lead converted',
+        'lead_converted_body'  => ':clinic is now an active complex',
+
+        'expiring_title' => 'Subscription expiring soon',
+        'expiring_body'  => ':clinic subscription ends in :days days',
+
+        'expired_title' => 'Your subscription expired',
+        'expired_body'  => 'Your complex is no longer visible to visitors — renew to be listed again.',
+        'expired_title_admin' => ':clinic subscription expired',
+        'expired_body_admin'  => 'The complex is no longer visible to visitors.',
+
+        'offer_expiring_title' => 'Offers ending soon',
+        'offer_expiring_body'  => 'You have :count offers ending within 3 days',
+
+        'approved_title' => 'Your complex was approved ✓',
+        'approved_body'  => 'A 90-day subscription has been activated. You can now manage your services.',
+
+        'rejected_title' => 'Your complex registration was rejected',
+        'rejected_body'  => 'Reason: :reason',
+
+        'impersonated_title' => 'An admin entered your account',
+        'impersonated_body'  => 'Admin :admin is managing your panel for review',
+
+        'limit_warn_title' => 'Article limit approaching',
+        'limit_warn_body'  => 'You have published :used of 5 articles this month. Upgrade to Premium for unlimited.',
+        'limit_hit_title' => 'Monthly limit reached',
+        'limit_hit_body'  => 'Your article was saved as a draft because the Basic plan allows 5 published articles per month.',
+    ],
 
     'ai' => [
         'title_first' => 'Please enter the article title first',
