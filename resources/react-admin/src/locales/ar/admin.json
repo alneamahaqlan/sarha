@@ -29,7 +29,10 @@
     "bookings": "الحجوزات",
     "complaints": "الشكاوى",
     "sales_leads": "العملاء المحتملون",
-    "clinics": "العيادات"
+    "clinics": "العيادات",
+    "subscriptions": "الاشتراكات",
+    "price_quotes": "طلبات التسعير",
+    "audit_logs": "سجل التدقيق"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -313,6 +316,57 @@
       "login_as_title": "الدخول كحساب {{clinic}}؟",
       "login_as_body": "ستظهر لافتة حمراء في الأعلى للدلالة على وضع الانتحال."
     }
+  },
+  "subscriptions": {
+    "title": "الاشتراكات",
+    "subtitle": "اشتراكات العيادات وحالاتها",
+    "clinic": "العيادة",
+    "type_label": "الباقة",
+    "amount": "المبلغ",
+    "starts_at": "البداية",
+    "ends_at": "النهاية",
+    "status_label": "الحالة",
+    "filter_all_types": "كل الباقات",
+    "filter_all_statuses": "كل الحالات",
+    "type": {
+      "basic": "أساسي",
+      "premium": "مميز"
+    },
+    "status": {
+      "active": "نشط",
+      "expired": "منتهٍ",
+      "cancelled": "ملغي",
+      "pending_payment": "بانتظار الدفع"
+    }
+  },
+  "price_quotes": {
+    "title": "طلبات التسعير",
+    "subtitle": "طلبات عروض الأسعار الواردة من العملاء",
+    "clinic": "العيادة",
+    "customer_name": "اسم العميل",
+    "customer_phone": "رقم العميل",
+    "service_name": "الخدمة المطلوبة",
+    "status_label": "الحالة",
+    "created_at": "التاريخ",
+    "filter_all_statuses": "كل الحالات",
+    "status": {
+      "new": "جديد",
+      "replied": "تم الرد",
+      "closed": "مغلق"
+    },
+    "deleted": "تم حذف الطلب",
+    "delete_confirm_title": "حذف طلب التسعير؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
+  },
+  "audit_logs": {
+    "title": "سجل التدقيق",
+    "subtitle": "تتبّع كل إجراءات المديرين على النظام",
+    "admin_name": "المدير",
+    "action": "الإجراء",
+    "model": "النوع",
+    "model_id": "المعرّف",
+    "ip_address": "عنوان IP",
+    "date": "التاريخ"
   },
   "errors": {
     "generic": "حدث خطأ غير متوقع",

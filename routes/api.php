@@ -1,13 +1,16 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminController;
+use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ClinicController;
 use App\Http\Controllers\Api\V1\Admin\ComplaintController;
+use App\Http\Controllers\Api\V1\Admin\PriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Admin\SalesLeadController;
 use App\Http\Controllers\Api\V1\Admin\ServiceController;
+use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
@@ -90,6 +93,18 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('clinics/{clinic}/extend', [ClinicController::class, 'extend'])->name('clinics.extend');
         Route::post('clinics/{clinic}/impersonate', [ClinicController::class, 'impersonate'])->name('clinics.impersonate');
         Route::apiResource('clinics', ClinicController::class);
+
+        // Subscription — Filament has no Delete action; restrict to index/show/store/update.
+        Route::apiResource('subscriptions', SubscriptionController::class)->except(['destroy']);
+
+        // Price quote requests — clinic route param renamed to avoid conflict with /price-quotes.
+        Route::apiResource('price-quotes', PriceQuoteRequestController::class)
+            ->parameters(['price-quotes' => 'priceQuote']);
+
+        // Audit logs — read-only (Filament: canCreate/canEdit/canDelete = false).
+        Route::apiResource('audit-logs', AuditLogController::class)
+            ->only(['index', 'show'])
+            ->parameters(['audit-logs' => 'auditLog']);
     });
 
     // -------------------- Clinic guard --------------------

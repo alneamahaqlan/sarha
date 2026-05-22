@@ -13,6 +13,9 @@ import { BookingsIndex } from '@/features/bookings/pages/BookingsIndex';
 import { ComplaintsIndex } from '@/features/complaints/pages/ComplaintsIndex';
 import { SalesLeadsIndex } from '@/features/sales-leads/pages/SalesLeadsIndex';
 import { ClinicsIndex } from '@/features/clinics/pages/ClinicsIndex';
+import { SubscriptionsIndex } from '@/features/subscriptions/pages/SubscriptionsIndex';
+import { PriceQuotesIndex } from '@/features/price-quotes/pages/PriceQuotesIndex';
+import { AuditLogsIndex } from '@/features/audit-logs/pages/AuditLogsIndex';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -51,6 +54,9 @@ export function AppRoutes() {
             <Route path="cities" element={<CitiesIndex />} />
             <Route path="categories" element={<CategoriesIndex />} />
             <Route path="admins" element={<AdminsIndex />} />
+            <Route path="subscriptions" element={<SubscriptionsIndex />} />
+            <Route path="price-quotes" element={<PriceQuotesIndex />} />
+            <Route path="audit-logs" element={<AuditLogsIndex />} />
           </Route>
         </Route>
         <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />

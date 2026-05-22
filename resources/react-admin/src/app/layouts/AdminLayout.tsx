@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2 } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -13,12 +13,15 @@ const adminNav = [
   { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
   { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
   { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle },
+  { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign },
   { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
+  { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
   { to: '/admin/users', label: 'nav.users', icon: Users },
   { to: '/admin/services', label: 'nav.services', icon: Sparkles },
   { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
   { to: '/admin/categories', label: 'nav.categories', icon: Tag },
   { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+  { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
 ];
 
 export function AdminLayout() {

@@ -29,7 +29,10 @@
     "bookings": "Bookings",
     "complaints": "Complaints",
     "sales_leads": "Sales leads",
-    "clinics": "Clinics"
+    "clinics": "Clinics",
+    "subscriptions": "Subscriptions",
+    "price_quotes": "Price quotes",
+    "audit_logs": "Audit log"
   },
   "auth": {
     "login_title": "Sign in",
@@ -313,6 +316,57 @@
       "login_as_title": "Login as {{clinic}}?",
       "login_as_body": "A red banner will appear at the top indicating impersonation mode."
     }
+  },
+  "subscriptions": {
+    "title": "Subscriptions",
+    "subtitle": "Clinic subscriptions and their statuses",
+    "clinic": "Clinic",
+    "type_label": "Plan",
+    "amount": "Amount",
+    "starts_at": "Starts",
+    "ends_at": "Ends",
+    "status_label": "Status",
+    "filter_all_types": "All plans",
+    "filter_all_statuses": "All statuses",
+    "type": {
+      "basic": "Basic",
+      "premium": "Premium"
+    },
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "pending_payment": "Pending payment"
+    }
+  },
+  "price_quotes": {
+    "title": "Price quotes",
+    "subtitle": "Price quote requests submitted by customers",
+    "clinic": "Clinic",
+    "customer_name": "Customer",
+    "customer_phone": "Phone",
+    "service_name": "Requested service",
+    "status_label": "Status",
+    "created_at": "Created",
+    "filter_all_statuses": "All statuses",
+    "status": {
+      "new": "New",
+      "replied": "Replied",
+      "closed": "Closed"
+    },
+    "deleted": "Quote deleted",
+    "delete_confirm_title": "Delete price quote?",
+    "delete_confirm_body": "This action cannot be undone."
+  },
+  "audit_logs": {
+    "title": "Audit log",
+    "subtitle": "Track every admin action across the system",
+    "admin_name": "Admin",
+    "action": "Action",
+    "model": "Type",
+    "model_id": "ID",
+    "ip_address": "IP address",
+    "date": "Date"
   },
   "errors": {
     "generic": "An unexpected error occurred",
