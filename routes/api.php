@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Admin\AdminController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
+use App\Http\Controllers\Api\V1\Admin\ClinicController;
 use App\Http\Controllers\Api\V1\Admin\ComplaintController;
 use App\Http\Controllers\Api\V1\Admin\SalesLeadController;
 use App\Http\Controllers\Api\V1\Admin\ServiceController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
 use App\Models\Booking;
+use App\Models\Clinic;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -77,6 +79,17 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
         Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
+
+        // Clinic — 6 action endpoints (approve/reject/activate/suspend/extend/impersonate)
+        // each delegates to ClinicService. Soft-deleted rows reachable via {clinic_trashed}.
+        Route::bind('clinic_trashed', fn ($id) => Clinic::withTrashed()->findOrFail($id));
+        Route::post('clinics/{clinic}/approve', [ClinicController::class, 'approve'])->name('clinics.approve');
+        Route::post('clinics/{clinic}/reject', [ClinicController::class, 'reject'])->name('clinics.reject');
+        Route::post('clinics/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate');
+        Route::post('clinics/{clinic}/suspend', [ClinicController::class, 'suspend'])->name('clinics.suspend');
+        Route::post('clinics/{clinic}/extend', [ClinicController::class, 'extend'])->name('clinics.extend');
+        Route::post('clinics/{clinic}/impersonate', [ClinicController::class, 'impersonate'])->name('clinics.impersonate');
+        Route::apiResource('clinics', ClinicController::class);
     });
 
     // -------------------- Clinic guard --------------------

@@ -28,7 +28,8 @@
     "services": "Services",
     "bookings": "Bookings",
     "complaints": "Complaints",
-    "sales_leads": "Sales leads"
+    "sales_leads": "Sales leads",
+    "clinics": "Clinics"
   },
   "auth": {
     "login_title": "Sign in",
@@ -253,6 +254,64 @@
       "convert_to_premium_title": "Convert to Premium plan?",
       "convert_to_premium_body": "A new clinic account will be created for {{clinic}} with a 90-day Premium plan (400 SAR).",
       "converted": "{{clinic}} converted successfully"
+    }
+  },
+  "clinics": {
+    "title": "Clinics",
+    "subtitle": "Track registered clinics and medical centers",
+    "logo": "Logo",
+    "name": "Clinic name",
+    "city": "City",
+    "phone": "Phone",
+    "status_label": "Status",
+    "plan_label": "Plan",
+    "subscription_ends_at": "Subscription ends",
+    "featured": "Featured",
+    "filter_all_statuses": "All statuses",
+    "filter_all_plans": "All plans",
+    "filter_all_cities": "All cities",
+    "status": {
+      "pending": "Pending",
+      "active": "Active",
+      "suspended": "Suspended",
+      "rejected": "Rejected"
+    },
+    "plan": {
+      "basic": "Basic",
+      "premium": "Premium"
+    },
+    "trashed": {
+      "without": "Without trashed",
+      "with": "With trashed",
+      "only": "Trashed only"
+    },
+    "actions": {
+      "approve": "Approve",
+      "approve_title": "Approve clinic?",
+      "approve_body": "{{clinic}} will be approved and a 90-day subscription will be created.",
+      "approved": "Clinic approved",
+      "reject": "Reject",
+      "reject_title": "Reject clinic",
+      "reject_body": "Provide a rejection reason for {{clinic}}.",
+      "reject_reason": "Rejection reason",
+      "rejected": "Clinic rejected",
+      "activate": "Activate",
+      "activate_title": "Reactivate clinic?",
+      "activate_body": "{{clinic}} will be moved back to active state.",
+      "activated": "Clinic activated",
+      "suspend": "Suspend",
+      "suspend_title": "Suspend clinic?",
+      "suspend_body": "{{clinic}} will be temporarily hidden from customers.",
+      "suspended": "Clinic suspended",
+      "extend_30": "Extend 30 days",
+      "extend_30_title": "Extend subscription by 30 days?",
+      "extend_90": "Extend 90 days",
+      "extend_90_title": "Extend subscription by 90 days?",
+      "extend_body": "{{clinic}}'s subscription will be extended by {{days}} days.",
+      "extended": "Subscription extended by {{days}} days",
+      "login_as": "Login as clinic",
+      "login_as_title": "Login as {{clinic}}?",
+      "login_as_body": "A red banner will appear at the top indicating impersonation mode."
     }
   },
   "errors": {

@@ -28,7 +28,8 @@
     "services": "الخدمات",
     "bookings": "الحجوزات",
     "complaints": "الشكاوى",
-    "sales_leads": "العملاء المحتملون"
+    "sales_leads": "العملاء المحتملون",
+    "clinics": "العيادات"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -253,6 +254,64 @@
       "convert_to_premium_title": "تحويل إلى اشتراك مميز؟",
       "convert_to_premium_body": "سيتم إنشاء حساب عيادة جديد لـ {{clinic}} مع اشتراك مميز مدته 90 يومًا (400 ر.س).",
       "converted": "تم تحويل {{clinic}} بنجاح"
+    }
+  },
+  "clinics": {
+    "title": "العيادات",
+    "subtitle": "متابعة العيادات والمجمعات الطبية المسجّلة",
+    "logo": "الشعار",
+    "name": "اسم العيادة",
+    "city": "المدينة",
+    "phone": "الجوال",
+    "status_label": "الحالة",
+    "plan_label": "الباقة",
+    "subscription_ends_at": "انتهاء الاشتراك",
+    "featured": "مميزة",
+    "filter_all_statuses": "كل الحالات",
+    "filter_all_plans": "كل الباقات",
+    "filter_all_cities": "كل المدن",
+    "status": {
+      "pending": "بانتظار الاعتماد",
+      "active": "نشطة",
+      "suspended": "موقوفة",
+      "rejected": "مرفوضة"
+    },
+    "plan": {
+      "basic": "أساسي",
+      "premium": "مميز"
+    },
+    "trashed": {
+      "without": "بدون المحذوفة",
+      "with": "مع المحذوفة",
+      "only": "المحذوفة فقط"
+    },
+    "actions": {
+      "approve": "اعتماد",
+      "approve_title": "اعتماد العيادة؟",
+      "approve_body": "سيتم اعتماد {{clinic}} وفتح اشتراك مدته 90 يومًا.",
+      "approved": "تم اعتماد العيادة",
+      "reject": "رفض",
+      "reject_title": "رفض العيادة",
+      "reject_body": "اكتب سبب الرفض لـ {{clinic}}.",
+      "reject_reason": "سبب الرفض",
+      "rejected": "تم رفض العيادة",
+      "activate": "تفعيل",
+      "activate_title": "إعادة تفعيل العيادة؟",
+      "activate_body": "سيتم إعادة {{clinic}} للحالة نشطة.",
+      "activated": "تم تفعيل العيادة",
+      "suspend": "إيقاف",
+      "suspend_title": "إيقاف العيادة؟",
+      "suspend_body": "سيتم إيقاف {{clinic}} مؤقتًا عن الظهور للعملاء.",
+      "suspended": "تم إيقاف العيادة",
+      "extend_30": "تمديد 30 يومًا",
+      "extend_30_title": "تمديد الاشتراك 30 يومًا؟",
+      "extend_90": "تمديد 90 يومًا",
+      "extend_90_title": "تمديد الاشتراك 90 يومًا؟",
+      "extend_body": "سيتم تمديد اشتراك {{clinic}} بـ {{days}} يومًا.",
+      "extended": "تم تمديد الاشتراك {{days}} يومًا",
+      "login_as": "الدخول كعيادة",
+      "login_as_title": "الدخول كحساب {{clinic}}؟",
+      "login_as_body": "ستظهر لافتة حمراء في الأعلى للدلالة على وضع الانتحال."
     }
   },
   "errors": {

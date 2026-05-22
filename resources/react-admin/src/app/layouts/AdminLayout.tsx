@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
+  { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
   { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
   { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle },
   { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },

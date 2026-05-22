@@ -6,6 +6,7 @@ use App\Filament\Concerns\HasTranslatableLabels;
 use App\Filament\Resources\ClinicResource\Pages;
 use App\Models\Clinic;
 use App\Models\City;
+use App\Services\ClinicService;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -142,22 +143,7 @@ class ClinicResource extends Resource
                     ->icon('heroicon-o-check-badge')->color('success')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'pending')
                     ->action(function (Clinic $record) {
-                        $record->update([
-                            'status'                 => 'active',
-                            'subscription_type'      => $record->subscription_type ?? 'basic',
-                            'subscription_starts_at' => now(),
-                            'subscription_ends_at'   => now()->addDays(90),
-                        ]);
-                        \App\Models\Subscription::create([
-                            'clinic_id' => $record->id,
-                            'type'      => $record->subscription_type ?? 'basic',
-                            'amount'    => ($record->subscription_type ?? 'basic') === 'premium' ? 400 : 300,
-                            'starts_at' => now(),
-                            'ends_at'   => now()->addDays(90),
-                            'status'    => 'active',
-                        ]);
-                        \App\Services\AuditLogService::log('approved_Clinic', $record);
-                        app(\App\Services\NotificationService::class)->clinicApproved($record);
+                        app(ClinicService::class)->approve($record);
                         \Filament\Notifications\Notification::make()
                             ->title(__('admin.booking_approved'))->success()->send();
                     }),
@@ -171,41 +157,24 @@ class ClinicResource extends Resource
                             ->label(__('admin.fields.rejection_reason'))
                             ->required()->rows(3),
                     ])
-                    ->action(function (Clinic $record, array $data) {
-                        $record->update([
-                            'status'           => 'rejected',
-                            'rejection_reason' => $data['rejection_reason'],
-                        ]);
-                        \App\Services\AuditLogService::log('rejected_Clinic', $record);
-                        app(\App\Services\NotificationService::class)->clinicRejected($record, $data['rejection_reason']);
-                    }),
+                    ->action(fn(Clinic $record, array $data) => app(ClinicService::class)->reject($record, $data['rejection_reason'])),
 
                 \Filament\Actions\Action::make('activate')->label(__('admin.actions.activate'))
                     ->icon('heroicon-o-check-circle')->color('success')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => in_array($record->status, ['suspended', 'rejected']))
-                    ->action(function (Clinic $record) {
-                        $record->update(['status' => 'active']);
-                        \App\Services\AuditLogService::log('activated_Clinic', $record);
-                    }),
+                    ->action(fn(Clinic $record) => app(ClinicService::class)->activate($record)),
 
                 \Filament\Actions\Action::make('suspend')->label(__('admin.actions.suspend'))
                     ->icon('heroicon-o-no-symbol')->color('danger')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'active')
-                    ->action(function (Clinic $record) {
-                        $record->update(['status' => 'suspended']);
-                        \App\Services\AuditLogService::log('suspended_Clinic', $record);
-                    }),
+                    ->action(fn(Clinic $record) => app(ClinicService::class)->suspend($record)),
 
                 \Filament\Actions\Action::make('extend_30')
                     ->label(__('admin.actions.extend_30'))
                     ->icon('heroicon-o-plus-circle')->color('warning')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'active')
                     ->action(function (Clinic $record) {
-                        $base = $record->subscription_ends_at?->isFuture()
-                            ? $record->subscription_ends_at
-                            : now();
-                        $record->update(['subscription_ends_at' => $base->copy()->addDays(30)]);
-                        \App\Services\AuditLogService::log('extended_Clinic_30', $record);
+                        app(ClinicService::class)->extend($record, 30);
                         \Filament\Notifications\Notification::make()
                             ->title(__('admin.subscription_extended', ['days' => 30]))->success()->send();
                     }),
@@ -223,11 +192,7 @@ class ClinicResource extends Resource
                     ->icon('heroicon-o-plus-circle')->color('primary')->requiresConfirmation()
                     ->visible(fn(Clinic $record) => $record->status === 'active')
                     ->action(function (Clinic $record) {
-                        $base = $record->subscription_ends_at?->isFuture()
-                            ? $record->subscription_ends_at
-                            : now();
-                        $record->update(['subscription_ends_at' => $base->copy()->addDays(90)]);
-                        \App\Services\AuditLogService::log('extended_Clinic_90', $record);
+                        app(ClinicService::class)->extend($record, 90);
                         \Filament\Notifications\Notification::make()
                             ->title(__('admin.subscription_extended', ['days' => 90]))->success()->send();
                     }),

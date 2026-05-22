@@ -37,8 +37,15 @@ class ClinicResource extends JsonResource
                 'id'   => $this->city->id,
                 'name' => $this->city->name,
             ] : null),
+            'categories'             => $this->whenLoaded('categories', fn() => $this->categories->map(fn($c) => [
+                'id'   => $c->id,
+                'name' => $c->name,
+            ])),
+            'category_ids'           => $this->whenLoaded('categories', fn() => $this->categories->pluck('id')),
+            'is_trashed'             => method_exists($this->resource, 'trashed') ? $this->trashed() : false,
             'created_at'             => $this->created_at?->toIso8601String(),
             'updated_at'             => $this->updated_at?->toIso8601String(),
+            'deleted_at'             => $this->deleted_at?->toIso8601String(),
         ];
     }
 }
