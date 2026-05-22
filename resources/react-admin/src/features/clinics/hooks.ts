@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { clinicsApi, type ClinicListParams } from './api/clinics.api';
+import { clinicsApi, type ClinicFormValues, type ClinicListParams } from './api/clinics.api';
 
 const KEY = ['admin', 'clinics'] as const;
 
@@ -10,8 +10,33 @@ export function useClinics(params: ClinicListParams = {}) {
   });
 }
 
+export function useClinic(id: number | undefined) {
+  return useQuery({
+    queryKey: [...KEY, 'detail', id],
+    queryFn: () => clinicsApi.get(id!),
+    enabled: !!id,
+    staleTime: 5_000,
+  });
+}
+
 function invalidator(qc: ReturnType<typeof useQueryClient>) {
   return () => qc.invalidateQueries({ queryKey: KEY });
+}
+
+export function useCreateClinic() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: ClinicFormValues) => clinicsApi.create(v),
+    onSuccess: invalidator(qc),
+  });
+}
+
+export function useUpdateClinic(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: Partial<ClinicFormValues>) => clinicsApi.update(id, v),
+    onSuccess: invalidator(qc),
+  });
 }
 
 export function useApproveClinic() {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -17,16 +17,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
-import { useClinics, useRestoreClinic, useBulkClinic } from '../hooks';
+import { useClinic, useClinics, useRestoreClinic, useBulkClinic } from '../hooks';
 import { ClinicActionsMenu } from '../components/ClinicActions';
 import { ClinicPlanBadge, ClinicStatusBadge } from '../components/ClinicBadges';
-import { CLINIC_PLANS, CLINIC_STATUSES, type ClinicPlan, type ClinicStatus } from '../types';
+import { ClinicForm } from '../components/ClinicForm';
+import { CLINIC_PLANS, CLINIC_STATUSES, type Clinic, type ClinicPlan, type ClinicStatus } from '../types';
 import type { TrashedFilter } from '../api/clinics.api';
 
 type BulkAction = 'delete' | 'restore' | 'force_delete';
@@ -43,6 +51,10 @@ export function ClinicsIndex() {
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [pendingBulk, setPendingBulk] = useState<BulkAction | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+
+  const { data: editingClinic } = useClinic(editingId ?? undefined);
 
   // Server query only fires after 300ms of input idle to avoid hammering on every keystroke.
   const debouncedSearch = useDebouncedValue(search, 300);
@@ -106,9 +118,17 @@ export function ClinicsIndex() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('clinics.title')}</h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinics.subtitle')}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('clinics.title')}</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinics.subtitle')}</p>
+        </div>
+        {can('clinics.create') && (
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('clinics.create')}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -281,7 +301,14 @@ export function ClinicsIndex() {
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   ) : (
-                    <ClinicActionsMenu clinic={clinic} />
+                    <div className="flex justify-end gap-1">
+                      {can('clinics.update') && (
+                        <Button variant="ghost" size="icon" onClick={() => setEditingId(clinic.id)} aria-label={t('common.edit')}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <ClinicActionsMenu clinic={clinic} />
+                    </div>
                   )}
                 </TableCell>
               </TableRow>
@@ -310,6 +337,25 @@ export function ClinicsIndex() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={creating || editingId !== null}
+        onOpenChange={(open) => {
+          if (!open) { setCreating(false); setEditingId(null); }
+        }}
+      >
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{editingId ? t('clinics.edit') : t('clinics.create')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('clinics.subtitle')}</DialogDescription>
+          </DialogHeader>
+          <ClinicForm
+            clinic={editingId ? editingClinic ?? null : null}
+            onSuccess={() => { setCreating(false); setEditingId(null); }}
+            onCancel={() => { setCreating(false); setEditingId(null); }}
+          />
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={pendingBulk !== null} onOpenChange={(open) => !open && setPendingBulk(null)}>
         <AlertDialogContent>

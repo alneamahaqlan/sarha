@@ -30,6 +30,31 @@ function buildParams(p: ClinicListParams) {
   return params;
 }
 
+export interface ClinicFormValues {
+  name: string;
+  slug?: string | null;
+  phone: string;
+  email?: string | null;
+  password?: string;
+  city_id: number;
+  address?: string | null;
+  description?: string | null;
+  status: ClinicStatus;
+  subscription_type?: ClinicPlan | null;
+  subscription_starts_at?: string | null;
+  subscription_ends_at?: string | null;
+  is_featured?: boolean;
+  rejection_reason?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  twitter?: string | null;
+  snapchat?: string | null;
+  google_place_id?: string | null;
+  logo?: string | null;
+  gallery?: string[];
+  categories?: number[];
+}
+
 export const clinicsApi = {
   list: async (params: ClinicListParams = {}) => {
     const res = await apiClient.get<PaginatedResponse<Clinic>>('/admin/clinics', { params: buildParams(params) });
@@ -37,6 +62,14 @@ export const clinicsApi = {
   },
   get: async (id: number) => {
     const res = await apiClient.get<SingleResponse<Clinic>>(`/admin/clinics/${id}`);
+    return res.data.data;
+  },
+  create: async (values: ClinicFormValues) => {
+    const res = await apiClient.post<SingleResponse<Clinic>>('/admin/clinics', values);
+    return res.data.data;
+  },
+  update: async (id: number, values: Partial<ClinicFormValues>) => {
+    const res = await apiClient.patch<SingleResponse<Clinic>>(`/admin/clinics/${id}`, values);
     return res.data.data;
   },
   delete: async (id: number) => {
