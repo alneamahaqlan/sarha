@@ -1,0 +1,58 @@
+{
+  "brand": "Saerha — Admin Panel",
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search...",
+    "loading": "Loading...",
+    "no_data": "No data",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "actions": "Actions",
+    "language": "Language",
+    "logout": "Logout",
+    "back": "Back"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings_group": "System Settings",
+    "cities": "Cities"
+  },
+  "auth": {
+    "login_title": "Sign in",
+    "email": "Email",
+    "phone": "Phone",
+    "password": "Password",
+    "submit": "Sign in",
+    "admin": "Admin",
+    "clinic": "Clinic",
+    "logging_in": "Signing in..."
+  },
+  "cities": {
+    "title": "Cities",
+    "subtitle": "Manage the cities available in the system",
+    "create": "Add city",
+    "edit": "Edit city",
+    "name": "Arabic name",
+    "name_en": "English name",
+    "is_active": "Active",
+    "sort_order": "Sort order",
+    "clinics_count": "Clinics",
+    "delete_confirm_title": "Delete city?",
+    "delete_confirm_body": "This action cannot be undone.",
+    "deleted": "City deleted successfully",
+    "created": "City created successfully",
+    "updated": "City updated successfully",
+    "cannot_delete_has_clinics": "Cannot delete a city that has clinics"
+  },
+  "errors": {
+    "generic": "An unexpected error occurred",
+    "validation": "Please verify the data you entered",
+    "unauthorized": "You don't have permission to perform this action",
+    "network": "Failed to reach the server"
+  }
+}
