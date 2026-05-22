@@ -21,6 +21,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { RichEditor } from '@/components/forms/RichEditor';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useClinicLookup } from '@/features/lookups/hooks';
@@ -36,6 +37,7 @@ const schema = z.object({
   slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/, 'lowercase-dashes').optional().or(z.literal('')),
   body: z.string().min(1),
   meta_description: z.string().max(300).nullish(),
+  cover_image: z.string().nullish(),
   is_published: z.boolean(),
   ai_generated: z.boolean(),
 });
@@ -59,6 +61,7 @@ function ArticleDialog({ article, onClose }: { article: AdminArticle | null; onC
       slug: article?.slug ?? '',
       body: article?.body ?? '',
       meta_description: article?.meta_description ?? '',
+      cover_image: article?.cover_image ?? '',
       is_published: article?.is_published ?? false,
       ai_generated: article?.ai_generated ?? false,
     },
@@ -129,6 +132,14 @@ function ArticleDialog({ article, onClose }: { article: AdminArticle | null; onC
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="meta_description">{t('admin_articles.excerpt')}</Label>
               <Textarea id="meta_description" rows={2} maxLength={300} {...form.register('meta_description')} />
+            </div>
+            <div className="md:col-span-2">
+              <FileUpload
+                label={t('admin_articles.cover_image')}
+                value={form.watch('cover_image')}
+                onChange={(p) => form.setValue('cover_image', p, { shouldDirty: true })}
+                directory="articles"
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="body">{t('admin_articles.body')}</Label>

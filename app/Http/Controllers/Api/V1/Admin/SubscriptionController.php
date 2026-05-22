@@ -57,7 +57,10 @@ class SubscriptionController extends Controller
 
     public function store(StoreSubscriptionRequest $request): JsonResponse
     {
-        $sub = Subscription::create($request->validated());
+        $data = $request->validated();
+        $data['created_by_admin_id'] = $request->user('admin')?->getKey();
+
+        $sub = Subscription::create($data);
 
         return (new SubscriptionApiResource($sub->load('clinic:id,name')))
             ->response()

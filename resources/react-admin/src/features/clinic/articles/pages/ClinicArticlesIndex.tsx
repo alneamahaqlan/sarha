@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { RichEditor } from '@/components/forms/RichEditor';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -34,6 +35,7 @@ const schema = z.object({
   slug: z.string().min(1).max(255).regex(/^[a-z0-9-]+$/, 'lowercase-dashes').optional().or(z.literal('')),
   body: z.string().min(1),
   meta_description: z.string().max(300).nullish(),
+  cover_image: z.string().nullish(),
   is_published: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
@@ -55,6 +57,7 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
       slug: article?.slug ?? '',
       body: article?.body ?? '',
       meta_description: article?.meta_description ?? '',
+      cover_image: article?.cover_image ?? '',
       is_published: article?.is_published ?? false,
     },
   });
@@ -134,6 +137,14 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
                 </Button>
               </div>
               <Textarea id="meta_description" rows={2} maxLength={300} {...form.register('meta_description')} />
+            </div>
+            <div className="md:col-span-2">
+              <FileUpload
+                label={t('clinic_articles.cover_image')}
+                value={form.watch('cover_image')}
+                onChange={(p) => form.setValue('cover_image', p, { shouldDirty: true })}
+                directory="articles"
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <div className="flex items-center justify-between">
