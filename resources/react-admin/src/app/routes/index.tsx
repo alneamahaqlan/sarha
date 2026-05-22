@@ -9,6 +9,7 @@ import { CategoriesIndex } from '@/features/categories/pages/CategoriesIndex';
 import { UsersIndex } from '@/features/users/pages/UsersIndex';
 import { AdminsIndex } from '@/features/admins/pages/AdminsIndex';
 import { ServicesIndex } from '@/features/services/pages/ServicesIndex';
+import { BookingsIndex } from '@/features/bookings/pages/BookingsIndex';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -38,6 +39,7 @@ export function AppRoutes() {
           <Route path="admin">
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="bookings" element={<BookingsIndex />} />
             <Route path="users" element={<UsersIndex />} />
             <Route path="services" element={<ServicesIndex />} />
             <Route path="cities" element={<CitiesIndex />} />

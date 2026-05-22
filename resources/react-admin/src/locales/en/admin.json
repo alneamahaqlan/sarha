@@ -25,7 +25,8 @@
     "categories": "Categories",
     "users": "Customers",
     "admins": "Administrators",
-    "services": "Services"
+    "services": "Services",
+    "bookings": "Bookings"
   },
   "auth": {
     "login_title": "Sign in",
@@ -130,6 +131,45 @@
     "deleted": "Service deleted",
     "delete_confirm_title": "Delete service?",
     "delete_confirm_body": "This action cannot be undone."
+  },
+  "bookings": {
+    "title": "Bookings",
+    "subtitle": "Manage all incoming customer bookings",
+    "create": "Add booking",
+    "edit": "Edit booking",
+    "reference": "Reference",
+    "clinic": "Clinic",
+    "customer_name": "Customer name",
+    "customer_phone": "Customer phone",
+    "service": "Service",
+    "appointment_at": "Appointment",
+    "notes": "Customer notes",
+    "clinic_notes": "Clinic notes",
+    "created_at": "Created",
+    "status_label": "Status",
+    "trashed_badge": "Trashed",
+    "restore": "Restore",
+    "filter_all_statuses": "All statuses",
+    "filter_all_clinics": "All clinics",
+    "trashed": {
+      "without": "Without trashed",
+      "with": "With trashed",
+      "only": "Trashed only"
+    },
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "appointment_set": "Appointment set",
+      "completed": "Completed",
+      "no_show": "No show",
+      "cancelled": "Cancelled"
+    },
+    "created": "Booking created",
+    "updated": "Booking updated",
+    "deleted": "Booking deleted",
+    "restored": "Booking restored",
+    "delete_confirm_title": "Delete booking?",
+    "delete_confirm_body": "It can be restored later from the 'Trashed' filter."
   },
   "errors": {
     "generic": "An unexpected error occurred",

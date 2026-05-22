@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminController;
+use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
+use App\Models\Booking;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,6 +57,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('admins', AdminController::class)->parameter('admins', 'admin_user');
 
         Route::apiResource('services', ServiceController::class);
+
+        // Booking — restore + forceDestroy need to resolve trashed rows, so we bind
+        // the {booking_trashed} param with withTrashed() instead of default scope.
+        Route::bind('booking_trashed', fn ($id) => Booking::withTrashed()->findOrFail($id));
+        Route::post('bookings/{booking_trashed}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
+        Route::delete('bookings/{booking_trashed}/force', [BookingController::class, 'forceDestroy'])->name('bookings.force-destroy');
+        Route::apiResource('bookings', BookingController::class);
     });
 
     // -------------------- Clinic guard --------------------

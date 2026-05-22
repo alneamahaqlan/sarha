@@ -25,7 +25,8 @@
     "categories": "التصنيفات",
     "users": "العملاء",
     "admins": "المديرون",
-    "services": "الخدمات"
+    "services": "الخدمات",
+    "bookings": "الحجوزات"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -130,6 +131,45 @@
     "deleted": "تم حذف الخدمة",
     "delete_confirm_title": "حذف الخدمة؟",
     "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
+  },
+  "bookings": {
+    "title": "الحجوزات",
+    "subtitle": "إدارة جميع الحجوزات الواردة من العملاء",
+    "create": "إضافة حجز",
+    "edit": "تعديل الحجز",
+    "reference": "المرجع",
+    "clinic": "العيادة",
+    "customer_name": "اسم العميل",
+    "customer_phone": "رقم العميل",
+    "service": "الخدمة",
+    "appointment_at": "موعد المراجعة",
+    "notes": "ملاحظات العميل",
+    "clinic_notes": "ملاحظات العيادة",
+    "created_at": "تاريخ الحجز",
+    "status_label": "الحالة",
+    "trashed_badge": "محذوف",
+    "restore": "استعادة",
+    "filter_all_statuses": "كل الحالات",
+    "filter_all_clinics": "كل العيادات",
+    "trashed": {
+      "without": "بدون المحذوفة",
+      "with": "مع المحذوفة",
+      "only": "المحذوفة فقط"
+    },
+    "status": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "appointment_set": "موعد محدد",
+      "completed": "مكتمل",
+      "no_show": "لم يحضر",
+      "cancelled": "ملغي"
+    },
+    "created": "تم إنشاء الحجز",
+    "updated": "تم تحديث الحجز",
+    "deleted": "تم حذف الحجز",
+    "restored": "تم استعادة الحجز",
+    "delete_confirm_title": "حذف الحجز؟",
+    "delete_confirm_body": "يمكن استعادته لاحقاً من فلتر «المحذوفة»."
   },
   "errors": {
     "generic": "حدث خطأ غير متوقع",
