@@ -7,6 +7,9 @@ import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { apiClient } from '@/lib/api-client';
 import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/features/notifications/NotificationBell';
+import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
+import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
@@ -33,7 +36,9 @@ export function ClinicLayout() {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#f8fafc]">
+    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <ImpersonationBanner />
+      <div className="flex flex-1">
       <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
         <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
           {user?.user.name ?? t('clinic_brand')}
@@ -63,6 +68,7 @@ export function ClinicLayout() {
         <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
           <div className="text-sm font-medium md:hidden">{user?.user.name}</div>
           <div className="ms-auto flex items-center gap-2">
+            <NotificationBell />
             <button
               type="button"
               onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
@@ -86,6 +92,8 @@ export function ClinicLayout() {
           <Outlet />
         </main>
       </div>
+      </div>
+      <AiChatWidget />
     </div>
   );
 }

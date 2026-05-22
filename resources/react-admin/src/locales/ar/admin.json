@@ -402,6 +402,42 @@
       "urgent": "عاجلة"
     }
   },
+  "dashboard": {
+    "title": "لوحة المعلومات",
+    "subtitle": "نظرة عامة على نشاط المنصة",
+    "active_clinics": "العيادات النشطة",
+    "pending_count": "{{count}} بانتظار الاعتماد",
+    "today_bookings": "حجوزات اليوم",
+    "month_bookings_count": "{{count}} هذا الشهر",
+    "active_subscriptions": "اشتراكات نشطة",
+    "month_revenue": "إيرادات الشهر: {{amount}}",
+    "registered_users": "المستخدمون المسجّلون",
+    "bookings_trend": "اتجاه الحجوزات — آخر 30 يومًا",
+    "latest_bookings": "آخر الحجوزات",
+    "reference": "المرجع",
+    "clinic": "العيادة",
+    "customer": "العميل",
+    "service": "الخدمة",
+    "status": "الحالة",
+    "created_at": "التاريخ"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "mark_all_read": "تحديد الكل كمقروء",
+    "empty": "لا توجد إشعارات"
+  },
+  "impersonation": {
+    "banner": "أنت تعمل حاليًا كحساب {{clinic}}",
+    "stop": "إيقاف الانتحال"
+  },
+  "ai_chat": {
+    "open": "افتح المساعد",
+    "title": "المساعد الذكي",
+    "placeholder": "اسأل عن العيادات أو الأسعار أو الخدمات",
+    "input_placeholder": "اكتب سؤالك...",
+    "send": "إرسال",
+    "thinking": "جاري التفكير..."
+  },
   "clinic_brand": "لوحة العيادة",
   "clinic_nav": {
     "dashboard": "لوحة المعلومات",
@@ -414,6 +450,12 @@
     "profile": "ملف العيادة"
   },
   "clinic_dashboard": {
+    "new_bookings": "حجوزات جديدة",
+    "total_count": "من إجمالي {{count}}",
+    "month_bookings": "حجوزات هذا الشهر",
+    "active_services": "خدماتي النشطة",
+    "subscription": "الاشتراك",
+    "subscription_ends": "ينتهي في {{date}}",
     "placeholder": "ستظهر هنا إحصائيات العيادة قريبًا."
   },
   "clinic_services": {

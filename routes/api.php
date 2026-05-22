@@ -14,15 +14,20 @@ use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CustomCategoryController as ClinicCustomCategoryController;
+use App\Http\Controllers\Api\V1\Clinic\DashboardController as ClinicDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportServicesController;
 use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ProfileController as ClinicProfileController;
 use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
+use App\Http\Controllers\Api\V1\Shared\AiChatController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
+use App\Http\Controllers\Api\V1\Shared\ImpersonationController as ApiImpersonationController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
+use App\Http\Controllers\Api\V1\Shared\NotificationController;
 use App\Models\Booking;
 use App\Models\Clinic;
 use Illuminate\Support\Facades\Route;
@@ -56,10 +61,26 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/clinics', [LookupController::class, 'clinics']);
         Route::get('lookups/cities', [LookupController::class, 'cities']);
         Route::get('lookups/categories', [LookupController::class, 'categories']);
+
+        // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('notifications/{notification}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+
+        // Stop impersonation (start lives on /api/v1/admin/clinics/{clinic}/impersonate).
+        Route::post('impersonation/stop', [ApiImpersonationController::class, 'stop'])->name('impersonation.stop');
+
+        // AI assistant — same AiAssistantService::ask the Filament Livewire chat calls.
+        Route::post('ai-chat', [AiChatController::class, 'ask'])->middleware('throttle:30,1')->name('ai-chat.ask');
     });
 
     // -------------------- Admin guard --------------------
     Route::prefix('admin')->middleware('api.guard:admin')->group(function () {
+        // Dashboard widgets (StatsOverview + LatestBookings + bookings trend).
+        Route::get('dashboard/stats', [AdminDashboardController::class, 'stats'])->name('admin.dashboard.stats');
+        Route::get('dashboard/latest-bookings', [AdminDashboardController::class, 'latestBookings'])->name('admin.dashboard.latest-bookings');
+        Route::get('dashboard/bookings-trend', [AdminDashboardController::class, 'bookingsTrend'])->name('admin.dashboard.bookings-trend');
+
         Route::apiResource('cities', CityController::class);
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
@@ -129,6 +150,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
     // Each clinic resource is auto-scoped to auth('clinic')->id() in its controller,
     // mirroring the Filament Clinic panel getEloquentQuery() where('clinic_id', ...).
     Route::prefix('clinic')->middleware('api.guard:clinic')->group(function () {
+        // Dashboard widget — clinic-scoped stats (mirrors ClinicStatsWidget).
+        Route::get('dashboard/stats', [ClinicDashboardController::class, 'stats'])->name('clinic.dashboard.stats');
+
         // Services (clinic-owned) + reorder.
         Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');
         Route::apiResource('services', ClinicServiceController::class)->only(['index', 'store', 'update', 'destroy']);

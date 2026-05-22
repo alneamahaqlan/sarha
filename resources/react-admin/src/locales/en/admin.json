@@ -402,6 +402,42 @@
       "urgent": "Urgent"
     }
   },
+  "dashboard": {
+    "title": "Dashboard",
+    "subtitle": "Overview of platform activity",
+    "active_clinics": "Active clinics",
+    "pending_count": "{{count}} pending approval",
+    "today_bookings": "Today's bookings",
+    "month_bookings_count": "{{count}} this month",
+    "active_subscriptions": "Active subscriptions",
+    "month_revenue": "Month revenue: {{amount}}",
+    "registered_users": "Registered users",
+    "bookings_trend": "Bookings trend — last 30 days",
+    "latest_bookings": "Latest bookings",
+    "reference": "Reference",
+    "clinic": "Clinic",
+    "customer": "Customer",
+    "service": "Service",
+    "status": "Status",
+    "created_at": "Created"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "mark_all_read": "Mark all read",
+    "empty": "No notifications"
+  },
+  "impersonation": {
+    "banner": "You are currently impersonating {{clinic}}",
+    "stop": "Stop impersonation"
+  },
+  "ai_chat": {
+    "open": "Open assistant",
+    "title": "AI assistant",
+    "placeholder": "Ask about clinics, prices or services",
+    "input_placeholder": "Type your question...",
+    "send": "Send",
+    "thinking": "Thinking..."
+  },
   "clinic_brand": "Clinic panel",
   "clinic_nav": {
     "dashboard": "Dashboard",
@@ -414,6 +450,12 @@
     "profile": "Clinic profile"
   },
   "clinic_dashboard": {
+    "new_bookings": "New bookings",
+    "total_count": "Of {{count}} total",
+    "month_bookings": "This month's bookings",
+    "active_services": "My active services",
+    "subscription": "Subscription",
+    "subscription_ends": "Ends {{date}}",
     "placeholder": "Clinic statistics will appear here soon."
   },
   "clinic_services": {
