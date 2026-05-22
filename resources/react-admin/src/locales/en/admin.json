@@ -26,7 +26,8 @@
     "users": "Customers",
     "admins": "Administrators",
     "services": "Services",
-    "bookings": "Bookings"
+    "bookings": "Bookings",
+    "complaints": "Complaints"
   },
   "auth": {
     "login_title": "Sign in",
@@ -170,6 +171,58 @@
     "restored": "Booking restored",
     "delete_confirm_title": "Delete booking?",
     "delete_confirm_body": "It can be restored later from the 'Trashed' filter."
+  },
+  "complaints": {
+    "title": "Complaints",
+    "subtitle": "Track and resolve customer complaints",
+    "reference": "Reference",
+    "customer_name": "Customer",
+    "clinic": "Clinic",
+    "type_label": "Type",
+    "priority_label": "Priority",
+    "status_label": "Status",
+    "notified": "Clinic notified",
+    "created_at": "Created",
+    "resolution": "Resolution details",
+    "rejection_reason": "Rejection reason",
+    "filter_all_statuses": "All statuses",
+    "filter_all_types": "All types",
+    "filter_all_priorities": "All priorities",
+    "type": {
+      "quality": "Service quality",
+      "pricing": "Pricing",
+      "misleading_info": "Misleading info",
+      "other": "Other"
+    },
+    "status": {
+      "new": "New",
+      "in_review": "In review",
+      "resolved": "Resolved",
+      "rejected": "Rejected"
+    },
+    "priority": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "actions": {
+      "mark_in_review": "Move to In review",
+      "mark_in_review_title": "Start reviewing complaint?",
+      "mark_in_review_body": "Status will change to 'In review'.",
+      "mark_in_review_done": "Moved to in review",
+      "resolve": "Resolve",
+      "resolve_title": "Resolve complaint",
+      "resolve_body": "Add the resolution before closing.",
+      "resolve_done": "Resolution recorded",
+      "reject": "Reject",
+      "reject_title": "Reject complaint",
+      "reject_body": "The reason will appear in the complaint record.",
+      "reject_done": "Complaint rejected",
+      "notify_clinic": "Notify clinic",
+      "notify_clinic_title": "Notify clinic?",
+      "notify_clinic_body": "The clinic will be informed about the complaint.",
+      "notify_clinic_done": "Clinic notified"
+    }
   },
   "errors": {
     "generic": "An unexpected error occurred",

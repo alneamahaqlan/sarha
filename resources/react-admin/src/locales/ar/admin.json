@@ -26,7 +26,8 @@
     "users": "العملاء",
     "admins": "المديرون",
     "services": "الخدمات",
-    "bookings": "الحجوزات"
+    "bookings": "الحجوزات",
+    "complaints": "الشكاوى"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -170,6 +171,58 @@
     "restored": "تم استعادة الحجز",
     "delete_confirm_title": "حذف الحجز؟",
     "delete_confirm_body": "يمكن استعادته لاحقاً من فلتر «المحذوفة»."
+  },
+  "complaints": {
+    "title": "الشكاوى",
+    "subtitle": "متابعة وحل شكاوى العملاء",
+    "reference": "المرجع",
+    "customer_name": "اسم العميل",
+    "clinic": "العيادة",
+    "type_label": "النوع",
+    "priority_label": "الأولوية",
+    "status_label": "الحالة",
+    "notified": "أُبلغت العيادة",
+    "created_at": "التاريخ",
+    "resolution": "تفاصيل الحل",
+    "rejection_reason": "سبب الرفض",
+    "filter_all_statuses": "كل الحالات",
+    "filter_all_types": "كل الأنواع",
+    "filter_all_priorities": "كل الأولويات",
+    "type": {
+      "quality": "جودة الخدمة",
+      "pricing": "التسعير",
+      "misleading_info": "معلومات مضللة",
+      "other": "أخرى"
+    },
+    "status": {
+      "new": "جديدة",
+      "in_review": "قيد المراجعة",
+      "resolved": "تم الحل",
+      "rejected": "مرفوضة"
+    },
+    "priority": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية"
+    },
+    "actions": {
+      "mark_in_review": "نقل إلى قيد المراجعة",
+      "mark_in_review_title": "بدء مراجعة الشكوى؟",
+      "mark_in_review_body": "سيتم تغيير الحالة إلى «قيد المراجعة».",
+      "mark_in_review_done": "تم النقل إلى قيد المراجعة",
+      "resolve": "حل الشكوى",
+      "resolve_title": "حل الشكوى",
+      "resolve_body": "اكتب تفاصيل الحل قبل الإغلاق.",
+      "resolve_done": "تم تسجيل الحل",
+      "reject": "رفض الشكوى",
+      "reject_title": "رفض الشكوى",
+      "reject_body": "سبب الرفض سيظهر في سجل الشكوى.",
+      "reject_done": "تم رفض الشكوى",
+      "notify_clinic": "إبلاغ العيادة",
+      "notify_clinic_title": "إبلاغ العيادة؟",
+      "notify_clinic_body": "سيتم إعلام العيادة بالشكوى.",
+      "notify_clinic_done": "تم إبلاغ العيادة"
+    }
   },
   "errors": {
     "generic": "حدث خطأ غير متوقع",

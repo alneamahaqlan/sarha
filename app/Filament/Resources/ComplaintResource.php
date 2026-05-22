@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\HasTranslatableLabels;
 use App\Filament\Resources\ComplaintResource\Pages;
 use App\Models\Complaint;
+use App\Services\ComplaintService;
 use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -121,7 +122,7 @@ class ComplaintResource extends Resource
                     ->icon('heroicon-o-eye')->color('warning')
                     ->visible(fn(Complaint $r) => $r->status === 'new')
                     ->requiresConfirmation()
-                    ->action(fn(Complaint $r) => $r->update(['status' => 'in_review'])),
+                    ->action(fn(Complaint $r) => app(ComplaintService::class)->markInReview($r)),
 
                 \Filament\Actions\Action::make('resolve')
                     ->label(__('admin.actions.resolve'))
@@ -130,13 +131,7 @@ class ComplaintResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('resolution')->label(__('admin.fields.resolution'))->required()->rows(4),
                     ])
-                    ->action(function (Complaint $r, array $data) {
-                        $r->update([
-                            'status'      => 'resolved',
-                            'resolution'  => $data['resolution'],
-                            'resolved_at' => now(),
-                        ]);
-                    }),
+                    ->action(fn(Complaint $r, array $data) => app(ComplaintService::class)->resolve($r, $data['resolution'])),
 
                 \Filament\Actions\Action::make('reject')
                     ->label(__('admin.actions.reject'))
@@ -145,20 +140,14 @@ class ComplaintResource extends Resource
                     ->form([
                         Forms\Components\Textarea::make('admin_notes')->label(__('admin.fields.rejection_reason'))->required()->rows(3),
                     ])
-                    ->action(function (Complaint $r, array $data) {
-                        $r->update([
-                            'status'      => 'rejected',
-                            'admin_notes' => $data['admin_notes'],
-                            'resolved_at' => now(),
-                        ]);
-                    }),
+                    ->action(fn(Complaint $r, array $data) => app(ComplaintService::class)->reject($r, $data['admin_notes'])),
 
                 \Filament\Actions\Action::make('notify_clinic')
                     ->label(__('admin.actions.notify_clinic'))
                     ->icon('heroicon-o-megaphone')->color('primary')
                     ->visible(fn(Complaint $r) => $r->clinic_id && ! $r->clinic_notified)
                     ->requiresConfirmation()
-                    ->action(fn(Complaint $r) => $r->update(['clinic_notified' => true])),
+                    ->action(fn(Complaint $r) => app(ComplaintService::class)->notifyClinic($r)),
 
                 \Filament\Actions\EditAction::make(),
             ])
