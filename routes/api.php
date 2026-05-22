@@ -14,9 +14,12 @@ use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CustomCategoryController as ClinicCustomCategoryController;
+use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportServicesController;
 use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPriceQuoteRequestController;
+use App\Http\Controllers\Api\V1\Clinic\ProfileController as ClinicProfileController;
 use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
@@ -143,5 +146,19 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('price-quotes', ClinicPriceQuoteRequestController::class)
             ->only(['index', 'show', 'update'])
             ->parameters(['price-quotes' => 'priceQuote']);
+
+        // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
+        // the basic-plan monthly publish limit; preserved as-is via Model events.
+        Route::post('articles/generate-ai', [ClinicArticleController::class, 'generateAi'])->name('clinic.articles.generate-ai');
+        Route::apiResource('articles', ClinicArticleController::class);
+
+        // Profile — self-update of the authenticated clinic.
+        Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
+        Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
+
+        // Import services — 2-step flow (analyze CSV → execute import) using
+        // the same ImportServicesService that the Filament page now calls.
+        Route::post('import-services/analyze', [ClinicImportServicesController::class, 'analyze'])->name('clinic.import-services.analyze');
+        Route::post('import-services/execute', [ClinicImportServicesController::class, 'execute'])->name('clinic.import-services.execute');
     });
 });

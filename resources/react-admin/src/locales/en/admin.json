@@ -408,7 +408,10 @@
     "services": "My services",
     "categories": "My categories",
     "bookings": "Bookings",
-    "price_quotes": "Price quotes"
+    "price_quotes": "Price quotes",
+    "articles": "Articles",
+    "import_services": "Import services",
+    "profile": "Clinic profile"
   },
   "clinic_dashboard": {
     "placeholder": "Clinic statistics will appear here soon."
@@ -476,6 +479,69 @@
     "created_at": "Created",
     "filter_all_statuses": "All statuses",
     "updated": "Request updated"
+  },
+  "clinic_articles": {
+    "title": "Articles",
+    "subtitle": "Clinic articles and published content",
+    "create": "New article",
+    "edit": "Edit article",
+    "title_field": "Title",
+    "slug": "Slug",
+    "body": "Body",
+    "excerpt": "Excerpt",
+    "is_published": "Published",
+    "created_at": "Created",
+    "ai_excerpt": "AI excerpt",
+    "ai_article": "AI full article",
+    "ai_title_first": "Type a title before generating content",
+    "ai_generated": "Generated successfully",
+    "created": "Article created",
+    "updated": "Article updated",
+    "deleted": "Article deleted",
+    "limit_hit": "Monthly publish limit reached on Basic plan. Article saved as draft.",
+    "delete_confirm_title": "Delete article?",
+    "delete_confirm_body": "This action cannot be undone."
+  },
+  "clinic_profile": {
+    "title": "Clinic profile",
+    "subtitle": "Update your clinic details and social links",
+    "name": "Clinic name",
+    "phone": "Phone",
+    "email": "Email",
+    "address": "Address",
+    "description": "Clinic description",
+    "website": "Website",
+    "instagram": "Instagram",
+    "twitter": "Twitter",
+    "snapchat": "Snapchat",
+    "new_password": "New password",
+    "password_hint": "Leave blank to keep the current password",
+    "save": "Save changes",
+    "saved": "Profile saved"
+  },
+  "import_services": {
+    "title": "Import services from Excel/CSV",
+    "subtitle": "Upload a CSV file and AI will map columns for you",
+    "file": "CSV file",
+    "file_hint": "Max 2MB. CSV format only.",
+    "analyze": "Analyze columns",
+    "analyzed": "File analyzed",
+    "no_file": "Upload a file first",
+    "mapping": "Column mapping",
+    "mapping_hint": "Review suggestions and adjust if needed before executing.",
+    "column": "File column",
+    "suggestion": "Suggestion",
+    "confidence": "Confidence",
+    "map_to": "Map to",
+    "rows_count": "Rows: {{count}}",
+    "execute": "Run import",
+    "fields": {
+      "none": "Ignore",
+      "name": "Service name",
+      "price": "Price",
+      "old_price": "Old price",
+      "description": "Description"
+    }
   },
   "errors": {
     "generic": "An unexpected error occurred",

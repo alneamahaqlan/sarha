@@ -2,8 +2,7 @@
 
 namespace App\Filament\Clinic\Pages;
 
-use App\Models\Service;
-use App\Services\AnthropicService;
+use App\Services\ImportServicesService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
@@ -73,37 +72,19 @@ class ImportServices extends Page implements HasForms
             return;
         }
 
-        // Parse CSV
-        $handle = fopen($path, 'r');
-        $rows = [];
-        while (($row = fgetcsv($handle)) !== false) {
-            $rows[] = array_map('trim', $row);
-        }
-        fclose($handle);
+        $service = app(ImportServicesService::class);
+        $parsed = $service->parseCsv($path);
 
-        if (count($rows) < 2) {
+        if (empty($parsed['headers'])) {
             Notification::make()->title(__('admin.import_empty'))->danger()->send();
             return;
         }
 
-        $this->headers = array_shift($rows);
-        $this->rows = $rows;
+        $this->headers = $parsed['headers'];
+        $this->rows = $parsed['rows'];
+        $this->analysis = $service->analyzeColumns($this->headers, $this->rows);
 
-        $ai = app(AnthropicService::class);
-        if (! $ai->isConfigured()) {
-            // Heuristic fallback
-            $this->analysis = $this->heuristicMatch($this->headers);
-            Notification::make()->title(__('admin.import_ai_disabled_heuristic'))->warning()->send();
-            return;
-        }
-
-        try {
-            $this->analysis = $ai->analyzeExcelColumns($this->headers, array_slice($rows, 0, 3));
-            Notification::make()->title(__('admin.ai.excel_done'))->success()->send();
-        } catch (\Throwable $e) {
-            Notification::make()->title(__('admin.ai.failed'))->body($e->getMessage())->danger()->send();
-            $this->analysis = $this->heuristicMatch($this->headers);
-        }
+        Notification::make()->title(__('admin.ai.excel_done'))->success()->send();
     }
 
     public function importNow(): void
@@ -124,55 +105,13 @@ class ImportServices extends Page implements HasForms
             return;
         }
 
-        $clinicId = auth('clinic')->id();
-        $imported = 0;
-
-        foreach ($this->rows as $row) {
-            $service = ['clinic_id' => $clinicId, 'is_active' => true];
-            foreach ($mapping as $colIdx => $field) {
-                $service[$field] = $row[$colIdx] ?? null;
-            }
-            if (empty($service['name'])) continue;
-            // Strip non-numeric from prices
-            foreach (['price', 'old_price'] as $priceField) {
-                if (! empty($service[$priceField])) {
-                    $service[$priceField] = (float) preg_replace('/[^\d.]/', '', $service[$priceField]);
-                }
-            }
-            Service::create($service);
-            $imported++;
-        }
+        $imported = app(ImportServicesService::class)
+            ->importRows((int) auth('clinic')->id(), $this->headers, $this->rows, $mapping);
 
         $this->reset(['analysis', 'rows', 'headers', 'data']);
         Notification::make()
             ->title(__('admin.import_success', ['count' => $imported]))
             ->success()->send();
-    }
-
-    private function heuristicMatch(array $headers): array
-    {
-        $rules = [
-            'name'        => ['/name|اسم/iu'],
-            'price'       => ['/^price|سعر$|السعر/iu'],
-            'old_price'   => ['/old|قديم|قبل/iu'],
-            'description' => ['/desc|وصف|تفاصيل/iu'],
-        ];
-
-        return array_map(function ($col) use ($rules) {
-            foreach ($rules as $field => $patterns) {
-                foreach ($patterns as $pattern) {
-                    if (preg_match($pattern, $col)) {
-                        return [
-                            'column'     => $col,
-                            'mapped_to'  => $field,
-                            'confidence' => 70,
-                            'reason'     => 'Heuristic match',
-                        ];
-                    }
-                }
-            }
-            return ['column' => $col, 'mapped_to' => null, 'confidence' => 0, 'reason' => 'No match'];
-        }, $headers);
     }
 
     protected function getFormActions(): array

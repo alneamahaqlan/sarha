@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -12,8 +12,11 @@ const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
   { to: '/clinic/services', label: 'clinic_nav.services', icon: Sparkles },
   { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
+  { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
   { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
   { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign },
+  { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText },
+  { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
 ];
 
 export function ClinicLayout() {

@@ -24,6 +24,9 @@ import { ClinicServicesIndex } from '@/features/clinic/services/pages/ClinicServ
 import { ClinicCategoriesIndex } from '@/features/clinic/categories/pages/ClinicCategoriesIndex';
 import { ClinicBookingsIndex } from '@/features/clinic/bookings/pages/ClinicBookingsIndex';
 import { ClinicQuotesIndex } from '@/features/clinic/price-quotes/pages/ClinicQuotesIndex';
+import { ClinicArticlesIndex } from '@/features/clinic/articles/pages/ClinicArticlesIndex';
+import { ClinicProfilePage } from '@/features/clinic/profile/pages/ClinicProfilePage';
+import { ImportServicesPage } from '@/features/clinic/import-services/pages/ImportServicesPage';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -87,6 +90,9 @@ export function AppRoutes() {
             <Route path="categories" element={<ClinicCategoriesIndex />} />
             <Route path="bookings" element={<ClinicBookingsIndex />} />
             <Route path="price-quotes" element={<ClinicQuotesIndex />} />
+            <Route path="articles" element={<ClinicArticlesIndex />} />
+            <Route path="import-services" element={<ImportServicesPage />} />
+            <Route path="profile" element={<ClinicProfilePage />} />
           </Route>
         </Route>
         <Route path="/login" element={<Navigate to="/clinic/dashboard" replace />} />

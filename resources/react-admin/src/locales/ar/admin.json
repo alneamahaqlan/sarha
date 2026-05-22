@@ -408,7 +408,10 @@
     "services": "خدماتي",
     "categories": "تصنيفاتي",
     "bookings": "الحجوزات",
-    "price_quotes": "طلبات التسعير"
+    "price_quotes": "طلبات التسعير",
+    "articles": "المقالات",
+    "import_services": "استيراد خدمات",
+    "profile": "ملف العيادة"
   },
   "clinic_dashboard": {
     "placeholder": "ستظهر هنا إحصائيات العيادة قريبًا."
@@ -476,6 +479,69 @@
     "created_at": "التاريخ",
     "filter_all_statuses": "كل الحالات",
     "updated": "تم تحديث الطلب"
+  },
+  "clinic_articles": {
+    "title": "المقالات",
+    "subtitle": "مقالات العيادة والمحتوى المنشور",
+    "create": "مقال جديد",
+    "edit": "تعديل المقال",
+    "title_field": "العنوان",
+    "slug": "المعرّف (slug)",
+    "body": "المحتوى",
+    "excerpt": "ملخص قصير",
+    "is_published": "منشور",
+    "created_at": "تاريخ الإنشاء",
+    "ai_excerpt": "توليد ملخص بـ AI",
+    "ai_article": "توليد مقال كامل بـ AI",
+    "ai_title_first": "اكتب العنوان أولًا قبل توليد المحتوى",
+    "ai_generated": "تم التوليد بنجاح",
+    "created": "تم إنشاء المقال",
+    "updated": "تم تحديث المقال",
+    "deleted": "تم حذف المقال",
+    "limit_hit": "وصلت إلى حد النشر الشهري لباقة Basic. تم حفظ المقال كمسودّة.",
+    "delete_confirm_title": "حذف المقال؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
+  },
+  "clinic_profile": {
+    "title": "ملف العيادة",
+    "subtitle": "تحديث بيانات العيادة الأساسية وروابط التواصل",
+    "name": "اسم العيادة",
+    "phone": "الجوال",
+    "email": "البريد الإلكتروني",
+    "address": "العنوان",
+    "description": "وصف العيادة",
+    "website": "الموقع الإلكتروني",
+    "instagram": "إنستغرام",
+    "twitter": "تويتر",
+    "snapchat": "سناب شات",
+    "new_password": "كلمة المرور الجديدة",
+    "password_hint": "اتركها فارغة لإبقاء كلمة المرور الحالية",
+    "save": "حفظ التعديلات",
+    "saved": "تم حفظ ملف العيادة"
+  },
+  "import_services": {
+    "title": "استيراد خدمات من Excel/CSV",
+    "subtitle": "ارفع ملف CSV وسيقوم الذكاء الاصطناعي بربط الأعمدة تلقائيًا",
+    "file": "ملف CSV",
+    "file_hint": "الحد الأقصى 2MB. صيغة CSV مدعومة فقط.",
+    "analyze": "تحليل الأعمدة",
+    "analyzed": "تم تحليل الملف",
+    "no_file": "ارفع ملفًا أولًا",
+    "mapping": "ربط الأعمدة بالحقول",
+    "mapping_hint": "راجع الاقتراحات وعدّل إذا لزم قبل التنفيذ.",
+    "column": "عمود الملف",
+    "suggestion": "الاقتراح",
+    "confidence": "الثقة",
+    "map_to": "اربط إلى",
+    "rows_count": "عدد الصفوف: {{count}}",
+    "execute": "تنفيذ الاستيراد",
+    "fields": {
+      "none": "تجاهل",
+      "name": "اسم الخدمة",
+      "price": "السعر",
+      "old_price": "السعر القديم",
+      "description": "الوصف"
+    }
   },
   "errors": {
     "generic": "حدث خطأ غير متوقع",
