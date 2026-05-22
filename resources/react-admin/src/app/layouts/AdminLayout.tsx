@@ -14,21 +14,41 @@ import { MobileNav } from './MobileNav';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
-  { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
-  { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
-  { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
-  { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof AdminNavBadges },
-  { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
-  { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
-  { to: '/admin/users', label: 'nav.users', icon: Users },
-  { to: '/admin/services', label: 'nav.services', icon: Sparkles },
-  { to: '/admin/articles', label: 'nav.articles', icon: FileText },
-  { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
-  { to: '/admin/categories', label: 'nav.categories', icon: Tag },
-  { to: '/admin/admins', label: 'nav.admins', icon: Shield },
-  { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
-  { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
-  { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
+  {
+    group: 'nav.group.clinics',
+    items: [
+      { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
+      { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
+      { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
+      { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof AdminNavBadges },
+      { to: '/admin/users', label: 'nav.users', icon: Users },
+    ],
+  },
+  {
+    group: 'nav.group.content',
+    items: [
+      { to: '/admin/services', label: 'nav.services', icon: Sparkles },
+      { to: '/admin/articles', label: 'nav.articles', icon: FileText },
+    ],
+  },
+  {
+    group: 'nav.group.sales',
+    items: [
+      { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
+      { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
+    ],
+  },
+  {
+    group: 'nav.group.system',
+    items: [
+      { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
+      { to: '/admin/categories', label: 'nav.categories', icon: Tag },
+      { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+      { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
+      { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
+    ],
+  },
 ];
 
 export function AdminLayout() {
@@ -53,13 +73,48 @@ export function AdminLayout() {
         <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
           {t('brand')}
         </div>
-        <nav className="flex-1 space-y-1 p-2">
-          {adminNav.map(({ to, label, icon: Icon, badge }) => {
-            const count = badge ? badges?.[badge] ?? 0 : 0;
+        <nav className="flex-1 space-y-2 overflow-y-auto p-2">
+          {adminNav.map((entry, idx) => {
+            if ('group' in entry) {
+              return (
+                <div key={`g-${idx}`} className="space-y-1">
+                  <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                    {t(entry.group)}
+                  </div>
+                  {entry.items.map((item) => {
+                    const Icon = item.icon;
+                    const count = item.badge ? badges?.[item.badge] ?? 0 : 0;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                            isActive
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                          )
+                        }
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1">{t(item.label)}</span>
+                        {count > 0 && (
+                          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                            {count > 99 ? '99+' : count}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              );
+            }
+            const Icon = entry.icon;
             return (
               <NavLink
-                key={to}
-                to={to}
+                key={entry.to}
+                to={entry.to}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
@@ -70,12 +125,7 @@ export function AdminLayout() {
                 }
               >
                 <Icon className="h-4 w-4" />
-                <span className="flex-1">{t(label)}</span>
-                {count > 0 && (
-                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
-                    {count > 99 ? '99+' : count}
-                  </span>
-                )}
+                <span className="flex-1">{t(entry.label)}</span>
               </NavLink>
             );
           })}

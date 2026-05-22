@@ -38,7 +38,13 @@
     "audit_logs": "Audit log",
     "system_settings": "System settings",
     "mass_notify": "Mass notify",
-    "articles": "Articles"
+    "articles": "Articles",
+    "group": {
+      "clinics": "Clinic management",
+      "content": "Content & services",
+      "sales": "Sales & subscriptions",
+      "system": "System settings"
+    }
   },
   "auth": {
     "login_title": "Sign in",
@@ -560,7 +566,13 @@
     "price_quotes": "Price quotes",
     "articles": "Articles",
     "import_services": "Import services",
-    "profile": "Clinic profile"
+    "profile": "Clinic profile",
+    "group": {
+      "my_services": "Manage my services",
+      "bookings": "Bookings & customers",
+      "articles": "Content & articles",
+      "settings": "Settings"
+    }
   },
   "clinic_dashboard": {
     "new_bookings": "New bookings",

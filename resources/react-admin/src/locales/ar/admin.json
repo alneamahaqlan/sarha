@@ -38,7 +38,13 @@
     "audit_logs": "سجل التدقيق",
     "system_settings": "إعدادات النظام",
     "mass_notify": "إشعار جماعي",
-    "articles": "المقالات"
+    "articles": "المقالات",
+    "group": {
+      "clinics": "إدارة المجمعات",
+      "content": "المحتوى والخدمات",
+      "sales": "المبيعات والاشتراكات",
+      "system": "إعدادات النظام"
+    }
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -560,7 +566,13 @@
     "price_quotes": "طلبات التسعير",
     "articles": "المقالات",
     "import_services": "استيراد خدمات",
-    "profile": "ملف العيادة"
+    "profile": "ملف العيادة",
+    "group": {
+      "my_services": "إدارة خدماتي",
+      "bookings": "الحجوزات والعملاء",
+      "articles": "المحتوى والمقالات",
+      "settings": "الإعدادات"
+    }
   },
   "clinic_dashboard": {
     "new_bookings": "حجوزات جديدة",

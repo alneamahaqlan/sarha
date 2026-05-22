@@ -15,13 +15,33 @@ import { MobileNav } from './MobileNav';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
-  { to: '/clinic/services', label: 'clinic_nav.services', icon: Sparkles },
-  { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
-  { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
-  { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
-  { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
-  { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText },
-  { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
+  {
+    group: 'clinic_nav.group.my_services',
+    items: [
+      { to: '/clinic/services', label: 'clinic_nav.services', icon: Sparkles },
+      { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
+      { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.bookings',
+    items: [
+      { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
+      { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.articles',
+    items: [
+      { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.settings',
+    items: [
+      { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
+    ],
+  },
 ];
 
 export function ClinicLayout() {
@@ -46,13 +66,48 @@ export function ClinicLayout() {
         <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
           {user?.user.name ?? t('clinic_brand')}
         </div>
-        <nav className="flex-1 space-y-1 p-2">
-          {clinicNav.map(({ to, label, icon: Icon, badge }) => {
-            const count = badge ? badges?.[badge] ?? 0 : 0;
+        <nav className="flex-1 space-y-2 overflow-y-auto p-2">
+          {clinicNav.map((entry, idx) => {
+            if ('group' in entry) {
+              return (
+                <div key={`g-${idx}`} className="space-y-1">
+                  <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                    {t(entry.group)}
+                  </div>
+                  {entry.items.map((item) => {
+                    const Icon = item.icon;
+                    const count = item.badge ? badges?.[item.badge] ?? 0 : 0;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                            isActive
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                          )
+                        }
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1">{t(item.label)}</span>
+                        {count > 0 && (
+                          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                            {count > 99 ? '99+' : count}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              );
+            }
+            const Icon = entry.icon;
             return (
               <NavLink
-                key={to}
-                to={to}
+                key={entry.to}
+                to={entry.to}
                 className={({ isActive }) =>
                   cn(
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
@@ -63,12 +118,7 @@ export function ClinicLayout() {
                 }
               >
                 <Icon className="h-4 w-4" />
-                <span className="flex-1">{t(label)}</span>
-                {count > 0 && (
-                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
-                    {count > 99 ? '99+' : count}
-                  </span>
-                )}
+                <span className="flex-1">{t(entry.label)}</span>
               </NavLink>
             );
           })}
