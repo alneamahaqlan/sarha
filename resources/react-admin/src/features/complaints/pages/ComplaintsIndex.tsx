@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Check, CheckCircle2, Eye, Megaphone, Search, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Eye, Megaphone, Plus, Search, XCircle } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useComplaints } from '../hooks';
@@ -16,6 +20,7 @@ import {
   RejectDialog,
   ResolveDialog,
 } from '../components/ActionDialogs';
+import { ComplaintForm } from '../components/ComplaintForm';
 import { ComplaintPriorityBadge, ComplaintStatusBadge } from '../components/ComplaintBadges';
 import { COMPLAINT_PRIORITIES, COMPLAINT_STATUSES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintStatus, type ComplaintType } from '../types';
 
@@ -26,16 +31,23 @@ type ActionDialog =
   | { kind: 'notify_clinic'; complaint: Complaint }
   | null;
 
+type StatusTab = 'all' | ComplaintStatus;
+const STATUS_TABS: StatusTab[] = ['all', 'new', 'in_review', 'resolved', 'rejected'];
+
 export function ComplaintsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { can } = useAuth();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<ComplaintStatus | undefined>();
+  const [statusTab, setStatusTab] = useState<StatusTab>('all');
   const [typeFilter, setTypeFilter] = useState<ComplaintType | undefined>();
   const [priorityFilter, setPriorityFilter] = useState<ComplaintPriority | undefined>();
   const [actionDialog, setActionDialog] = useState<ActionDialog>(null);
+  const [creating, setCreating] = useState(false);
+
+  const statusFilter: ComplaintStatus | undefined = statusTab === 'all' ? undefined : statusTab;
 
   const queryParams = useMemo(
     () => ({
@@ -54,9 +66,38 @@ export function ComplaintsIndex() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('complaints.title')}</h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">{t('complaints.subtitle')}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('complaints.title')}</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{t('complaints.subtitle')}</p>
+        </div>
+        {can('complaints.create') && (
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('complaints.create')}
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)]">
+        {STATUS_TABS.map((tab) => {
+          const active = statusTab === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => { setStatusTab(tab); setPage(1); }}
+              className={[
+                '-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+                active
+                  ? 'border-[var(--color-primary)] text-[var(--color-foreground)]'
+                  : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
+              ].join(' ')}
+            >
+              {tab === 'all' ? t('complaints.tabs.all') : t(`complaints.status.${tab}`)}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -69,14 +110,6 @@ export function ComplaintsIndex() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <Select
-          value={statusFilter ?? ''}
-          onChange={(e) => { setStatusFilter((e.target.value || undefined) as ComplaintStatus | undefined); setPage(1); }}
-          className="w-40"
-        >
-          <option value="">{t('complaints.filter_all_statuses')}</option>
-          {COMPLAINT_STATUSES.map((s) => <option key={s} value={s}>{t(`complaints.status.${s}`)}</option>)}
-        </Select>
         <Select
           value={typeFilter ?? ''}
           onChange={(e) => { setTypeFilter((e.target.value || undefined) as ComplaintType | undefined); setPage(1); }}
@@ -226,6 +259,19 @@ export function ComplaintsIndex() {
       {actionDialog?.kind === 'notify_clinic' && (
         <NotifyClinicDialog complaint={actionDialog.complaint} onClose={() => setActionDialog(null)} />
       )}
+
+      <Dialog open={creating} onOpenChange={(o) => { if (!o) setCreating(false); }}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{t('complaints.create')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('complaints.subtitle')}</DialogDescription>
+          </DialogHeader>
+          <ComplaintForm
+            onSuccess={() => setCreating(false)}
+            onCancel={() => setCreating(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

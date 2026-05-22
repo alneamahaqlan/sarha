@@ -1,16 +1,27 @@
 import { useMemo, useState } from 'react';
-import { ArrowRightCircle, Search, Star } from 'lucide-react';
+import { toast } from 'sonner';
+import { ArrowRightCircle, Pencil, Plus, Search, Star, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
+import { extractMessage } from '@/lib/api-client';
 
-import { useSalesLeads } from '../hooks';
+import { useDeleteSalesLead, useSalesLeads } from '../hooks';
 import { ConvertDialog } from '../components/ConvertDialog';
+import { SalesLeadForm } from '../components/SalesLeadForm';
 import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus, type SubscriptionPlan } from '../types';
 
 const STATUS_VARIANT: Record<SalesLeadStatus, 'default' | 'warning' | 'success' | 'danger' | 'muted'> = {
@@ -25,11 +36,17 @@ const STATUS_VARIANT: Record<SalesLeadStatus, 'default' | 'warning' | 'success' 
 export function SalesLeadsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { can } = useAuth();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<SalesLeadStatus | undefined>(undefined);
   const [convert, setConvert] = useState<{ lead: SalesLead; plan: SubscriptionPlan } | null>(null);
+  const [editing, setEditing] = useState<SalesLead | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState<SalesLead | null>(null);
+
+  const del = useDeleteSalesLead();
 
   const queryParams = useMemo(
     () => ({
@@ -46,11 +63,30 @@ export function SalesLeadsIndex() {
   const fmt = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
+  const handleDelete = async () => {
+    if (!deleting) return;
+    try {
+      await del.mutateAsync(deleting.id);
+      toast.success(t('sales_leads.deleted'));
+      setDeleting(null);
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('sales_leads.title')}</h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">{t('sales_leads.subtitle')}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('sales_leads.title')}</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{t('sales_leads.subtitle')}</p>
+        </div>
+        {can('sales_leads.create') && (
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('sales_leads.create')}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -135,6 +171,22 @@ export function SalesLeadsIndex() {
                           </Button>
                         </>
                       )}
+                      {can('sales_leads.update') && (
+                        <Button variant="ghost" size="icon" onClick={() => setEditing(lead)} aria-label={t('common.edit')}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {can('sales_leads.delete') && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleting(lead)}
+                          aria-label={t('common.delete')}
+                          className="text-[var(--color-destructive)]"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -168,6 +220,36 @@ export function SalesLeadsIndex() {
       {convert && (
         <ConvertDialog lead={convert.lead} plan={convert.plan} onClose={() => setConvert(null)} />
       )}
+
+      <Dialog
+        open={creating || editing !== null}
+        onOpenChange={(open) => { if (!open) { setCreating(false); setEditing(null); } }}
+      >
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? t('sales_leads.edit') : t('sales_leads.create')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('sales_leads.subtitle')}</DialogDescription>
+          </DialogHeader>
+          <SalesLeadForm
+            lead={editing}
+            onSuccess={() => { setCreating(false); setEditing(null); }}
+            onCancel={() => { setCreating(false); setEditing(null); }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleting !== null} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('sales_leads.delete_confirm_title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('sales_leads.delete_confirm_body')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={del.isPending}>{t('common.delete')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { complaintsApi, type ComplaintListParams } from './api/complaints.api';
+import type { ComplaintFormValues } from './types';
 
 const KEY = ['admin', 'complaints'] as const;
 
@@ -12,6 +13,14 @@ export function useComplaints(params: ComplaintListParams = {}) {
 
 function invalidator(qc: ReturnType<typeof useQueryClient>) {
   return () => qc.invalidateQueries({ queryKey: KEY });
+}
+
+export function useCreateComplaint() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (values: ComplaintFormValues) => complaintsApi.create(values),
+    onSuccess: invalidator(qc),
+  });
 }
 
 export function useMarkComplaintInReview() {

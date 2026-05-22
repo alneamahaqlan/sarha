@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportS
 use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ProfileController as ClinicProfileController;
 use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
+use App\Http\Controllers\Api\V1\Clinic\SubClinicLookupController as ClinicSubClinicLookupController;
 use App\Http\Controllers\Api\V1\Shared\AiChatController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\ImpersonationController as ApiImpersonationController;
@@ -63,6 +64,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/clinics', [LookupController::class, 'clinics']);
         Route::get('lookups/cities', [LookupController::class, 'cities']);
         Route::get('lookups/categories', [LookupController::class, 'categories']);
+        Route::get('lookups/admins', [LookupController::class, 'admins']);
 
         // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
         Route::get('notifications', [NotificationController::class, 'index']);
@@ -163,6 +165,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
     Route::prefix('clinic')->middleware('api.guard:clinic')->group(function () {
         // Dashboard widget — clinic-scoped stats (mirrors ClinicStatsWidget).
         Route::get('dashboard/stats', [ClinicDashboardController::class, 'stats'])->name('clinic.dashboard.stats');
+
+        // Lookup for sub-clinics (clinic-owned, used in the service form).
+        Route::get('lookups/sub-clinics', [ClinicSubClinicLookupController::class, 'index'])->name('clinic.lookups.sub-clinics');
 
         // Services (clinic-owned) + reorder.
         Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');

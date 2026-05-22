@@ -1,16 +1,24 @@
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Pencil, Plus, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
+} from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useSubscriptions } from '../hooks';
-import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_TYPES, type SubscriptionStatus, type SubscriptionType } from '../types';
+import { SubscriptionForm } from '../components/SubscriptionForm';
+import {
+  SUBSCRIPTION_STATUSES, SUBSCRIPTION_TYPES,
+  type Subscription, type SubscriptionStatus, type SubscriptionType,
+} from '../types';
 
 const STATUS_VARIANT: Record<SubscriptionStatus, 'success' | 'danger' | 'warning' | 'muted'> = {
   active: 'success',
@@ -27,11 +35,14 @@ const TYPE_VARIANT: Record<SubscriptionType, 'default' | 'warning'> = {
 export function SubscriptionsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { can } = useAuth();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<SubscriptionType | undefined>();
   const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | undefined>();
+  const [editing, setEditing] = useState<Subscription | null>(null);
+  const [creating, setCreating] = useState(false);
 
   const queryParams = useMemo(
     () => ({
@@ -57,9 +68,17 @@ export function SubscriptionsIndex() {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{t('subscriptions.title')}</h1>
-        <p className="text-sm text-[var(--color-muted-foreground)]">{t('subscriptions.subtitle')}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-semibold">{t('subscriptions.title')}</h1>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{t('subscriptions.subtitle')}</p>
+        </div>
+        {can('subscriptions.create') && (
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('subscriptions.create')}
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -99,18 +118,19 @@ export function SubscriptionsIndex() {
             <TableHead>{t('subscriptions.starts_at')}</TableHead>
             <TableHead>{t('subscriptions.ends_at')}</TableHead>
             <TableHead>{t('subscriptions.status_label')}</TableHead>
+            <TableHead className="text-end">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -126,6 +146,13 @@ export function SubscriptionsIndex() {
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(sub.ends_at)}</TableCell>
                 <TableCell>
                   <Badge variant={STATUS_VARIANT[sub.status]}>{t(`subscriptions.status.${sub.status}`)}</Badge>
+                </TableCell>
+                <TableCell className="text-end">
+                  {can('subscriptions.update') && (
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(sub)} aria-label={t('common.edit')}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))
@@ -153,6 +180,23 @@ export function SubscriptionsIndex() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={creating || editing !== null}
+        onOpenChange={(open) => { if (!open) { setCreating(false); setEditing(null); } }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? t('subscriptions.edit') : t('subscriptions.create')}</DialogTitle>
+            <DialogDescription className="sr-only">{t('subscriptions.subtitle')}</DialogDescription>
+          </DialogHeader>
+          <SubscriptionForm
+            subscription={editing}
+            onSuccess={() => { setCreating(false); setEditing(null); }}
+            onCancel={() => { setCreating(false); setEditing(null); }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

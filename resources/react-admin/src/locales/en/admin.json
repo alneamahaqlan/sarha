@@ -199,6 +199,25 @@
     "filter_all_statuses": "All statuses",
     "filter_all_types": "All types",
     "filter_all_priorities": "All priorities",
+    "create": "New complaint",
+    "created": "Complaint created",
+    "tabs": {
+      "all": "All"
+    },
+    "form": {
+      "clinic": "Clinic",
+      "customer_name": "Customer name",
+      "customer_phone": "Phone",
+      "customer_email": "Email",
+      "type": "Type",
+      "priority": "Priority",
+      "status": "Status",
+      "assigned_admin": "Assigned admin",
+      "subject": "Subject",
+      "description": "Description",
+      "admin_notes": "Admin notes",
+      "resolution": "Resolution"
+    },
     "type": {
       "quality": "Service quality",
       "pricing": "Pricing",
@@ -247,6 +266,29 @@
     "next_follow_up_at": "Next follow-up",
     "assigned_to": "Owner",
     "filter_all_statuses": "All statuses",
+    "create": "New lead",
+    "edit": "Edit lead",
+    "created": "Lead created",
+    "updated": "Lead updated",
+    "deleted": "Lead deleted",
+    "delete_confirm_title": "Delete lead?",
+    "delete_confirm_body": "This action cannot be undone.",
+    "form": {
+      "clinic_name": "Clinic name",
+      "contact_name": "Contact name",
+      "phone": "Phone",
+      "email": "Email",
+      "license_number": "License number",
+      "city": "City",
+      "district": "District",
+      "address": "Address",
+      "status": "Status",
+      "assigned_to": "Assigned to",
+      "next_follow_up_at": "Next follow-up",
+      "last_contact_at": "Last contact",
+      "notes": "Notes",
+      "sales_notes": "Sales notes"
+    },
     "status": {
       "new": "New",
       "contacted": "Contacted",
@@ -384,6 +426,20 @@
     "status_label": "Status",
     "filter_all_types": "All plans",
     "filter_all_statuses": "All statuses",
+    "create": "New subscription",
+    "edit": "Edit subscription",
+    "created": "Subscription created",
+    "updated": "Subscription updated",
+    "form": {
+      "clinic": "Clinic",
+      "type": "Plan",
+      "amount": "Amount (SAR)",
+      "starts_at": "Starts at",
+      "ends_at": "Ends at",
+      "status": "Status",
+      "moyasar_payment_id": "Moyasar payment ID",
+      "notes": "Notes"
+    },
     "type": {
       "basic": "Basic",
       "premium": "Premium"
@@ -422,7 +478,8 @@
     "model": "Type",
     "model_id": "ID",
     "ip_address": "IP address",
-    "date": "Date"
+    "date": "Date",
+    "filter_all_admins": "All admins"
   },
   "system_settings": {
     "title": "System settings",
@@ -519,6 +576,8 @@
     "edit": "Edit service",
     "name": "Service name",
     "category": "Category",
+    "sub_clinic": "Sub-clinic",
+    "sort_order": "Sort order",
     "description": "Description",
     "price": "Price",
     "old_price": "Pre-discount price",

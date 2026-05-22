@@ -26,7 +26,7 @@ import type { Service } from '@/features/services/types';
 import { useClinicCategories } from '@/features/clinic/categories/hooks';
 
 import {
-  useClinicServices, useCreateClinicService, useDeleteClinicService, useUpdateClinicService,
+  useClinicServices, useCreateClinicService, useDeleteClinicService, useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
 
 const schema = z
@@ -34,12 +34,15 @@ const schema = z
     name: z.string().min(1).max(255),
     custom_category_id: z.union([z.number(), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
+    sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
+      .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
     old_price: z.union([z.number().min(0), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     offer_expires_at: z.string().nullish(),
     is_active: z.boolean(),
+    sort_order: z.number().int().min(0).default(0),
   })
   .superRefine((d, ctx) => {
     if (d.old_price !== null && d.old_price !== undefined) {
@@ -58,6 +61,7 @@ function toLocal(iso?: string | null) {
 function ServiceDialog({ service, onClose }: { service: Service | null; onClose: () => void }) {
   const { t } = useTranslation();
   const { data: cats } = useClinicCategories();
+  const { data: subClinics } = useSubClinicLookup();
   const create = useCreateClinicService();
   const update = useUpdateClinicService(service?.id ?? 0);
   const form = useForm<FormValues>({
@@ -65,11 +69,13 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
     defaultValues: {
       name: service?.name ?? '',
       custom_category_id: service?.custom_category_id ?? null,
+      sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
       old_price: service?.old_price ?? null,
       offer_expires_at: toLocal(service?.offer_expires_at) || null,
       is_active: service?.is_active ?? true,
+      sort_order: service?.sort_order ?? 0,
     },
   });
 
@@ -111,6 +117,13 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               </Select>
             </div>
             <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="sub_clinic_id">{t('clinic_services.sub_clinic')}</Label>
+              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+                <option value="">—</option>
+                {subClinics?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </Select>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinic_services.description')}</Label>
               <Textarea id="description" rows={2} {...form.register('description')} />
             </div>
@@ -131,9 +144,13 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
                 {form.formState.errors.offer_expires_at && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.offer_expires_at.message}</p>}
               </div>
             )}
-            <div className="flex items-end gap-3 pb-2 md:col-span-2">
+            <div className="flex items-end gap-3 pb-2">
               <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
               <Label>{t('clinic_services.is_active')}</Label>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>
+              <Input id="sort_order" type="number" min={0} step={1} {...form.register('sort_order', { valueAsNumber: true })} />
             </div>
           </div>
           <DialogFooter>

@@ -24,3 +24,11 @@ export function useCategoryLookup(search?: string) {
     staleTime: 5 * 60_000,
   });
 }
+
+export function useAdminLookup(role?: string, search?: string) {
+  return useQuery({
+    queryKey: ['lookups', 'admins', role ?? '', search ?? ''],
+    queryFn: () => lookupsApi.admins(role, search),
+    staleTime: 5 * 60_000,
+  });
+}

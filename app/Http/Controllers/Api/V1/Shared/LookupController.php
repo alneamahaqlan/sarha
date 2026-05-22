@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Shared;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
@@ -49,5 +50,23 @@ class LookupController extends Controller
         }
 
         return response()->json(['data' => $q->orderBy('sort_order')->orderBy('name')->limit(100)->get()]);
+    }
+
+    public function admins(Request $request): JsonResponse
+    {
+        $q = Admin::query()->select(['id', 'name', 'role'])->where('is_active', true);
+
+        if ($role = $request->string('role')->toString()) {
+            $roles = array_filter(array_map('trim', explode(',', $role)));
+            if ($roles) {
+                $q->whereIn('role', $roles);
+            }
+        }
+
+        if ($search = $request->string('search')->toString()) {
+            $q->where('name', 'like', "%{$search}%");
+        }
+
+        return response()->json(['data' => $q->orderBy('name')->limit(50)->get()]);
     }
 }

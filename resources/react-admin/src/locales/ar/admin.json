@@ -199,6 +199,25 @@
     "filter_all_statuses": "كل الحالات",
     "filter_all_types": "كل الأنواع",
     "filter_all_priorities": "كل الأولويات",
+    "create": "شكوى جديدة",
+    "created": "تم إنشاء الشكوى",
+    "tabs": {
+      "all": "الكل"
+    },
+    "form": {
+      "clinic": "العيادة",
+      "customer_name": "اسم العميل",
+      "customer_phone": "الجوال",
+      "customer_email": "البريد الإلكتروني",
+      "type": "النوع",
+      "priority": "الأولوية",
+      "status": "الحالة",
+      "assigned_admin": "المدير المسؤول",
+      "subject": "الموضوع",
+      "description": "الوصف",
+      "admin_notes": "ملاحظات الإدارة",
+      "resolution": "الحل"
+    },
     "type": {
       "quality": "جودة الخدمة",
       "pricing": "التسعير",
@@ -247,6 +266,29 @@
     "next_follow_up_at": "الموعد التالي",
     "assigned_to": "المسؤول",
     "filter_all_statuses": "كل الحالات",
+    "create": "عميل محتمل جديد",
+    "edit": "تعديل العميل المحتمل",
+    "created": "تم إنشاء العميل المحتمل",
+    "updated": "تم تحديث العميل المحتمل",
+    "deleted": "تم حذف العميل المحتمل",
+    "delete_confirm_title": "حذف العميل المحتمل؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه.",
+    "form": {
+      "clinic_name": "اسم العيادة",
+      "contact_name": "اسم جهة الاتصال",
+      "phone": "الجوال",
+      "email": "البريد الإلكتروني",
+      "license_number": "رقم الترخيص",
+      "city": "المدينة",
+      "district": "الحي",
+      "address": "العنوان",
+      "status": "الحالة",
+      "assigned_to": "المسؤول",
+      "next_follow_up_at": "موعد المتابعة التالي",
+      "last_contact_at": "آخر تواصل",
+      "notes": "ملاحظات",
+      "sales_notes": "ملاحظات المبيعات"
+    },
     "status": {
       "new": "جديد",
       "contacted": "تم التواصل",
@@ -384,6 +426,20 @@
     "status_label": "الحالة",
     "filter_all_types": "كل الباقات",
     "filter_all_statuses": "كل الحالات",
+    "create": "اشتراك جديد",
+    "edit": "تعديل الاشتراك",
+    "created": "تم إنشاء الاشتراك",
+    "updated": "تم تحديث الاشتراك",
+    "form": {
+      "clinic": "العيادة",
+      "type": "الباقة",
+      "amount": "المبلغ (ر.س)",
+      "starts_at": "تاريخ البداية",
+      "ends_at": "تاريخ النهاية",
+      "status": "الحالة",
+      "moyasar_payment_id": "معرّف دفعة Moyasar",
+      "notes": "ملاحظات"
+    },
     "type": {
       "basic": "أساسي",
       "premium": "مميز"
@@ -422,7 +478,8 @@
     "model": "النوع",
     "model_id": "المعرّف",
     "ip_address": "عنوان IP",
-    "date": "التاريخ"
+    "date": "التاريخ",
+    "filter_all_admins": "كل المديرين"
   },
   "system_settings": {
     "title": "إعدادات النظام",
@@ -519,6 +576,8 @@
     "edit": "تعديل الخدمة",
     "name": "اسم الخدمة",
     "category": "التصنيف",
+    "sub_clinic": "العيادة الفرعية",
+    "sort_order": "ترتيب العرض",
     "description": "الوصف",
     "price": "السعر",
     "old_price": "السعر قبل الخصم",

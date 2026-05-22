@@ -4,8 +4,10 @@ import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useAdminLookup } from '@/features/lookups/hooks';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useAuditLogs } from '../hooks';
@@ -16,10 +18,18 @@ export function AuditLogsIndex() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
+  const [adminFilter, setAdminFilter] = useState<number | undefined>();
+  const { data: admins } = useAdminLookup();
 
   const queryParams = useMemo(
-    () => ({ page, per_page: 20, search: debouncedSearch.trim() || undefined, sort: '-created_at' }),
-    [page, debouncedSearch],
+    () => ({
+      page,
+      per_page: 20,
+      search: debouncedSearch.trim() || undefined,
+      sort: '-created_at',
+      filter: { admin_id: adminFilter },
+    }),
+    [page, debouncedSearch, adminFilter],
   );
   const { data, isLoading, isFetching } = useAuditLogs(queryParams);
 
@@ -33,14 +43,24 @@ export function AuditLogsIndex() {
         <p className="text-sm text-[var(--color-muted-foreground)]">{t('audit_logs.subtitle')}</p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
-        <Input
-          className="ps-9"
-          placeholder={t('common.search')}
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-        />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
+          <Input
+            className="ps-9"
+            placeholder={t('common.search')}
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          />
+        </div>
+        <Select
+          value={adminFilter ?? ''}
+          onChange={(e) => { setAdminFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
+          className="w-56"
+        >
+          <option value="">{t('audit_logs.filter_all_admins')}</option>
+          {admins?.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </Select>
       </div>
 
       <Table>
