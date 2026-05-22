@@ -11,6 +11,7 @@ import { AdminsIndex } from '@/features/admins/pages/AdminsIndex';
 import { ServicesIndex } from '@/features/services/pages/ServicesIndex';
 import { BookingsIndex } from '@/features/bookings/pages/BookingsIndex';
 import { ComplaintsIndex } from '@/features/complaints/pages/ComplaintsIndex';
+import { SalesLeadsIndex } from '@/features/sales-leads/pages/SalesLeadsIndex';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -42,6 +43,7 @@ export function AppRoutes() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="bookings" element={<BookingsIndex />} />
             <Route path="complaints" element={<ComplaintsIndex />} />
+            <Route path="sales-leads" element={<SalesLeadsIndex />} />
             <Route path="users" element={<UsersIndex />} />
             <Route path="services" element={<ServicesIndex />} />
             <Route path="cities" element={<CitiesIndex />} />

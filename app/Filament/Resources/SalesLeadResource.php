@@ -5,17 +5,14 @@ namespace App\Filament\Resources;
 use App\Filament\Concerns\HasTranslatableLabels;
 use App\Filament\Resources\SalesLeadResource\Pages;
 use App\Models\Admin;
-use App\Models\Clinic;
 use App\Models\SalesLead;
-use App\Models\Subscription;
+use App\Services\SalesLeadService;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class SalesLeadResource extends Resource
 {
@@ -108,38 +105,7 @@ class SalesLeadResource extends Resource
 
     private static function convertLead(SalesLead $lead, string $plan): void
     {
-        $price = (int) ($plan === 'premium' ? 400 : 300);
-        $days = 90;
-
-        DB::transaction(function () use ($lead, $plan, $price, $days) {
-            $clinic = Clinic::create([
-                'name'                   => $lead->clinic_name,
-                'slug'                   => Str::slug($lead->clinic_name) . '-' . Str::random(4),
-                'phone'                  => $lead->phone,
-                'email'                  => $lead->email ?: ('lead-' . $lead->id . '@saerha.sa'),
-                'password'               => bcrypt(Str::random(12)),
-                'city_id'                => $lead->city_id,
-                'address'                => $lead->address,
-                'status'                 => 'active',
-                'subscription_type'      => $plan,
-                'subscription_starts_at' => now(),
-                'subscription_ends_at'   => now()->addDays($days),
-            ]);
-
-            Subscription::create([
-                'clinic_id'  => $clinic->id,
-                'type'       => $plan,
-                'amount'     => $price,
-                'starts_at'  => now(),
-                'ends_at'    => now()->addDays($days),
-                'status'     => 'active',
-            ]);
-
-            $lead->update(['status' => 'converted']);
-
-            app(\App\Services\NotificationService::class)->leadConverted($lead, $clinic);
-            app(\App\Services\NotificationService::class)->clinicApproved($clinic);
-        });
+        app(SalesLeadService::class)->convertLead($lead, $plan);
 
         Notification::make()
             ->title(__('admin.lead_converted', ['clinic' => $lead->clinic_name]))

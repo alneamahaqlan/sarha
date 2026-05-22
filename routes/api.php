@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ComplaintController;
+use App\Http\Controllers\Api\V1\Admin\SalesLeadController;
 use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
@@ -72,6 +73,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('complaints/{complaint}/reject', [ComplaintController::class, 'reject'])->name('complaints.reject');
         Route::post('complaints/{complaint}/notify-clinic', [ComplaintController::class, 'notifyClinic'])->name('complaints.notify-clinic');
         Route::apiResource('complaints', ComplaintController::class);
+
+        // SalesLead — convert delegates to SalesLeadService (DB::transaction).
+        Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
+        Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
     });
 
     // -------------------- Clinic guard --------------------

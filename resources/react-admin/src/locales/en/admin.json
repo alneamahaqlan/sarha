@@ -27,7 +27,8 @@
     "admins": "Administrators",
     "services": "Services",
     "bookings": "Bookings",
-    "complaints": "Complaints"
+    "complaints": "Complaints",
+    "sales_leads": "Sales leads"
   },
   "auth": {
     "login_title": "Sign in",
@@ -222,6 +223,36 @@
       "notify_clinic_title": "Notify clinic?",
       "notify_clinic_body": "The clinic will be informed about the complaint.",
       "notify_clinic_done": "Clinic notified"
+    }
+  },
+  "sales_leads": {
+    "title": "Sales leads",
+    "subtitle": "Track prospective clinics across the sales pipeline",
+    "clinic_name": "Clinic name",
+    "contact_name": "Contact",
+    "phone": "Phone",
+    "email": "Email",
+    "city": "City",
+    "status_label": "Status",
+    "next_follow_up_at": "Next follow-up",
+    "assigned_to": "Owner",
+    "filter_all_statuses": "All statuses",
+    "status": {
+      "new": "New",
+      "contacted": "Contacted",
+      "interested": "Interested",
+      "negotiating": "Negotiating",
+      "converted": "Converted",
+      "lost": "Lost"
+    },
+    "actions": {
+      "convert_to_basic": "Convert to Basic",
+      "convert_to_basic_title": "Convert to Basic plan?",
+      "convert_to_basic_body": "A new clinic account will be created for {{clinic}} with a 90-day Basic plan (300 SAR).",
+      "convert_to_premium": "Convert to Premium",
+      "convert_to_premium_title": "Convert to Premium plan?",
+      "convert_to_premium_body": "A new clinic account will be created for {{clinic}} with a 90-day Premium plan (400 SAR).",
+      "converted": "{{clinic}} converted successfully"
     }
   },
   "errors": {

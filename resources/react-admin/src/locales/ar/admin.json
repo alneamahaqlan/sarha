@@ -27,7 +27,8 @@
     "admins": "المديرون",
     "services": "الخدمات",
     "bookings": "الحجوزات",
-    "complaints": "الشكاوى"
+    "complaints": "الشكاوى",
+    "sales_leads": "العملاء المحتملون"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -222,6 +223,36 @@
       "notify_clinic_title": "إبلاغ العيادة؟",
       "notify_clinic_body": "سيتم إعلام العيادة بالشكوى.",
       "notify_clinic_done": "تم إبلاغ العيادة"
+    }
+  },
+  "sales_leads": {
+    "title": "العملاء المحتملون",
+    "subtitle": "متابعة العيادات المرشحة للاشتراك في المنصة",
+    "clinic_name": "اسم العيادة",
+    "contact_name": "اسم الجهة",
+    "phone": "الجوال",
+    "email": "البريد",
+    "city": "المدينة",
+    "status_label": "الحالة",
+    "next_follow_up_at": "الموعد التالي",
+    "assigned_to": "المسؤول",
+    "filter_all_statuses": "كل الحالات",
+    "status": {
+      "new": "جديد",
+      "contacted": "تم التواصل",
+      "interested": "مهتم",
+      "negotiating": "تفاوض",
+      "converted": "تم التحويل",
+      "lost": "خسارة"
+    },
+    "actions": {
+      "convert_to_basic": "تحويل إلى أساسي",
+      "convert_to_basic_title": "تحويل إلى اشتراك أساسي؟",
+      "convert_to_basic_body": "سيتم إنشاء حساب عيادة جديد لـ {{clinic}} مع اشتراك أساسي مدته 90 يومًا (300 ر.س).",
+      "convert_to_premium": "تحويل إلى مميز",
+      "convert_to_premium_title": "تحويل إلى اشتراك مميز؟",
+      "convert_to_premium_body": "سيتم إنشاء حساب عيادة جديد لـ {{clinic}} مع اشتراك مميز مدته 90 يومًا (400 ر.س).",
+      "converted": "تم تحويل {{clinic}} بنجاح"
     }
   },
   "errors": {
