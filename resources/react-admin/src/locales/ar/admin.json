@@ -402,6 +402,81 @@
       "urgent": "عاجلة"
     }
   },
+  "clinic_brand": "لوحة العيادة",
+  "clinic_nav": {
+    "dashboard": "لوحة المعلومات",
+    "services": "خدماتي",
+    "categories": "تصنيفاتي",
+    "bookings": "الحجوزات",
+    "price_quotes": "طلبات التسعير"
+  },
+  "clinic_dashboard": {
+    "placeholder": "ستظهر هنا إحصائيات العيادة قريبًا."
+  },
+  "clinic_services": {
+    "title": "خدماتي",
+    "subtitle": "إدارة خدمات العيادة وأسعارها",
+    "create": "إضافة خدمة",
+    "edit": "تعديل الخدمة",
+    "name": "اسم الخدمة",
+    "category": "التصنيف",
+    "description": "الوصف",
+    "price": "السعر",
+    "old_price": "السعر قبل الخصم",
+    "offer_expires_at": "تاريخ انتهاء العرض",
+    "offer": "العرض",
+    "is_active": "نشطة",
+    "created": "تم إنشاء الخدمة",
+    "updated": "تم تحديث الخدمة",
+    "deleted": "تم حذف الخدمة",
+    "delete_confirm_title": "حذف الخدمة؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
+  },
+  "clinic_categories": {
+    "title": "تصنيفاتي",
+    "subtitle": "تصنيفات خدمات العيادة",
+    "create": "إضافة تصنيف",
+    "edit": "تعديل التصنيف",
+    "name": "الاسم",
+    "emoji": "إيموجي",
+    "is_active": "نشط",
+    "sort_order": "الترتيب",
+    "services_count": "عدد الخدمات",
+    "created": "تم إنشاء التصنيف",
+    "updated": "تم تحديث التصنيف",
+    "deleted": "تم حذف التصنيف",
+    "delete_confirm_title": "حذف التصنيف؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه.",
+    "cannot_delete_has_services": "لا يمكن حذف تصنيف مرتبط بخدمات"
+  },
+  "clinic_bookings": {
+    "title": "الحجوزات",
+    "subtitle": "حجوزات عملاء العيادة",
+    "edit": "تحديث الحجز",
+    "reference": "المرجع",
+    "customer_name": "اسم العميل",
+    "customer_phone": "رقم العميل",
+    "service": "الخدمة",
+    "status_label": "الحالة",
+    "appointment_at": "موعد المراجعة",
+    "clinic_notes": "ملاحظات العيادة",
+    "created_at": "تاريخ الحجز",
+    "filter_all_statuses": "كل الحالات",
+    "updated": "تم تحديث الحجز"
+  },
+  "clinic_quotes": {
+    "title": "طلبات التسعير",
+    "subtitle": "طلبات عروض الأسعار من العملاء",
+    "reply_title": "الرد على الطلب",
+    "reply": "ردّ العيادة",
+    "customer_name": "اسم العميل",
+    "customer_phone": "رقم العميل",
+    "service_name": "الخدمة المطلوبة",
+    "status_label": "الحالة",
+    "created_at": "التاريخ",
+    "filter_all_statuses": "كل الحالات",
+    "updated": "تم تحديث الطلب"
+  },
   "errors": {
     "generic": "حدث خطأ غير متوقع",
     "validation": "الرجاء التحقق من البيانات المدخلة",

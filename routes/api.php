@@ -14,6 +14,10 @@ use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
+use App\Http\Controllers\Api\V1\Clinic\CustomCategoryController as ClinicCustomCategoryController;
+use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPriceQuoteRequestController;
+use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\LookupController;
 use App\Models\Booking;
@@ -119,7 +123,25 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
     });
 
     // -------------------- Clinic guard --------------------
+    // Each clinic resource is auto-scoped to auth('clinic')->id() in its controller,
+    // mirroring the Filament Clinic panel getEloquentQuery() where('clinic_id', ...).
     Route::prefix('clinic')->middleware('api.guard:clinic')->group(function () {
-        // wired in later phases
+        // Services (clinic-owned) + reorder.
+        Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');
+        Route::apiResource('services', ClinicServiceController::class)->only(['index', 'store', 'update', 'destroy']);
+
+        // Custom categories + reorder + delete guard.
+        Route::post('custom-categories/reorder', [ClinicCustomCategoryController::class, 'reorder'])->name('clinic.custom-categories.reorder');
+        Route::apiResource('custom-categories', ClinicCustomCategoryController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['custom-categories' => 'customCategory']);
+
+        // Bookings — clinic can only update status / appointment / notes.
+        Route::apiResource('bookings', ClinicBookingController::class)->only(['index', 'show', 'update']);
+
+        // Price quote requests — clinic can update status + reply.
+        Route::apiResource('price-quotes', ClinicPriceQuoteRequestController::class)
+            ->only(['index', 'show', 'update'])
+            ->parameters(['price-quotes' => 'priceQuote']);
     });
 });

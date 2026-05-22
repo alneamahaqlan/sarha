@@ -18,6 +18,12 @@ import { PriceQuotesIndex } from '@/features/price-quotes/pages/PriceQuotesIndex
 import { AuditLogsIndex } from '@/features/audit-logs/pages/AuditLogsIndex';
 import { SystemSettingsIndex } from '@/features/system-settings/pages/SystemSettingsIndex';
 import { MassNotifyPage } from '@/features/mass-notify/pages/MassNotifyPage';
+import { ClinicLayout } from '@/app/layouts/ClinicLayout';
+import { ClinicDashboardPage } from '@/features/clinic/dashboard/pages/ClinicDashboardPage';
+import { ClinicServicesIndex } from '@/features/clinic/services/pages/ClinicServicesIndex';
+import { ClinicCategoriesIndex } from '@/features/clinic/categories/pages/ClinicCategoriesIndex';
+import { ClinicBookingsIndex } from '@/features/clinic/bookings/pages/ClinicBookingsIndex';
+import { ClinicQuotesIndex } from '@/features/clinic/price-quotes/pages/ClinicQuotesIndex';
 
 export function AppRoutes() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -69,14 +75,34 @@ export function AppRoutes() {
     );
   }
 
-  // Clinic guard: layout wiring will follow in a later phase.
+  if (user?.guard === 'clinic') {
+    return (
+      <Routes>
+        <Route path="/" element={<ClinicLayout />}>
+          <Route index element={<Navigate to="/clinic/dashboard" replace />} />
+          <Route path="clinic">
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ClinicDashboardPage />} />
+            <Route path="services" element={<ClinicServicesIndex />} />
+            <Route path="categories" element={<ClinicCategoriesIndex />} />
+            <Route path="bookings" element={<ClinicBookingsIndex />} />
+            <Route path="price-quotes" element={<ClinicQuotesIndex />} />
+          </Route>
+        </Route>
+        <Route path="/login" element={<Navigate to="/clinic/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/clinic/dashboard" replace />} />
+      </Routes>
+    );
+  }
+
+  // Customer (web) guard has no React panel — they use the public Blade site.
   return (
     <Routes>
       <Route
         path="*"
         element={
           <div className="flex h-screen items-center justify-center p-8 text-center text-sm text-[var(--color-muted-foreground)]">
-            Clinic React panel is not yet wired. Use Filament at /clinic-dashboard.
+            No React panel for this account type.
           </div>
         }
       />

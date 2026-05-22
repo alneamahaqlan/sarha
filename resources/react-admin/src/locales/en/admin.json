@@ -402,6 +402,81 @@
       "urgent": "Urgent"
     }
   },
+  "clinic_brand": "Clinic panel",
+  "clinic_nav": {
+    "dashboard": "Dashboard",
+    "services": "My services",
+    "categories": "My categories",
+    "bookings": "Bookings",
+    "price_quotes": "Price quotes"
+  },
+  "clinic_dashboard": {
+    "placeholder": "Clinic statistics will appear here soon."
+  },
+  "clinic_services": {
+    "title": "My services",
+    "subtitle": "Manage your clinic services and pricing",
+    "create": "Add service",
+    "edit": "Edit service",
+    "name": "Service name",
+    "category": "Category",
+    "description": "Description",
+    "price": "Price",
+    "old_price": "Pre-discount price",
+    "offer_expires_at": "Offer ends at",
+    "offer": "Offer",
+    "is_active": "Active",
+    "created": "Service created",
+    "updated": "Service updated",
+    "deleted": "Service deleted",
+    "delete_confirm_title": "Delete service?",
+    "delete_confirm_body": "This action cannot be undone."
+  },
+  "clinic_categories": {
+    "title": "My categories",
+    "subtitle": "Your clinic service categories",
+    "create": "Add category",
+    "edit": "Edit category",
+    "name": "Name",
+    "emoji": "Emoji",
+    "is_active": "Active",
+    "sort_order": "Sort order",
+    "services_count": "Services",
+    "created": "Category created",
+    "updated": "Category updated",
+    "deleted": "Category deleted",
+    "delete_confirm_title": "Delete category?",
+    "delete_confirm_body": "This action cannot be undone.",
+    "cannot_delete_has_services": "Cannot delete a category that has services"
+  },
+  "clinic_bookings": {
+    "title": "Bookings",
+    "subtitle": "Your clinic's customer bookings",
+    "edit": "Update booking",
+    "reference": "Reference",
+    "customer_name": "Customer",
+    "customer_phone": "Phone",
+    "service": "Service",
+    "status_label": "Status",
+    "appointment_at": "Appointment",
+    "clinic_notes": "Clinic notes",
+    "created_at": "Created",
+    "filter_all_statuses": "All statuses",
+    "updated": "Booking updated"
+  },
+  "clinic_quotes": {
+    "title": "Price quotes",
+    "subtitle": "Customer price quote requests",
+    "reply_title": "Reply to request",
+    "reply": "Clinic reply",
+    "customer_name": "Customer",
+    "customer_phone": "Phone",
+    "service_name": "Requested service",
+    "status_label": "Status",
+    "created_at": "Created",
+    "filter_all_statuses": "All statuses",
+    "updated": "Request updated"
+  },
   "errors": {
     "generic": "An unexpected error occurred",
     "validation": "Please verify the data you entered",
