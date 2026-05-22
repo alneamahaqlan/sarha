@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\PriceQuoteRequest;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 
@@ -37,6 +38,23 @@ class DashboardController extends Controller
                 'is_subscription_active'   => method_exists($clinic, 'isSubscriptionActive')
                     ? (bool) $clinic->isSubscriptionActive()
                     : ($clinic->subscription_ends_at && $clinic->subscription_ends_at->isFuture()),
+            ],
+        ]);
+    }
+
+    /**
+     * Sidebar badge count — mirrors Filament's
+     * Clinic\PriceQuoteRequestResource::getNavigationBadge() (scoped 'new'
+     * quotes for this clinic).
+     */
+    public function navBadges(): JsonResponse
+    {
+        $clinicId = auth('clinic')->id();
+
+        return response()->json([
+            'data' => [
+                'price_quotes' => PriceQuoteRequest::where('clinic_id', $clinicId)
+                    ->where('status', 'new')->count(),
             ],
         ]);
     }

@@ -9,14 +9,15 @@ import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
+import { useAdminNavBadges, type AdminNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
   { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
   { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
-  { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle },
-  { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign },
+  { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
+  { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof AdminNavBadges },
   { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
   { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
   { to: '/admin/users', label: 'nav.users', icon: Users },
@@ -34,6 +35,7 @@ export function AdminLayout() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
+  const { data: badges } = useAdminNavBadges();
 
   const logout = useMutation({
     mutationFn: () => apiClient.post('/auth/logout'),
@@ -52,23 +54,31 @@ export function AdminLayout() {
           {t('brand')}
         </div>
         <nav className="flex-1 space-y-1 p-2">
-          {adminNav.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                  isActive
-                    ? 'bg-[var(--color-primary)] text-white'
-                    : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
-                )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {t(label)}
-            </NavLink>
-          ))}
+          {adminNav.map(({ to, label, icon: Icon, badge }) => {
+            const count = badge ? badges?.[badge] ?? 0 : 0;
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                  )
+                }
+              >
+                <Icon className="h-4 w-4" />
+                <span className="flex-1">{t(label)}</span>
+                {count > 0 && (
+                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
         <div className="border-t border-[var(--color-border)] p-3 text-xs text-[var(--color-muted-foreground)]">
           {user?.user.name} · {user?.user.email}
@@ -78,7 +88,7 @@ export function AdminLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
           <div className="flex items-center gap-2 md:hidden">
-            <MobileNav items={adminNav} title={t('brand')} />
+            <MobileNav items={adminNav} title={t('brand')} badges={badges} />
             <span className="text-sm font-medium">{t('brand')}</span>
           </div>
           <div className="ms-auto flex items-center gap-2">

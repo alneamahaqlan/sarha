@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\V1\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Clinic;
+use App\Models\Complaint;
+use App\Models\PriceQuoteRequest;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -53,6 +55,20 @@ class DashboardController extends Controller
                 'status'         => $b->status,
                 'created_at'     => $b->created_at?->toIso8601String(),
             ]),
+        ]);
+    }
+
+    /**
+     * Sidebar badge counts — mirrors Filament's getNavigationBadge() on
+     * ComplaintResource (new + in_review) and PriceQuoteRequestResource (new).
+     */
+    public function navBadges(): JsonResponse
+    {
+        return response()->json([
+            'data' => [
+                'complaints'   => Complaint::whereIn('status', ['new', 'in_review'])->count(),
+                'price_quotes' => PriceQuoteRequest::where('status', 'new')->count(),
+            ],
         ]);
     }
 

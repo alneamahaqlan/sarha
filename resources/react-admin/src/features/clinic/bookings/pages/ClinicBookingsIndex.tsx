@@ -124,6 +124,7 @@ export function ClinicBookingsIndex() {
             <TableHead>{t('clinic_bookings.customer_name')}</TableHead>
             <TableHead>{t('clinic_bookings.customer_phone')}</TableHead>
             <TableHead>{t('clinic_bookings.service')}</TableHead>
+            <TableHead>{t('clinic_bookings.appointment_at')}</TableHead>
             <TableHead>{t('clinic_bookings.status_label')}</TableHead>
             <TableHead>{t('clinic_bookings.created_at')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
@@ -131,9 +132,9 @@ export function ClinicBookingsIndex() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
           ) : !data || data.data.length === 0 ? (
-            <TableRow><TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={8} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
           ) : (
             data.data.map((b) => (
               <TableRow key={b.id}>
@@ -145,6 +146,7 @@ export function ClinicBookingsIndex() {
                   </a>
                 </TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{b.service?.name ?? '—'}</TableCell>
+                <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmt(b.appointment_at)}</TableCell>
                 <TableCell><BookingStatusBadge status={b.status} /></TableCell>
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmt(b.created_at)}</TableCell>
                 <TableCell className="text-end">

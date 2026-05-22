@@ -88,6 +88,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('dashboard/stats', [AdminDashboardController::class, 'stats'])->name('admin.dashboard.stats');
         Route::get('dashboard/latest-bookings', [AdminDashboardController::class, 'latestBookings'])->name('admin.dashboard.latest-bookings');
         Route::get('dashboard/bookings-trend', [AdminDashboardController::class, 'bookingsTrend'])->name('admin.dashboard.bookings-trend');
+        Route::get('dashboard/nav-badges', [AdminDashboardController::class, 'navBadges'])->name('admin.dashboard.nav-badges');
 
         Route::apiResource('cities', CityController::class);
 
@@ -165,6 +166,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
     Route::prefix('clinic')->middleware('api.guard:clinic')->group(function () {
         // Dashboard widget — clinic-scoped stats (mirrors ClinicStatsWidget).
         Route::get('dashboard/stats', [ClinicDashboardController::class, 'stats'])->name('clinic.dashboard.stats');
+        Route::get('dashboard/nav-badges', [ClinicDashboardController::class, 'navBadges'])->name('clinic.dashboard.nav-badges');
 
         // Lookup for sub-clinics (clinic-owned, used in the service form).
         Route::get('lookups/sub-clinics', [ClinicSubClinicLookupController::class, 'index'])->name('clinic.lookups.sub-clinics');

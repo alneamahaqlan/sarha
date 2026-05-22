@@ -137,6 +137,7 @@
     "offer_expires_at": "Offer ends at",
     "offer": "Offer",
     "is_active": "Active",
+    "created_at": "Created",
     "filter_all_clinics": "All clinics",
     "created": "Service created",
     "updated": "Service updated",
@@ -528,6 +529,7 @@
     "reference": "Reference",
     "clinic": "Clinic",
     "customer": "Customer",
+    "customer_phone": "Phone",
     "service": "Service",
     "status": "Status",
     "created_at": "Created"

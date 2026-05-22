@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
 import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
+import { useClinicNavBadges, type ClinicNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
 
 const clinicNav = [
@@ -18,7 +19,7 @@ const clinicNav = [
   { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
   { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
   { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
-  { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign },
+  { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
   { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText },
   { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
 ];
@@ -27,6 +28,7 @@ export function ClinicLayout() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
+  const { data: badges } = useClinicNavBadges();
 
   const logout = useMutation({
     mutationFn: () => apiClient.post('/auth/logout'),
@@ -45,30 +47,38 @@ export function ClinicLayout() {
           {user?.user.name ?? t('clinic_brand')}
         </div>
         <nav className="flex-1 space-y-1 p-2">
-          {clinicNav.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                  isActive
-                    ? 'bg-[var(--color-primary)] text-white'
-                    : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
-                )
-              }
-            >
-              <Icon className="h-4 w-4" />
-              {t(label)}
-            </NavLink>
-          ))}
+          {clinicNav.map(({ to, label, icon: Icon, badge }) => {
+            const count = badge ? badges?.[badge] ?? 0 : 0;
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                  )
+                }
+              >
+                <Icon className="h-4 w-4" />
+                <span className="flex-1">{t(label)}</span>
+                {count > 0 && (
+                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                    {count > 99 ? '99+' : count}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
       </aside>
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
           <div className="flex items-center gap-2 md:hidden">
-            <MobileNav items={clinicNav} title={user?.user.name ?? t('clinic_brand')} />
+            <MobileNav items={clinicNav} title={user?.user.name ?? t('clinic_brand')} badges={badges} />
             <span className="text-sm font-medium">{user?.user.name}</span>
           </div>
           <div className="ms-auto flex items-center gap-2">

@@ -115,6 +115,7 @@ export function DashboardPage() {
               <TableHead>{t('dashboard.reference')}</TableHead>
               <TableHead>{t('dashboard.clinic')}</TableHead>
               <TableHead>{t('dashboard.customer')}</TableHead>
+              <TableHead>{t('dashboard.customer_phone')}</TableHead>
               <TableHead>{t('dashboard.service')}</TableHead>
               <TableHead>{t('dashboard.status')}</TableHead>
               <TableHead>{t('dashboard.created_at')}</TableHead>
@@ -123,7 +124,7 @@ export function DashboardPage() {
           <TableBody>
             {!latest || latest.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
+                <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
                   {t('common.no_data')}
                 </TableCell>
               </TableRow>
@@ -133,6 +134,7 @@ export function DashboardPage() {
                   <TableCell><Badge variant="muted" className="font-mono">{b.reference_code}</Badge></TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{b.clinic?.name ?? '—'}</TableCell>
                   <TableCell className="font-medium">{b.customer_name}</TableCell>
+                  <TableCell dir="ltr">{b.customer_phone}</TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{b.service?.name ?? '—'}</TableCell>
                   <TableCell><BookingStatusBadge status={b.status as BookingStatus} /></TableCell>
                   <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(b.created_at)}</TableCell>

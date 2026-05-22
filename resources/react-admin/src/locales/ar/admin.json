@@ -137,6 +137,7 @@
     "offer_expires_at": "تاريخ انتهاء العرض",
     "offer": "العرض",
     "is_active": "نشطة",
+    "created_at": "تاريخ الإنشاء",
     "filter_all_clinics": "كل العيادات",
     "created": "تم إنشاء الخدمة",
     "updated": "تم تحديث الخدمة",
@@ -528,6 +529,7 @@
     "reference": "المرجع",
     "clinic": "العيادة",
     "customer": "العميل",
+    "customer_phone": "الجوال",
     "service": "الخدمة",
     "status": "الحالة",
     "created_at": "التاريخ"

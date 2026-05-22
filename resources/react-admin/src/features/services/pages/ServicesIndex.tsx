@@ -78,6 +78,9 @@ export function ServicesIndex() {
       maximumFractionDigits: 0,
     }).format(n);
 
+  const fmtDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -129,19 +132,20 @@ export function ServicesIndex() {
             <TableHead>{t('services.price')}</TableHead>
             <TableHead>{t('services.offer')}</TableHead>
             <TableHead>{t('services.is_active')}</TableHead>
+            <TableHead>{t('services.created_at')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -174,6 +178,7 @@ export function ServicesIndex() {
                     <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />
                   )}
                 </TableCell>
+                <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(service.created_at)}</TableCell>
                 <TableCell className="text-end">
                   <div className="flex justify-end gap-1">
                     <Button variant="ghost" size="icon" onClick={() => setEditing(service)} aria-label={t('common.edit')}>
