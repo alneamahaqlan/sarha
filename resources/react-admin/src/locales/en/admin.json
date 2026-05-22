@@ -24,7 +24,8 @@
     "cities": "Cities",
     "categories": "Categories",
     "users": "Customers",
-    "admins": "Administrators"
+    "admins": "Administrators",
+    "services": "Services"
   },
   "auth": {
     "login_title": "Sign in",
@@ -108,6 +109,26 @@
     "updated": "Admin updated",
     "deleted": "Admin deleted",
     "delete_confirm_title": "Delete admin?",
+    "delete_confirm_body": "This action cannot be undone."
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Clinic services and pricing",
+    "create": "Add service",
+    "edit": "Edit service",
+    "name": "Service name",
+    "description": "Description",
+    "clinic": "Clinic",
+    "price": "Price",
+    "old_price": "Pre-discount price",
+    "offer_expires_at": "Offer ends at",
+    "offer": "Offer",
+    "is_active": "Active",
+    "filter_all_clinics": "All clinics",
+    "created": "Service created",
+    "updated": "Service updated",
+    "deleted": "Service deleted",
+    "delete_confirm_title": "Delete service?",
     "delete_confirm_body": "This action cannot be undone."
   },
   "errors": {

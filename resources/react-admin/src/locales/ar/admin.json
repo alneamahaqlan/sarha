@@ -24,7 +24,8 @@
     "cities": "المدن",
     "categories": "التصنيفات",
     "users": "العملاء",
-    "admins": "المديرون"
+    "admins": "المديرون",
+    "services": "الخدمات"
   },
   "auth": {
     "login_title": "تسجيل الدخول",
@@ -108,6 +109,26 @@
     "updated": "تم تحديث المدير",
     "deleted": "تم حذف المدير",
     "delete_confirm_title": "حذف المدير؟",
+    "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
+  },
+  "services": {
+    "title": "الخدمات",
+    "subtitle": "خدمات العيادات وأسعارها",
+    "create": "إضافة خدمة",
+    "edit": "تعديل الخدمة",
+    "name": "اسم الخدمة",
+    "description": "الوصف",
+    "clinic": "العيادة",
+    "price": "السعر",
+    "old_price": "السعر قبل الخصم",
+    "offer_expires_at": "تاريخ انتهاء العرض",
+    "offer": "العرض",
+    "is_active": "نشطة",
+    "filter_all_clinics": "كل العيادات",
+    "created": "تم إنشاء الخدمة",
+    "updated": "تم تحديث الخدمة",
+    "deleted": "تم حذف الخدمة",
+    "delete_confirm_title": "حذف الخدمة؟",
     "delete_confirm_body": "هذا الإجراء لا يمكن التراجع عنه."
   },
   "errors": {

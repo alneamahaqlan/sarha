@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
   { to: '/admin/users', label: 'nav.users', icon: Users },
+  { to: '/admin/services', label: 'nav.services', icon: Sparkles },
   { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
   { to: '/admin/categories', label: 'nav.categories', icon: Tag },
   { to: '/admin/admins', label: 'nav.admins', icon: Shield },

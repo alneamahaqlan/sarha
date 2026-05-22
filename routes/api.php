@@ -3,8 +3,10 @@
 use App\Http\Controllers\Api\V1\Admin\AdminController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
+use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
+use App\Http\Controllers\Api\V1\Shared\LookupController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +34,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
     Route::middleware('auth:admin,clinic,web')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
+
+        Route::get('lookups/clinics', [LookupController::class, 'clinics']);
+        Route::get('lookups/cities', [LookupController::class, 'cities']);
+        Route::get('lookups/categories', [LookupController::class, 'categories']);
     });
 
     // -------------------- Admin guard --------------------
@@ -47,6 +53,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Admin (panel administrators) — route param renamed to avoid collision with the
         // 'admin' segment that the api.guard middleware uses.
         Route::apiResource('admins', AdminController::class)->parameter('admins', 'admin_user');
+
+        Route::apiResource('services', ServiceController::class);
     });
 
     // -------------------- Clinic guard --------------------
