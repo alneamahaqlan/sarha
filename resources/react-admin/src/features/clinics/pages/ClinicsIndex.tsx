@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { RotateCcw, Search, Star } from 'lucide-react';
+import { RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -7,26 +7,42 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
-import { useClinics, useRestoreClinic } from '../hooks';
+import { useClinics, useRestoreClinic, useBulkClinic } from '../hooks';
 import { ClinicActionsMenu } from '../components/ClinicActions';
 import { ClinicPlanBadge, ClinicStatusBadge } from '../components/ClinicBadges';
 import { CLINIC_PLANS, CLINIC_STATUSES, type ClinicPlan, type ClinicStatus } from '../types';
 import type { TrashedFilter } from '../api/clinics.api';
 
+type BulkAction = 'delete' | 'restore' | 'force_delete';
+
 export function ClinicsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { can } = useAuth();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ClinicStatus | undefined>();
   const [planFilter, setPlanFilter] = useState<ClinicPlan | undefined>();
   const [cityFilter, setCityFilter] = useState<number | undefined>();
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [pendingBulk, setPendingBulk] = useState<BulkAction | null>(null);
 
   // Server query only fires after 300ms of input idle to avoid hammering on every keystroke.
   const debouncedSearch = useDebouncedValue(search, 300);
@@ -44,9 +60,49 @@ export function ClinicsIndex() {
   const { data, isLoading, isFetching } = useClinics(queryParams);
   const { data: cities } = useCityLookup();
   const restore = useRestoreClinic();
+  const bulk = useBulkClinic();
+
+  const pageRows = data?.data ?? [];
+  const pageIds = pageRows.map((c) => c.id);
+  const allSelectedOnPage = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+  const someSelectedOnPage = pageIds.some((id) => selectedIds.has(id));
+  const selectedCount = selectedIds.size;
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const togglePage = () => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allSelectedOnPage) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const runBulk = async () => {
+    if (!pendingBulk || selectedIds.size === 0) return;
+    const action = pendingBulk;
+    try {
+      const res = await bulk.mutateAsync({ action, ids: Array.from(selectedIds) });
+      toast.success(t('clinics.bulk.done', { count: res.affected }));
+      clearSelection();
+      setPendingBulk(null);
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -91,7 +147,7 @@ export function ClinicsIndex() {
         </Select>
         <Select
           value={trashedFilter}
-          onChange={(e) => { setTrashedFilter(e.target.value as TrashedFilter); setPage(1); }}
+          onChange={(e) => { setTrashedFilter(e.target.value as TrashedFilter); setPage(1); clearSelection(); }}
           className="w-40"
         >
           <option value="without">{t('clinics.trashed.without')}</option>
@@ -100,9 +156,50 @@ export function ClinicsIndex() {
         </Select>
       </div>
 
+      {selectedCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-[var(--color-primary)] bg-[color-mix(in_oklab,var(--color-primary),white_90%)] px-3 py-2 text-sm">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={clearSelection} aria-label={t('common.clear')}>
+              <X className="h-4 w-4" />
+            </Button>
+            <span>{t('common.selected', { count: selectedCount })}</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {trashedFilter !== 'only' && can('clinics.delete') && (
+              <Button variant="destructive" size="sm" onClick={() => setPendingBulk('delete')} disabled={bulk.isPending}>
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('clinics.bulk.delete')}
+              </Button>
+            )}
+            {trashedFilter !== 'without' && can('clinics.restore') && (
+              <Button variant="outline" size="sm" onClick={() => setPendingBulk('restore')} disabled={bulk.isPending}>
+                <RotateCcw className="h-3.5 w-3.5" />
+                {t('clinics.bulk.restore')}
+              </Button>
+            )}
+            {trashedFilter !== 'without' && can('clinics.forceDelete') && (
+              <Button variant="destructive" size="sm" onClick={() => setPendingBulk('force_delete')} disabled={bulk.isPending}>
+                <Trash2 className="h-3.5 w-3.5" />
+                {t('clinics.bulk.force_delete')}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-10">
+              <input
+                type="checkbox"
+                aria-label={t('common.selected', { count: selectedCount })}
+                checked={allSelectedOnPage}
+                ref={(el) => { if (el) el.indeterminate = !allSelectedOnPage && someSelectedOnPage; }}
+                onChange={togglePage}
+                className="h-4 w-4 cursor-pointer"
+              />
+            </TableHead>
             <TableHead>{t('clinics.logo')}</TableHead>
             <TableHead>{t('clinics.name')}</TableHead>
             <TableHead>{t('clinics.city')}</TableHead>
@@ -117,19 +214,28 @@ export function ClinicsIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
           ) : (
             data.data.map((clinic) => (
-              <TableRow key={clinic.id}>
+              <TableRow key={clinic.id} data-selected={selectedIds.has(clinic.id) || undefined} className="data-[selected]:bg-[color-mix(in_oklab,var(--color-primary),white_95%)]">
+                <TableCell>
+                  <input
+                    type="checkbox"
+                    aria-label={t('common.selected', { count: 1 })}
+                    checked={selectedIds.has(clinic.id)}
+                    onChange={() => toggleRow(clinic.id)}
+                    className="h-4 w-4 cursor-pointer"
+                  />
+                </TableCell>
                 <TableCell>
                   {clinic.logo ? (
                     <img
@@ -204,6 +310,23 @@ export function ClinicsIndex() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={pendingBulk !== null} onOpenChange={(open) => !open && setPendingBulk(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{pendingBulk ? t(`clinics.bulk.confirm_title_${pendingBulk}`) : ''}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingBulk ? t(`clinics.bulk.confirm_body_${pendingBulk}`, { count: selectedCount }) : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={runBulk} disabled={bulk.isPending}>
+              {t('common.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

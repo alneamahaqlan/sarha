@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { RichEditor } from '@/components/forms/RichEditor';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -141,7 +142,11 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
                   <Sparkles className="h-3 w-3" />{t('clinic_articles.ai_article')}
                 </Button>
               </div>
-              <Textarea id="body" rows={10} {...form.register('body')} />
+              <RichEditor
+                value={form.watch('body') ?? ''}
+                onChange={(html) => form.setValue('body', html, { shouldDirty: true, shouldValidate: true })}
+                minHeight={260}
+              />
               {form.formState.errors.body && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.body.message}</p>}
             </div>
             <div className="flex items-end gap-3 pb-2 md:col-span-2">

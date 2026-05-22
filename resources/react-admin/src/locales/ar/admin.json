@@ -16,7 +16,10 @@
     "actions": "إجراءات",
     "language": "اللغة",
     "logout": "تسجيل الخروج",
-    "back": "رجوع"
+    "back": "رجوع",
+    "menu": "القائمة",
+    "selected": "{{count}} مُحدد",
+    "clear": "مسح"
   },
   "nav": {
     "dashboard": "لوحة المعلومات",
@@ -320,7 +323,19 @@
       "restore": "استعادة",
       "restored": "تم استعادة العيادة"
     },
-    "trashed_badge": "محذوفة"
+    "trashed_badge": "محذوفة",
+    "bulk": {
+      "delete": "حذف",
+      "restore": "استعادة",
+      "force_delete": "حذف نهائي",
+      "confirm_title_delete": "نقل إلى المحذوفات؟",
+      "confirm_body_delete": "سيتم نقل {{count}} عيادة إلى المحذوفات. سيتم تخطي السجلات التي لا تملك صلاحية حذفها.",
+      "confirm_title_restore": "استعادة المحدد؟",
+      "confirm_body_restore": "سيتم استعادة {{count}} عيادة.",
+      "confirm_title_force_delete": "حذف نهائي؟",
+      "confirm_body_force_delete": "سيتم حذف {{count}} عيادة نهائياً ولا يمكن التراجع عن ذلك.",
+      "done": "تمت العملية على {{count}} سجل"
+    }
   },
   "subscriptions": {
     "title": "الاشتراكات",

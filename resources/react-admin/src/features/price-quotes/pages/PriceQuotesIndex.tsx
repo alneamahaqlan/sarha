@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useDeletePriceQuote, usePriceQuotes } from '../hooks';
 import { PRICE_QUOTE_STATUSES, type PriceQuote, type PriceQuoteStatus } from '../types';
@@ -33,6 +34,7 @@ export function PriceQuotesIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<PriceQuoteStatus | undefined>();
   const [deleting, setDeleting] = useState<PriceQuote | null>(null);
@@ -41,11 +43,11 @@ export function PriceQuotesIndex() {
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { status: statusFilter },
     }),
-    [page, search, statusFilter],
+    [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = usePriceQuotes(queryParams);
   const del = useDeletePriceQuote();

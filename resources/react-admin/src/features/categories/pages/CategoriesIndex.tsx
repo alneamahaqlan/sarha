@@ -26,6 +26,7 @@ import {
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { extractMessage, isApiError } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useCategories, useDeleteCategory, useReorderCategories } from '../hooks';
 import { CategoryForm } from '../components/CategoryForm';
@@ -35,14 +36,15 @@ export function CategoriesIndex() {
   const { t } = useTranslation();
   const { can } = useAuth();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Category | null>(null);
 
   const queryParams = useMemo(
-    () => ({ page, per_page: 30, search: search.trim() || undefined, sort: 'sort_order' }),
-    [page, search],
+    () => ({ page, per_page: 30, search: debouncedSearch.trim() || undefined, sort: 'sort_order' }),
+    [page, debouncedSearch],
   );
   const { data, isLoading, isFetching } = useCategories(queryParams);
   const del = useDeleteCategory();

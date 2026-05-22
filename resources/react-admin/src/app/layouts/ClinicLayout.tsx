@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
 import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
+import { MobileNav } from './MobileNav';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
@@ -66,7 +67,10 @@ export function ClinicLayout() {
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
-          <div className="text-sm font-medium md:hidden">{user?.user.name}</div>
+          <div className="flex items-center gap-2 md:hidden">
+            <MobileNav items={clinicNav} title={user?.user.name ?? t('clinic_brand')} />
+            <span className="text-sm font-medium">{user?.user.name}</span>
+          </div>
           <div className="ms-auto flex items-center gap-2">
             <NotificationBell />
             <button

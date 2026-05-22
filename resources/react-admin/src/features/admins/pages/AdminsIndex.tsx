@@ -26,6 +26,7 @@ import {
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { extractMessage } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useAdmins, useDeleteAdmin } from '../hooks';
 import { AdminForm } from '../components/AdminForm';
@@ -42,14 +43,15 @@ export function AdminsIndex() {
   const { locale } = useLocale();
   const { can, user } = useAuth();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<AdminUser | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<AdminUser | null>(null);
 
   const queryParams = useMemo(
-    () => ({ page, per_page: 15, search: search.trim() || undefined, sort: '-created_at' }),
-    [page, search],
+    () => ({ page, per_page: 15, search: debouncedSearch.trim() || undefined, sort: '-created_at' }),
+    [page, debouncedSearch],
   );
   const { data, isLoading, isFetching } = useAdmins(queryParams);
   const del = useDeleteAdmin();

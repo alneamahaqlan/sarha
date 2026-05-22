@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useComplaints } from '../hooks';
 import {
@@ -29,6 +30,7 @@ export function ComplaintsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | undefined>();
   const [typeFilter, setTypeFilter] = useState<ComplaintType | undefined>();
@@ -39,11 +41,11 @@ export function ComplaintsIndex() {
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { status: statusFilter, type: typeFilter, priority: priorityFilter },
     }),
-    [page, search, statusFilter, typeFilter, priorityFilter],
+    [page, debouncedSearch, statusFilter, typeFilter, priorityFilter],
   );
   const { data, isLoading, isFetching } = useComplaints(queryParams);
 

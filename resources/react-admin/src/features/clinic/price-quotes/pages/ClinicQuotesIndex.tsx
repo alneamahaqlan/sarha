@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { PRICE_QUOTE_STATUSES, type PriceQuote, type PriceQuoteStatus } from '@/features/price-quotes/types';
 
 import { useClinicQuotes, useUpdateClinicQuote } from '../hooks';
@@ -82,13 +83,14 @@ export function ClinicQuotesIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<PriceQuoteStatus | undefined>();
   const [replying, setReplying] = useState<PriceQuote | null>(null);
 
   const params = useMemo(
-    () => ({ page, per_page: 15, search: search.trim() || undefined, filter: { status: statusFilter } }),
-    [page, search, statusFilter],
+    () => ({ page, per_page: 15, search: debouncedSearch.trim() || undefined, filter: { status: statusFilter } }),
+    [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = useClinicQuotes(params);
 

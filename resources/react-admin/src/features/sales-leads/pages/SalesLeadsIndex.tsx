@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useSalesLeads } from '../hooks';
 import { ConvertDialog } from '../components/ConvertDialog';
@@ -25,6 +26,7 @@ export function SalesLeadsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<SalesLeadStatus | undefined>(undefined);
   const [convert, setConvert] = useState<{ lead: SalesLead; plan: SubscriptionPlan } | null>(null);
@@ -33,11 +35,11 @@ export function SalesLeadsIndex() {
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: 'next_follow_up_at',
       filter: { status: statusFilter },
     }),
-    [page, search, statusFilter],
+    [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = useSalesLeads(queryParams);
 

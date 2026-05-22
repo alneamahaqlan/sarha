@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useSystemSettings } from '../hooks';
 import { SettingEditDialog } from '../components/SettingEditDialog';
@@ -14,8 +15,9 @@ import type { SystemSetting } from '../types';
 export function SystemSettingsIndex() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [editing, setEditing] = useState<SystemSetting | null>(null);
-  const { data, isLoading } = useSystemSettings(search.trim() || undefined);
+  const { data, isLoading } = useSystemSettings(debouncedSearch.trim() || undefined);
 
   // Group rows by group, mirroring Filament's defaultGroup('group').
   const grouped = useMemo(() => {

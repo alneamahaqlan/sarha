@@ -28,6 +28,7 @@ import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useServices, useDeleteService } from '../hooks';
 import { ServiceForm } from '../components/ServiceForm';
@@ -38,6 +39,7 @@ export function ServicesIndex() {
   const { locale } = useLocale();
   const { can } = useAuth();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [clinicFilter, setClinicFilter] = useState<number | undefined>(undefined);
   const [editing, setEditing] = useState<Service | null>(null);
@@ -48,11 +50,11 @@ export function ServicesIndex() {
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { clinic_id: clinicFilter },
     }),
-    [page, search, clinicFilter],
+    [page, debouncedSearch, clinicFilter],
   );
   const { data, isLoading, isFetching } = useServices(queryParams);
   const { data: clinicsForFilter } = useClinicLookup();

@@ -100,6 +100,8 @@ class AuthController extends Controller
                 'clinics.create'       => $isSuper,
                 'clinics.update'       => true,
                 'clinics.delete'       => $isSuper,
+                'clinics.restore'      => $isSuper,
+                'clinics.forceDelete'  => $isSuper,
                 'clinics.approve'      => true,
                 'clinics.reject'       => true,
                 'clinics.impersonate'  => true,

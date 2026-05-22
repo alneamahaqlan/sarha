@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useUsers } from '../hooks';
 import { UserForm } from '../components/UserForm';
@@ -30,6 +31,7 @@ export function UsersIndex() {
   const { locale } = useLocale();
   const { can } = useAuth();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>(undefined);
   const [editing, setEditing] = useState<User | null>(null);
@@ -39,11 +41,11 @@ export function UsersIndex() {
     () => ({
       page,
       per_page: 15,
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
       filter: { is_active: statusFilter },
     }),
-    [page, search, statusFilter],
+    [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = useUsers(queryParams);
 

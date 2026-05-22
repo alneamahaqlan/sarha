@@ -9,6 +9,7 @@ import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
+import { MobileNav } from './MobileNav';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
@@ -75,7 +76,10 @@ export function AdminLayout() {
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
-          <div className="text-sm font-medium md:hidden">{t('brand')}</div>
+          <div className="flex items-center gap-2 md:hidden">
+            <MobileNav items={adminNav} title={t('brand')} />
+            <span className="text-sm font-medium">{t('brand')}</span>
+          </div>
           <div className="ms-auto flex items-center gap-2">
             <NotificationBell />
             <button

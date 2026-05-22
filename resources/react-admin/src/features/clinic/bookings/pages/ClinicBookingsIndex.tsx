@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '@/features/bookings/types';
 
@@ -84,13 +85,14 @@ export function ClinicBookingsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>();
   const [editing, setEditing] = useState<Booking | null>(null);
 
   const params = useMemo(
-    () => ({ page, per_page: 15, search: search.trim() || undefined, filter: { status: statusFilter } }),
-    [page, search, statusFilter],
+    () => ({ page, per_page: 15, search: debouncedSearch.trim() || undefined, filter: { status: statusFilter } }),
+    [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = useClinicBookings(params);
 

@@ -16,7 +16,10 @@
     "actions": "Actions",
     "language": "Language",
     "logout": "Logout",
-    "back": "Back"
+    "back": "Back",
+    "menu": "Menu",
+    "selected": "{{count}} selected",
+    "clear": "Clear"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -320,7 +323,19 @@
       "restore": "Restore",
       "restored": "Clinic restored"
     },
-    "trashed_badge": "Trashed"
+    "trashed_badge": "Trashed",
+    "bulk": {
+      "delete": "Delete",
+      "restore": "Restore",
+      "force_delete": "Delete permanently",
+      "confirm_title_delete": "Move to trash?",
+      "confirm_body_delete": "{{count}} clinics will be moved to trash. Skipped rows you cannot delete.",
+      "confirm_title_restore": "Restore selected?",
+      "confirm_body_restore": "{{count}} clinics will be restored.",
+      "confirm_title_force_delete": "Permanently delete?",
+      "confirm_body_force_delete": "{{count}} clinics will be permanently deleted. This cannot be undone.",
+      "done": "Operation completed on {{count}} rows"
+    }
   },
   "subscriptions": {
     "title": "Subscriptions",

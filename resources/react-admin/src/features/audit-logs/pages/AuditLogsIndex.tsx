@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useAuditLogs } from '../hooks';
 
@@ -13,11 +14,12 @@ export function AuditLogsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
 
   const queryParams = useMemo(
-    () => ({ page, per_page: 20, search: search.trim() || undefined, sort: '-created_at' }),
-    [page, search],
+    () => ({ page, per_page: 20, search: debouncedSearch.trim() || undefined, sort: '-created_at' }),
+    [page, debouncedSearch],
   );
   const { data, isLoading, isFetching } = useAuditLogs(queryParams);
 
