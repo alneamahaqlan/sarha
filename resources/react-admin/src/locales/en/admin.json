@@ -23,6 +23,7 @@
   },
   "nav": {
     "dashboard": "Dashboard",
+    "analytics": "Analytics",
     "settings_group": "System Settings",
     "cities": "Cities",
     "categories": "Categories",
@@ -272,6 +273,11 @@
     "status_label": "Status",
     "next_follow_up_at": "Next follow-up",
     "assigned_to": "Owner",
+    "follow_up": {
+      "overdue": "Overdue",
+      "today": "Today",
+      "upcoming": "Upcoming"
+    },
     "filter_all_statuses": "All statuses",
     "create": "New lead",
     "edit": "Edit lead",
@@ -330,6 +336,18 @@
     "filter_all_statuses": "All statuses",
     "filter_all_plans": "All plans",
     "filter_all_cities": "All cities",
+    "stats": {
+      "title": "Clinic statistics",
+      "period_7": "7 days",
+      "period_14": "14 days",
+      "period_30": "30 days",
+      "page_views": "Page views",
+      "bookings": "Bookings",
+      "quote_requests": "Quote requests",
+      "search_appearances": "Search appearances",
+      "vs_platform_avg": "30-day bookings vs platform average",
+      "this_clinic": "This clinic vs platform avg"
+    },
     "status": {
       "pending": "Pending",
       "active": "Active",
@@ -547,6 +565,19 @@
     "by_city": "Clinics by city",
     "days_left": "{{count}} days left",
     "bookings_n": "{{count}} bookings"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Platform performance over the last 30 days",
+    "total_views": "Total views",
+    "contact_requests": "Contact requests",
+    "revenue": "Revenue",
+    "monthly": "Monthly comparison",
+    "month": "Month",
+    "clinics": "New clinics",
+    "bookings": "Bookings",
+    "revenue_col": "Revenue",
+    "by_specialty": "Performance by specialty"
   },
   "notifications": {
     "title": "Notifications",

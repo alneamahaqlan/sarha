@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Category;
 use App\Models\Clinic;
+use App\Models\ClinicStat;
 use App\Models\Complaint;
 use App\Models\PriceQuoteRequest;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 /**
  * Mirrors StatsOverviewWidget + LatestBookingsWidget from Filament.
@@ -146,6 +149,126 @@ class DashboardController extends Controller
                 'date'  => $r->date,
                 'count' => (int) $r->count,
             ]),
+        ]);
+    }
+
+    /**
+     * Per-clinic stats — sourced from ClinicStat rows for the given clinic over
+     * the selected period. Null-safe: clinics with no rows return zeros.
+     */
+    public function clinicStats(Clinic $clinic, Request $request): JsonResponse
+    {
+        $period = (int) $request->query('period', 30);
+        if (! in_array($period, [7, 14, 30], true)) {
+            $period = 30;
+        }
+        $since = now()->subDays($period)->startOfDay();
+
+        $scoped = ClinicStat::query()
+            ->where('clinic_id', $clinic->id)
+            ->where('date', '>=', $since->toDateString());
+
+        $cards = [
+            'page_views'         => (int) (clone $scoped)->sum('page_views'),
+            'bookings'           => (int) (clone $scoped)->sum('bookings_count'),
+            'quote_requests'     => (int) (clone $scoped)->sum('quote_requests_count'),
+            'search_appearances' => (int) (clone $scoped)->sum('search_appearances'),
+        ];
+
+        $trend = (clone $scoped)
+            ->orderBy('date')
+            ->get(['date', 'page_views', 'bookings_count', 'quote_requests_count'])
+            ->map(fn (ClinicStat $s) => [
+                'date'           => $s->date?->toDateString(),
+                'page_views'     => (int) $s->page_views,
+                'bookings'       => (int) $s->bookings_count,
+                'quote_requests' => (int) $s->quote_requests_count,
+            ]);
+
+        // 30-day bookings: this clinic vs the average across all active clinics.
+        $bookingsSince = now()->subDays(30)->startOfDay()->toDateString();
+        $thisClinicBookings = (int) ClinicStat::query()
+            ->where('clinic_id', $clinic->id)
+            ->where('date', '>=', $bookingsSince)
+            ->sum('bookings_count');
+
+        $activeClinicCount = Clinic::where('status', 'active')->count();
+        $platformBookings = (int) ClinicStat::query()
+            ->whereIn('clinic_id', Clinic::where('status', 'active')->select('id'))
+            ->where('date', '>=', $bookingsSince)
+            ->sum('bookings_count');
+        $avgBookingsPlatform = $activeClinicCount > 0
+            ? round($platformBookings / $activeClinicCount, 1)
+            : 0.0;
+
+        return response()->json([
+            'data' => [
+                'cards' => $cards,
+                'trend' => $trend,
+                'kpis'  => [
+                    'avg_bookings_platform' => (float) $avgBookingsPlatform,
+                    'this_clinic_bookings'  => $thisClinicBookings,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Platform analytics — headline cards, last-6-months comparison, and the
+     * top categories by clinic count. Same models the dashboard already uses.
+     */
+    public function analytics(Request $request): JsonResponse
+    {
+        $period = (int) $request->query('period', 30);
+        if ($period < 1) {
+            $period = 30;
+        }
+        $since = now()->subDays($period)->startOfDay();
+        $sinceDate = $since->toDateString();
+
+        $totalViews = (int) ClinicStat::where('date', '>=', $sinceDate)->sum('page_views');
+        $contactRequests = (int) ClinicStat::where('date', '>=', $sinceDate)
+            ->selectRaw('COALESCE(SUM(quote_requests_count), 0) + COALESCE(SUM(bookings_count), 0) as total')
+            ->value('total');
+        $revenue = (float) Subscription::where('status', 'active')
+            ->where('created_at', '>=', $since)
+            ->sum('amount');
+
+        $monthly = collect(range(5, 0))->map(function (int $back) {
+            $month = now()->subMonths($back);
+            $start = $month->copy()->startOfMonth();
+            $end = $month->copy()->endOfMonth();
+
+            return [
+                'month'    => $month->format('Y-m'),
+                'clinics'  => (int) Clinic::whereBetween('created_at', [$start, $end])->count(),
+                'bookings' => (int) Booking::whereBetween('created_at', [$start, $end])->count(),
+                'revenue'  => (float) Subscription::where('status', 'active')
+                    ->whereBetween('created_at', [$start, $end])
+                    ->sum('amount'),
+            ];
+        })->values();
+
+        $bySpecialty = Category::query()
+            ->withCount('clinics')
+            ->orderByDesc('clinics_count')
+            ->limit(8)
+            ->get(['id', 'name', 'name_en'])
+            ->map(fn (Category $c) => [
+                'name'          => $c->display_name,
+                'clinics_count' => (int) $c->clinics_count,
+            ]);
+
+        return response()->json([
+            'data' => [
+                'cards' => [
+                    'total_views'      => $totalViews,
+                    'contact_requests' => $contactRequests,
+                    'revenue'          => $revenue,
+                ],
+                'monthly'      => $monthly,
+                'by_specialty' => $bySpecialty,
+            ],
         ]);
     }
 }

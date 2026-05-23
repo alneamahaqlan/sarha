@@ -63,6 +63,18 @@ export function SalesLeadsIndex() {
   const fmt = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
+  // Follow-up urgency badge — mirrors the sales pipeline "overdue/today/upcoming" cue.
+  const followUp = (iso: string | null): { variant: 'danger' | 'warning' | 'muted'; key: string } | null => {
+    if (!iso) return null;
+    const due = new Date(iso);
+    const today = new Date();
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diffDays = Math.round((startOfDay(due) - startOfDay(today)) / 86_400_000);
+    if (diffDays < 0) return { variant: 'danger', key: 'overdue' };
+    if (diffDays === 0) return { variant: 'warning', key: 'today' };
+    return { variant: 'muted', key: 'upcoming' };
+  };
+
   const handleDelete = async () => {
     if (!deleting) return;
     try {
@@ -147,7 +159,15 @@ export function SalesLeadsIndex() {
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[lead.status]}>{t(`sales_leads.status.${lead.status}`)}</Badge>
                   </TableCell>
-                  <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmt(lead.next_follow_up_at)}</TableCell>
+                  <TableCell className="text-xs text-[var(--color-muted-foreground)]">
+                    <div className="flex items-center gap-1.5">
+                      {lead.status !== 'converted' && lead.status !== 'lost' && (() => {
+                        const fu = followUp(lead.next_follow_up_at);
+                        return fu ? <Badge variant={fu.variant}>{t(`sales_leads.follow_up.${fu.key}`)}</Badge> : null;
+                      })()}
+                      <span>{fmt(lead.next_follow_up_at)}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{lead.assigned_admin?.name ?? '—'}</TableCell>
                   <TableCell className="text-end">
                     <div className="flex justify-end gap-1">

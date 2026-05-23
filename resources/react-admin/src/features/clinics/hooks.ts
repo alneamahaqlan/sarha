@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { clinicsApi, type ClinicFormValues, type ClinicListParams } from './api/clinics.api';
+import { clinicsApi, type ClinicFormValues, type ClinicListParams, type ClinicStatsPeriod } from './api/clinics.api';
 
 const KEY = ['admin', 'clinics'] as const;
 
@@ -16,6 +16,15 @@ export function useClinic(id: number | undefined) {
     queryFn: () => clinicsApi.get(id!),
     enabled: !!id,
     staleTime: 5_000,
+  });
+}
+
+export function useClinicStats(id: number | undefined, period: ClinicStatsPeriod) {
+  return useQuery({
+    queryKey: [...KEY, 'stats', id, period],
+    queryFn: () => clinicsApi.stats(id!, period),
+    enabled: !!id,
+    staleTime: 60_000,
   });
 }
 

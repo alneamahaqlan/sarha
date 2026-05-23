@@ -55,6 +55,29 @@ export interface ClinicFormValues {
   categories?: number[];
 }
 
+export type ClinicStatsPeriod = 7 | 14 | 30;
+
+export interface ClinicStatsTrendPoint {
+  date: string;
+  page_views: number;
+  bookings: number;
+  quote_requests: number;
+}
+
+export interface ClinicStatsData {
+  cards: {
+    page_views: number;
+    bookings: number;
+    quote_requests: number;
+    search_appearances: number;
+  };
+  trend: ClinicStatsTrendPoint[];
+  kpis: {
+    avg_bookings_platform: number;
+    this_clinic_bookings: number;
+  };
+}
+
 export const clinicsApi = {
   list: async (params: ClinicListParams = {}) => {
     const res = await apiClient.get<PaginatedResponse<Clinic>>('/admin/clinics', { params: buildParams(params) });
@@ -113,6 +136,12 @@ export const clinicsApi = {
     const res = await apiClient.post<{ data: { affected: number } }>(`/admin/clinics/bulk`, {
       action,
       ids,
+    });
+    return res.data.data;
+  },
+  stats: async (id: number, period: ClinicStatsPeriod) => {
+    const res = await apiClient.get<{ data: ClinicStatsData }>(`/admin/clinics/${id}/stats`, {
+      params: { period },
     });
     return res.data.data;
   },

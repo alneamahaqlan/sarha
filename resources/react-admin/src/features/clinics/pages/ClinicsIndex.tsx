@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,7 @@ export function ClinicsIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const { can } = useAuth();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<ClinicStatus | undefined>();
@@ -306,6 +308,16 @@ export function ClinicsIndex() {
                     </Button>
                   ) : (
                     <div className="flex justify-end gap-1">
+                      {can('clinics.viewAny') && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/admin/clinics/${clinic.id}/stats`)}
+                          aria-label={t('clinics.stats.title')}
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                        </Button>
+                      )}
                       {can('clinics.update') && (
                         <Button variant="ghost" size="icon" onClick={() => setEditingId(clinic.id)} aria-label={t('common.edit')}>
                           <Pencil className="h-4 w-4" />

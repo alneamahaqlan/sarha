@@ -90,6 +90,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('dashboard/bookings-trend', [AdminDashboardController::class, 'bookingsTrend'])->name('admin.dashboard.bookings-trend');
         Route::get('dashboard/nav-badges', [AdminDashboardController::class, 'navBadges'])->name('admin.dashboard.nav-badges');
         Route::get('dashboard/sections', [AdminDashboardController::class, 'sections'])->name('admin.dashboard.sections');
+        Route::get('dashboard/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.dashboard.analytics');
 
         Route::apiResource('cities', CityController::class);
 
@@ -137,6 +138,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('clinics/{clinic}/suspend', [ClinicController::class, 'suspend'])->name('clinics.suspend');
         Route::post('clinics/{clinic}/extend', [ClinicController::class, 'extend'])->name('clinics.extend');
         Route::post('clinics/{clinic}/impersonate', [ClinicController::class, 'impersonate'])->name('clinics.impersonate');
+        Route::get('clinics/{clinic}/stats', [AdminDashboardController::class, 'clinicStats'])->name('clinics.stats');
         Route::apiResource('clinics', ClinicController::class);
 
         // Subscription — Filament has no Delete action; restrict to index/show/store/update.

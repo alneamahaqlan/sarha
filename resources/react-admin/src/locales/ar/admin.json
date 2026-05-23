@@ -23,6 +23,7 @@
   },
   "nav": {
     "dashboard": "لوحة المعلومات",
+    "analytics": "التحليلات",
     "settings_group": "إعدادات النظام",
     "cities": "المدن",
     "categories": "التصنيفات",
@@ -272,6 +273,11 @@
     "status_label": "الحالة",
     "next_follow_up_at": "الموعد التالي",
     "assigned_to": "المسؤول",
+    "follow_up": {
+      "overdue": "متأخر",
+      "today": "اليوم",
+      "upcoming": "قادم"
+    },
     "filter_all_statuses": "كل الحالات",
     "create": "عميل محتمل جديد",
     "edit": "تعديل العميل المحتمل",
@@ -330,6 +336,18 @@
     "filter_all_statuses": "كل الحالات",
     "filter_all_plans": "كل الباقات",
     "filter_all_cities": "كل المدن",
+    "stats": {
+      "title": "إحصائيات العيادة",
+      "period_7": "7 أيام",
+      "period_14": "14 يومًا",
+      "period_30": "30 يومًا",
+      "page_views": "مشاهدات الصفحة",
+      "bookings": "الحجوزات",
+      "quote_requests": "طلبات التسعير",
+      "search_appearances": "الظهور في البحث",
+      "vs_platform_avg": "حجوزات 30 يومًا مقارنة بمتوسط المنصة",
+      "this_clinic": "هذه العيادة مقابل متوسط المنصة"
+    },
     "status": {
       "pending": "بانتظار الاعتماد",
       "active": "نشطة",
@@ -547,6 +565,19 @@
     "by_city": "المجمعات حسب المدينة",
     "days_left": "باقٍ {{count}} يوم",
     "bookings_n": "{{count}} حجز"
+  },
+  "analytics": {
+    "title": "التحليلات",
+    "subtitle": "أداء المنصة خلال آخر 30 يومًا",
+    "total_views": "إجمالي المشاهدات",
+    "contact_requests": "طلبات التواصل",
+    "revenue": "الإيرادات",
+    "monthly": "المقارنة الشهرية",
+    "month": "الشهر",
+    "clinics": "عيادات جديدة",
+    "bookings": "الحجوزات",
+    "revenue_col": "الإيرادات",
+    "by_specialty": "الأداء حسب التخصص"
   },
   "notifications": {
     "title": "الإشعارات",
