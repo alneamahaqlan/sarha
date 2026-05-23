@@ -87,16 +87,16 @@ The platform ships fully bilingual (Arabic / English) with automatic RTL ↔ LTR
 All clinic accounts use password **`password`**. Login is by **phone number**, not email:
 
 | # | Clinic | Phone | Status | Plan |
-|---|--------|-------|--------|------|
-| 1 | مركز الرياض للأسنان | `0564334488` | ✅ active | ⭐ premium |
-| 2 | مجمع الجمال والجلدية | `0555574270` | ✅ active | basic |
-| 3 | مركز البصر للعيون | `0531531003` | ✅ active | ⭐ premium |
-| 4 | مجمع أطفال المستقبل | `0527641533` | ✅ active | basic |
-| 5 | مركز العظام والمفاصل | `0520053416` | ✅ active | ⭐ premium |
-| 6 | مجمع القلب التخصصي | `0534186626` | ⏳ pending | basic |
+| --- | --- | --- | --- | --- |
+| 1 | مركز الرياض للأسنان | `0550000001` | ✅ active | ⭐ premium |
+| 2 | مجمع الجمال والجلدية | `0550000002` | ✅ active | basic |
+| 3 | مركز البصر للعيون | `0550000003` | ✅ active | ⭐ premium |
+| 4 | مجمع أطفال المستقبل | `0550000004` | ✅ active | basic |
+| 5 | مركز العظام والمفاصل | `0550000005` | ✅ active | ⭐ premium |
+| 6 | مجمع القلب التخصصي | `0550000006` | ⏳ pending | basic |
 
 > Clinic #6 is **pending** — it can't sign in until an admin approves it from `/app/admin/clinics`.
-> Phone numbers are randomized on each fresh seed; run `php artisan tinker --execute="App\Models\Clinic::pluck('phone','name')"` to read the current ones.
+> Phones are deterministic now — `0550000001`…`0550000006` — so this table stays accurate across re-seeds. Re-running `db:seed` only adds missing demo data; it never clobbers these six rows.
 
 ### 👤 Customer (public site) — `/login`
 

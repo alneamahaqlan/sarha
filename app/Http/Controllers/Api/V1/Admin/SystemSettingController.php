@@ -44,7 +44,20 @@ class SystemSettingController extends Controller
 
     public function update(UpdateSystemSettingRequest $request, SystemSetting $systemSetting): SystemSettingApiResource
     {
-        $systemSetting->update($request->validated());
+        $data = $request->validated();
+
+        // Encrypted slots (API keys): an empty/missing value or the mask token
+        // means "keep current". Only a real new string replaces the secret —
+        // this prevents the React UI from accidentally overwriting a stored
+        // key when the admin opens the dialog and saves without typing.
+        if ($systemSetting->type === 'encrypted') {
+            $incoming = $data['value'] ?? null;
+            if ($incoming === null || $incoming === '' || $incoming === SystemSetting::MASK) {
+                unset($data['value']);
+            }
+        }
+
+        $systemSetting->update($data);
 
         // Mirrors Filament EditAction::after(fn => Cache::forget('setting:'.$key)).
         Cache::forget('setting:' . $systemSetting->key);

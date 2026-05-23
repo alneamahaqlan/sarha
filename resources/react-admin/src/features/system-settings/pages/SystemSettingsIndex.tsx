@@ -71,7 +71,18 @@ export function SystemSettingsIndex() {
                     <TableCell dir="ltr" className="font-mono text-xs">{s.key}</TableCell>
                     <TableCell className="font-medium">{s.label}</TableCell>
                     <TableCell className="max-w-xs truncate text-[var(--color-muted-foreground)]">
-                      {s.value ?? '—'}
+                      {s.type === 'encrypted' ? (
+                        s.value_set ? (
+                          <span className="inline-flex items-center gap-1">
+                            <span dir="ltr" className="font-mono">••••••••</span>
+                            <Badge variant="muted">Set</Badge>
+                          </span>
+                        ) : (
+                          <Badge variant="muted">Not set</Badge>
+                        )
+                      ) : (
+                        s.value ?? '—'
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge variant="muted">{s.type}</Badge>

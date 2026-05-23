@@ -13,7 +13,7 @@ use App\Models\Service;
  */
 class ImportServicesService
 {
-    public function __construct(private readonly AnthropicService $ai) {}
+    public function __construct(private readonly AiContentService $ai) {}
 
     /**
      * Parse a CSV file into headers + rows arrays.

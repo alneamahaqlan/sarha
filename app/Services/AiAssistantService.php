@@ -5,12 +5,20 @@ namespace App\Services;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Services\Ai\AiProviderFactory;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
- * Local-first chatbot that matches free-text Arabic/English queries
- * against existing categories + cities + clinic names. Falls back to
- * Anthropic when configured; safety-rejects medical questions.
+ * Public AI assistant — matches Arabic/English search queries to clinics.
+ *
+ * Clinic *selection* stays deterministic (DB query, no hallucinations).
+ * Reply *text* is upgraded by the active LLM provider (Gemini default,
+ * OpenAI or Anthropic per super-admin choice) when configured; otherwise
+ * we fall back to translated string templates.
+ *
+ * Always safety-rejects medical-advice questions.
  */
 class AiAssistantService
 {
@@ -32,45 +40,96 @@ class AiAssistantService
         'compare_two'        => 'site.ai_qp_compare',
     ];
 
+    public function __construct(private readonly AiProviderFactory $providers) {}
+
     public function quickPrompts(): array
     {
         return self::QUICK_PROMPTS;
     }
 
     /**
-     * Main entry. Returns array { reply: string, clinics: Collection, kind: string }.
+     * Main entry. Returns array { reply: string, clinics: Collection, kind: string, provider: ?string }.
      */
     public function ask(string $query, ?int $cityId = null): array
     {
         $query = trim($query);
         if ($query === '') {
-            return ['kind' => 'empty', 'reply' => __('site.ai_empty'), 'clinics' => collect()];
+            return $this->wrap('empty', __('site.ai_empty'), collect());
         }
 
-        // 1) Medical safety filter
+        // 1) Medical safety filter — always handled locally, never sent to LLM.
         if ($this->looksMedical($query)) {
-            return [
-                'kind'    => 'rejected',
-                'reply'   => __('site.ai_medical_disclaimer'),
-                'clinics' => $this->matchByKeyword($query, $cityId),
-            ];
+            return $this->wrap(
+                'rejected',
+                __('site.ai_medical_disclaimer'),
+                $this->matchByKeyword($query, $cityId),
+            );
         }
 
-        // 2) Local keyword match
+        // 2) Local keyword match (deterministic — LLM never picks clinics).
         $clinics = $this->matchByKeyword($query, $cityId);
 
         if ($clinics->isEmpty()) {
-            return [
-                'kind'    => 'no_match',
-                'reply'   => __('site.ai_no_match'),
-                'clinics' => collect(),
-            ];
+            return $this->wrap('no_match', __('site.ai_no_match'), collect());
         }
 
+        // 3) Reply text — LLM if configured, template otherwise.
+        $reply = $this->generateReply($query, $clinics)
+            ?? __('site.ai_found_matches', ['count' => $clinics->count()]);
+
+        return $this->wrap('matched', $reply, $clinics);
+    }
+
+    /**
+     * Ask the active LLM to write a one-paragraph friendly Arabic reply
+     * describing the matched clinics. Returns null on any error so the
+     * caller falls back to the templated reply — chat must never fail
+     * just because the AI provider is down.
+     */
+    private function generateReply(string $query, Collection $clinics): ?string
+    {
+        if (! $this->providers->isConfigured()) {
+            return null;
+        }
+
+        $names = $clinics->map(fn (Clinic $c) => trim(sprintf(
+            '- %s (%s)',
+            $c->name,
+            optional($c->city)->name ?? '—',
+        )))->implode("\n");
+
+        $prompt = <<<PROMPT
+أنت مساعد ذكي لمنصة "سعرها" لحجز الخدمات الطبية في السعودية.
+المستخدم سأل: "{$query}"
+ووجدنا له هذه المجمعات المطابقة:
+{$names}
+
+اكتب رداً قصيراً جداً باللغة العربية (سطرين كحد أقصى، 30-50 كلمة) يلخّص النتائج بأسلوب ودود ومحترف.
+قواعد صارمة:
+- لا تذكر أسعاراً أو أرقاماً لم تُعطَ لك.
+- لا تقدم أي نصيحة طبية.
+- لا تستخدم Markdown أو رؤوس أو قوائم.
+- اختم بدعوة لطيفة للضغط على المجمع لعرض الخدمات.
+PROMPT;
+
+        try {
+            return $this->providers->make()->complete($prompt, maxTokens: 200);
+        } catch (Throwable $e) {
+            Log::warning('AiAssistant LLM reply failed — falling back to template', [
+                'provider' => $this->providers->activeProviderName(),
+                'error'    => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    private function wrap(string $kind, string $reply, Collection $clinics): array
+    {
         return [
-            'kind'    => 'matched',
-            'reply'   => __('site.ai_found_matches', ['count' => $clinics->count()]),
-            'clinics' => $clinics,
+            'kind'     => $kind,
+            'reply'    => $reply,
+            'clinics'  => $clinics,
+            'provider' => $this->providers->isConfigured() ? $this->providers->activeProviderName() : null,
         ];
     }
 

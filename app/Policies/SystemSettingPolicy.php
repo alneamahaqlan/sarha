@@ -17,9 +17,21 @@ class SystemSettingPolicy
         return $admin->is_active;
     }
 
+    /**
+     * Active admins can edit ordinary settings. Encrypted slots (API keys
+     * for Gemini / OpenAI / Anthropic) are restricted to super-admins —
+     * the key never leaves the DB in plaintext via the API, but only the
+     * super-admin role can rotate or set it.
+     */
     public function update(Admin $admin, SystemSetting $setting): bool
     {
-        return $admin->is_active;
+        if (! $admin->is_active) return false;
+
+        if ($setting->type === 'encrypted') {
+            return $admin->isSuperAdmin();
+        }
+
+        return true;
     }
 
     // Mirrors Filament canCreate/canDelete = false.

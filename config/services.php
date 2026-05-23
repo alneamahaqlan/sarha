@@ -40,9 +40,26 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    // AI assistant + article generation.
+    // The active provider is picked by SystemSetting('ai_provider') (default: gemini).
+    // Env values below are only used as fallback when the DB rows are empty.
+    'ai' => [
+        'default' => env('AI_DEFAULT_PROVIDER', 'gemini'),
+    ],
+
+    'gemini' => [
+        'key'   => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+    'openai' => [
+        'key'   => env('OPENAI_API_KEY'),
+        'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
     'anthropic' => [
         'key'   => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-5'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-6'),
     ],
 
     'unifonic' => [

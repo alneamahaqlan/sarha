@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -25,9 +26,26 @@ interface Props {
   onClose: () => void;
 }
 
+/** Keys that should render a constrained <select> instead of free text. */
+const SELECT_OPTIONS: Record<string, { value: string; label: string }[]> = {
+  ai_provider: [
+    { value: 'gemini',    label: 'Google Gemini Flash (افتراضي)' },
+    { value: 'openai',    label: 'OpenAI (GPT)' },
+    { value: 'anthropic', label: 'Anthropic (Claude)' },
+  ],
+};
+
 export function SettingEditDialog({ setting, onClose }: Props) {
   const { t } = useTranslation();
-  const [value, setValue] = useState(setting.value ?? '');
+  const isEncrypted = setting.type === 'encrypted';
+  const selectOptions = SELECT_OPTIONS[setting.key];
+
+  // Encrypted secrets are never pre-filled — leaving the input empty means
+  // "keep the stored value" (matches backend semantics in SystemSettingController).
+  const initialValue = isEncrypted ? '' : (setting.value ?? '');
+
+  const [value, setValue] = useState(initialValue);
+  const [showSecret, setShowSecret] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const mut = useUpdateSystemSetting(setting.id);
 
@@ -55,17 +73,60 @@ export function SettingEditDialog({ setting, onClose }: Props) {
         </DialogHeader>
 
         {setting.description && (
-          <p className="text-sm text-[var(--color-muted-foreground)]">{setting.description}</p>
+          <p className="text-sm text-[var(--color-muted-foreground)]" dir="auto">{setting.description}</p>
         )}
 
         <div className="space-y-1.5">
           <Label htmlFor="value">{t('system_settings.value')}</Label>
+
           {isBoolean ? (
             <div className="flex items-center gap-3">
               <Switch checked={boolChecked} onCheckedChange={(c) => setValue(c ? '1' : '0')} />
               <span className="text-sm text-[var(--color-muted-foreground)]">
                 {boolChecked ? t('common.yes') : t('common.no')}
               </span>
+            </div>
+          ) : selectOptions ? (
+            <select
+              id="value"
+              value={value}
+              onChange={(e) => { setValue(e.target.value); setErr(null); }}
+              className="flex h-9 w-full rounded-md border border-[var(--color-border)] bg-transparent px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+              dir="ltr"
+            >
+              {selectOptions.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          ) : isEncrypted ? (
+            <div className="space-y-1.5">
+              <div className="relative">
+                <Input
+                  id="value"
+                  type={showSecret ? 'text' : 'password'}
+                  autoComplete="off"
+                  spellCheck={false}
+                  dir="ltr"
+                  className="pe-10 font-mono"
+                  placeholder={setting.value_set ? '•••• (اتركه فارغاً للإبقاء على المفتاح الحالي)' : 'أدخل المفتاح…'}
+                  value={value}
+                  onChange={(e) => { setValue(e.target.value); setErr(null); }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecret((s) => !s)}
+                  className="absolute end-2 top-1/2 -translate-y-1/2 text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
+                  aria-label={showSecret ? 'إخفاء' : 'إظهار'}
+                  tabIndex={-1}
+                >
+                  {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-[var(--color-muted-foreground)]">
+                {setting.value_set
+                  ? 'المفتاح مُخزَّن ومُشفَّر. اتركه فارغاً للإبقاء، أو اكتب مفتاحاً جديداً للاستبدال.'
+                  : 'سيتم تشفير المفتاح قبل تخزينه في قاعدة البيانات.'}
+              </p>
             </div>
           ) : setting.type === 'json' || (setting.value?.length ?? 0) > 60 ? (
             <Textarea id="value" rows={4} value={value} onChange={(e) => { setValue(e.target.value); setErr(null); }} />
@@ -77,6 +138,7 @@ export function SettingEditDialog({ setting, onClose }: Props) {
               onChange={(e) => { setValue(e.target.value); setErr(null); }}
             />
           )}
+
           {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
         </div>
 

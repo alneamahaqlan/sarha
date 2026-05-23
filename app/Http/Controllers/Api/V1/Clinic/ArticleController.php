@@ -8,7 +8,7 @@ use App\Http\Requests\Api\V1\Clinic\StoreArticleRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateArticleRequest;
 use App\Http\Resources\Api\V1\ArticleResource as ArticleApiResource;
 use App\Models\Article;
-use App\Services\AnthropicService;
+use App\Services\AiContentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -77,9 +77,10 @@ class ArticleController extends Controller
 
     /**
      * Single endpoint for AI text generation — mirrors the Clinic ArticleResource
-     * ai_excerpt and ai_article hint actions. Same AnthropicService::generate* methods.
+     * ai_excerpt and ai_article hint actions. Routes through AiContentService
+     * which picks the active provider (Gemini / OpenAI / Anthropic).
      */
-    public function generateAi(GenerateArticleAiRequest $request, AnthropicService $ai): JsonResponse
+    public function generateAi(GenerateArticleAiRequest $request, AiContentService $ai): JsonResponse
     {
         if (! $ai->isConfigured()) {
             return response()->json([

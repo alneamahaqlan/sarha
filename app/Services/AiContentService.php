@@ -2,27 +2,36 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\Ai\AiProviderFactory;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
-class AnthropicService
+/**
+ * High-level AI tasks the clinic + admin panels rely on:
+ *   - generateExcerpt / generateArticle  → Tiptap "AI hint" buttons
+ *   - analyzeExcelColumns                → Service-import column mapping
+ *
+ * Provider-agnostic — picks Gemini / OpenAI / Anthropic via AiProviderFactory
+ * which reads /admin/system-settings (group=ai). Replaces the older
+ * AnthropicService that hard-coded Claude.
+ */
+class AiContentService
 {
-    private const ENDPOINT = 'https://api.anthropic.com/v1/messages';
-    private const API_VERSION = '2023-06-01';
-
-    public function __construct(
-        private readonly ?string $apiKey = null,
-        private readonly string $model = 'claude-sonnet-4-5',
-    ) {}
+    public function __construct(private readonly AiProviderFactory $factory) {}
 
     public function isConfigured(): bool
     {
-        return (bool) ($this->apiKey ?? config('services.anthropic.key'));
+        return $this->factory->isConfigured();
+    }
+
+    /** Diagnostic helper for logs / debug pages. */
+    public function activeProvider(): string
+    {
+        return $this->factory->activeProviderName();
     }
 
     /**
-     * Generate ~50-word excerpt for an article about a service.
+     * 40-60 word Arabic article excerpt.
      */
     public function generateExcerpt(string $articleTitle, string $clinicName, string $specialty = ''): string
     {
@@ -41,11 +50,11 @@ class AnthropicService
 - ابدأ مباشرة بدون مقدمات مثل "إليك" أو "هذه".
 PROMPT;
 
-        return $this->complete($prompt, maxTokens: 200);
+        return $this->factory->make()->complete($prompt, maxTokens: 300);
     }
 
     /**
-     * Generate full 300-400 word article.
+     * 300-400 word Arabic article body — no Markdown, prose paragraphs.
      */
     public function generateArticle(string $articleTitle, string $clinicName, string $specialty = ''): string
     {
@@ -64,15 +73,15 @@ PROMPT;
 - لا تكرر العنوان في بداية المقال.
 PROMPT;
 
-        return $this->complete($prompt, maxTokens: 1500);
+        return $this->factory->make()->complete($prompt, maxTokens: 1500);
     }
 
     /**
-     * Match user-supplied Excel column headers to platform service fields.
+     * Map user-supplied Excel column headers to platform service fields.
      * Returns matches with confidence scores.
      *
      * @param array<string> $columns
-     * @param array<array<string,mixed>> $sampleRows (max 3 rows)
+     * @param array<array<string,mixed>> $sampleRows (max 3 rows are forwarded)
      * @return array<array{column: string, mapped_to: ?string, confidence: int, reason: string}>
      */
     public function analyzeExcelColumns(array $columns, array $sampleRows = []): array
@@ -87,8 +96,8 @@ PROMPT;
         ];
 
         $columnsJson = json_encode($columns, JSON_UNESCAPED_UNICODE);
-        $sampleJson = json_encode(array_slice($sampleRows, 0, 3), JSON_UNESCAPED_UNICODE);
-        $fieldsJson = json_encode($fields, JSON_UNESCAPED_UNICODE);
+        $sampleJson  = json_encode(array_slice($sampleRows, 0, 3), JSON_UNESCAPED_UNICODE);
+        $fieldsJson  = json_encode($fields, JSON_UNESCAPED_UNICODE);
 
         $prompt = <<<PROMPT
 أنت محرر بيانات. ستحلل أعمدة جدول Excel وتربطها بحقول النظام التالية:
@@ -110,9 +119,9 @@ PROMPT;
 اربط فقط الأعمدة المتطابقة فعلاً. إذا لم يطابق العمود أي حقل، اجعل mapped_to = null.
 PROMPT;
 
-        $raw = $this->complete($prompt, maxTokens: 2000);
+        $raw = $this->factory->make()->complete($prompt, maxTokens: 2000);
 
-        // Extract JSON array (model may wrap it in ```json blocks)
+        // Models sometimes wrap JSON in ```json fences — match the first array.
         if (preg_match('/\[(?:[^\[\]]|(?R))*\]/s', $raw, $m)) {
             $decoded = json_decode($m[0], true);
             if (is_array($decoded)) {
@@ -120,46 +129,7 @@ PROMPT;
             }
         }
 
+        Log::warning('AI returned non-JSON for Excel mapping', ['raw' => $raw]);
         throw new RuntimeException('AI returned invalid JSON: ' . substr($raw, 0, 200));
-    }
-
-    private function complete(string $prompt, int $maxTokens = 1024): string
-    {
-        $key = $this->apiKey ?? config('services.anthropic.key');
-        if (! $key) {
-            throw new RuntimeException('ANTHROPIC_API_KEY is not configured.');
-        }
-
-        try {
-            $response = Http::timeout(60)
-                ->withHeaders([
-                    'x-api-key'         => $key,
-                    'anthropic-version' => self::API_VERSION,
-                    'content-type'      => 'application/json',
-                ])
-                ->post(self::ENDPOINT, [
-                    'model'      => $this->model ?: config('services.anthropic.model'),
-                    'max_tokens' => $maxTokens,
-                    'messages'   => [
-                        ['role' => 'user', 'content' => $prompt],
-                    ],
-                ]);
-        } catch (\Throwable $e) {
-            Log::error('Anthropic request failed', ['error' => $e->getMessage()]);
-            throw new RuntimeException('AI request failed: ' . $e->getMessage());
-        }
-
-        if (! $response->successful()) {
-            throw new RuntimeException('AI HTTP ' . $response->status() . ': ' . $response->body());
-        }
-
-        $body = $response->json();
-        $text = $body['content'][0]['text'] ?? null;
-
-        if (! $text) {
-            throw new RuntimeException('AI returned empty response: ' . json_encode($body));
-        }
-
-        return trim($text);
     }
 }
