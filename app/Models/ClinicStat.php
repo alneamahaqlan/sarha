@@ -16,7 +16,13 @@ class ClinicStat extends Model
         return ['date' => 'date'];
     }
 
-    public static function increment(int $clinicId, string $field, int $amount = 1): void
+    /**
+     * Bump a daily counter for the given clinic. Cannot be named `increment()`
+     * — Eloquent\Model already defines a non-static `increment()` and PHP
+     * refuses the static override (FatalError at class load time, which
+     * silently 500'd every endpoint that touched the `stats` relation).
+     */
+    public static function bump(int $clinicId, string $field, int $amount = 1): void
     {
         static::firstOrCreate(
             ['clinic_id' => $clinicId, 'date' => today()],
