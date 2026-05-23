@@ -179,7 +179,11 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Services (clinic-owned) + reorder.
         Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');
-        Route::apiResource('services', ClinicServiceController::class)->only(['index', 'store', 'update', 'destroy']);
+        // Explicit name prefix — the same path lives under /admin/services with the
+        // same auto-generated names, so route:cache refuses to serialize duplicates.
+        Route::apiResource('services', ClinicServiceController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('clinic.services');
 
         // Custom categories + reorder + delete guard.
         Route::post('custom-categories/reorder', [ClinicCustomCategoryController::class, 'reorder'])->name('clinic.custom-categories.reorder');
@@ -189,17 +193,20 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
-        Route::apiResource('bookings', ClinicBookingController::class)->only(['index', 'show', 'update']);
+        Route::apiResource('bookings', ClinicBookingController::class)
+            ->only(['index', 'show', 'update'])
+            ->names('clinic.bookings');
 
         // Price quote requests — clinic can update status + reply.
         Route::apiResource('price-quotes', ClinicPriceQuoteRequestController::class)
             ->only(['index', 'show', 'update'])
-            ->parameters(['price-quotes' => 'priceQuote']);
+            ->parameters(['price-quotes' => 'priceQuote'])
+            ->names('clinic.price-quotes');
 
         // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
         // the basic-plan monthly publish limit; preserved as-is via Model events.
         Route::post('articles/generate-ai', [ClinicArticleController::class, 'generateAi'])->name('clinic.articles.generate-ai');
-        Route::apiResource('articles', ClinicArticleController::class);
+        Route::apiResource('articles', ClinicArticleController::class)->names('clinic.articles');
 
         // Profile — self-update of the authenticated clinic.
         Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
