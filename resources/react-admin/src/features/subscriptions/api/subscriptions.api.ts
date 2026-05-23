@@ -7,7 +7,7 @@ export interface SubscriptionListParams {
   per_page?: number;
   search?: string;
   sort?: string;
-  filter?: { type?: SubscriptionType; status?: SubscriptionStatus; clinic_id?: number };
+  filter?: { type?: SubscriptionType; status?: SubscriptionStatus; clinic_id?: number; expiring?: boolean };
 }
 
 function buildParams(p: SubscriptionListParams) {
@@ -19,6 +19,7 @@ function buildParams(p: SubscriptionListParams) {
   if (p.filter?.type) params['filter[type]'] = p.filter.type;
   if (p.filter?.status) params['filter[status]'] = p.filter.status;
   if (p.filter?.clinic_id) params['filter[clinic_id]'] = p.filter.clinic_id;
+  if (p.filter?.expiring) params['filter[expiring]'] = true;
   return params;
 }
 

@@ -41,6 +41,7 @@ export function SubscriptionsIndex() {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<SubscriptionType | undefined>();
   const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | undefined>();
+  const [expiringOnly, setExpiringOnly] = useState(false);
   const [editing, setEditing] = useState<Subscription | null>(null);
   const [creating, setCreating] = useState(false);
 
@@ -50,11 +51,22 @@ export function SubscriptionsIndex() {
       per_page: 15,
       search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
-      filter: { type: typeFilter, status: statusFilter },
+      filter: { type: typeFilter, status: statusFilter, expiring: expiringOnly || undefined },
     }),
-    [page, debouncedSearch, typeFilter, statusFilter],
+    [page, debouncedSearch, typeFilter, statusFilter, expiringOnly],
   );
   const { data, isLoading, isFetching } = useSubscriptions(queryParams);
+
+  // Row tint mirrors Filament: red for expired/cancelled, amber when active but
+  // ending within 10 days, transparent otherwise.
+  const rowTint = (sub: Subscription): string => {
+    if (sub.status === 'expired' || sub.status === 'cancelled') return 'bg-red-50';
+    if (sub.status === 'active' && sub.ends_at) {
+      const days = Math.ceil((new Date(sub.ends_at).getTime() - Date.now()) / 86_400_000);
+      if (days >= 0 && days <= 10) return 'bg-amber-50';
+    }
+    return '';
+  };
 
   const fmtCurrency = (n: number) =>
     new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', {
@@ -107,6 +119,13 @@ export function SubscriptionsIndex() {
           <option value="">{t('subscriptions.filter_all_statuses')}</option>
           {SUBSCRIPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`subscriptions.status.${s}`)}</option>)}
         </Select>
+        <Button
+          variant={expiringOnly ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => { setExpiringOnly((v) => !v); setPage(1); }}
+        >
+          {t('subscriptions.expiring_soon')}
+        </Button>
       </div>
 
       <Table>
@@ -136,7 +155,7 @@ export function SubscriptionsIndex() {
             </TableRow>
           ) : (
             data.data.map((sub) => (
-              <TableRow key={sub.id}>
+              <TableRow key={sub.id} className={rowTint(sub)}>
                 <TableCell className="font-medium">{sub.clinic?.name ?? '—'}</TableCell>
                 <TableCell>
                   <Badge variant={TYPE_VARIANT[sub.type]}>{t(`subscriptions.type.${sub.type}`)}</Badge>

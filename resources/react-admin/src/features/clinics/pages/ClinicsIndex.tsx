@@ -227,6 +227,8 @@ export function ClinicsIndex() {
             <TableHead>{t('clinics.status_label')}</TableHead>
             <TableHead>{t('clinics.plan_label')}</TableHead>
             <TableHead>{t('clinics.subscription_ends_at')}</TableHead>
+            <TableHead>{t('clinics.visits_30d')}</TableHead>
+            <TableHead>{t('clinics.total_bookings')}</TableHead>
             <TableHead>{t('clinics.featured')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
           </TableRow>
@@ -234,13 +236,13 @@ export function ClinicsIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={12} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={12} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -279,6 +281,8 @@ export function ClinicsIndex() {
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">
                   {fmtDate(clinic.subscription_ends_at)}
                 </TableCell>
+                <TableCell className="text-sm">{clinic.visits_30d ?? 0}</TableCell>
+                <TableCell className="text-sm">{clinic.bookings_count ?? 0}</TableCell>
                 <TableCell>
                   {clinic.is_featured && <Star className="h-4 w-4 fill-amber-400 text-amber-500" />}
                 </TableCell>

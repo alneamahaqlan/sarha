@@ -32,6 +32,11 @@ class SubscriptionController extends Controller
         if ($clinicId = $request->input('filter.clinic_id')) {
             $query->where('clinic_id', $clinicId);
         }
+        if ($request->boolean('filter.expiring')) {
+            $reminderDays = (int) (\App\Models\SystemSetting::where('key', 'subscription_reminder_days')->value('value') ?? 10);
+            $query->where('status', 'active')
+                  ->whereBetween('ends_at', [now(), now()->addDays($reminderDays)]);
+        }
 
         $sort = $request->string('sort', '-created_at')->toString();
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';

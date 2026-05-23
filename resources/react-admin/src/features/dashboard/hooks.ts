@@ -14,3 +14,7 @@ export function useLatestBookings() {
 export function useBookingsTrend() {
   return useQuery({ queryKey: [...KEY, 'bookings-trend'], queryFn: () => adminDashboardApi.bookingsTrend(), staleTime: 5 * 60_000 });
 }
+
+export function useDashboardSections() {
+  return useQuery({ queryKey: [...KEY, 'sections'], queryFn: () => adminDashboardApi.sections(), staleTime: 60_000 });
+}

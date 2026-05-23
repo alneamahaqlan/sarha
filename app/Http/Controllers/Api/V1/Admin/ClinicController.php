@@ -31,7 +31,9 @@ class ClinicController extends Controller
 
         // Mirror Filament's withoutGlobalScopes(SoftDeletingScope) for the admin panel.
         $query = Clinic::query()->withoutGlobalScopes([SoftDeletingScope::class])
-            ->with(['city:id,name']);
+            ->with(['city:id,name'])
+            ->withCount('bookings')
+            ->withSum(['stats as visits_30d_sum' => fn ($q) => $q->where('date', '>=', now()->subDays(30))], 'page_views');
 
         $trashed = $request->string('filter.trashed')->toString();
         if ($trashed === 'only') {

@@ -324,6 +324,8 @@
     "status_label": "Status",
     "plan_label": "Plan",
     "subscription_ends_at": "Subscription ends",
+    "visits_30d": "Visits (30d)",
+    "total_bookings": "Total bookings",
     "featured": "Featured",
     "filter_all_statuses": "All statuses",
     "filter_all_plans": "All plans",
@@ -433,6 +435,7 @@
     "status_label": "Status",
     "filter_all_types": "All plans",
     "filter_all_statuses": "All statuses",
+    "expiring_soon": "Expiring soon",
     "create": "New subscription",
     "edit": "Edit subscription",
     "created": "Subscription created",
@@ -538,7 +541,12 @@
     "customer_phone": "Phone",
     "service": "Service",
     "status": "Status",
-    "created_at": "Created"
+    "created_at": "Created",
+    "expiring_soon": "Subscriptions expiring soon",
+    "top_clinics": "Top clinics (30 days)",
+    "by_city": "Clinics by city",
+    "days_left": "{{count}} days left",
+    "bookings_n": "{{count}} bookings"
   },
   "notifications": {
     "title": "Notifications",

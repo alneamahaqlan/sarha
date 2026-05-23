@@ -1,13 +1,14 @@
-import { Building2, Calendar, CreditCard, Users } from 'lucide-react';
+import { Building2, Calendar, Clock, CreditCard, MapPin, TrendingUp, Users } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
+import { Badge } from '@/components/ui/badge';
 import { CopyBadge } from '@/components/ui/copy-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import type { BookingStatus } from '@/features/bookings/types';
 
-import { useAdminStats, useBookingsTrend, useLatestBookings } from '../hooks';
+import { useAdminStats, useBookingsTrend, useDashboardSections, useLatestBookings } from '../hooks';
 
 interface StatCardProps {
   label: string;
@@ -47,11 +48,14 @@ export function DashboardPage() {
   const { data: stats } = useAdminStats();
   const { data: latest } = useLatestBookings();
   const { data: trend } = useBookingsTrend();
+  const { data: sections } = useDashboardSections();
 
   const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
   const fmtCurrency = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 });
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+  const fmtDay = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
 
   return (
     <div className="space-y-6">
@@ -102,6 +106,76 @@ export function DashboardPage() {
               <Line type="monotone" dataKey="count" stroke="#0066cc" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Subscriptions expiring soon */}
+        <div className="rounded-lg border border-[var(--color-border)] bg-white">
+          <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-3">
+            <Clock className="h-4 w-4 text-amber-600" />
+            <h2 className="text-sm font-semibold">{t('dashboard.expiring_soon')}</h2>
+          </div>
+          <div className="divide-y divide-[var(--color-border)]">
+            {!sections || sections.expiring_soon.length === 0 ? (
+              <div className="px-4 py-6 text-center text-xs text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
+            ) : (
+              sections.expiring_soon.map((c) => (
+                <div key={c.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <div className="min-w-0">
+                    <div className="truncate font-medium">{c.name}</div>
+                    <div className="text-xs text-[var(--color-muted-foreground)]">{fmtDay(c.subscription_ends_at)}</div>
+                  </div>
+                  <Badge variant={c.days_left <= 3 ? 'danger' : 'warning'}>
+                    {t('dashboard.days_left', { count: c.days_left })}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Top clinics by bookings */}
+        <div className="rounded-lg border border-[var(--color-border)] bg-white">
+          <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-3">
+            <TrendingUp className="h-4 w-4 text-emerald-600" />
+            <h2 className="text-sm font-semibold">{t('dashboard.top_clinics')}</h2>
+          </div>
+          <div className="divide-y divide-[var(--color-border)]">
+            {!sections || sections.top_clinics.length === 0 ? (
+              <div className="px-4 py-6 text-center text-xs text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
+            ) : (
+              sections.top_clinics.map((c, i) => (
+                <div key={c.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="text-xs font-semibold text-[var(--color-muted-foreground)]">{i + 1}</span>
+                    <span className="truncate font-medium">{c.name}</span>
+                  </div>
+                  <Badge variant="muted">{t('dashboard.bookings_n', { count: c.bookings_count })}</Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Clinics by city */}
+        <div className="rounded-lg border border-[var(--color-border)] bg-white">
+          <div className="flex items-center gap-2 border-b border-[var(--color-border)] px-4 py-3">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <h2 className="text-sm font-semibold">{t('dashboard.by_city')}</h2>
+          </div>
+          <div className="divide-y divide-[var(--color-border)]">
+            {!sections || sections.by_city.length === 0 ? (
+              <div className="px-4 py-6 text-center text-xs text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
+            ) : (
+              sections.by_city.map((c) => (
+                <div key={c.id} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                  <span className="truncate font-medium">{c.name}</span>
+                  <Badge variant="muted">{c.clinics_count}</Badge>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 

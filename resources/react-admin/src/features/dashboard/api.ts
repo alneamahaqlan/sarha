@@ -26,6 +26,33 @@ export interface BookingsTrendPoint {
   count: number;
 }
 
+export interface ExpiringSoonClinic {
+  id: number;
+  name: string;
+  subscription_type: string | null;
+  subscription_ends_at: string | null;
+  days_left: number;
+}
+
+export interface TopClinic {
+  id: number;
+  name: string;
+  subscription_type: string | null;
+  bookings_count: number;
+}
+
+export interface ClinicsByCity {
+  id: number;
+  name: string;
+  clinics_count: number;
+}
+
+export interface DashboardSections {
+  expiring_soon: ExpiringSoonClinic[];
+  top_clinics: TopClinic[];
+  by_city: ClinicsByCity[];
+}
+
 export const adminDashboardApi = {
   stats: async () => {
     const res = await apiClient.get<{ data: AdminStats }>('/admin/dashboard/stats');
@@ -37,6 +64,10 @@ export const adminDashboardApi = {
   },
   bookingsTrend: async () => {
     const res = await apiClient.get<{ data: BookingsTrendPoint[] }>('/admin/dashboard/bookings-trend');
+    return res.data.data;
+  },
+  sections: async () => {
+    const res = await apiClient.get<{ data: DashboardSections }>('/admin/dashboard/sections');
     return res.data.data;
   },
 };

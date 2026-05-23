@@ -324,6 +324,8 @@
     "status_label": "الحالة",
     "plan_label": "الباقة",
     "subscription_ends_at": "انتهاء الاشتراك",
+    "visits_30d": "الزيارات (30 يوم)",
+    "total_bookings": "إجمالي الحجوزات",
     "featured": "مميزة",
     "filter_all_statuses": "كل الحالات",
     "filter_all_plans": "كل الباقات",
@@ -433,6 +435,7 @@
     "status_label": "الحالة",
     "filter_all_types": "كل الباقات",
     "filter_all_statuses": "كل الحالات",
+    "expiring_soon": "تنتهي قريباً",
     "create": "اشتراك جديد",
     "edit": "تعديل الاشتراك",
     "created": "تم إنشاء الاشتراك",
@@ -538,7 +541,12 @@
     "customer_phone": "الجوال",
     "service": "الخدمة",
     "status": "الحالة",
-    "created_at": "التاريخ"
+    "created_at": "التاريخ",
+    "expiring_soon": "اشتراكات تنتهي قريباً",
+    "top_clinics": "أعلى المجمعات (30 يوم)",
+    "by_city": "المجمعات حسب المدينة",
+    "days_left": "باقٍ {{count}} يوم",
+    "bookings_n": "{{count}} حجز"
   },
   "notifications": {
     "title": "الإشعارات",

@@ -27,6 +27,8 @@ export interface Clinic {
   rejection_reason: string | null;
   is_featured: boolean;
   sort_order: number;
+  bookings_count?: number;
+  visits_30d?: number;
   city?: { id: number; name: string } | null;
   categories?: { id: number; name: string }[];
   category_ids?: number[];
