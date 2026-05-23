@@ -73,10 +73,23 @@
 </nav>
 
 {{-- Flash messages --}}
-@if(session('success'))
-    <div class="bg-green-50 border-b border-green-200 text-green-800 px-4 py-3 text-center text-sm">
-        {{ session('success') }}
+@if(session('success') || session('error'))
+    <div id="flash-banner"
+         class="{{ session('error') ? 'bg-red-50 border-red-200 text-red-800' : 'bg-green-50 border-green-200 text-green-800' }} border-b px-4 py-3 text-center text-sm transition-opacity duration-500">
+        {{ session('error') ?: session('success') }}
+        <button type="button" onclick="document.getElementById('flash-banner').remove()"
+                class="ms-2 text-xs opacity-60 hover:opacity-100" aria-label="@lang('site.flash_dismiss')">✕</button>
     </div>
+    <script>
+        (function () {
+            var el = document.getElementById('flash-banner');
+            if (!el) return;
+            setTimeout(function () {
+                el.style.opacity = '0';
+                setTimeout(function () { el.remove(); }, 500);
+            }, 3000);
+        })();
+    </script>
 @endif
 
 @yield('content')

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +31,7 @@ import { useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
-import { useClinic, useClinics, useRestoreClinic, useBulkClinic } from '../hooks';
+import { useClinic, useClinics, useRestoreClinic, useBulkClinic, useImportClinicsSheet } from '../hooks';
 import { ClinicActionsMenu } from '../components/ClinicActions';
 import { ClinicPlanBadge, ClinicStatusBadge } from '../components/ClinicBadges';
 import { ClinicForm } from '../components/ClinicForm';
@@ -55,6 +55,9 @@ export function ClinicsIndex() {
   const [pendingBulk, setPendingBulk] = useState<BulkAction | null>(null);
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState('');
+  const importSheet = useImportClinicsSheet();
 
   const { data: editingClinic } = useClinic(editingId ?? undefined);
 
@@ -105,6 +108,19 @@ export function ClinicsIndex() {
 
   const clearSelection = () => setSelectedIds(new Set());
 
+  const runImportSheet = async () => {
+    const url = sheetUrl.trim();
+    if (!url) return;
+    try {
+      const summary = await importSheet.mutateAsync(url);
+      toast.success(t('clinics.import_sheet.done', summary));
+      setImporting(false);
+      setSheetUrl('');
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
   const runBulk = async () => {
     if (!pendingBulk || selectedIds.size === 0) return;
     const action = pendingBulk;
@@ -126,10 +142,16 @@ export function ClinicsIndex() {
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinics.subtitle')}</p>
         </div>
         {can('clinics.create') && (
-          <Button onClick={() => setCreating(true)}>
-            <Plus className="h-4 w-4" />
-            {t('clinics.create')}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setImporting(true)}>
+              <FileSpreadsheet className="h-4 w-4" />
+              {t('clinics.import_sheet.button')}
+            </Button>
+            <Button onClick={() => setCreating(true)}>
+              <Plus className="h-4 w-4" />
+              {t('clinics.create')}
+            </Button>
+          </div>
         )}
       </div>
 
@@ -370,6 +392,39 @@ export function ClinicsIndex() {
             onSuccess={() => { setCreating(false); setEditingId(null); }}
             onCancel={() => { setCreating(false); setEditingId(null); }}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={importing}
+        onOpenChange={(open) => {
+          if (!open) { setImporting(false); setSheetUrl(''); }
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('clinics.import_sheet.title')}</DialogTitle>
+            <DialogDescription>{t('clinics.import_sheet.description')}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="url"
+              dir="ltr"
+              placeholder="https://docs.google.com/spreadsheets/d/..."
+              value={sheetUrl}
+              onChange={(e) => setSheetUrl(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') runImportSheet(); }}
+            />
+            <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.import_sheet.hint')}</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => { setImporting(false); setSheetUrl(''); }}>
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={runImportSheet} disabled={importSheet.isPending || !sheetUrl.trim()}>
+                {importSheet.isPending ? t('common.loading') : t('clinics.import_sheet.submit')}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 

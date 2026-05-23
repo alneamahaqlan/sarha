@@ -16,6 +16,7 @@ use App\Observers\AuditObserver;
 use App\Observers\BookingObserver;
 use App\Observers\ComplaintObserver;
 use App\Observers\PriceQuoteRequestObserver;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +28,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Custom Tailwind pagination view used across the public Blade lists.
+        Paginator::defaultView('vendor.pagination.saerha');
+
         $auditable = [
             Clinic::class,
             Subscription::class,

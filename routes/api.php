@@ -133,6 +133,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // each delegates to ClinicService. Soft-deleted rows reachable via {clinic_trashed}.
         Route::bind('clinic_trashed', fn ($id) => Clinic::withTrashed()->findOrFail($id));
         Route::post('clinics/bulk', [ClinicController::class, 'bulk'])->name('clinics.bulk');
+        Route::post('clinics/import-sheet', [ClinicController::class, 'importSheet'])->name('clinics.import-sheet');
         Route::post('clinics/{clinic_trashed}/restore', [ClinicController::class, 'restore'])->name('clinics.restore');
         Route::post('clinics/{clinic}/approve', [ClinicController::class, 'approve'])->name('clinics.approve');
         Route::post('clinics/{clinic}/reject', [ClinicController::class, 'reject'])->name('clinics.reject');

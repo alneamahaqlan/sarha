@@ -55,6 +55,12 @@ export interface ClinicFormValues {
   categories?: number[];
 }
 
+export interface ClinicImportSummary {
+  created: number;
+  updated: number;
+  skipped: number;
+}
+
 export type ClinicStatsPeriod = 7 | 14 | 30;
 
 export interface ClinicStatsTrendPoint {
@@ -137,6 +143,10 @@ export const clinicsApi = {
       action,
       ids,
     });
+    return res.data.data;
+  },
+  importSheet: async (url: string) => {
+    const res = await apiClient.post<{ data: ClinicImportSummary }>(`/admin/clinics/import-sheet`, { url });
     return res.data.data;
   },
   stats: async (id: number, period: ClinicStatsPeriod) => {

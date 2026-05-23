@@ -37,6 +37,22 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics'));
+        // Geocoded clinics for the homepage map (id, name, slug, lat, lng). Null coords excluded.
+        $mapClinics = Clinic::publiclyVisible()
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->orderByDesc('is_featured')
+            ->take(200)
+            ->get(['id', 'name', 'slug', 'latitude', 'longitude'])
+            ->map(fn (Clinic $c) => [
+                'id'   => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'lat'  => (float) $c->latitude,
+                'lng'  => (float) $c->longitude,
+            ])
+            ->values();
+
+        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics', 'mapClinics'));
     }
 }

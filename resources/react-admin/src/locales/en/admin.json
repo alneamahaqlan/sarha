@@ -441,6 +441,14 @@
       "confirm_title_force_delete": "Permanently delete?",
       "confirm_body_force_delete": "{{count}} clinics will be permanently deleted. This cannot be undone.",
       "done": "Operation completed on {{count}} rows"
+    },
+    "import_sheet": {
+      "button": "Import from Google Sheets",
+      "title": "Import clinics from Google Sheets",
+      "description": "Paste a public Google Sheet link. Rows are matched on phone or email and created or updated.",
+      "hint": "The sheet must be shared as \"Anyone with the link\". Recognized columns: name, phone, email, city, status.",
+      "submit": "Import",
+      "done": "Import complete: {{created}} created, {{updated}} updated, {{skipped}} skipped"
     }
   },
   "subscriptions": {

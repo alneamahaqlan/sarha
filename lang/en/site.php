@@ -214,6 +214,12 @@ return [
     'account_blocked' => 'Your account is suspended. Please contact support.',
     'phone_invalid' => 'Phone must start with 05 and be 10 digits long',
 
+    // Maps
+    'map_title' => 'Complexes on the map',
+    'map_subtitle' => 'Browse nearby complexes geographically',
+    'map_view_complex' => 'View complex',
+    'map_search_this_area' => 'Search this area',
+
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',
     'footer_quick_links' => 'Quick links',

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule) {
         $schedule->command('saerha:notify-subscription-expiry')->dailyAt('06:00');
         $schedule->command('saerha:sync-google-reviews')->daily();
+        $schedule->command('saerha:sync-clinics-sheet')->everySixHours();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR

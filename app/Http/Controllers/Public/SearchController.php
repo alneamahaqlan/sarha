@@ -41,6 +41,10 @@ class SearchController extends Controller
             $query->where('is_featured', true);
         }
 
+        // Snapshot the filtered (pre-sort) query for the map markers so they reflect
+        // the active filters (#62) without the sort-specific selectRaw/order clauses.
+        $mapQuery = clone $query;
+
         $sort = in_array($request->input('sort'), self::SORT_OPTIONS, true)
             ? $request->input('sort')
             : 'featured';
@@ -79,10 +83,26 @@ class SearchController extends Controller
             default => $query->rankedForListing(),
         };
 
+        // Geocoded coords for the map — reflects the *full* filtered set (not just
+        // the current page) so markers stay in sync with active filters (#62).
+        $mapClinics = $mapQuery
+            ->whereNotNull('latitude')
+            ->whereNotNull('longitude')
+            ->take(200)
+            ->get(['id', 'name', 'slug', 'latitude', 'longitude'])
+            ->map(fn (Clinic $c) => [
+                'id'   => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'lat'  => (float) $c->latitude,
+                'lng'  => (float) $c->longitude,
+            ])
+            ->values();
+
         $clinics = $query->paginate(12)->withQueryString();
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
         $cities = City::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('public.search', compact('clinics', 'categories', 'cities', 'sort'));
+        return view('public.search', compact('clinics', 'categories', 'cities', 'sort', 'mapClinics'));
     }
 }

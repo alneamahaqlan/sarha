@@ -105,3 +105,11 @@ export function useBulkClinic() {
     onSuccess: invalidator(qc),
   });
 }
+
+export function useImportClinicsSheet() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (url: string) => clinicsApi.importSheet(url),
+    onSuccess: invalidator(qc),
+  });
+}

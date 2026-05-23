@@ -11,6 +11,7 @@ use App\Http\Requests\Api\V1\Admin\UpdateClinicRequest;
 use App\Http\Resources\Api\V1\ClinicResource as ClinicApiResource;
 use App\Models\Clinic;
 use App\Services\ClinicService;
+use App\Services\GoogleSheetsImportService;
 use App\Services\ImpersonationService;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Http\JsonResponse;
@@ -208,6 +209,30 @@ class ClinicController extends Controller
         $clinic_trashed->restore();
 
         return new ClinicApiResource($clinic_trashed->fresh()->load(['city:id,name', 'categories:id,name']));
+    }
+
+    /**
+     * Import clinics from a PUBLIC Google Sheet (CSV-export trick — no API key).
+     * Returns a {created, updated, skipped} summary. Invalid sheet URL → 422.
+     */
+    public function importSheet(Request $request, GoogleSheetsImportService $sheets): JsonResponse
+    {
+        $this->authorize('create', Clinic::class);
+
+        $data = $request->validate([
+            'url' => ['required', 'url', 'max:2048'],
+        ]);
+
+        if ($sheets->toCsvUrl($data['url']) === null) {
+            return response()->json([
+                'message' => 'The provided URL is not a valid Google Sheets link.',
+                'errors'  => ['url' => ['The provided URL is not a valid Google Sheets link.']],
+            ], 422);
+        }
+
+        $summary = $sheets->import($data['url']);
+
+        return response()->json(['data' => $summary]);
     }
 
     public function bulk(BulkClinicRequest $request): JsonResponse

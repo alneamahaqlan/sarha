@@ -133,6 +133,19 @@
 </section>
 @endif
 
+{{-- Map of clinics --}}
+@if(($mapClinics ?? collect())->isNotEmpty())
+<section class="py-12 px-4 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">@lang('site.map_title')</h2>
+            <p class="text-gray-500 text-sm mt-1">@lang('site.map_subtitle')</p>
+        </div>
+        @include('public.partials.map', ['mapClinics' => $mapClinics, 'mapId' => 'home-map'])
+    </div>
+</section>
+@endif
+
 {{-- CTA for clinics --}}
 <section class="py-16 px-4 bg-teal-600 text-white text-center">
     <div class="max-w-2xl mx-auto">

@@ -45,6 +45,13 @@
         </div>
     </form>
 
+    {{-- Map of current results (#60, #61, #62) --}}
+    @if(($mapClinics ?? collect())->isNotEmpty())
+        <div class="mb-8">
+            @include('public.partials.map', ['mapClinics' => $mapClinics, 'mapId' => 'search-map', 'showAreaSearch' => true])
+        </div>
+    @endif
+
     {{-- Results --}}
     <div class="flex items-center justify-between mb-4">
         <p class="text-gray-600 text-sm">
