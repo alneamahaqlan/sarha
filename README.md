@@ -53,19 +53,21 @@ The platform ships fully bilingual (Arabic / English) with automatic RTL ↔ LTR
 
 ## 🔗 Dashboards & URLs
 
-Base URL on Laragon: **http://sarha.test** (or `http://localhost:8000` via `php artisan serve`).
+**Production:** [`https://sarha.intshar.sa`](https://sarha.intshar.sa) &nbsp;·&nbsp; **Local (Laragon):** `http://sarha.test` (or `http://localhost:8000` via `php artisan serve`).
 
-| Surface | URL | Guard |
-|---------|-----|-------|
-| 🌐 Public site (customers) | `http://sarha.test/` | web |
-| 🔑 Panel login (admin + clinic) | `http://sarha.test/app/login` | — |
-| 🛡️ **Admin dashboard** (React) | `http://sarha.test/app/admin/dashboard` | admin |
-| 🏥 **Clinic dashboard** (React) | `http://sarha.test/app/clinic/dashboard` | clinic |
-| 📈 Analytics | `http://sarha.test/app/admin/analytics` | admin |
-| 📚 API docs (Scribe) | `http://sarha.test/docs` | — |
-| 🧾 OpenAPI spec | `http://sarha.test/docs.openapi` | — |
-| 📮 Postman collection | `http://sarha.test/docs.postman` | — |
+| Surface | Production URL | Guard |
+| --- | --- | --- |
+| 🌐 Public site (customers) | [`https://sarha.intshar.sa/`](https://sarha.intshar.sa/) | web |
+| 🔑 Panel login (admin + clinic) | [`https://sarha.intshar.sa/app/login`](https://sarha.intshar.sa/app/login) | — |
+| 🛡️ **Admin dashboard** (React) | [`https://sarha.intshar.sa/app/admin/dashboard`](https://sarha.intshar.sa/app/admin/dashboard) | admin |
+| 🏥 **Clinic dashboard** (React) | [`https://sarha.intshar.sa/app/clinic/dashboard`](https://sarha.intshar.sa/app/clinic/dashboard) | clinic |
+| 📈 Analytics | [`https://sarha.intshar.sa/app/admin/analytics`](https://sarha.intshar.sa/app/admin/analytics) | admin |
+| 📚 API docs (Scribe) | [`https://sarha.intshar.sa/docs`](https://sarha.intshar.sa/docs) | — |
+| 🧾 OpenAPI spec | [`https://sarha.intshar.sa/docs.openapi`](https://sarha.intshar.sa/docs.openapi) | — |
+| 📮 Postman collection | [`https://sarha.intshar.sa/docs.postman`](https://sarha.intshar.sa/docs.postman) | — |
 
+> For local development swap the host to `http://sarha.test` — every path above is identical on the dev box.
+>
 > Anything under `/app/*` loads the React SPA shell; React Router handles internal routing. The login page auto-routes to the correct dashboard based on the guard you authenticate against.
 
 ---
@@ -182,7 +184,7 @@ A single React SPA serves both panels under `/app/*`; the public customer site s
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                          sarha.test                                │
+│                      sarha.intshar.sa                              │
 ├────────────────────┬───────────────────────────────────────────┤
 │   /  (Blade)        │   /app/*   (React 19 + TS SPA)             │
 │   Public site       │   ┌─────────────────┬───────────────────┐ │
@@ -244,7 +246,7 @@ php artisan migrate --seed
 php artisan storage:link
 ```
 
-Open **http://sarha.test** (public) and **http://sarha.test/app/login** (panels).
+Open **<https://sarha.intshar.sa>** (public) and **<https://sarha.intshar.sa/app/login>** (panels). Locally the same paths live under `http://sarha.test`.
 
 ### One-command dev
 
@@ -258,11 +260,13 @@ composer dev   # runs php serve + queue + pail + vite together
 
 Every panel screen is backed by a versioned REST API under `/api/v1`, documented with **Scribe**:
 
-| Resource | URL |
-|----------|-----|
-| Interactive HTML docs | `http://sarha.test/docs` |
-| OpenAPI 3 spec (YAML) | `http://sarha.test/docs.openapi` |
-| Postman collection | `http://sarha.test/docs.postman` |
+| Resource | Production URL |
+| --- | --- |
+| Interactive HTML docs | [`https://sarha.intshar.sa/docs`](https://sarha.intshar.sa/docs) |
+| OpenAPI 3 spec (YAML) | [`https://sarha.intshar.sa/docs.openapi`](https://sarha.intshar.sa/docs.openapi) |
+| Postman collection | [`https://sarha.intshar.sa/docs.postman`](https://sarha.intshar.sa/docs.postman) |
+
+> Local equivalents: `http://sarha.test/docs`, `/docs.openapi`, `/docs.postman`.
 
 Regenerate after API changes:
 
