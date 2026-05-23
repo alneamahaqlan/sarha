@@ -59,6 +59,12 @@ class SalesLeadService
 
             $lead->update(['status' => 'converted']);
 
+            AuditLogService::log(
+                action: 'lead_converted',
+                model: $clinic,
+                newValues: ['lead_id' => $lead->id, 'plan' => $plan, 'amount' => $price],
+            );
+
             $this->notifications->leadConverted($lead, $clinic);
             $this->notifications->clinicApproved($clinic);
 

@@ -72,6 +72,13 @@ class CityController extends Controller
     {
         $this->authorize('delete', $city);
 
+        // Mirror Filament's delete guard: a city tied to clinics cannot be removed.
+        if ($city->clinics()->exists()) {
+            return response()->json([
+                'message' => __('admin.validation.city_has_clinics'),
+            ], 403);
+        }
+
         $city->delete();
 
         return response()->json(null, 204);

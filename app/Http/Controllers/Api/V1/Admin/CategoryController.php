@@ -75,6 +75,13 @@ class CategoryController extends Controller
     {
         $this->authorize('delete', $category);
 
+        // Mirror Filament's delete guard: a category linked to clinics cannot be removed.
+        if ($category->clinics()->exists()) {
+            return response()->json([
+                'message' => __('admin.validation.category_has_clinics'),
+            ], 403);
+        }
+
         $category->delete();
 
         return response()->json(null, 204);

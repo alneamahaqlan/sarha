@@ -446,6 +446,8 @@ return [
         'old_price_helper' => 'When filled, must be greater than current price and the offer expiry becomes required',
         'offer_expires_helper' => 'Required when an old price is set (so the offer badge can be displayed)',
         'profile_saved' => 'Changes saved successfully',
+        'city_has_clinics' => 'Cannot delete a city that has clinics',
+        'category_has_clinics' => 'Cannot delete a category that has clinics',
     ],
 
     // ============================================

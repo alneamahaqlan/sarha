@@ -91,6 +91,7 @@ class DatabaseSeeder extends Seeder
             ['key' => 'basic_subscription_price', 'value' => '300', 'type' => 'decimal', 'group' => 'subscriptions', 'label' => 'سعر الاشتراك الأساسي'],
             ['key' => 'premium_subscription_price', 'value' => '400', 'type' => 'decimal', 'group' => 'subscriptions', 'label' => 'سعر الاشتراك المميز'],
             ['key' => 'subscription_duration_days', 'value' => '90', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'مدة الاشتراك (أيام)'],
+            ['key' => 'subscription_reminder_days', 'value' => '10', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'أيام التذكير قبل انتهاء الاشتراك'],
             ['key' => 'basic_articles_limit', 'value' => '5', 'type' => 'integer', 'group' => 'limits', 'label' => 'حد المقالات (أساسي/شهر)'],
             ['key' => 'otp_expiry_minutes', 'value' => '5', 'type' => 'integer', 'group' => 'auth', 'label' => 'مدة صلاحية OTP (دقائق)'],
             ['key' => 'platform_name', 'value' => 'سعرها', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],
