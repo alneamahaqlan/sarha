@@ -31,25 +31,43 @@ class GeminiProvider implements AiProvider
         return $this->model;
     }
 
-    public function complete(string $prompt, int $maxTokens = 1024): string
-    {
+    public function complete(
+        string $userPrompt,
+        int $maxTokens = 1024,
+        float $temperature = 0.7,
+        ?string $systemPrompt = null,
+    ): string {
         $url = sprintf(self::ENDPOINT_TEMPLATE, urlencode($this->model));
+
+        $body = [
+            'contents' => [
+                [
+                    'role'  => 'user',
+                    'parts' => [['text' => $userPrompt]],
+                ],
+            ],
+            'generationConfig' => [
+                'maxOutputTokens' => $maxTokens,
+                'temperature'     => $temperature,
+                // Gemini 2.5 family eats `maxOutputTokens` with internal thinking
+                // tokens before emitting the visible reply — disabling thinking
+                // keeps chat snappy and prevents truncated mid-sentence answers.
+                // Field is ignored by older models, safe to send unconditionally.
+                'thinkingConfig'  => ['thinkingBudget' => 0],
+            ],
+        ];
+
+        // Gemini supports `systemInstruction` natively (v1beta).
+        if ($systemPrompt !== null && $systemPrompt !== '') {
+            $body['systemInstruction'] = [
+                'parts' => [['text' => $systemPrompt]],
+            ];
+        }
 
         try {
             $response = Http::timeout(60)
                 ->withHeaders(['x-goog-api-key' => $this->apiKey])
-                ->post($url, [
-                    'contents' => [
-                        [
-                            'role'  => 'user',
-                            'parts' => [['text' => $prompt]],
-                        ],
-                    ],
-                    'generationConfig' => [
-                        'maxOutputTokens' => $maxTokens,
-                        'temperature'     => 0.7,
-                    ],
-                ]);
+                ->post($url, $body);
         } catch (\Throwable $e) {
             Log::error('Gemini request failed', ['error' => $e->getMessage()]);
             throw new RuntimeException('Gemini request failed: ' . $e->getMessage());
@@ -59,17 +77,17 @@ class GeminiProvider implements AiProvider
             throw new RuntimeException('Gemini HTTP ' . $response->status() . ': ' . $response->body());
         }
 
-        $body = $response->json();
+        $payload = $response->json();
 
         // Standard shape: candidates[0].content.parts[0].text
-        $text = $body['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        $text = $payload['candidates'][0]['content']['parts'][0]['text'] ?? null;
 
         if (! is_string($text) || trim($text) === '') {
             // Safety-blocked replies come back with promptFeedback instead of candidates.
-            $reason = $body['promptFeedback']['blockReason']
-                ?? $body['candidates'][0]['finishReason']
+            $reason = $payload['promptFeedback']['blockReason']
+                ?? $payload['candidates'][0]['finishReason']
                 ?? 'empty';
-            throw new RuntimeException('Gemini returned empty response (' . $reason . '): ' . json_encode($body));
+            throw new RuntimeException('Gemini returned empty response (' . $reason . '): ' . json_encode($payload));
         }
 
         return trim($text);

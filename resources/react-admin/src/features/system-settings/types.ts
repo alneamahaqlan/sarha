@@ -1,6 +1,6 @@
-export type SettingType = 'string' | 'integer' | 'decimal' | 'boolean' | 'json' | 'encrypted';
+export type SettingType = 'string' | 'text' | 'integer' | 'decimal' | 'boolean' | 'json' | 'encrypted';
 
-export const SETTING_TYPES: SettingType[] = ['string', 'integer', 'decimal', 'boolean', 'json', 'encrypted'];
+export const SETTING_TYPES: SettingType[] = ['string', 'text', 'integer', 'decimal', 'boolean', 'json', 'encrypted'];
 
 export interface SystemSetting {
   id: number;

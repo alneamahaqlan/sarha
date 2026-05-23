@@ -30,8 +30,18 @@ class OpenAiProvider implements AiProvider
         return $this->model;
     }
 
-    public function complete(string $prompt, int $maxTokens = 1024): string
-    {
+    public function complete(
+        string $userPrompt,
+        int $maxTokens = 1024,
+        float $temperature = 0.7,
+        ?string $systemPrompt = null,
+    ): string {
+        $messages = [];
+        if ($systemPrompt !== null && $systemPrompt !== '') {
+            $messages[] = ['role' => 'system', 'content' => $systemPrompt];
+        }
+        $messages[] = ['role' => 'user', 'content' => $userPrompt];
+
         try {
             $response = Http::timeout(60)
                 ->withHeaders([
@@ -41,10 +51,8 @@ class OpenAiProvider implements AiProvider
                 ->post(self::ENDPOINT, [
                     'model'       => $this->model,
                     'max_tokens'  => $maxTokens,
-                    'temperature' => 0.7,
-                    'messages'    => [
-                        ['role' => 'user', 'content' => $prompt],
-                    ],
+                    'temperature' => $temperature,
+                    'messages'    => $messages,
                 ]);
         } catch (\Throwable $e) {
             Log::error('OpenAI request failed', ['error' => $e->getMessage()]);

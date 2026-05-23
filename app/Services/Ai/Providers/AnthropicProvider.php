@@ -32,8 +32,26 @@ class AnthropicProvider implements AiProvider
         return $this->model;
     }
 
-    public function complete(string $prompt, int $maxTokens = 1024): string
-    {
+    public function complete(
+        string $userPrompt,
+        int $maxTokens = 1024,
+        float $temperature = 0.7,
+        ?string $systemPrompt = null,
+    ): string {
+        $body = [
+            'model'       => $this->model,
+            'max_tokens'  => $maxTokens,
+            'temperature' => $temperature,
+            'messages'    => [
+                ['role' => 'user', 'content' => $userPrompt],
+            ],
+        ];
+
+        // Claude takes the system prompt as a sibling field, not a message.
+        if ($systemPrompt !== null && $systemPrompt !== '') {
+            $body['system'] = $systemPrompt;
+        }
+
         try {
             $response = Http::timeout(60)
                 ->withHeaders([
@@ -41,13 +59,7 @@ class AnthropicProvider implements AiProvider
                     'anthropic-version' => self::API_VERSION,
                     'content-type'      => 'application/json',
                 ])
-                ->post(self::ENDPOINT, [
-                    'model'      => $this->model,
-                    'max_tokens' => $maxTokens,
-                    'messages'   => [
-                        ['role' => 'user', 'content' => $prompt],
-                    ],
-                ]);
+                ->post(self::ENDPOINT, $body);
         } catch (\Throwable $e) {
             Log::error('Anthropic request failed', ['error' => $e->getMessage()]);
             throw new RuntimeException('Anthropic request failed: ' . $e->getMessage());
@@ -57,11 +69,11 @@ class AnthropicProvider implements AiProvider
             throw new RuntimeException('Anthropic HTTP ' . $response->status() . ': ' . $response->body());
         }
 
-        $body = $response->json();
-        $text = $body['content'][0]['text'] ?? null;
+        $payload = $response->json();
+        $text = $payload['content'][0]['text'] ?? null;
 
         if (! is_string($text) || trim($text) === '') {
-            throw new RuntimeException('Anthropic returned empty response: ' . json_encode($body));
+            throw new RuntimeException('Anthropic returned empty response: ' . json_encode($payload));
         }
 
         return trim($text);

@@ -38,6 +38,7 @@ const SELECT_OPTIONS: Record<string, { value: string; label: string }[]> = {
 export function SettingEditDialog({ setting, onClose }: Props) {
   const { t } = useTranslation();
   const isEncrypted = setting.type === 'encrypted';
+  const isLongText  = setting.type === 'text';
   const selectOptions = SELECT_OPTIONS[setting.key];
 
   // Encrypted secrets are never pre-filled — leaving the input empty means
@@ -66,7 +67,7 @@ export function SettingEditDialog({ setting, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className={isLongText ? 'sm:max-w-2xl' : undefined}>
         <DialogHeader>
           <DialogTitle>{setting.label}</DialogTitle>
           <DialogDescription dir="ltr" className="font-mono text-xs">{setting.key}</DialogDescription>
@@ -128,6 +129,16 @@ export function SettingEditDialog({ setting, onClose }: Props) {
                   : 'سيتم تشفير المفتاح قبل تخزينه في قاعدة البيانات.'}
               </p>
             </div>
+          ) : isLongText ? (
+            <Textarea
+              id="value"
+              rows={12}
+              className="font-mono text-sm leading-relaxed"
+              placeholder="اتركه فارغاً لاستخدام القيمة الافتراضية المُضمَّنة في الكود."
+              value={value}
+              onChange={(e) => { setValue(e.target.value); setErr(null); }}
+              dir="auto"
+            />
           ) : setting.type === 'json' || (setting.value?.length ?? 0) > 60 ? (
             <Textarea id="value" rows={4} value={value} onChange={(e) => { setValue(e.target.value); setErr(null); }} />
           ) : (

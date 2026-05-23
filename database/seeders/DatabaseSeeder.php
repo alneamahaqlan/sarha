@@ -127,6 +127,17 @@ class DatabaseSeeder extends Seeder
             ['key' => 'ai_openai_model',      'value' => 'gpt-4o-mini',            'type' => 'string',    'group' => 'ai', 'label' => 'موديل OpenAI',           'description' => 'مثال: gpt-4o-mini (موفّر) أو gpt-4o.'],
             ['key' => 'ai_anthropic_api_key', 'value' => null,                     'type' => 'encrypted', 'group' => 'ai', 'label' => 'مفتاح Anthropic API',    'description' => 'أنشئ المفتاح من: https://console.anthropic.com/settings/keys'],
             ['key' => 'ai_anthropic_model',   'value' => 'claude-sonnet-4-6',      'type' => 'string',    'group' => 'ai', 'label' => 'موديل Anthropic',        'description' => 'مثال: claude-sonnet-4-6 أو claude-haiku-4-5-20251001.'],
+
+            // ----- AI conversational behaviour (system prompt + guardrails) -----
+            // These knobs let the super-admin steer the assistant without code changes.
+            // The hard safety footer (no medical advice, no inventing clinics) lives
+            // in AiAssistantService and is NOT configurable here on purpose.
+            ['key' => 'ai_freeform_enabled', 'value' => '1', 'type' => 'boolean', 'group' => 'ai', 'label' => 'تفعيل المحادثة الذكيّة',  'description' => 'عند التفعيل، يجيب المساعد على أي سؤال (وليس فقط البحث عن العيادات) عبر LLM المختار. عند التعطيل، يرجع لردود قوالب جامدة.'],
+            ['key' => 'ai_assistant_name',   'value' => 'مساعد سعرها', 'type' => 'string', 'group' => 'ai', 'label' => 'اسم المساعد',            'description' => 'الاسم الذي يعرّف به المساعد نفسه ويظهر في الواجهة.'],
+            ['key' => 'ai_max_tokens',       'value' => '800', 'type' => 'integer',         'group' => 'ai', 'label' => 'الحدّ الأقصى للرموز (output tokens)', 'description' => 'كم رمزاً يُسمح للمساعد بإنتاجه في كل رد. 200=قصير جداً، 800=مناسب لمحادثة، 1500=ردود مفصّلة.'],
+            ['key' => 'ai_temperature',      'value' => '0.5', 'type' => 'decimal',         'group' => 'ai', 'label' => 'درجة الحرارة (0–1)', 'description' => 'مدى الإبداع: 0.0 ردود ثابتة ودقيقة، 0.7 إبداع متوازن، 1.0 ردود متنوّعة قد تكون غير متّسقة. الموصى به 0.4–0.6.'],
+            ['key' => 'ai_system_prompt',    'value' => null,  'type' => 'text',            'group' => 'ai', 'label' => 'برومت النظام (Persona)', 'description' => 'الشخصيّة الكاملة التي يتقمّصها المساعد. اتركه فارغاً لاستخدام الافتراضي المهنيّ المُضمَّن. غيِّر هنا لتعديل الأسلوب أو إضافة معلومات عن المنصّة.'],
+            ['key' => 'ai_restrictions',     'value' => null,  'type' => 'text',            'group' => 'ai', 'label' => 'قيود إضافيّة على الردّ',  'description' => 'قيود تُضاف فوق الـ HARD SAFETY الثابت. أمثلة: "لا تذكر أسعاراً تقديرية"، "اقترح دائماً قراءة سياسة الخصوصيّة"، "اطلب من العميل تسجيل الدخول لطلب عرض سعر".'],
         ];
 
         foreach ($settings as $setting) {

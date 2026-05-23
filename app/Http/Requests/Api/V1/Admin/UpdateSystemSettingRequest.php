@@ -17,7 +17,7 @@ class UpdateSystemSettingRequest extends FormRequest
         // Mirrors Filament form: key is disabled/dehydrated(false) so it is never updated.
         return [
             'label'       => ['sometimes', 'required', 'string', 'max:255'],
-            'type'        => ['sometimes', 'required', 'in:string,integer,decimal,boolean,json,encrypted'],
+            'type'        => ['sometimes', 'required', 'in:string,text,integer,decimal,boolean,json,encrypted'],
             'group'       => ['nullable', 'string', 'max:255'],
             'value'       => ['nullable', 'string'],
             'description' => ['nullable', 'string'],
