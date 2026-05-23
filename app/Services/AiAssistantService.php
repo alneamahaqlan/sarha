@@ -145,31 +145,58 @@ PROMPT;
         return false;
     }
 
+    /**
+     * Stop-words stripped from the query before tokenized matching. Includes
+     * Arabic interrogatives + prepositions + clinic-type nouns so a question
+     * like "ابحث عن مجمع أسنان رخيص في الرياض" collapses to the meaningful
+     * tokens ['أسنان', 'الرياض'] (cheap/best are picked up by the regex
+     * below — they should not appear as fallback search terms either).
+     */
+    private const STOPWORDS = [
+        // Arabic verbs + prepositions + connectors
+        'ابحث', 'أبحث', 'ابغى', 'أبغى', 'ابي', 'أبي', 'اريد', 'أريد', 'ودي', 'بدي',
+        'عن', 'في', 'لي', 'مع', 'من', 'الى', 'إلى', 'على', 'هل', 'يوجد', 'فيه', 'وين', 'أين',
+        'كيف', 'ايش', 'إيش', 'ماهي', 'ما', 'هو', 'هي',
+        // Clinic-type nouns (matching these gives no signal — every clinic is one)
+        'مجمع', 'مجمعات', 'مركز', 'مراكز', 'مستوصف', 'عيادة', 'عيادات', 'مستشفى',
+        // Price/quality intent words (handled by the dedicated regex, not by token search)
+        'رخيص', 'أرخص', 'ارخص', 'أوفر', 'اوفر', 'أفضل', 'افضل', 'الأحسن', 'الاحسن', 'سعر', 'أسعار', 'اسعار',
+        // English equivalents
+        'find', 'me', 'a', 'an', 'the', 'in', 'at', 'for', 'show', 'looking', 'cheap',
+        'cheapest', 'affordable', 'best', 'top', 'where', 'is', 'are', 'price', 'prices',
+        'clinic', 'clinics', 'center', 'centers',
+    ];
+
+    /**
+     * Tokenize the natural-language query and try each meaningful token
+     * against cities + categories. This makes "ابحث عن مجمع أسنان رخيص في
+     * الرياض" actually find dental clinics in Riyadh — previously the
+     * matcher searched the whole sentence as one LIKE %…% pattern and got
+     * zero hits for any non-trivial question.
+     */
     private function matchByKeyword(string $query, ?int $cityId): Collection
     {
         $base = Clinic::publiclyVisible()->with(['city', 'categories']);
 
-        // City detection
-        if ($cityId) {
-            $base->where('city_id', $cityId);
-        } else {
-            $city = City::query()
-                ->where(fn($q) => $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('name_en', 'like', "%{$query}%"))
-                ->first();
-            if ($city) $base->where('city_id', $city->id);
+        $tokens = $this->tokenize($query);
+
+        // City: explicit param wins; otherwise the first token that matches
+        // a city name (AR or EN) is taken.
+        $resolvedCityId = $cityId ?? $this->firstMatchingCityId($tokens);
+        if ($resolvedCityId) {
+            $base->where('city_id', $resolvedCityId);
         }
 
-        // Category detection
-        $category = Category::query()
-            ->where(fn($q) => $q->where('name', 'like', "%{$query}%")
-                ->orWhere('name_en', 'like', "%{$query}%"))
-            ->first();
+        // Category: first token that matches a category — including a
+        // whole-query fallback so single-word inputs like "أسنان" keep
+        // working when there's nothing to tokenize.
+        $category = $this->firstMatchingCategory($tokens)
+            ?? $this->firstMatchingCategory([$query]);
         if ($category) {
             $base->whereHas('categories', fn($q) => $q->where('categories.id', $category->id));
         }
 
-        // Price keywords
+        // Price keywords (whole-query regex — token order doesn't matter).
         $cheap = preg_match('/(رخيص|أرخص|أوفر|أقل سعر|cheap|cheapest|affordable)/iu', $query);
         $best  = preg_match('/(أفضل|الأحسن|أعلى تقييم|best|top)/iu', $query);
 
@@ -183,18 +210,59 @@ PROMPT;
             $base->rankedForListing();
         }
 
-        // Free-text fallback
-        if (! $category && ! $cityId) {
-            $base->where(fn($q) => $q
-                ->where('name', 'like', "%{$query}%")
-                ->orWhere('description', 'like', "%{$query}%")
-                ->orWhereHas('categories', fn($c) => $c
-                    ->where('name', 'like', "%{$query}%")
-                    ->orWhere('name_en', 'like', "%{$query}%")
-                )
-            );
+        // Free-text fallback — only when neither city nor category locked
+        // the result. Use the remaining tokens (any one match counts).
+        if (! $category && ! $resolvedCityId && ! empty($tokens)) {
+            $base->where(function ($q) use ($tokens) {
+                foreach ($tokens as $t) {
+                    $q->orWhere('name', 'like', "%{$t}%")
+                      ->orWhere('description', 'like', "%{$t}%")
+                      ->orWhereHas('categories', fn ($c) => $c
+                          ->where('name', 'like', "%{$t}%")
+                          ->orWhere('name_en', 'like', "%{$t}%"));
+                }
+            });
         }
 
         return $base->take(3)->get();
+    }
+
+    /** Split, lowercase, strip stopwords, drop 1-char fragments. */
+    private function tokenize(string $query): array
+    {
+        // Unicode-aware split so Arabic + Latin both work.
+        $parts = preg_split('/[\s,،.؟?!:؛;\-]+/u', mb_strtolower($query)) ?: [];
+        $clean = [];
+        foreach ($parts as $p) {
+            $p = trim($p);
+            if ($p === '' || mb_strlen($p) < 2) continue;
+            if (in_array($p, self::STOPWORDS, true)) continue;
+            $clean[] = $p;
+        }
+        return array_values(array_unique($clean));
+    }
+
+    private function firstMatchingCityId(array $tokens): ?int
+    {
+        foreach ($tokens as $t) {
+            $city = City::query()
+                ->where(fn ($q) => $q->where('name', 'like', "%{$t}%")
+                    ->orWhere('name_en', 'like', "%{$t}%"))
+                ->first(['id']);
+            if ($city) return $city->id;
+        }
+        return null;
+    }
+
+    private function firstMatchingCategory(array $tokens): ?Category
+    {
+        foreach ($tokens as $t) {
+            $cat = Category::query()
+                ->where(fn ($q) => $q->where('name', 'like', "%{$t}%")
+                    ->orWhere('name_en', 'like', "%{$t}%"))
+                ->first();
+            if ($cat) return $cat;
+        }
+        return null;
     }
 }
