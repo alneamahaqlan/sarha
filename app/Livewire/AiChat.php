@@ -40,7 +40,9 @@ class AiChat extends Component
 
     public function quickPrompt(string $key): void
     {
-        $promptKey = (new AiAssistantService)->quickPrompts()[$key] ?? null;
+        // Resolve through the container — AiAssistantService now needs
+        // AiProviderFactory injected, so direct `new` would throw.
+        $promptKey = app(AiAssistantService::class)->quickPrompts()[$key] ?? null;
         if (! $promptKey) return;
         $this->input = __($promptKey);
         $this->send();
@@ -55,7 +57,7 @@ class AiChat extends Component
     #[Computed]
     public function quickPrompts(): array
     {
-        return (new AiAssistantService)->quickPrompts();
+        return app(AiAssistantService::class)->quickPrompts();
     }
 
     public function render()
