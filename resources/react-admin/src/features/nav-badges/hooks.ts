@@ -8,6 +8,8 @@ export interface AdminNavBadges {
 
 export interface ClinicNavBadges {
   price_quotes: number;
+  subscription_expiring: number;
+  offer_expiring: number;
 }
 
 export function useAdminNavBadges() {

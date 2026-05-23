@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { MapPin, Star } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,8 @@ import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
-import { useClinicProfile, useUpdateClinicProfile } from '../hooks';
+import { useClinicProfile, useExtractCoords, useSyncReviews, useUpdateClinicProfile } from '../hooks';
+import { WorkingHoursSection } from '../components/WorkingHoursSection';
 
 const schema = z.object({
   name: z.string().min(1).max(255),
@@ -25,20 +27,33 @@ const schema = z.object({
   twitter: z.string().max(255).nullish(),
   snapchat: z.string().max(255).nullish(),
   logo: z.string().nullish(),
+  latitude: z.union([z.number(), z.nan()]).nullish(),
+  longitude: z.union([z.number(), z.nan()]).nullish(),
+  google_place_id: z.string().max(255).nullish(),
   password: z.string().min(8).optional().or(z.literal('')),
 });
 type FormValues = z.infer<typeof schema>;
+
+const toNum = (v: number | string | null | undefined): number | null => {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
 
 export function ClinicProfilePage() {
   const { t } = useTranslation();
   const { data: clinic, isLoading } = useClinicProfile();
   const mut = useUpdateClinicProfile();
+  const extract = useExtractCoords();
+  const sync = useSyncReviews();
+  const [mapLink, setMapLink] = useState('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: '', phone: '', email: '', address: '', description: '',
-      website: '', instagram: '', twitter: '', snapchat: '', logo: '', password: '',
+      website: '', instagram: '', twitter: '', snapchat: '', logo: '',
+      latitude: null, longitude: null, google_place_id: '', password: '',
     },
   });
 
@@ -55,15 +70,42 @@ export function ClinicProfilePage() {
         twitter: clinic.twitter ?? '',
         snapchat: clinic.snapchat ?? '',
         logo: clinic.logo ?? '',
+        latitude: toNum(clinic.latitude),
+        longitude: toNum(clinic.longitude),
+        google_place_id: clinic.google_place_id ?? '',
         password: '',
       });
     }
   }, [clinic, form]);
 
+  const onExtractCoords = async () => {
+    if (!mapLink.trim()) return;
+    try {
+      const c = await extract.mutateAsync(mapLink.trim());
+      form.setValue('latitude', c.latitude, { shouldDirty: true });
+      form.setValue('longitude', c.longitude, { shouldDirty: true });
+      toast.success(t('clinic_profile.coords_extracted'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('clinic_profile.coords_failed')));
+    }
+  };
+
+  const onSyncReviews = async () => {
+    try {
+      const r = await sync.mutateAsync();
+      toast.success(t('clinic_profile.reviews_synced', { count: r.fetched }));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
   const onSubmit = async (v: FormValues) => {
     try {
       const payload: FormValues = { ...v };
       if (!payload.password) delete payload.password;
+      // Coerce NaN (empty number inputs) to null so backend validation passes.
+      if (typeof payload.latitude === 'number' && Number.isNaN(payload.latitude)) payload.latitude = null;
+      if (typeof payload.longitude === 'number' && Number.isNaN(payload.longitude)) payload.longitude = null;
       await mut.mutateAsync(payload);
       form.setValue('password', '');
       toast.success(t('clinic_profile.saved'));
@@ -133,6 +175,58 @@ export function ClinicProfilePage() {
               directory="clinics/logos"
             />
           </div>
+
+          {/* Location — Google Maps link → lat/lng */}
+          <div className="space-y-1.5 md:col-span-2">
+            <Label htmlFor="map_link">{t('clinic_profile.map_link')}</Label>
+            <div className="flex gap-2">
+              <Input
+                id="map_link"
+                dir="ltr"
+                placeholder="https://maps.google.com/..."
+                value={mapLink}
+                onChange={(e) => setMapLink(e.target.value)}
+              />
+              <Button type="button" variant="outline" onClick={onExtractCoords} disabled={extract.isPending || !mapLink.trim()}>
+                <MapPin className="h-4 w-4" />
+                {extract.isPending ? t('common.loading') : t('clinic_profile.extract_coords')}
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="latitude">{t('clinic_profile.latitude')}</Label>
+            <Input
+              id="latitude"
+              type="number"
+              step="any"
+              dir="ltr"
+              {...form.register('latitude', { setValueAs: (v) => (v === '' || v === null ? null : Number(v)) })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="longitude">{t('clinic_profile.longitude')}</Label>
+            <Input
+              id="longitude"
+              type="number"
+              step="any"
+              dir="ltr"
+              {...form.register('longitude', { setValueAs: (v) => (v === '' || v === null ? null : Number(v)) })}
+            />
+          </div>
+
+          {/* Google reviews */}
+          <div className="space-y-1.5 md:col-span-2">
+            <Label htmlFor="google_place_id">{t('clinic_profile.place_id')}</Label>
+            <div className="flex gap-2">
+              <Input id="google_place_id" dir="ltr" {...form.register('google_place_id')} />
+              <Button type="button" variant="outline" onClick={onSyncReviews} disabled={sync.isPending}>
+                <Star className="h-4 w-4" />
+                {sync.isPending ? t('common.loading') : t('clinic_profile.fetch_reviews')}
+              </Button>
+            </div>
+            <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_profile.place_id_hint')}</p>
+          </div>
+
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="password">{t('clinic_profile.new_password')}</Label>
             <Input id="password" type="password" autoComplete="new-password" {...form.register('password')} />
@@ -145,6 +239,8 @@ export function ClinicProfilePage() {
           <Button type="submit" disabled={mut.isPending}>{mut.isPending ? t('common.loading') : t('clinic_profile.save')}</Button>
         </div>
       </form>
+
+      <WorkingHoursSection />
     </div>
   );
 }

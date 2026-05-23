@@ -26,6 +26,9 @@ class UpdateProfileRequest extends FormRequest
             'twitter'     => ['nullable', 'string', 'max:255'],
             'snapchat'    => ['nullable', 'string', 'max:255'],
             'logo'        => ['nullable', 'string'],
+            'latitude'    => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'   => ['nullable', 'numeric', 'between:-180,180'],
+            'google_place_id' => ['nullable', 'string', 'max:255'],
             'password'    => ['nullable', Password::min(8)],
         ];
     }

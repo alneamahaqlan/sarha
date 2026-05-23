@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, List, LayoutGrid, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import type { Service } from '@/features/services/types';
 import { useClinicCategories } from '@/features/clinic/categories/hooks';
@@ -169,10 +170,12 @@ export function ClinicServicesIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const { data, isLoading } = useClinicServices({ per_page: 50, sort: 'sort_order' });
+  const { data: cats } = useClinicCategories();
   const del = useDeleteClinicService();
   const [editing, setEditing] = useState<Service | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Service | null>(null);
+  const [view, setView] = useState<'list' | 'grouped'>('list');
 
   const fmtCurrency = (n: number) =>
     new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
@@ -183,6 +186,67 @@ export function ClinicServicesIndex() {
     catch (err) { toast.error(extractMessage(err, t('errors.generic'))); }
   };
 
+  const catName = useMemo(() => {
+    const map = new Map<number, string>();
+    cats?.data.forEach((c) => map.set(c.id, `${c.emoji ? `${c.emoji} ` : ''}${c.name}`));
+    return map;
+  }, [cats]);
+
+  // Group services under their category (uncategorized last).
+  const groups = useMemo(() => {
+    const list = data?.data ?? [];
+    const buckets = new Map<number | 'none', Service[]>();
+    for (const s of list) {
+      const key = s.custom_category_id ?? 'none';
+      if (!buckets.has(key)) buckets.set(key, []);
+      buckets.get(key)!.push(s);
+    }
+    const ordered: { key: number | 'none'; label: string; items: Service[] }[] = [];
+    cats?.data.forEach((c) => {
+      const items = buckets.get(c.id);
+      if (items?.length) ordered.push({ key: c.id, label: catName.get(c.id) ?? c.name, items });
+    });
+    const none = buckets.get('none');
+    if (none?.length) ordered.push({ key: 'none', label: t('clinic_services.uncategorized'), items: none });
+    return ordered;
+  }, [data, cats, catName, t]);
+
+  const renderRow = (s: Service) => (
+    <TableRow key={s.id}>
+      <TableCell className="font-medium">{s.name}</TableCell>
+      <TableCell>
+        <div className="flex items-baseline gap-2">
+          <span className="font-medium">{fmtCurrency(s.price)}</span>
+          {s.old_price !== null && s.has_active_offer && (
+            <span className="text-xs text-[var(--color-muted-foreground)] line-through">{fmtCurrency(s.old_price)}</span>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>{s.has_active_offer ? <Badge variant="success">-{s.discount_percentage}%</Badge> : <span className="text-[var(--color-muted-foreground)]">—</span>}</TableCell>
+      <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
+      <TableCell className="text-end">
+        <div className="flex justify-end gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
+  const header = (
+    <TableHeader>
+      <TableRow>
+        <TableHead>{t('clinic_services.name')}</TableHead>
+        <TableHead>{t('clinic_services.price')}</TableHead>
+        <TableHead>{t('clinic_services.offer')}</TableHead>
+        <TableHead>{t('clinic_services.is_active')}</TableHead>
+        <TableHead className="text-end">{t('common.actions')}</TableHead>
+      </TableRow>
+    </TableHeader>
+  );
+
+  const isEmpty = !isLoading && (!data || data.data.length === 0);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -190,49 +254,52 @@ export function ClinicServicesIndex() {
           <h1 className="text-2xl font-semibold">{t('clinic_services.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_services.subtitle')}</p>
         </div>
-        <Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" />{t('clinic_services.create')}</Button>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-md border border-[var(--color-border)] p-0.5">
+            <button
+              type="button"
+              onClick={() => setView('list')}
+              className={cn('inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium', view === 'list' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]')}
+            >
+              <List className="h-3.5 w-3.5" />{t('clinic_services.view_list')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setView('grouped')}
+              className={cn('inline-flex items-center gap-1 rounded px-2.5 py-1 text-xs font-medium', view === 'grouped' ? 'bg-[var(--color-primary)] text-white' : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]')}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />{t('clinic_services.view_grouped')}
+            </button>
+          </div>
+          <Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" />{t('clinic_services.create')}</Button>
+        </div>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t('clinic_services.name')}</TableHead>
-            <TableHead>{t('clinic_services.price')}</TableHead>
-            <TableHead>{t('clinic_services.offer')}</TableHead>
-            <TableHead>{t('clinic_services.is_active')}</TableHead>
-            <TableHead className="text-end">{t('common.actions')}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
-          ) : !data || data.data.length === 0 ? (
-            <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
-          ) : (
-            data.data.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-medium">{s.name}</TableCell>
-                <TableCell>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-medium">{fmtCurrency(s.price)}</span>
-                    {s.old_price !== null && s.has_active_offer && (
-                      <span className="text-xs text-[var(--color-muted-foreground)] line-through">{fmtCurrency(s.old_price)}</span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>{s.has_active_offer ? <Badge variant="success">-{s.discount_percentage}%</Badge> : <span className="text-[var(--color-muted-foreground)]">—</span>}</TableCell>
-                <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
-                <TableCell className="text-end">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+      {isLoading ? (
+        <div className="py-8 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</div>
+      ) : isEmpty ? (
+        <div className="py-8 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
+      ) : view === 'list' ? (
+        <Table>
+          {header}
+          <TableBody>{data!.data.map(renderRow)}</TableBody>
+        </Table>
+      ) : (
+        <div className="space-y-6">
+          {groups.map((g) => (
+            <div key={g.key} className="space-y-2">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold">{g.label}</h2>
+                <span className="rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-xs text-[var(--color-muted-foreground)]">{g.items.length}</span>
+              </div>
+              <Table>
+                {header}
+                <TableBody>{g.items.map(renderRow)}</TableBody>
+              </Table>
+            </div>
+          ))}
+        </div>
+      )}
 
       {(creating || editing) && <ServiceDialog service={editing} onClose={() => { setCreating(false); setEditing(null); }} />}
 

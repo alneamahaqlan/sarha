@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\PriceQuoteRequest;
 use App\Models\Service;
+use App\Models\SystemSetting;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -49,12 +50,29 @@ class DashboardController extends Controller
      */
     public function navBadges(): JsonResponse
     {
-        $clinicId = auth('clinic')->id();
+        $clinic = auth('clinic')->user();
+        $clinicId = $clinic->id;
+
+        $reminderDays = (int) (SystemSetting::get('subscription_reminder_days', 10));
+
+        $subscriptionExpiring = (
+            $clinic->subscription_ends_at
+            && $clinic->subscription_ends_at->isFuture()
+            && $clinic->subscription_ends_at->lte(now()->addDays($reminderDays))
+        ) ? 1 : 0;
+
+        $offerExpiring = Service::where('clinic_id', $clinicId)
+            ->whereNotNull('old_price')
+            ->whereNotNull('offer_expires_at')
+            ->whereBetween('offer_expires_at', [now(), now()->addDays(3)])
+            ->count();
 
         return response()->json([
             'data' => [
                 'price_quotes' => PriceQuoteRequest::where('clinic_id', $clinicId)
                     ->where('status', 'new')->count(),
+                'subscription_expiring' => $subscriptionExpiring,
+                'offer_expiring'        => $offerExpiring,
             ],
         ]);
     }

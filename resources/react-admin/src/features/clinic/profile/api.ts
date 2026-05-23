@@ -13,7 +13,26 @@ export interface ProfileFormValues {
   twitter?: string | null;
   snapchat?: string | null;
   logo?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  google_place_id?: string | null;
   password?: string;
+}
+
+export interface WorkingHourRow {
+  day_of_week: number;
+  is_open: boolean;
+  open_time: string | null;
+  close_time: string | null;
+}
+
+export interface ClinicSubscription {
+  subscription_type: string | null;
+  subscription_starts_at: string | null;
+  subscription_ends_at: string | null;
+  days_remaining: number;
+  is_active: boolean;
+  plans: { basic: number; premium: number };
 }
 
 export const clinicProfileApi = {
@@ -23,6 +42,29 @@ export const clinicProfileApi = {
   },
   update: async (values: ProfileFormValues) => {
     const res = await apiClient.patch<SingleResponse<Clinic>>('/clinic/profile', values);
+    return res.data.data;
+  },
+  extractCoords: async (url: string) => {
+    const res = await apiClient.post<SingleResponse<{ latitude: number; longitude: number }>>(
+      '/clinic/profile/extract-coords',
+      { url },
+    );
+    return res.data.data;
+  },
+  syncReviews: async () => {
+    const res = await apiClient.post<SingleResponse<{ fetched: number }>>('/clinic/profile/sync-reviews');
+    return res.data.data;
+  },
+  workingHours: async () => {
+    const res = await apiClient.get<{ data: WorkingHourRow[] }>('/clinic/working-hours');
+    return res.data.data;
+  },
+  updateWorkingHours: async (hours: WorkingHourRow[]) => {
+    const res = await apiClient.put<{ data: WorkingHourRow[] }>('/clinic/working-hours', { hours });
+    return res.data.data;
+  },
+  subscription: async () => {
+    const res = await apiClient.get<SingleResponse<ClinicSubscription>>('/clinic/subscription');
     return res.data.data;
   },
 };

@@ -19,6 +19,8 @@ export interface Clinic {
   instagram: string | null;
   twitter: string | null;
   snapchat: string | null;
+  latitude: number | string | null;
+  longitude: number | string | null;
   google_place_id: string | null;
   status: ClinicStatus;
   subscription_type: ClinicPlan | null;

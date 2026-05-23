@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPric
 use App\Http\Controllers\Api\V1\Clinic\ProfileController as ClinicProfileController;
 use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
 use App\Http\Controllers\Api\V1\Clinic\SubClinicLookupController as ClinicSubClinicLookupController;
+use App\Http\Controllers\Api\V1\Clinic\WorkingHoursController as ClinicWorkingHoursController;
 use App\Http\Controllers\Api\V1\Shared\AiChatController;
 use App\Http\Controllers\Api\V1\Shared\AuthController;
 use App\Http\Controllers\Api\V1\Shared\ImpersonationController as ApiImpersonationController;
@@ -200,6 +201,15 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Profile — self-update of the authenticated clinic.
         Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
         Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
+        Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
+        Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
+
+        // Subscription — display-only current plan + platform plan prices.
+        Route::get('subscription', [ClinicProfileController::class, 'subscription'])->name('clinic.subscription');
+
+        // Working hours — 7-day schedule (creates defaults on first read).
+        Route::get('working-hours', [ClinicWorkingHoursController::class, 'index'])->name('clinic.working-hours.index');
+        Route::put('working-hours', [ClinicWorkingHoursController::class, 'update'])->name('clinic.working-hours.update');
 
         // Import services — 2-step flow (analyze CSV → execute import) using
         // the same ImportServicesService that the Filament page now calls.
