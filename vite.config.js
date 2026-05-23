@@ -22,6 +22,20 @@ export default defineConfig({
             '@': path.resolve(__dirname, 'resources/react-admin/src'),
         },
     },
+    build: {
+        rollupOptions: {
+            output: {
+                // Split rarely-changing vendor libs into their own cacheable
+                // chunks so the main entry stays small and browser caching is
+                // effective across deploys.
+                manualChunks: {
+                    'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+                    'data-vendor': ['@tanstack/react-query', 'axios'],
+                    'i18n-vendor': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+                },
+            },
+        },
+    },
     server: {
         host: 'localhost',
         port: 5173,
