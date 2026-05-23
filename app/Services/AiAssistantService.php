@@ -53,6 +53,27 @@ class AiAssistantService
     ];
 
     /**
+     * Greetings / social chit-chat. When the user's query is one of these
+     * (or starts with one and is short) we skip the clinic search entirely
+     * — otherwise a "سلام" message matches "عيادات السلامة" by accident
+     * and the UI shows a random clinic card under a hello reply.
+     */
+    private const SOCIAL_PHRASES = [
+        // Arabic greetings & social
+        'سلام', 'السلام عليكم', 'سلامو عليكم', 'وعليكم السلام',
+        'مرحبا', 'مرحباً', 'مرحبتين', 'حياك', 'حياكم', 'أهلا', 'اهلا', 'أهلاً', 'اهلاً',
+        'هلا', 'هلو', 'هاي', 'هاي بك',
+        'صباح الخير', 'مساء الخير', 'صباح النور', 'مساء النور', 'صباحو', 'مسائو',
+        'شكرا', 'شكراً', 'مشكور', 'مشكورة', 'تسلم', 'تسلمي', 'يعطيك العافية', 'الله يعطيك العافية',
+        'مع السلامة', 'باي', 'الى اللقاء', 'إلى اللقاء', 'تصبح على خير',
+        'كيف حالك', 'كيفك', 'شخبارك', 'شو الأخبار',
+        // English greetings & social
+        'hi', 'hello', 'hey', 'yo', 'hi there', 'hello there', 'good morning',
+        'good afternoon', 'good evening', 'thanks', 'thank you', 'thx', 'ty',
+        'bye', 'goodbye', 'see you', 'cya', 'how are you', "how's it going",
+    ];
+
+    /**
      * Stop-words stripped from the query before tokenized matching. Includes
      * Arabic interrogatives + prepositions + clinic-type nouns so a question
      * like "ابحث عن مجمع أسنان رخيص في الرياض" collapses to the meaningful
@@ -101,19 +122,35 @@ class AiAssistantService
             );
         }
 
-        // 2) Local clinic search — deterministic context for the LLM.
-        $clinics = $this->matchByKeyword($query, $cityId);
+        // 2) Greeting / social chit-chat shortcut. A bare "السلام عليكم"
+        //    must reply with "وعليكم السلام" before anything else — and
+        //    must NOT trigger a clinic search (a "سلام" LIKE %…% would
+        //    randomly match "عيادات السلامة" and show a clinic card under
+        //    the hello). Run the LLM with no context so it greets cleanly.
+        $isSocial = $this->isSocialChitchat($query);
 
-        // 3) Free-form conversational reply via the active LLM.
+        // 3) Local clinic search — only when the query isn't a pure greeting.
+        $clinics = $isSocial ? collect() : $this->matchByKeyword($query, $cityId);
+
+        // 4) Free-form conversational reply via the active LLM.
         if ($this->providers->isConfigured() && $this->freeformEnabled()) {
-            $reply = $this->llmReply($query, $clinics);
+            $reply = $this->llmReply($query, $clinics, $isSocial);
             if ($reply !== null) {
-                $kind = $clinics->isNotEmpty() ? 'matched' : 'freeform';
+                $kind = $isSocial
+                    ? 'greeting'
+                    : ($clinics->isNotEmpty() ? 'matched' : 'freeform');
                 return $this->wrap($kind, $reply, $clinics);
             }
         }
 
-        // 4) Legacy template fallback (no LLM configured / failed).
+        // 5) Legacy template fallback (LLM disabled or unreachable).
+        //    Greetings get their own reciprocation template so an LLM
+        //    rate-limit or outage never drops the user into a generic
+        //    "no clinics found" — a "السلام عليكم" must still come back
+        //    with "وعليكم السلام", even offline.
+        if ($isSocial) {
+            return $this->wrap('greeting', $this->greetingTemplate($query), collect());
+        }
         if ($clinics->isEmpty()) {
             return $this->wrap('no_match', __('site.ai_no_match'), collect());
         }
@@ -122,6 +159,45 @@ class AiAssistantService
             __('site.ai_found_matches', ['count' => $clinics->count()]),
             $clinics,
         );
+    }
+
+    /**
+     * Offline-safe greeting reciprocation — used when the LLM is disabled
+     * or unreachable. Matches the most common greetings to the culturally
+     * appropriate response, then offers help in one short line.
+     */
+    private function greetingTemplate(string $query): string
+    {
+        $q = mb_strtolower(trim($query));
+        $q = rtrim($q, " \t\n\r\0\x0B.,،;؛?؟!");
+
+        return match (true) {
+            str_contains($q, 'السلام عليكم') || str_contains($q, 'سلامو عليكم')
+                => 'وعليكم السلام ورحمة الله وبركاته، كيف يمكنني مساعدتك في إيجاد العيادة المناسبة؟',
+
+            str_contains($q, 'صباح')          => 'صباح النور والسرور، كيف يمكنني مساعدتك؟',
+            str_contains($q, 'مساء')          => 'مساء النور، كيف يمكنني مساعدتك؟',
+            str_contains($q, 'good morning')  => "Good morning! How can I help you today?",
+            str_contains($q, 'good evening')  => "Good evening! How can I help you today?",
+
+            str_contains($q, 'شكر') || str_contains($q, 'تسلم') || str_contains($q, 'يعطيك العافية')
+                => 'العفو، أنا هنا لأي مساعدة تحتاجها.',
+            str_contains($q, 'thanks') || str_contains($q, 'thank you')
+                => "You're welcome — happy to help.",
+
+            str_contains($q, 'مع السلامة') || str_contains($q, 'باي')
+                => 'مع السلامة، نراك قريباً.',
+            str_contains($q, 'bye') || str_contains($q, 'goodbye')
+                => 'Goodbye, see you soon.',
+
+            // Latin-script default (any English greeting)
+            preg_match('/^[a-z]/u', $q) === 1
+                => 'Hello! How can I help you find the right clinic today?',
+
+            // Arabic default — مرحبا / هلا / أهلا / hello-equivalents
+            default
+                => 'مرحباً بك في سعرها! كيف يمكنني مساعدتك في إيجاد العيادة المناسبة؟',
+        };
     }
 
     // ============================================================
@@ -133,11 +209,11 @@ class AiAssistantService
      * null on any failure. The chat must never go down because the LLM is
      * down — the caller falls back to templates.
      */
-    private function llmReply(string $query, Collection $clinics): ?string
+    private function llmReply(string $query, Collection $clinics, bool $isSocial = false): ?string
     {
         try {
             $systemPrompt = $this->buildSystemPrompt();
-            $userPrompt   = $this->buildUserPrompt($query, $clinics);
+            $userPrompt   = $this->buildUserPrompt($query, $clinics, $isSocial);
 
             $maxTokens   = (int)   ($this->setting('ai_max_tokens', 800));
             $temperature = (float) ($this->setting('ai_temperature', 0.5));
@@ -191,9 +267,42 @@ SAFETY;
     /**
      * Build the user-turn message. Includes the matched-clinics context
      * block so the LLM can reference them by name without hallucination.
+     * When `$isSocial` is true (the user just greeted), we replace the
+     * whole context with a greeting instruction so the assistant returns
+     * the conversational courtesy expected in Arabic — "السلام عليكم" gets
+     * "وعليكم السلام", "صباح الخير" gets "صباح النور", "hi" gets "hi back",
+     * and so on — *before* asking how it can help.
      */
-    private function buildUserPrompt(string $query, Collection $clinics): string
+    private function buildUserPrompt(string $query, Collection $clinics, bool $isSocial = false): string
     {
+        if ($isSocial) {
+            return <<<PROMPT
+=== رسالة المستخدم (User turn) — تحيّة / محادثة اجتماعية ===
+"{$query}"
+
+=== تعليمات الرد ===
+هذا ترحيب أو محادثة اجتماعية وليس سؤالاً عن عيادة.
+
+ردّ بالأسلوب المناسب لنوع التحيّة بالضبط:
+- "السلام عليكم" → ابدأ بـ "وعليكم السلام ورحمة الله وبركاته".
+- "مرحبا" / "أهلاً" / "هلا" → ابدأ بـ "مرحباً بك" أو "أهلاً وسهلاً".
+- "صباح الخير" → ابدأ بـ "صباح النور والسرور".
+- "مساء الخير" → ابدأ بـ "مساء النور".
+- "شكراً" / "تسلم" / "يعطيك العافية" → ابدأ بـ "العفو" أو "حيّاك الله".
+- "hi" / "hello" / "hey" → reply in English with a matching greeting.
+- "thanks" / "thank you" → reply with "You're welcome" in English.
+- "good morning" / "good evening" → reply in English with the same greeting form.
+
+بعد التحيّة، أضف جملة قصيرة جداً (سطر واحد) تعرض المساعدة، مثل:
+"كيف يمكنني مساعدتك في إيجاد العيادة المناسبة اليوم؟"
+
+قواعد صارمة:
+- لا تذكر أي اسم عيادة (لا توجد قائمة سياق هنا).
+- لا تذكر أسعاراً أو تخصّصات.
+- ردّك لا يتجاوز سطرين.
+PROMPT;
+        }
+
         $context = $clinics->isEmpty()
             ? '— لم يجد البحث المحلّي أي عيادة مطابقة. أجب على السؤال مباشرةً بدون ذكر أسماء عيادات.'
             : $clinics->map(function (Clinic $c) {
@@ -222,7 +331,7 @@ SAFETY;
 - ردّ بنفس لغة السؤال (عربي إذا عربي، إنجليزي إذا إنجليزي).
 - كن موجزاً (2-4 جمل عادةً).
 - إذا كانت العيادات في السياق مناسبة، اذكرها بأسمائها كما هي.
-- إذا لم يكن السؤال متعلّقاً بعيادات أصلاً (ترحيب، طريقة الاستخدام، شكوى)، أجب مباشرةً بدون ذكر العيادات.
+- إذا لم يكن السؤال متعلّقاً بعيادات أصلاً (طريقة الاستخدام، شكوى)، أجب مباشرةً بدون ذكر العيادات.
 PROMPT;
     }
 
@@ -291,6 +400,53 @@ RULES;
             'provider'       => $this->providers->isConfigured() ? $this->providers->activeProviderName() : null,
             'assistant_name' => $this->assistantName(),
         ];
+    }
+
+    /**
+     * Did the user just say hi / thanks / bye? Pure social turns skip the
+     * clinic-name LIKE %…% search (a "سلام" would otherwise match
+     * "عيادات السلامة" by substring and the UI would render a random
+     * clinic card under a hello reply).
+     *
+     * Recognises: exact match, the query starting with a known greeting,
+     * or a greeting buried in a very short (≤ 4 words) message — but not
+     * inside a long sentence that happens to contain "أهلا" or "thanks".
+     */
+    private function isSocialChitchat(string $query): bool
+    {
+        $normalized = mb_strtolower(trim($query));
+        // Strip terminal punctuation so "مرحبا!" or "hi." normalize cleanly.
+        $normalized = rtrim($normalized, " \t\n\r\0\x0B.,،;؛?؟!");
+
+        if ($normalized === '') return false;
+
+        // Exact match
+        if (in_array($normalized, self::SOCIAL_PHRASES, true)) {
+            return true;
+        }
+
+        // Word count — preg_split is unicode-aware where str_word_count is not.
+        $words      = preg_split('/\s+/u', $normalized) ?: [];
+        $wordCount  = count(array_filter($words, fn ($w) => $w !== ''));
+
+        if ($wordCount > 4) {
+            return false;
+        }
+
+        foreach (self::SOCIAL_PHRASES as $phrase) {
+            if ($phrase === '') continue;
+            if (str_starts_with($normalized, $phrase) || str_ends_with($normalized, $phrase)) {
+                return true;
+            }
+            // For multi-word phrases ("صباح الخير", "good morning") check
+            // substring — they're long enough that a false positive is
+            // vanishingly unlikely.
+            if (str_contains($phrase, ' ') && str_contains($normalized, $phrase)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function looksMedical(string $query): bool
