@@ -4,6 +4,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { AdminLayout } from '@/app/layouts/AdminLayout';
 import { ClinicLayout } from '@/app/layouts/ClinicLayout';
+import { apiClient } from '@/lib/api-client';
+import { queryClient } from '@/lib/query-client';
 
 // All resource pages are lazy-loaded so the initial bundle stays small.
 // Layouts + auth provider stay eager (they're needed for the shell).
@@ -128,16 +130,33 @@ export function AppRoutes() {
     );
   }
 
+  // Authenticated, but the active session belongs to a guard with no React
+  // panel (e.g. a leftover customer/web session). Offer a way back to login
+  // instead of dead-ending.
+  const switchAccount = async () => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // ignore — we redirect regardless
+    }
+    queryClient.clear();
+    window.location.href = '/app/login';
+  };
+
   return (
-    <Routes>
-      <Route
-        path="*"
-        element={
-          <div className="flex h-screen items-center justify-center p-8 text-center text-sm text-[var(--color-muted-foreground)]">
-            No React panel for this account type.
-          </div>
-        }
-      />
-    </Routes>
+    <div className="flex h-screen flex-col items-center justify-center gap-4 p-8 text-center">
+      <p className="text-sm text-[var(--color-muted-foreground)]">
+        هذا الحساب لا يملك لوحة تحكم. سجّل الدخول بحساب مدير أو عيادة.
+        <br />
+        This account has no panel. Please sign in as an admin or clinic.
+      </p>
+      <button
+        type="button"
+        onClick={switchAccount}
+        className="inline-flex h-9 items-center rounded-md bg-[var(--color-primary)] px-4 text-sm font-medium text-white hover:opacity-90"
+      >
+        تسجيل الدخول / Sign in
+      </button>
+    </div>
   );
 }
