@@ -53,6 +53,16 @@ function ReplyDialog({ quote, onClose }: { quote: PriceQuote; onClose: () => voi
           <DialogDescription>{quote.service_name}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)] px-3 py-2 text-sm">
+            <span className="font-medium">{quote.customer_name}</span>
+            <a
+              href={`tel:${quote.customer_phone}`}
+              className="inline-flex items-center gap-1 text-[var(--color-primary)]"
+              dir="ltr"
+            >
+              <Phone className="h-3 w-3" />{quote.customer_phone}
+            </a>
+          </div>
           {quote.description && (
             <div className="rounded-md bg-[var(--color-muted)] p-3 text-sm text-[var(--color-muted-foreground)]">
               {quote.description}

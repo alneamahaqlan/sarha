@@ -135,12 +135,14 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="space-y-1.5">
               <Label htmlFor="old_price">{t('clinic_services.old_price')}</Label>
               <Input id="old_price" type="number" step="0.01" min={0} {...form.register('old_price', { setValueAs: (v) => (v === '' || v === null ? null : Number(v)) })} />
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_services.old_price_hint')}</p>
               {form.formState.errors.old_price && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.old_price.message}</p>}
             </div>
             {showOffer && (
               <div className="space-y-1.5 md:col-span-2">
                 <Label htmlFor="offer_expires_at">{t('clinic_services.offer_expires_at')}</Label>
                 <Input id="offer_expires_at" type="datetime-local" {...form.register('offer_expires_at')} />
+                <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_services.offer_expires_hint')}</p>
                 {form.formState.errors.offer_expires_at && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.offer_expires_at.message}</p>}
               </div>
             )}

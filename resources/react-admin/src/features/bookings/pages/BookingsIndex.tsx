@@ -3,6 +3,7 @@ import { Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
+import { CopyBadge } from '@/components/ui/copy-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -171,7 +172,7 @@ export function BookingsIndex() {
             data.data.map((booking) => (
               <TableRow key={booking.id}>
                 <TableCell>
-                  <Badge variant="muted" className="font-mono">{booking.reference_code}</Badge>
+                  <CopyBadge value={booking.reference_code} />
                   {booking.is_trashed && (
                     <Badge variant="danger" className="ms-2">{t('bookings.trashed_badge')}</Badge>
                   )}

@@ -20,6 +20,7 @@ import {
   RejectDialog,
   ResolveDialog,
 } from '../components/ActionDialogs';
+import { CopyBadge } from '@/components/ui/copy-badge';
 import { ComplaintForm } from '../components/ComplaintForm';
 import { ComplaintPriorityBadge, ComplaintStatusBadge } from '../components/ComplaintBadges';
 import { COMPLAINT_PRIORITIES, COMPLAINT_STATUSES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintStatus, type ComplaintType } from '../types';
@@ -159,7 +160,7 @@ export function ComplaintsIndex() {
             data.data.map((c) => (
               <TableRow key={c.id}>
                 <TableCell>
-                  <Badge variant="muted" className="font-mono">{c.reference_code}</Badge>
+                  <CopyBadge value={c.reference_code} />
                 </TableCell>
                 <TableCell className="font-medium">{c.customer_name}</TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{c.clinic?.name ?? '—'}</TableCell>

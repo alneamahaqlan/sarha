@@ -1,7 +1,7 @@
 import { Building2, Calendar, CreditCard, Users } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
-import { Badge } from '@/components/ui/badge';
+import { CopyBadge } from '@/components/ui/copy-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
@@ -131,7 +131,7 @@ export function DashboardPage() {
             ) : (
               latest.map((b) => (
                 <TableRow key={b.id}>
-                  <TableCell><Badge variant="muted" className="font-mono">{b.reference_code}</Badge></TableCell>
+                  <TableCell><CopyBadge value={b.reference_code} /></TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{b.clinic?.name ?? '—'}</TableCell>
                   <TableCell className="font-medium">{b.customer_name}</TableCell>
                   <TableCell dir="ltr">{b.customer_phone}</TableCell>

@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { Pencil, Phone, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { CopyBadge } from '@/components/ui/copy-badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -138,7 +139,7 @@ export function ClinicBookingsIndex() {
           ) : (
             data.data.map((b) => (
               <TableRow key={b.id}>
-                <TableCell><Badge variant="muted" className="font-mono">{b.reference_code}</Badge></TableCell>
+                <TableCell><CopyBadge value={b.reference_code} /></TableCell>
                 <TableCell className="font-medium">{b.customer_name}</TableCell>
                 <TableCell>
                   <a href={`tel:${b.customer_phone}`} className="inline-flex items-center gap-1 text-[var(--color-primary)]" dir="ltr">
