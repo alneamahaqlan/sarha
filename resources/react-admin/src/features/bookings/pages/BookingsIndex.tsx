@@ -29,7 +29,7 @@ import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 
-import { useBookings, useDeleteBooking, useRestoreBooking } from '../hooks';
+import { useBookings, useBookingStatusCounts, useDeleteBooking, useRestoreBooking } from '../hooks';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingForm } from '../components/BookingForm';
 import { BookingStatusBadge } from '../components/StatusBadge';
@@ -61,6 +61,7 @@ export function BookingsIndex() {
     [page, debouncedSearch, statusFilter, clinicFilter, trashedFilter],
   );
   const { data, isLoading, isFetching } = useBookings(queryParams);
+  const { data: statusCounts } = useBookingStatusCounts();
   const { data: clinics } = useClinicLookup();
   const del = useDeleteBooking();
   const restore = useRestoreBooking();
@@ -101,6 +102,34 @@ export function BookingsIndex() {
         </Button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => { setStatusFilter(undefined); setPage(1); }}
+          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+            statusFilter === undefined
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+              : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+          }`}
+        >
+          {t('bookings.tab_all')} ({statusCounts?.all ?? 0})
+        </button>
+        {BOOKING_STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => { setStatusFilter(s); setPage(1); }}
+            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+              statusFilter === s
+                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+            }`}
+          >
+            {t(`bookings.status.${s}`)} ({statusCounts?.[s] ?? 0})
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
@@ -111,16 +140,6 @@ export function BookingsIndex() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <Select
-          value={statusFilter ?? ''}
-          onChange={(e) => { setStatusFilter((e.target.value || undefined) as BookingStatus | undefined); setPage(1); }}
-          className="w-44"
-        >
-          <option value="">{t('bookings.filter_all_statuses')}</option>
-          {BOOKING_STATUSES.map((s) => (
-            <option key={s} value={s}>{t(`bookings.status.${s}`)}</option>
-          ))}
-        </Select>
         <Select
           value={clinicFilter ?? ''}
           onChange={(e) => { setClinicFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}

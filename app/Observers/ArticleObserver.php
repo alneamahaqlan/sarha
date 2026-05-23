@@ -60,4 +60,25 @@ class ArticleObserver
 
         $this->creating($article);
     }
+
+    /**
+     * Notify admins when an article is created already published.
+     */
+    public function created(Article $article): void
+    {
+        if (! $article->is_published) return;
+
+        $this->notifications->articlePublished($article);
+    }
+
+    /**
+     * Notify admins only on the draft → published transition (no double-fire).
+     */
+    public function updated(Article $article): void
+    {
+        if (! $article->wasChanged('is_published')) return;
+        if (! $article->is_published) return;
+
+        $this->notifications->articlePublished($article);
+    }
 }

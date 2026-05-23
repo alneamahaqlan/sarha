@@ -18,6 +18,7 @@ class MassNotifyRequest extends FormRequest
         return [
             'audience' => ['required', 'in:all,premium,basic,expiring'],
             'priority' => ['required', 'in:low,normal,high,urgent'],
+            'channel'  => ['sometimes', 'in:in_app,email,both'],
             'title'    => ['required', 'string', 'max:255'],
             'body'     => ['required', 'string', 'max:2000'],
         ];

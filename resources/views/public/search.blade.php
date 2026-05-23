@@ -29,12 +29,16 @@
                     </option>
                 @endforeach
             </select>
-            <select name="sort" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <select name="sort" id="search-sort" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
                 <option value="featured" @selected(($sort ?? 'featured') === 'featured')>@lang('site.sort_featured')</option>
                 <option value="top_rated" @selected(($sort ?? '') === 'top_rated')>@lang('site.sort_top_rated')</option>
                 <option value="cheapest" @selected(($sort ?? '') === 'cheapest')>@lang('site.sort_cheapest')</option>
                 <option value="most_booked" @selected(($sort ?? '') === 'most_booked')>@lang('site.sort_most_booked')</option>
+                <option value="nearest" @selected(($sort ?? '') === 'nearest')>@lang('site.sort_nearest')</option>
             </select>
+            {{-- Preserve geolocation for "nearest" across pagination / re-submits. --}}
+            <input type="hidden" name="lat" id="search-lat" value="{{ request('lat') }}">
+            <input type="hidden" name="lng" id="search-lng" value="{{ request('lng') }}">
             <button type="submit" class="bg-teal-600 text-white rounded-lg py-2.5 font-semibold hover:bg-teal-700 transition-colors">
                 @lang('site.search_button')
             </button>
@@ -73,5 +77,42 @@
         </div>
     @endif
 </div>
+
+{{-- Progressive geolocation for the "nearest" sort. Falls back silently if denied/unsupported. --}}
+<script>
+(function () {
+    var sortEl = document.getElementById('search-sort');
+    if (!sortEl) return;
+
+    sortEl.addEventListener('change', function () {
+        if (sortEl.value !== 'nearest') return;
+
+        var latEl = document.getElementById('search-lat');
+        var lngEl = document.getElementById('search-lng');
+
+        // Already have coordinates — let the normal form submit handle it.
+        if (latEl.value && lngEl.value) {
+            sortEl.form.submit();
+            return;
+        }
+
+        if (!navigator.geolocation) {
+            sortEl.form.submit(); // server falls back to featured without coords.
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                latEl.value = pos.coords.latitude;
+                lngEl.value = pos.coords.longitude;
+                sortEl.form.submit();
+            },
+            function () {
+                sortEl.form.submit(); // denied — server falls back to default order.
+            }
+        );
+    });
+})();
+</script>
 
 @endsection

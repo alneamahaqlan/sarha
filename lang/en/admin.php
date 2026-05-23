@@ -412,6 +412,9 @@ return [
         'limit_warn_body'  => 'You have published :used of 5 articles this month. Upgrade to Premium for unlimited.',
         'limit_hit_title' => 'Monthly limit reached',
         'limit_hit_body'  => 'Your article was saved as a draft because the Basic plan allows 5 published articles per month.',
+
+        'article_published_title' => 'New article published',
+        'article_published_body'  => ':clinic published ":article" — review the content.',
     ],
 
     'ai' => [

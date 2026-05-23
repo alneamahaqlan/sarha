@@ -19,7 +19,7 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '@/features/bookings/types';
 
-import { useClinicBookings, useUpdateClinicBooking } from '../hooks';
+import { useClinicBookings, useClinicBookingStatusCounts, useUpdateClinicBooking } from '../hooks';
 
 function toLocal(iso?: string | null) {
   if (!iso) return '';
@@ -96,6 +96,7 @@ export function ClinicBookingsIndex() {
     [page, debouncedSearch, statusFilter],
   );
   const { data, isLoading, isFetching } = useClinicBookings(params);
+  const { data: statusCounts } = useClinicBookingStatusCounts();
 
   const fmt = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
@@ -107,15 +108,39 @@ export function ClinicBookingsIndex() {
         <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_bookings.subtitle')}</p>
       </div>
 
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => { setStatusFilter(undefined); setPage(1); }}
+          className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+            statusFilter === undefined
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+              : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+          }`}
+        >
+          {t('clinic_bookings.tab_all')} ({statusCounts?.all ?? 0})
+        </button>
+        {BOOKING_STATUSES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => { setStatusFilter(s); setPage(1); }}
+            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+              statusFilter === s
+                ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]'
+            }`}
+          >
+            {t(`bookings.status.${s}`)} ({statusCounts?.[s] ?? 0})
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
           <Input className="ps-9" placeholder={t('common.search')} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
-        <Select value={statusFilter ?? ''} onChange={(e) => { setStatusFilter((e.target.value || undefined) as BookingStatus | undefined); setPage(1); }} className="w-44">
-          <option value="">{t('clinic_bookings.filter_all_statuses')}</option>
-          {BOOKING_STATUSES.map((s) => <option key={s} value={s}>{t(`bookings.status.${s}`)}</option>)}
-        </Select>
       </div>
 
       <Table>

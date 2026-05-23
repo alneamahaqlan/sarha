@@ -24,10 +24,16 @@ function buildParams(p: ListParams) {
   return params;
 }
 
+export type BookingStatusCounts = { all: number } & Record<BookingStatus, number>;
+
 export const clinicBookingsApi = {
   list: async (params: ListParams = {}) => {
     const res = await apiClient.get<PaginatedResponse<Booking>>('/clinic/bookings', { params: buildParams(params) });
     return res.data;
+  },
+  statusCounts: async () => {
+    const res = await apiClient.get<{ data: BookingStatusCounts }>('/clinic/bookings/status-counts');
+    return res.data.data;
   },
   update: async (id: number, values: ClinicBookingUpdateValues) => {
     const res = await apiClient.patch<SingleResponse<Booking>>(`/clinic/bookings/${id}`, values);

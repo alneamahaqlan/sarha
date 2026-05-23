@@ -113,6 +113,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Booking — restore + forceDestroy need to resolve trashed rows, so we bind
         // the {booking_trashed} param with withTrashed() instead of default scope.
         Route::bind('booking_trashed', fn ($id) => Booking::withTrashed()->findOrFail($id));
+        Route::get('bookings/status-counts', [BookingController::class, 'statusCounts'])->name('bookings.status-counts');
         Route::post('bookings/{booking_trashed}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
         Route::delete('bookings/{booking_trashed}/force', [BookingController::class, 'forceDestroy'])->name('bookings.force-destroy');
         Route::apiResource('bookings', BookingController::class);
@@ -186,6 +187,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             ->parameters(['custom-categories' => 'customCategory']);
 
         // Bookings — clinic can only update status / appointment / notes.
+        Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
         Route::apiResource('bookings', ClinicBookingController::class)->only(['index', 'show', 'update']);
 
         // Price quote requests — clinic can update status + reply.

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class SearchController extends Controller
 {
-    public const SORT_OPTIONS = ['featured', 'top_rated', 'cheapest', 'most_booked'];
+    public const SORT_OPTIONS = ['featured', 'top_rated', 'cheapest', 'most_booked', 'nearest'];
 
     public function index(Request $request)
     {
@@ -45,6 +45,13 @@ class SearchController extends Controller
             ? $request->input('sort')
             : 'featured';
 
+        // 'nearest' only applies when valid coordinates are supplied; otherwise fall back.
+        $lat = is_numeric($request->input('lat')) ? (float) $request->input('lat') : null;
+        $lng = is_numeric($request->input('lng')) ? (float) $request->input('lng') : null;
+        if ($sort === 'nearest' && ($lat === null || $lng === null)) {
+            $sort = 'featured';
+        }
+
         match ($sort) {
             'top_rated' => $query
                 ->withAvg('googleReviews', 'rating')
@@ -58,6 +65,17 @@ class SearchController extends Controller
                 ->withCount('bookings')
                 ->orderByDesc('is_featured')
                 ->orderByDesc('bookings_count'),
+            'nearest' => $query
+                // Haversine distance (km); clinics with null coords sort last.
+                ->selectRaw(
+                    '*, CASE WHEN latitude IS NULL OR longitude IS NULL THEN NULL ELSE '
+                    . '(6371 * acos(LEAST(1, GREATEST(-1, '
+                    . 'cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) '
+                    . '+ sin(radians(?)) * sin(radians(latitude)))))) END AS distance_km',
+                    [$lat, $lng, $lat]
+                )
+                ->orderByRaw('distance_km IS NULL')
+                ->orderBy('distance_km'),
             default => $query->rankedForListing(),
         };
 

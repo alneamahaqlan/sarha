@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\UpdateBookingRequest;
 use App\Http\Resources\Api\V1\BookingResource as BookingApiResource;
 use App\Models\Booking;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -36,6 +37,26 @@ class BookingController extends Controller
         $perPage = min(max((int) $request->input('per_page', 15), 1), 100);
 
         return BookingApiResource::collection($query->paginate($perPage)->withQueryString());
+    }
+
+    public function statusCounts(): JsonResponse
+    {
+        $this->authorize('viewAny', Booking::class);
+
+        $statuses = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
+
+        $byStatus = Booking::query()
+            ->where('clinic_id', auth('clinic')->id())
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($statuses as $status) {
+            $counts[$status] = (int) ($byStatus[$status] ?? 0);
+        }
+
+        return response()->json(['data' => $counts]);
     }
 
     public function show(Booking $booking): BookingApiResource

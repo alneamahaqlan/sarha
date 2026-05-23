@@ -24,10 +24,16 @@ function buildParams(p: BookingListParams) {
   return params;
 }
 
+export type BookingStatusCounts = { all: number } & Record<BookingStatus, number>;
+
 export const bookingsApi = {
   list: async (params: BookingListParams = {}) => {
     const res = await apiClient.get<PaginatedResponse<Booking>>('/admin/bookings', { params: buildParams(params) });
     return res.data;
+  },
+  statusCounts: async () => {
+    const res = await apiClient.get<{ data: BookingStatusCounts }>('/admin/bookings/status-counts');
+    return res.data.data;
   },
   get: async (id: number) => {
     const res = await apiClient.get<SingleResponse<Booking>>(`/admin/bookings/${id}`);

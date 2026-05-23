@@ -7,6 +7,10 @@ export function useClinicBookings(params: ListParams = {}) {
   return useQuery({ queryKey: [...KEY, 'list', params], queryFn: () => clinicBookingsApi.list(params) });
 }
 
+export function useClinicBookingStatusCounts() {
+  return useQuery({ queryKey: [...KEY, 'status-counts'], queryFn: () => clinicBookingsApi.statusCounts() });
+}
+
 export function useUpdateClinicBooking(id: number) {
   const qc = useQueryClient();
   return useMutation({

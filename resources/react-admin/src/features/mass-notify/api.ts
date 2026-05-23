@@ -2,10 +2,12 @@ import { apiClient } from '@/lib/api-client';
 
 export type MassNotifyAudience = 'all' | 'premium' | 'basic' | 'expiring';
 export type MassNotifyPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type MassNotifyChannel = 'in_app' | 'email' | 'both';
 
 export interface MassNotifyPayload {
   audience: MassNotifyAudience;
   priority: MassNotifyPriority;
+  channel: MassNotifyChannel;
   title: string;
   body: string;
 }

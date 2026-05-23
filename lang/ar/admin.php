@@ -412,6 +412,9 @@ return [
         'limit_warn_body'  => 'نشرت :used من 5 مقالات هذا الشهر. ترقّى للمميزة لمقالات غير محدودة.',
         'limit_hit_title' => 'تجاوزت الحد الشهري',
         'limit_hit_body'  => 'تم حفظ مقالتك كمسودة لأن باقتك الأساسية تسمح بـ 5 مقالات شهرياً.',
+
+        'article_published_title' => 'تم نشر مقال جديد',
+        'article_published_body'  => 'نشر :clinic مقال ":article" — راجع المحتوى.',
     ],
 
     'ai' => [

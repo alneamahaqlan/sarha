@@ -53,6 +53,7 @@ return [
     'sort_top_rated' => 'Top rated',
     'sort_cheapest' => 'Lowest price',
     'sort_most_booked' => 'Most booked',
+    'sort_nearest' => 'Nearest',
 
     // Similar clinics
     'similar_clinics' => 'Similar complexes',

@@ -28,6 +28,7 @@ import { massNotifySchema, type MassNotifySchema } from '../schema';
 
 const AUDIENCES = ['all', 'premium', 'basic', 'expiring'] as const;
 const PRIORITIES = ['low', 'normal', 'high', 'urgent'] as const;
+const CHANNELS = ['in_app', 'email', 'both'] as const;
 
 export function MassNotifyPage() {
   const { t } = useTranslation();
@@ -35,14 +36,14 @@ export function MassNotifyPage() {
 
   const form = useForm<MassNotifySchema>({
     resolver: zodResolver(massNotifySchema),
-    defaultValues: { audience: 'all', priority: 'normal', title: '', body: '' },
+    defaultValues: { audience: 'all', priority: 'normal', channel: 'in_app', title: '', body: '' },
   });
 
   const mutation = useMutation({
     mutationFn: (values: MassNotifySchema) => massNotifyApi.send(values),
     onSuccess: (res) => {
       toast.success(res.message);
-      form.reset({ audience: 'all', priority: 'normal', title: '', body: '' });
+      form.reset({ audience: 'all', priority: 'normal', channel: 'in_app', title: '', body: '' });
       setConfirming(false);
     },
     onError: (err) => {
@@ -80,6 +81,12 @@ export function MassNotifyPage() {
             <Label htmlFor="priority">{t('mass_notify.priority')}</Label>
             <Select id="priority" {...form.register('priority')}>
               {PRIORITIES.map((p) => <option key={p} value={p}>{t(`mass_notify.priorities.${p}`)}</option>)}
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="channel">{t('mass_notify.channel')}</Label>
+            <Select id="channel" {...form.register('channel')}>
+              {CHANNELS.map((c) => <option key={c} value={c}>{t(`mass_notify.channels.${c}`)}</option>)}
             </Select>
           </div>
         </div>

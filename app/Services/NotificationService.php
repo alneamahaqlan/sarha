@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Admin;
+use App\Models\Article;
 use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\Complaint;
@@ -189,6 +190,24 @@ class NotificationService
             priority: 'urgent',
             title: __('admin.notif.rejected_title'),
             body:  __('admin.notif.rejected_body', ['reason' => $reason]),
+        );
+    }
+
+    public function articlePublished(Article $article): void
+    {
+        $clinic = $article->clinic;
+
+        $this->broadcastToAdmins(
+            type: 'article_published',
+            icon: 'heroicon-o-document-text',
+            url: '/app/admin/articles',
+            priority: 'normal',
+            title: __('admin.notif.article_published_title'),
+            body:  __('admin.notif.article_published_body', [
+                'clinic'  => $clinic?->name ?? '—',
+                'article' => $article->title ?? '—',
+            ]),
+            data: ['article_id' => $article->id, 'clinic_id' => $clinic?->id],
         );
     }
 

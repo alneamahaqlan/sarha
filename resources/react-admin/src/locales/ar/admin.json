@@ -171,6 +171,7 @@
     "restore": "استعادة",
     "filter_all_statuses": "كل الحالات",
     "filter_all_clinics": "كل العيادات",
+    "tab_all": "الكل",
     "trashed": {
       "without": "بدون المحذوفة",
       "with": "مع المحذوفة",
@@ -523,6 +524,10 @@
     "subtitle": "إرسال إشعار لمجموعة من العيادات دفعة واحدة",
     "audience": "الفئة المستهدفة",
     "priority": "الأولوية",
+    "channel": "قناة الإرسال",
+    "channel_in_app": "داخل التطبيق",
+    "channel_email": "بريد إلكتروني",
+    "channel_both": "كلاهما",
     "subject": "العنوان",
     "body": "نص الإشعار",
     "send": "إرسال",
@@ -539,6 +544,11 @@
       "normal": "عادية",
       "high": "عالية",
       "urgent": "عاجلة"
+    },
+    "channels": {
+      "in_app": "داخل التطبيق",
+      "email": "بريد إلكتروني",
+      "both": "كلاهما"
     }
   },
   "dashboard": {
@@ -679,6 +689,7 @@
     "clinic_notes": "ملاحظات العيادة",
     "created_at": "تاريخ الحجز",
     "filter_all_statuses": "كل الحالات",
+    "tab_all": "الكل",
     "updated": "تم تحديث الحجز"
   },
   "clinic_quotes": {

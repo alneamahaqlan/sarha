@@ -53,6 +53,7 @@ return [
     'sort_top_rated' => 'الأعلى تقييماً',
     'sort_cheapest' => 'السعر من الأقل',
     'sort_most_booked' => 'الأكثر حجزاً',
+    'sort_nearest' => 'الأقرب',
 
     // Similar clinics
     'similar_clinics' => 'مجمعات مشابهة',

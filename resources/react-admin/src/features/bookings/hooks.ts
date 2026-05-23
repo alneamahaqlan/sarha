@@ -11,6 +11,13 @@ export function useBookings(params: BookingListParams = {}) {
   });
 }
 
+export function useBookingStatusCounts() {
+  return useQuery({
+    queryKey: [...KEY, 'status-counts'],
+    queryFn: () => bookingsApi.statusCounts(),
+  });
+}
+
 export function useCreateBooking() {
   const qc = useQueryClient();
   return useMutation({

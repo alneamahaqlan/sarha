@@ -62,6 +62,27 @@ class BookingController extends Controller
         return BookingApiResource::collection($query->paginate($perPage)->withQueryString());
     }
 
+    public function statusCounts(): JsonResponse
+    {
+        $this->authorize('viewAny', Booking::class);
+
+        $statuses = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
+
+        // Counts over non-trashed bookings (mirrors the default 'without' table scope).
+        $byStatus = Booking::query()
+            ->whereNull('deleted_at')
+            ->selectRaw('status, COUNT(*) as aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+
+        $counts = ['all' => (int) $byStatus->sum()];
+        foreach ($statuses as $status) {
+            $counts[$status] = (int) ($byStatus[$status] ?? 0);
+        }
+
+        return response()->json(['data' => $counts]);
+    }
+
     public function show(Booking $booking): BookingApiResource
     {
         $this->authorize('view', $booking);

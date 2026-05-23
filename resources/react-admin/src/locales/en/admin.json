@@ -171,6 +171,7 @@
     "restore": "Restore",
     "filter_all_statuses": "All statuses",
     "filter_all_clinics": "All clinics",
+    "tab_all": "All",
     "trashed": {
       "without": "Without trashed",
       "with": "With trashed",
@@ -523,6 +524,10 @@
     "subtitle": "Send a notification to a group of clinics at once",
     "audience": "Audience",
     "priority": "Priority",
+    "channel": "Channel",
+    "channel_in_app": "In-app",
+    "channel_email": "Email",
+    "channel_both": "Both",
     "subject": "Subject",
     "body": "Message",
     "send": "Send",
@@ -539,6 +544,11 @@
       "normal": "Normal",
       "high": "High",
       "urgent": "Urgent"
+    },
+    "channels": {
+      "in_app": "In-app",
+      "email": "Email",
+      "both": "Both"
     }
   },
   "dashboard": {
@@ -679,6 +689,7 @@
     "clinic_notes": "Clinic notes",
     "created_at": "Created",
     "filter_all_statuses": "All statuses",
+    "tab_all": "All",
     "updated": "Booking updated"
   },
   "clinic_quotes": {
