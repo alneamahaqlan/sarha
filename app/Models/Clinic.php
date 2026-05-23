@@ -14,7 +14,7 @@ class Clinic extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'phone', 'email', 'password', 'city_id',
+        'name', 'slug', 'phone', 'email', 'license_number', 'password', 'city_id',
         'address', 'latitude', 'longitude', 'google_place_id',
         'description', 'logo', 'gallery', 'website', 'instagram',
         'twitter', 'snapchat', 'status', 'subscription_type',

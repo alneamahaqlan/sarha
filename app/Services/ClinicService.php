@@ -47,7 +47,7 @@ class ClinicService
                 'status'    => 'active',
             ]);
 
-            AuditLogService::log('approved_Clinic', $clinic);
+            AuditLogService::log('clinic.approved', $clinic);
             $this->notifications->clinicApproved($clinic);
 
             return $clinic->fresh();
@@ -64,7 +64,7 @@ class ClinicService
             'rejection_reason' => $reason,
         ]);
 
-        AuditLogService::log('rejected_Clinic', $clinic);
+        AuditLogService::log('clinic.rejected', $clinic);
         $this->notifications->clinicRejected($clinic, $reason);
 
         return $clinic->fresh();
@@ -76,7 +76,7 @@ class ClinicService
     public function activate(Clinic $clinic): Clinic
     {
         $clinic->update(['status' => 'active']);
-        AuditLogService::log('activated_Clinic', $clinic);
+        AuditLogService::log('clinic.activated', $clinic);
 
         return $clinic->fresh();
     }
@@ -87,7 +87,7 @@ class ClinicService
     public function suspend(Clinic $clinic): Clinic
     {
         $clinic->update(['status' => 'suspended']);
-        AuditLogService::log('suspended_Clinic', $clinic);
+        AuditLogService::log('clinic.suspended', $clinic);
 
         return $clinic->fresh();
     }
@@ -105,7 +105,7 @@ class ClinicService
 
         $clinic->update(['subscription_ends_at' => $base->copy()->addDays($days)]);
 
-        AuditLogService::log("extended_Clinic_{$days}", $clinic);
+        AuditLogService::log('clinic.extended', $clinic, newValues: ['days' => $days]);
 
         return $clinic->fresh();
     }

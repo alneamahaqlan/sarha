@@ -12,6 +12,8 @@ import {
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
+import { cn } from '@/lib/utils';
+import { useAdminNavBadges } from '@/features/nav-badges/hooks';
 
 import { useSubscriptions } from '../hooks';
 import { SubscriptionForm } from '../components/SubscriptionForm';
@@ -27,9 +29,9 @@ const STATUS_VARIANT: Record<SubscriptionStatus, 'success' | 'danger' | 'warning
   pending_payment: 'warning',
 };
 
-const TYPE_VARIANT: Record<SubscriptionType, 'default' | 'warning'> = {
-  basic: 'default',
-  premium: 'warning',
+const TYPE_VARIANT: Record<SubscriptionType, 'info' | 'gold'> = {
+  basic: 'info',
+  premium: 'gold',
 };
 
 export function SubscriptionsIndex() {
@@ -56,6 +58,7 @@ export function SubscriptionsIndex() {
     [page, debouncedSearch, typeFilter, statusFilter, expiringOnly],
   );
   const { data, isLoading, isFetching } = useSubscriptions(queryParams);
+  const { data: navBadges } = useAdminNavBadges();
 
   // Row tint mirrors Filament: red for expired/cancelled, amber when active but
   // ending within 10 days, transparent otherwise.
@@ -93,6 +96,33 @@ export function SubscriptionsIndex() {
         )}
       </div>
 
+      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)]">
+        {[false, true].map((expiring) => {
+          const active = expiringOnly === expiring;
+          const showCount = expiring && (navBadges?.subscriptions_expiring ?? 0) > 0;
+          return (
+            <button
+              key={expiring ? 'expiring' : 'all'}
+              type="button"
+              onClick={() => { setExpiringOnly(expiring); setPage(1); }}
+              className={cn(
+                '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+                active
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                  : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
+              )}
+            >
+              {expiring ? t('subscriptions.expiring_soon') : t('subscriptions.tab_all')}
+              {showCount && (
+                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
+                  {(navBadges?.subscriptions_expiring ?? 0) > 99 ? '99+' : navBadges?.subscriptions_expiring}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
@@ -119,13 +149,6 @@ export function SubscriptionsIndex() {
           <option value="">{t('subscriptions.filter_all_statuses')}</option>
           {SUBSCRIPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`subscriptions.status.${s}`)}</option>)}
         </Select>
-        <Button
-          variant={expiringOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => { setExpiringOnly((v) => !v); setPage(1); }}
-        >
-          {t('subscriptions.expiring_soon')}
-        </Button>
       </div>
 
       <Table>

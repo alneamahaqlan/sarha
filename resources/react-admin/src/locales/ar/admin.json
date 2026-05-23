@@ -331,6 +331,9 @@
     "status_label": "الحالة",
     "plan_label": "الباقة",
     "subscription_ends_at": "انتهاء الاشتراك",
+    "days_remaining": "الأيام المتبقية",
+    "days_count": "{{count}} يوم",
+    "expired": "منتهٍ",
     "visits_30d": "الزيارات (30 يوم)",
     "total_bookings": "إجمالي الحجوزات",
     "featured": "مميزة",
@@ -409,6 +412,7 @@
       "slug": "الرابط القصير",
       "phone": "الجوال",
       "email": "البريد الإلكتروني",
+      "license_number": "رقم الترخيص",
       "password": "كلمة المرور",
       "new_password": "كلمة مرور جديدة",
       "password_hint": "اترك الحقل فارغاً للإبقاء على كلمة المرور الحالية",
@@ -462,6 +466,7 @@
     "status_label": "الحالة",
     "filter_all_types": "كل الباقات",
     "filter_all_statuses": "كل الحالات",
+    "tab_all": "الكل",
     "expiring_soon": "تنتهي قريباً",
     "create": "اشتراك جديد",
     "edit": "تعديل الاشتراك",
@@ -564,6 +569,7 @@
     "subtitle": "نظرة عامة على نشاط المنصة",
     "active_clinics": "العيادات النشطة",
     "pending_count": "{{count}} بانتظار الاعتماد",
+    "pending_clinics_label": "طلبات معلقة",
     "today_bookings": "حجوزات اليوم",
     "month_bookings_count": "{{count}} هذا الشهر",
     "active_subscriptions": "اشتراكات نشطة",
@@ -605,6 +611,11 @@
   "impersonation": {
     "banner": "أنت تعمل حاليًا كحساب {{clinic}}",
     "stop": "إيقاف الانتحال"
+  },
+  "roles": {
+    "super_admin": "مدير عام",
+    "admin": "مشرف",
+    "sales": "مبيعات"
   },
   "ai_chat": {
     "open": "افتح المساعد",

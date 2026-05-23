@@ -119,13 +119,23 @@ class DashboardController extends Controller
     /**
      * Sidebar badge counts — mirrors Filament's getNavigationBadge() on
      * ComplaintResource (new + in_review) and PriceQuoteRequestResource (new).
+     * Also surfaces the two daily-workflow counters the React panel highlights:
+     * clinics awaiting approval and subscriptions about to expire.
      */
     public function navBadges(): JsonResponse
     {
+        // Mirror SubscriptionController's "expiring" filter exactly so the badge
+        // count matches the filtered list (active + ending within reminder window).
+        $reminderDays = (int) (\App\Models\SystemSetting::where('key', 'subscription_reminder_days')->value('value') ?? 10);
+
         return response()->json([
             'data' => [
-                'complaints'   => Complaint::whereIn('status', ['new', 'in_review'])->count(),
-                'price_quotes' => PriceQuoteRequest::where('status', 'new')->count(),
+                'complaints'             => Complaint::whereIn('status', ['new', 'in_review'])->count(),
+                'price_quotes'           => PriceQuoteRequest::where('status', 'new')->count(),
+                'clinics_pending'        => Clinic::where('status', 'pending')->count(),
+                'subscriptions_expiring' => Subscription::where('status', 'active')
+                    ->whereBetween('ends_at', [now(), now()->addDays($reminderDays)])
+                    ->count(),
             ],
         ]);
     }

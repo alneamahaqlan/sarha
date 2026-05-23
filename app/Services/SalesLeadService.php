@@ -39,6 +39,7 @@ class SalesLeadService
                 'slug'                   => Str::slug($lead->clinic_name) . '-' . Str::random(4),
                 'phone'                  => $lead->phone,
                 'email'                  => $lead->email ?: ('lead-' . $lead->id . '@saerha.sa'),
+                'license_number'         => $lead->license_number,
                 'password'               => bcrypt(Str::random(12)),
                 'city_id'                => $lead->city_id,
                 'address'                => $lead->address,
@@ -60,7 +61,7 @@ class SalesLeadService
             $lead->update(['status' => 'converted']);
 
             AuditLogService::log(
-                action: 'lead_converted',
+                action: 'sales_lead.converted',
                 model: $clinic,
                 newValues: ['lead_id' => $lead->id, 'plan' => $plan, 'amount' => $price],
             );

@@ -20,6 +20,7 @@ class StoreClinicRequest extends FormRequest
             'slug'              => ['nullable', 'string', 'max:255', 'unique:clinics,slug'],
             'phone'             => ['required', 'string', 'max:20'],
             'email'             => ['nullable', 'email', 'max:255'],
+            'license_number'    => ['nullable', 'string', 'max:255'],
             'password'          => ['required', Password::min(8)],
             'city_id'           => ['required', 'integer', 'exists:cities,id'],
             'address'           => ['nullable', 'string'],

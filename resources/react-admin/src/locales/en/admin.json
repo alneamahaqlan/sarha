@@ -331,6 +331,9 @@
     "status_label": "Status",
     "plan_label": "Plan",
     "subscription_ends_at": "Subscription ends",
+    "days_remaining": "Days left",
+    "days_count": "{{count}}d",
+    "expired": "Expired",
     "visits_30d": "Visits (30d)",
     "total_bookings": "Total bookings",
     "featured": "Featured",
@@ -409,6 +412,7 @@
       "slug": "Slug",
       "phone": "Phone",
       "email": "Email",
+      "license_number": "License number",
       "password": "Password",
       "new_password": "New password",
       "password_hint": "Leave blank to keep the current password",
@@ -462,6 +466,7 @@
     "status_label": "Status",
     "filter_all_types": "All plans",
     "filter_all_statuses": "All statuses",
+    "tab_all": "All",
     "expiring_soon": "Expiring soon",
     "create": "New subscription",
     "edit": "Edit subscription",
@@ -564,6 +569,7 @@
     "subtitle": "Overview of platform activity",
     "active_clinics": "Active clinics",
     "pending_count": "{{count}} pending approval",
+    "pending_clinics_label": "Pending requests",
     "today_bookings": "Today's bookings",
     "month_bookings_count": "{{count}} this month",
     "active_subscriptions": "Active subscriptions",
@@ -605,6 +611,11 @@
   "impersonation": {
     "banner": "You are currently impersonating {{clinic}}",
     "stop": "Stop impersonation"
+  },
+  "roles": {
+    "super_admin": "Super admin",
+    "admin": "Admin",
+    "sales": "Sales"
   },
   "ai_chat": {
     "open": "Open assistant",

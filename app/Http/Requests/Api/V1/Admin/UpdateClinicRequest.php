@@ -23,6 +23,7 @@ class UpdateClinicRequest extends FormRequest
             'slug'              => ['nullable', 'string', 'max:255', Rule::unique('clinics', 'slug')->ignore($id)],
             'phone'             => ['sometimes', 'required', 'string', 'max:20'],
             'email'             => ['nullable', 'email', 'max:255'],
+            'license_number'    => ['nullable', 'string', 'max:255'],
             'password'          => ['nullable', Password::min(8)],
             'city_id'           => ['sometimes', 'required', 'integer', 'exists:cities,id'],
             'address'           => ['nullable', 'string'],

@@ -4,6 +4,8 @@ import { apiClient } from '@/lib/api-client';
 export interface AdminNavBadges {
   complaints: number;
   price_quotes: number;
+  clinics_pending: number;
+  subscriptions_expiring: number;
 }
 
 export interface ClinicNavBadges {

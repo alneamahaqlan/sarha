@@ -27,6 +27,7 @@ const schema = z.object({
   slug: z.string().max(255).optional().or(z.literal('')),
   phone: z.string().min(1).max(20),
   email: z.string().email().nullish().or(z.literal('')),
+  license_number: z.string().max(255).nullish().or(z.literal('')),
   password: z.string().min(8).optional().or(z.literal('')),
   city_id: z.coerce.number().int().positive(),
   address: z.string().nullish(),
@@ -72,7 +73,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '', slug: '', phone: '', email: '', password: '',
+      name: '', slug: '', phone: '', email: '', license_number: '', password: '',
       city_id: 0, address: '', description: '',
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
@@ -89,6 +90,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         slug: clinic.slug ?? '',
         phone: clinic.phone ?? '',
         email: clinic.email ?? '',
+        license_number: clinic.license_number ?? '',
         password: '',
         city_id: clinic.city_id ?? 0,
         address: clinic.address ?? '',
@@ -115,6 +117,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
     try {
       const payload: Record<string, unknown> = { ...v };
       if (!payload.password) delete payload.password;
+      if (payload.license_number === '') payload.license_number = null;
       if (payload.subscription_type === '') payload.subscription_type = null;
       if (payload.subscription_starts_at === '') payload.subscription_starts_at = null;
       if (payload.subscription_ends_at === '') payload.subscription_ends_at = null;
@@ -195,6 +198,10 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="email">{t('clinics.form.email')}</Label>
               <Input id="email" type="email" dir="ltr" {...form.register('email')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="license_number">{t('clinics.form.license_number')}</Label>
+              <Input id="license_number" dir="ltr" {...form.register('license_number')} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">{clinic ? t('clinics.form.new_password') : t('clinics.form.password')}</Label>

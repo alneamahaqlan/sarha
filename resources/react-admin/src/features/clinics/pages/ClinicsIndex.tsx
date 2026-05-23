@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { BarChart3, FileSpreadsheet, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { useAdminNavBadges } from '@/features/nav-badges/hooks';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   AlertDialog,
@@ -45,9 +47,26 @@ export function ClinicsIndex() {
   const { locale } = useLocale();
   const { can } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { data: navBadges } = useAdminNavBadges();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<ClinicStatus | undefined>();
+  const initialStatus = searchParams.get('status');
+  const [statusFilter, setStatusFilter] = useState<ClinicStatus | undefined>(
+    initialStatus && (CLINIC_STATUSES as string[]).includes(initialStatus)
+      ? (initialStatus as ClinicStatus)
+      : undefined,
+  );
+
+  // Allow deep-links / the header quick-stat (e.g. /admin/clinics?status=pending)
+  // to drive the active tab even when the page is already mounted.
+  useEffect(() => {
+    const s = searchParams.get('status');
+    if (s && (CLINIC_STATUSES as string[]).includes(s)) {
+      setStatusFilter(s as ClinicStatus);
+      setPage(1);
+    }
+  }, [searchParams]);
   const [planFilter, setPlanFilter] = useState<ClinicPlan | undefined>();
   const [cityFilter, setCityFilter] = useState<number | undefined>();
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
@@ -87,6 +106,18 @@ export function ClinicsIndex() {
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+
+  // Whole days until the subscription ends — negative once expired. Drives the
+  // colour-coded "days remaining" column (green > 10, amber ≤ 10, red expired).
+  const daysRemaining = (iso: string | null): number | null =>
+    iso ? Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000) : null;
+
+  const renderDaysRemaining = (iso: string | null) => {
+    const d = daysRemaining(iso);
+    if (d === null) return <span className="text-[var(--color-muted-foreground)]">—</span>;
+    if (d < 0) return <Badge variant="danger">{t('clinics.expired')}</Badge>;
+    return <Badge variant={d <= 10 ? 'warning' : 'success'}>{t('clinics.days_count', { count: d })}</Badge>;
+  };
 
   const toggleRow = (id: number) => {
     setSelectedIds((prev) => {
@@ -155,6 +186,33 @@ export function ClinicsIndex() {
         )}
       </div>
 
+      <div className="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)]">
+        {([undefined, ...CLINIC_STATUSES] as (ClinicStatus | undefined)[]).map((tab) => {
+          const active = statusFilter === tab;
+          const showCount = tab === 'pending' && (navBadges?.clinics_pending ?? 0) > 0;
+          return (
+            <button
+              key={tab ?? 'all'}
+              type="button"
+              onClick={() => { setStatusFilter(tab); setPage(1); }}
+              className={cn(
+                '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+                active
+                  ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                  : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
+              )}
+            >
+              {tab ? t(`clinics.status.${tab}`) : t('clinics.filter_all_statuses')}
+              {showCount && (
+                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                  {(navBadges?.clinics_pending ?? 0) > 99 ? '99+' : navBadges?.clinics_pending}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative max-w-sm flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
@@ -165,14 +223,6 @@ export function ClinicsIndex() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <Select
-          value={statusFilter ?? ''}
-          onChange={(e) => { setStatusFilter((e.target.value || undefined) as ClinicStatus | undefined); setPage(1); }}
-          className="w-40"
-        >
-          <option value="">{t('clinics.filter_all_statuses')}</option>
-          {CLINIC_STATUSES.map((s) => <option key={s} value={s}>{t(`clinics.status.${s}`)}</option>)}
-        </Select>
         <Select
           value={planFilter ?? ''}
           onChange={(e) => { setPlanFilter((e.target.value || undefined) as ClinicPlan | undefined); setPage(1); }}
@@ -251,6 +301,7 @@ export function ClinicsIndex() {
             <TableHead>{t('clinics.status_label')}</TableHead>
             <TableHead>{t('clinics.plan_label')}</TableHead>
             <TableHead>{t('clinics.subscription_ends_at')}</TableHead>
+            <TableHead>{t('clinics.days_remaining')}</TableHead>
             <TableHead>{t('clinics.visits_30d')}</TableHead>
             <TableHead>{t('clinics.total_bookings')}</TableHead>
             <TableHead>{t('clinics.featured')}</TableHead>
@@ -260,13 +311,13 @@ export function ClinicsIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={12} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={13} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={12} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={13} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -295,7 +346,18 @@ export function ClinicsIndex() {
                   )}
                 </TableCell>
                 <TableCell className="font-medium">
-                  {clinic.name}
+                  {can('clinics.viewAny') && !clinic.is_trashed ? (
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/admin/clinics/${clinic.id}/stats`)}
+                      className="text-start hover:text-[var(--color-primary)] hover:underline"
+                      title={t('clinics.stats.title')}
+                    >
+                      {clinic.name}
+                    </button>
+                  ) : (
+                    clinic.name
+                  )}
                   {clinic.is_trashed && <Badge variant="danger" className="ms-2">{t('clinics.trashed_badge')}</Badge>}
                 </TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{clinic.city?.name ?? '—'}</TableCell>
@@ -305,6 +367,7 @@ export function ClinicsIndex() {
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">
                   {fmtDate(clinic.subscription_ends_at)}
                 </TableCell>
+                <TableCell>{renderDaysRemaining(clinic.subscription_ends_at)}</TableCell>
                 <TableCell className="text-sm">{clinic.visits_30d ?? 0}</TableCell>
                 <TableCell className="text-sm">{clinic.bookings_count ?? 0}</TableCell>
                 <TableCell>

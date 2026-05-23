@@ -21,24 +21,30 @@ use Illuminate\Support\Facades\Session;
 class ImpersonationService
 {
     public const SESSION_KEY = 'impersonator_admin_id';
+    public const CLINIC_KEY  = 'impersonated_clinic_id';
 
     public function start(Admin $admin, Clinic $clinic): void
     {
         Session::put(self::SESSION_KEY, $admin->id);
+        Session::put(self::CLINIC_KEY, $clinic->id);
+
+        // Log while the admin guard is still authenticated: AuditLogService reads
+        // the acting admin from the admin guard, so this MUST run before logout()
+        // or the start event would be silently dropped.
+        AuditLogService::log('clinic.impersonation_started', $clinic, newValues: [
+            'admin_id' => $admin->id,
+        ]);
 
         Auth::guard('admin')->logout();
         Auth::guard('clinic')->login($clinic);
-
-        AuditLogService::log('impersonation_started', $clinic, [
-            'admin_id' => $admin->id,
-        ]);
 
         app(NotificationService::class)->adminImpersonated($clinic, $admin);
     }
 
     public function stop(): ?Admin
     {
-        $adminId = Session::pull(self::SESSION_KEY);
+        $adminId  = Session::pull(self::SESSION_KEY);
+        $clinicId = Session::pull(self::CLINIC_KEY);
         if (! $adminId) return null;
 
         $admin = Admin::find($adminId);
@@ -47,7 +53,13 @@ class ImpersonationService
         Auth::guard('clinic')->logout();
         Auth::guard('admin')->login($admin);
 
-        AuditLogService::log('impersonation_ended', $admin, []);
+        // Log against the impersonated Clinic (not the Admin) so the audit trail
+        // ties the session to the clinic. The acting admin is still captured via
+        // the admin_id/admin_name columns on every audit row.
+        $clinic = $clinicId ? Clinic::find($clinicId) : null;
+        AuditLogService::log('clinic.impersonation_ended', $clinic, newValues: [
+            'admin_id' => $admin->id,
+        ]);
 
         return $admin;
     }

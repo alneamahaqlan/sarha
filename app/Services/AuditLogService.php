@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Str;
 
 class AuditLogService
 {
@@ -37,7 +38,7 @@ class AuditLogService
     public static function logCreated(Model $model): ?AuditLog
     {
         return self::log(
-            action: 'created_' . class_basename($model),
+            action: self::modelKey($model) . '.created',
             model: $model,
             newValues: $model->getAttributes(),
         );
@@ -55,7 +56,7 @@ class AuditLogService
         )->all();
 
         return self::log(
-            action: 'updated_' . class_basename($model),
+            action: self::modelKey($model) . '.updated',
             model: $model,
             oldValues: self::sanitize($original),
             newValues: self::sanitize($changes),
@@ -65,10 +66,19 @@ class AuditLogService
     public static function logDeleted(Model $model): ?AuditLog
     {
         return self::log(
-            action: 'deleted_' . class_basename($model),
+            action: self::modelKey($model) . '.deleted',
             model: $model,
             oldValues: self::sanitize($model->getAttributes()),
         );
+    }
+
+    /**
+     * snake_case model key used as the prefix in "{model}.{verb}" action names,
+     * e.g. Clinic → "clinic", SalesLead → "sales_lead".
+     */
+    public static function modelKey(Model|string $model): string
+    {
+        return Str::snake(class_basename($model));
     }
 
     private static function sanitize(?array $values): ?array

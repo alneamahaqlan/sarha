@@ -6,7 +6,12 @@
       "PowerShell($env:Path = \"C:\\\\laragon\\\\bin\\\\php\\\\php8.3.14;C:\\\\laragon\\\\bin\\\\composer;\" + $env:Path; php --version; composer --version)",
       "Bash(where cloudflared.exe)",
       "Read(//c/Users/AQLAN/**)",
-      "Read(//c/Windows/System32/**)"
+      "Read(//c/Windows/System32/**)",
+      "Bash(grep -iE \"\\\\.tsx$|\\\\.ts$|\\\\.jsx$\")",
+      "Bash(sed -n '288,300p' ar/admin.json)",
+      "Bash(sed -n '778,792p' ar/admin.json)",
+      "Bash(sed -n '480,490p' ar/admin.json)",
+      "Bash(awk -F: '$1>324 && $1<454')"
     ]
   }
 }

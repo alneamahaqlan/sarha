@@ -10,6 +10,7 @@ export interface Clinic {
   slug: string;
   phone: string;
   email: string | null;
+  license_number: string | null;
   city_id: number;
   address: string | null;
   description: string | null;

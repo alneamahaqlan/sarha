@@ -9,9 +9,9 @@ const STATUS_VARIANT: Record<ClinicStatus, 'warning' | 'success' | 'danger' | 'm
   rejected: 'danger',
 };
 
-const PLAN_VARIANT: Record<ClinicPlan, 'default' | 'warning'> = {
-  basic: 'default',
-  premium: 'warning',
+const PLAN_VARIANT: Record<ClinicPlan, 'info' | 'gold'> = {
+  basic: 'info',
+  premium: 'gold',
 };
 
 export function ClinicStatusBadge({ status }: { status: ClinicStatus }) {

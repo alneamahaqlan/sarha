@@ -11,6 +11,8 @@ const badgeVariants = cva(
         success: 'border-transparent bg-emerald-100 text-emerald-700',
         warning: 'border-transparent bg-amber-100 text-amber-700',
         danger: 'border-transparent bg-red-100 text-red-700',
+        info: 'border-transparent bg-blue-100 text-blue-700',
+        gold: 'border-amber-300 bg-amber-200 text-amber-900',
         muted: 'border-transparent bg-[var(--color-muted)] text-[var(--color-muted-foreground)]',
         outline: 'border-[var(--color-border)] text-[var(--color-foreground)]',
       },

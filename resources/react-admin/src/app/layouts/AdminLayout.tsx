@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router-dom';
 import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
@@ -7,6 +7,7 @@ import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { apiClient } from '@/lib/api-client';
 import { queryClient } from '@/lib/query-client';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
 import { useAdminNavBadges, type AdminNavBadges } from '@/features/nav-badges/hooks';
@@ -131,8 +132,16 @@ export function AdminLayout() {
             );
           })}
         </nav>
-        <div className="border-t border-[var(--color-border)] p-3 text-xs text-[var(--color-muted-foreground)]">
-          {user?.user.name} · {user?.user.email}
+        <div className="space-y-1 border-t border-[var(--color-border)] p-3 text-xs text-[var(--color-muted-foreground)]">
+          <div className="flex items-center gap-2">
+            <span className="truncate font-medium text-[var(--color-foreground)]">{user?.user.name}</span>
+            {user?.user.role && (
+              <Badge variant="muted" className="shrink-0">
+                {t(`roles.${user.user.role}`, { defaultValue: user.user.role })}
+              </Badge>
+            )}
+          </div>
+          <div className="truncate">{user?.user.email}</div>
         </div>
       </aside>
 
@@ -143,6 +152,18 @@ export function AdminLayout() {
             <span className="text-sm font-medium">{t('brand')}</span>
           </div>
           <div className="ms-auto flex items-center gap-2">
+            {(badges?.clinics_pending ?? 0) > 0 && (
+              <Link
+                to="/admin/clinics?status=pending"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-3 text-xs font-medium text-amber-800 hover:bg-amber-100"
+              >
+                <Building2 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('dashboard.pending_clinics_label')}</span>
+                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                  {(badges?.clinics_pending ?? 0) > 99 ? '99+' : badges?.clinics_pending}
+                </span>
+              </Link>
+            )}
             <NotificationBell />
             <button
               type="button"
