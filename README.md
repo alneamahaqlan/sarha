@@ -7,10 +7,12 @@
 **Saudi Arabia's medical services marketplace** — search, compare, and book the best clinics and medical services across the Kingdom.
 
 [![Laravel](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
-[![Filament](https://img.shields.io/badge/Filament-v4-FBA42A?logo=filament&logoColor=white)](https://filamentphp.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?logo=php&logoColor=white)](https://www.php.net)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](https://vite.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 </div>
@@ -20,11 +22,13 @@
 ## 📖 Table of Contents
 
 - [Overview](#-overview)
+- [Dashboards & URLs](#-dashboards--urls)
+- [Test Credentials](#-test-credentials)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Architecture](#-architecture)
 - [Quick Start](#-quick-start)
-- [Default Credentials](#-default-credentials)
+- [API Documentation](#-api-documentation)
 - [Project Structure](#-project-structure)
 - [Bilingual Support](#-bilingual-support)
 - [Routes Map](#-routes-map)
@@ -37,42 +41,113 @@
 
 **Saerha (سعرها)** is a three-sided medical services marketplace built for the Saudi market:
 
-1. **Patients** — search clinics, compare prices, read articles, and book appointments via OTP authentication.
-2. **Clinics** — manage their listing, services, prices, articles, and incoming bookings through a dedicated dashboard.
-3. **Platform admins** — oversee clinics, subscriptions, sales pipeline, and audit trail from a super-admin panel.
+1. **Patients** — search clinics, compare prices, read articles, view clinics on an interactive map, and book appointments via OTP authentication.
+2. **Clinics** — manage their listing, services, prices, articles, working hours, Google reviews, and incoming bookings through a dedicated **React** dashboard.
+3. **Platform admins** — oversee clinics, subscriptions, sales pipeline, analytics, and audit trail from a super-admin **React** panel.
+
+> **Migration note:** the admin & clinic panels were fully migrated from **Filament v4** to a **React 19 + TypeScript SPA**. Filament has been removed; React is now the sole panel UI. Laravel remains the source of truth — every screen calls versioned REST endpoints that reuse the same Services, Policies, Observers, and Notifications.
 
 The platform ships fully bilingual (Arabic / English) with automatic RTL ↔ LTR switching, dedicated typography per language, and locale-aware database fields.
 
 ---
 
+## 🔗 Dashboards & URLs
+
+Base URL on Laragon: **http://sarha.test** (or `http://localhost:8000` via `php artisan serve`).
+
+| Surface | URL | Guard |
+|---------|-----|-------|
+| 🌐 Public site (customers) | `http://sarha.test/` | web |
+| 🔑 Panel login (admin + clinic) | `http://sarha.test/app/login` | — |
+| 🛡️ **Admin dashboard** (React) | `http://sarha.test/app/admin/dashboard` | admin |
+| 🏥 **Clinic dashboard** (React) | `http://sarha.test/app/clinic/dashboard` | clinic |
+| 📈 Analytics | `http://sarha.test/app/admin/analytics` | admin |
+| 📚 API docs (Scribe) | `http://sarha.test/docs` | — |
+| 🧾 OpenAPI spec | `http://sarha.test/docs.openapi` | — |
+| 📮 Postman collection | `http://sarha.test/docs.postman` | — |
+
+> Anything under `/app/*` loads the React SPA shell; React Router handles internal routing. The login page auto-routes to the correct dashboard based on the guard you authenticate against.
+
+---
+
+## 🔐 Test Credentials
+
+> Seeded by `php artisan db:seed`. **All passwords are `password`** — change before production!
+
+### 🛡️ Admin — log in at `/app/login` (choose **Admin**, sign in by email)
+
+| Email | Password | Role |
+|-------|----------|------|
+| `admin@saerha.sa` | `password` | super_admin |
+
+### 🏥 Clinic — log in at `/app/login` (choose **Clinic**, sign in by **phone**)
+
+All clinic accounts use password **`password`**. Login is by **phone number**, not email:
+
+| # | Clinic | Phone | Status | Plan |
+|---|--------|-------|--------|------|
+| 1 | مركز الرياض للأسنان | `0564334488` | ✅ active | ⭐ premium |
+| 2 | مجمع الجمال والجلدية | `0555574270` | ✅ active | basic |
+| 3 | مركز البصر للعيون | `0531531003` | ✅ active | ⭐ premium |
+| 4 | مجمع أطفال المستقبل | `0527641533` | ✅ active | basic |
+| 5 | مركز العظام والمفاصل | `0520053416` | ✅ active | ⭐ premium |
+| 6 | مجمع القلب التخصصي | `0534186626` | ⏳ pending | basic |
+
+> Clinic #6 is **pending** — it can't sign in until an admin approves it from `/app/admin/clinics`.
+> Phone numbers are randomized on each fresh seed; run `php artisan tinker --execute="App\Models\Clinic::pluck('phone','name')"` to read the current ones.
+
+### 👤 Customer (public site) — `/login`
+
+| Method | Detail |
+|--------|--------|
+| Phone-only OTP | enter any Saudi phone (`05XXXXXXXX`) |
+| Dev shortcut | OTP code is flashed on screen when `APP_ENV=local` |
+| New users | auto-registered on first successful verification |
+
+---
+
 ## ✨ Features
 
-### Public Site (Phase 1)
-- 🔍 **Smart search** — filter by city, specialty, free-text keywords
-- 🏥 **Clinic profiles** — services & prices, articles, contact info, booking form
+### Public Site
+- 🔍 **Smart search** — filter by city, specialty, free-text; sort by featured / top-rated / cheapest / most-booked / **nearest (geolocation)**
+- 🗺️ **Interactive maps** — clinics on the homepage & search results (Leaflet + OpenStreetMap), "search this area" on pan/zoom
+- 🏥 **Clinic profiles** — services & prices, articles, working hours, Google reviews, breadcrumbs, booking & price-quote forms
 - ⭐ **Featured clinics** — premium-tier listings get prominent placement
 - 📱 **OTP authentication** — phone-only signup/login (Unifonic-ready)
-- 🌍 **Bilingual** — Arabic (RTL) / English (LTR) with one-click toggle
-- 🔠 **Locale-aware fonts** — Cairo for Arabic, Inter for English
+- 🤖 **AI assistant** — floating chat that matches specialties/cities to clinics; rejects medical-advice questions
+- 🔔 **Toasts** — success & error flash messages, auto-dismiss
+- 🌍 **Bilingual** — Arabic (RTL) / English (LTR), Cairo ↔ Inter fonts, custom RTL pagination
 
-### Clinic Dashboard (Phase 2)
-- 📊 Live stats: pending bookings, monthly volume, subscription status
-- ✏️ CRUD for services, prices, and offers (with old-price strike-through)
-- 📰 Rich-text article publishing
-- 📅 Booking management (status updates, internal notes)
-- ⚙️ Self-service profile editor (logo, description, social links, password)
+### Clinic Dashboard (React)
+- 📊 Live stats: new bookings, monthly volume, active services, subscription status
+- ✏️ CRUD for services (with sub-clinic + sort order, grouped-by-category view), prices & offers
+- 📰 Rich-text article publishing (Tiptap) with cover images + AI excerpt/body generation, monthly publish limit on Basic
+- 📅 Booking management with quick status tabs + counters, appointment scheduling, internal notes
+- 💬 Price-quote replies with tap-to-call customer context
+- 🕐 Working-hours editor (7 days, open/close toggles)
+- 📍 Google Maps coordinate extraction + Google reviews fetch
+- 💳 Subscription page (current plan, days remaining, plan comparison)
+- 🔔 Notification bell + smart nav badges (new quotes, subscription/offer expiring)
+- ⬆️ CSV / Google-Sheets service import with AI column mapping
 
-### Super Admin Panel (Phase 3)
-- 🏥 11 Filament resources: Clinics, Bookings, Services, Articles, Categories, Cities, Users, Admins, Subscriptions, Sales Leads, Audit Log
-- 📈 Dashboard widgets: active clinics, today's bookings, revenue, customers
-- 💼 Sales pipeline (lead → contacted → interested → converted)
-- 🔐 Soft deletes + audit log + role-based admins (`super_admin` / `admin` / `sales`)
-- 🌐 Per-admin language switcher in user menu
+### Super Admin Panel (React)
+- 🏥 **15 resources**: Clinics, Bookings, Complaints, Price Quotes, Sales Leads, Subscriptions, Users, Services, Articles, Cities, Categories, Admins, System Settings, Audit Log, Mass Notify
+- 📈 **Dashboard**: KPI cards + 30-day bookings trend + "expiring soon" / "top clinics" / "clinics by city" panels
+- 📊 **Analytics page**: total views, contact requests, revenue, 6-month comparison, specialty performance
+- 🔬 **Per-clinic stats**: page views / bookings / quotes trend (7/14/30d) + KPI vs platform average
+- 💼 **Sales pipeline**: leads with follow-up badges (overdue/today/upcoming) + one-click convert to Basic/Premium
+- 🏥 **Clinic lifecycle**: approve / reject (with reason) / activate / suspend / extend (+30/+90) / impersonate
+- 💳 **Subscriptions**: "expiring soon" filter + colour-coded rows; subscription CRUD
+- 🧯 **Complaints**: status tabs + transitions (in-review / resolve / reject / notify clinic)
+- 📨 **Mass notify**: target all / premium / basic / expiring clinics — in-app, email, or both
+- 🔐 Soft deletes + restore + bulk actions, audit log with explicit action names, role-based admins
+- 🌐 Grouped sidebar (matches Filament navigation groups), per-admin language switcher
 
 ### Cross-cutting
-- 🛡️ **Trusted-proxies aware** — works behind Cloudflare Tunnel out of the box
-- 💾 **Idempotent seeders** — safe to re-run anytime
-- 🎨 **Tailwind CSS v4** — Vite-built, gzipped, production-ready
+- 🔁 **Service-extraction pattern** — every action runs through the same Service/Policy/Observer the panels share
+- 🛎️ **Unified notifications** — single `PlatformNotification` stream, polled by the React bell every 30s
+- 🛡️ **Sanctum SPA** — stateful cookie auth, 3 guards (admin / clinic / web), 30-min session lifetime
+- 💾 **Idempotent seeders** + scheduled jobs (subscription-expiry reminders, Google reviews sync, Sheets sync)
 
 ---
 
@@ -81,39 +156,55 @@ The platform ships fully bilingual (Arabic / English) with automatic RTL ↔ LTR
 | Layer | Tool | Version |
 |-------|------|---------|
 | **Framework** | Laravel | 12.x |
-| **Language** | PHP | 8.2+ |
-| **Admin UI** | Filament | v4 |
+| **Language (backend)** | PHP | 8.2+ |
+| **Panel UI** | React + TypeScript (strict) | 19.x |
+| **SPA tooling** | Vite | 7.x |
+| **Data layer** | TanStack Query | 5.x |
+| **Forms** | React Hook Form + Zod | — |
+| **UI primitives** | Radix UI + shadcn-style components | — |
+| **Charts** | Recharts | 3.x |
+| **Rich text** | Tiptap | 2.x |
+| **i18n** | react-i18next (AR/EN, RTL) | — |
+| **Auth** | Laravel Sanctum (SPA) | 4.x |
+| **Public site** | Blade + Tailwind CSS | v4 |
+| **Maps** | Leaflet + OpenStreetMap | (no API key) |
 | **Database** | MySQL | 8.0+ |
-| **Frontend** | Blade + Tailwind CSS | v4 |
-| **Build tool** | Vite | 7.x |
-| **Auth (customers)** | OTP / SMS | Unifonic-ready |
+| **API docs** | Scribe (Blade + OpenAPI + Postman) | 5.x |
+| **Real-time chat** | Livewire (public AI widget only) | 3.x |
 | **Payments** | Moyasar | (planned) |
-| **AI assistant** | Anthropic Claude | (planned) |
-| **Maps** | Google Places API | (planned) |
+| **AI assistant** | Anthropic Claude | (configurable) |
 
 ---
 
 ## 🏗 Architecture
 
-The application exposes **three independent Filament panels** plus a public Blade site, each with its own auth guard:
+A single React SPA serves both panels under `/app/*`; the public customer site stays Blade. Each surface has its own Sanctum guard.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       sarha.test                            │
-├──────────────────┬──────────────────┬───────────────────────┤
-│   /              │  /admin          │  /clinic-dashboard    │
-│   Public site    │  Super admin     │  Clinic owner         │
-│   guard: web     │  guard: admin    │  guard: clinic        │
-│   model: User    │  model: Admin    │  model: Clinic        │
-│   auth: OTP      │  auth: password  │  auth: password       │
-└──────────────────┴──────────────────┴───────────────────────┘
-                            │
-                ┌───────────┴────────────┐
-                │   24 MySQL tables       │
-                │   (clinics, services,   │
-                │    bookings, articles,  │
-                │    subscriptions, …)    │
-                └─────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│                          sarha.test                                │
+├────────────────────┬───────────────────────────────────────────┤
+│   /  (Blade)        │   /app/*   (React 19 + TS SPA)             │
+│   Public site       │   ┌─────────────────┬───────────────────┐ │
+│   guard: web        │   │ /app/admin/*    │ /app/clinic/*     │ │
+│   model: User       │   │ guard: admin    │ guard: clinic     │ │
+│   auth: OTP         │   │ model: Admin    │ model: Clinic     │ │
+│                     │   └─────────────────┴───────────────────┘ │
+└────────────────────┴───────────────────────────────────────────┘
+            │                          │
+            │         REST  /api/v1/*  │  (Sanctum SPA, 3 guards)
+            └────────────┬─────────────┘
+                         │
+            ┌────────────┴─────────────┐
+            │  Services · Policies ·    │
+            │  Observers · Notifications│   ← single source of truth
+            └────────────┬─────────────┘
+                         │
+            ┌────────────┴─────────────┐
+            │   MySQL (clinics, services,│
+            │   bookings, articles,      │
+            │   subscriptions, …)        │
+            └───────────────────────────┘
 ```
 
 ---
@@ -121,102 +212,65 @@ The application exposes **three independent Filament panels** plus a public Blad
 ## 🚀 Quick Start
 
 ### Prerequisites
-- PHP **8.2+** with extensions: `pdo_mysql`, `mbstring`, `openssl`, `intl`, `gd`
-- **Composer 2.x**
-- **Node.js 18+** & **npm**
+- PHP **8.2+** with: `pdo_mysql`, `mbstring`, `openssl`, `intl`, `gd`
+- **Composer 2.x**, **Node.js 18+** & **npm**
 - **MySQL 8** (or MariaDB 10.5+)
 - **Laragon** (recommended on Windows) or any local PHP server
 
 ### Installation
 
 ```bash
-# 1) Clone the repository
+# 1) Clone
 git clone https://github.com/alneamahaqlan/sarha.git
 cd sarha
 
-# 2) Install PHP dependencies
+# 2) PHP deps
 composer install
 
-# 3) Install JS dependencies and build assets
+# 3) JS deps + build the React SPA and public assets
 npm install
 npm run build           # production
 # or: npm run dev       # hot-reload during development
 
-# 4) Configure environment
+# 4) Environment
 cp .env.example .env
 php artisan key:generate
+#   set DB_DATABASE=sarha / DB_USERNAME=root / DB_PASSWORD=
 
-# 5) Edit .env – set DB credentials
-#    DB_DATABASE=sarha
-#    DB_USERNAME=root
-#    DB_PASSWORD=
-
-# 6) Create database, run migrations, and seed sample data
+# 5) Migrate + seed sample data
 php artisan migrate --seed
 
-# 7) Link storage (so uploaded logos/images are publicly accessible)
+# 6) Link storage (uploaded logos/gallery/article covers)
 php artisan storage:link
 ```
 
-Open the site at **http://sarha.test** (Laragon vhost) or **http://localhost:8000** (`php artisan serve`).
+Open **http://sarha.test** (public) and **http://sarha.test/app/login** (panels).
 
-### Exposing locally via Cloudflare Tunnel
+### One-command dev
 
-```powershell
-& "C:\Program Files (x86)\cloudflared\cloudflared.exe" tunnel `
-    --url http://localhost:80 `
-    --http-host-header sarha.test
+```bash
+composer dev   # runs php serve + queue + pail + vite together
 ```
-
-Cloudflare will print a public `https://*.trycloudflare.com` URL.
 
 ---
 
-## 🔐 Test Credentials
+## 📚 API Documentation
 
-> Seeded automatically by `php artisan db:seed --force`. **All passwords are `password`** — change before production!
+Every panel screen is backed by a versioned REST API under `/api/v1`, documented with **Scribe**:
 
-### 🛡️ Super Admin Panel — `/admin/login`
+| Resource | URL |
+|----------|-----|
+| Interactive HTML docs | `http://sarha.test/docs` |
+| OpenAPI 3 spec (YAML) | `http://sarha.test/docs.openapi` |
+| Postman collection | `http://sarha.test/docs.postman` |
 
-| Email | Password | Role |
-|-------|----------|------|
-| `admin@saerha.sa` | `password` | super_admin |
+Regenerate after API changes:
 
-### 🏥 Complex Owner Panel — `/clinic-dashboard/login`
+```bash
+php artisan scribe:generate
+```
 
-All complex accounts use password: **`password`**
-
-| # | Complex Name | Email | Status | Plan | Featured |
-|---|--------------|-------|--------|------|----------|
-| 1 | مركز الرياض للأسنان | `mrkz-alryad-llasnan@test.sa` | ✅ active | ⭐ premium | yes |
-| 2 | مجمع الجمال والجلدية | `mgmaa-algmal-oalgldy@test.sa` | ✅ active | basic | — |
-| 3 | مركز البصر للعيون | `mrkz-albsr-llaayon@test.sa` | ✅ active | ⭐ premium | yes |
-| 4 | مجمع أطفال المستقبل | `mgmaa-atfal-almstkbl@test.sa` | ✅ active | basic | — |
-| 5 | مركز العظام والمفاصل | `mrkz-alaatham-oalmfasl@test.sa` | ✅ active | ⭐ premium | yes |
-| 6 | مجمع القلب التخصصي | `mgmaa-alklb-altkhssy@test.sa` | ⏳ pending | basic | — |
-
-> Complex #6 is **pending approval** — it cannot log in until an admin activates it from `/admin/clinics`.
-
-### 👤 Customer (Public Site) — `/login`
-
-| Method | Detail |
-|--------|--------|
-| Phone-only OTP | enter any Saudi phone (format `05XXXXXXXX`) |
-| Dev-mode shortcut | OTP code is flashed to the page when `APP_ENV=local` |
-| New users | auto-registered on first successful OTP verification |
-
-### 🌐 Language Switcher — `/lang/{ar|en}`
-
-Switches the entire UI (public site + both dashboards) between Arabic (RTL) and English (LTR). Cookie-persisted for 1 year.
-
-### 📦 Seeded Reference Data
-
-| Resource | Count | Notes |
-|----------|-------|-------|
-| Cities | 14 | الرياض، جدة، مكة، المدينة، الدمام، الخبر، الظهران، الطائف، أبها، القصيم، تبوك، جازان، نجران، حائل |
-| Categories | 14 | All major medical specialties (dentistry, dermatology, ophthalmology, etc.) with emoji icons |
-| System Settings | 8 | Subscription pricing, OTP expiry, article limits, platform contacts |
-| Audit Logs | dynamic | Auto-populated when admins perform actions (create/update/delete/activate/suspend) |
+Auth is Sanctum SPA (stateful cookies). Guards: `admin`, `clinic`, `web` — enforced by the `api.guard` middleware.
 
 ---
 
@@ -224,124 +278,122 @@ Switches the entire UI (public site + both dashboards) between Arabic (RTL) and 
 
 ```
 app/
-├── Filament/
-│   ├── Clinic/                    # Clinic-panel resources, pages, widgets
-│   │   ├── Resources/
-│   │   ├── Pages/ClinicProfile.php
-│   │   └── Widgets/ClinicStatsWidget.php
-│   ├── Concerns/
-│   │   └── HasTranslatableLabels.php   # i18n trait for resources
-│   ├── Resources/                 # Admin-panel resources (11)
-│   └── Widgets/                   # Admin dashboard widgets
 ├── Http/
-│   ├── Controllers/
-│   │   ├── Auth/OtpController.php
-│   │   ├── Public/{Home,Search,Clinic}Controller.php
-│   │   └── LanguageController.php
-│   └── Middleware/
-│       └── SetLocale.php          # cookie/header-based locale resolver
-├── Models/                        # 20 Eloquent models
-└── Providers/Filament/
-    ├── AdminPanelProvider.php     # /admin
-    └── ClinicPanelProvider.php    # /clinic-dashboard
-
-lang/
-├── ar/                            # Arabic translations
-│   ├── site.php   (~80 keys for public site)
-│   └── admin.php  (panel labels & navigation)
-└── en/                            # English mirror
-    ├── site.php
-    └── admin.php
-
-database/
-├── migrations/                    # 24 migrations
-└── seeders/DatabaseSeeder.php     # idempotent (uses updateOrCreate)
+│   ├── Controllers/Api/V1/
+│   │   ├── Admin/        # admin REST controllers (clinics, bookings, …, dashboard, analytics)
+│   │   ├── Clinic/       # clinic REST controllers (services, bookings, profile, dashboard, …)
+│   │   └── Shared/       # auth, lookups, uploads, notifications, AI chat, impersonation
+│   ├── Requests/Api/V1/  # form-request validation per resource
+│   └── Resources/Api/V1/ # API resources (JSON shaping)
+├── Services/             # ClinicService, SalesLeadService, NotificationService,
+│                         #   MassNotifyService, GoogleMapsService, GooglePlacesService,
+│                         #   GoogleSheetsImportService, AiAssistantService, AuditLogService …
+├── Observers/            # Booking/Complaint/PriceQuote/Article side effects
+├── Policies/             # per-guard authorization
+├── Models/               # Eloquent models
+├── Console/Commands/     # NotifySubscriptionExpiry, SyncGoogleReviews, SyncClinicsSheet
+└── Livewire/AiChat.php   # public-site AI widget (only remaining Livewire component)
 
 resources/
-├── css/app.css                    # Tailwind v4 entry
-├── js/app.js
-└── views/
-    ├── layouts/public.blade.php   # RTL/LTR-aware shell
-    ├── public/                    # home, search, clinic, partials
-    ├── auth/login.blade.php
-    └── filament/clinic/pages/     # custom Filament page views
+├── react-admin/src/      # ← React 19 + TS SPA (admin + clinic panels)
+│   ├── app/              # routes, layouts (Admin/Clinic/MobileNav), providers (Auth/Locale)
+│   ├── features/         # one folder per resource: api.ts, hooks.ts, pages/, components/
+│   ├── components/ui/    # shadcn-style primitives (Radix)
+│   ├── components/forms/ # FileUpload, RichEditor
+│   └── locales/{ar,en}/  # admin.json (panel translations)
+├── views/
+│   ├── react-admin.blade.php   # SPA shell mounted at /app/*
+│   ├── layouts/public.blade.php
+│   ├── public/                 # home, search, clinic, partials (incl. Leaflet map)
+│   └── vendor/pagination/      # custom RTL pagination view
+└── css / js              # public-site Tailwind + Livewire bridge
+
+lang/{ar,en}/             # site.php (public) + admin.php (notifications, validation)
+database/
+├── migrations/
+└── seeders/DatabaseSeeder.php   # idempotent (updateOrCreate)
+routes/
+├── api.php               # /api/v1/* (admin, clinic, shared groups)
+└── web.php               # public site + /app/{any} SPA catch-all
 ```
 
 ---
 
 ## 🌐 Bilingual Support
 
-Saerha is **fully bilingual by design**. The locale resolution chain runs on every request:
+Saerha is **fully bilingual by design**. Locale resolution per request:
 
 ```
 Cookie (app_locale)  →  Browser Accept-Language  →  config('app.locale')
 ```
 
-### What's translated
-
 | Surface | Mechanism | Status |
 |---------|-----------|--------|
-| Public site UI | `lang/{locale}/site.php` + `@lang()` | ✅ Complete |
-| Filament built-in UI | Filament's bundled locale files | ✅ Auto |
-| Filament navigation groups | `NavigationGroup::make()->label(closure)` | ✅ Complete |
-| Filament resource labels | `HasTranslatableLabels` trait | ✅ Complete |
-| Cities & Categories | `display_name` accessor (`name` vs `name_en`) | ✅ Complete |
-| Form/table field labels | Hardcoded Arabic | ⏳ Future |
+| Public site UI | `lang/{locale}/site.php` + `@lang()` | ✅ |
+| React panels | `react-i18next` + `locales/{ar,en}/admin.json` | ✅ |
+| Sidebar groups & nav | translation keys | ✅ |
+| Cities & Categories | `display_name` accessor (`name` vs `name_en`) | ✅ |
+| Notifications & emails | `lang/{locale}/admin.php` | ✅ |
 
-### Switching languages
-
-| User type | How |
-|-----------|-----|
-| Public visitor | Click `English` / `العربية` button in the navbar |
-| Admin / Clinic | Open user-menu (top-right) → click language toggle |
-| Direct URL | `GET /lang/en` or `/lang/ar` (cookie-persisted, 1 year) |
-
-The `<html lang dir>` attribute, font family (Cairo ↔ Inter), and Filament panel direction (RTL ↔ LTR) all switch automatically.
+Switch via the navbar (public), the header toggle (panels), or `GET /lang/{ar|en}` (cookie-persisted, 1 year). The `<html lang dir>`, fonts (Cairo ↔ Inter), and panel layout direction all flip automatically.
 
 ---
 
 ## 🗺 Routes Map
 
 ```
-GET    /                          home
-GET    /search                    search results
+# Public (Blade)
+GET    /                          home (+ clinics map)
+GET    /search                    search results (+ map, geo-sort)
 GET    /clinic/{slug}             clinic profile
 POST   /clinic/{slug}/book        booking submission
+POST   /clinic/{slug}/quote       price-quote request
+GET    /login · /login/send-otp · /login/verify · /logout    OTP auth
 GET    /lang/{ar|en}              language switcher
 
-GET    /login                     OTP login (step 1)
-POST   /login/send-otp            send code
-POST   /login/verify              verify code
-POST   /logout                    customer logout
+# React SPA shell
+GET    /app/{any}                 admin + clinic panels (React Router)
 
-/admin/...                        Filament super-admin panel (auth: admin)
-/clinic-dashboard/...             Filament clinic panel (auth: clinic)
+# REST API (Sanctum SPA)
+POST   /api/v1/auth/login · /auth/logout · /auth/me
+*      /api/v1/admin/*            admin resources + dashboard + analytics
+*      /api/v1/clinic/*           clinic resources + profile + subscription
+*      /api/v1/{uploads,lookups,notifications,ai-chat,impersonation}
+
+# Docs
+GET    /docs · /docs.openapi · /docs.postman
 ```
 
-Run `php artisan route:list` for the full list (~56 routes).
+Run `php artisan route:list` for the full list (~130 routes).
 
 ---
 
 ## 🛣 Roadmap
 
 - [x] Phase 1: Public site with search, booking, OTP auth
-- [x] Phase 2: Clinic dashboard with services/articles/bookings
+- [x] Phase 2: Clinic dashboard (services / articles / bookings)
 - [x] Phase 3: Super-admin panel with full CRUD + widgets
 - [x] Bilingual support (AR/EN) with RTL/LTR
+- [x] **Filament → React + TypeScript migration** (panels are now a Sanctum-backed SPA)
+- [x] REST API (`/api/v1`) + Scribe/OpenAPI documentation (~130 routes)
+- [x] Analytics page + per-clinic stats + sales pipeline follow-up badges
+- [x] Clinic working hours, Google Maps coords, Google reviews sync, subscription page
+- [x] Interactive maps (homepage + search), nearest-geolocation sort
+- [x] Google Sheets clinic import + 6-hour auto-sync
+- [x] Mass notifications (in-app / email / both) + smart nav badges
 - [x] Trusted proxies for Cloudflare Tunnel deployment
 - [ ] Unifonic SMS integration for production OTP
 - [ ] Moyasar payment gateway for subscriptions
-- [ ] Google Places API for clinic verification & reviews
-- [ ] AI assistant (Anthropic Claude) for content generation
+- [ ] `.xlsx` import (needs PhpSpreadsheet dependency)
+- [ ] Claude API wiring for the public AI chat (currently local matching)
 - [ ] Push notifications (web + mobile)
-- [ ] Translate form/table field labels (~200 strings)
 - [ ] Mobile apps (Flutter / React Native)
 
 ---
 
 ## 📄 License
 
-Released under the [MIT License](https://opensource.org/licenses/MIT). Built on top of [Laravel](https://laravel.com) and [Filament](https://filamentphp.com), each under their respective open-source licenses.
+Released under the [MIT License](https://opensource.org/licenses/MIT). Built on top of [Laravel](https://laravel.com) and [React](https://react.dev), each under their respective open-source licenses.
 
 ---
 
