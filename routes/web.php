@@ -9,6 +9,11 @@ use App\Http\Controllers\Public\SearchController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
+// React admin SPA shell — all /app/* routes return the same HTML, React Router handles routing.
+Route::get('/app/{any?}', fn () => view('react-admin'))
+    ->where('any', '.*')
+    ->name('react-admin');
+
 // SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Route::get('/robots.txt', [SitemapController::class, 'robots']);

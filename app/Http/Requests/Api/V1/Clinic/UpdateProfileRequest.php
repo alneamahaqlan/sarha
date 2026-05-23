@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Http\Requests\Api\V1\Clinic;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
+
+class UpdateProfileRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user('clinic') !== null;
+    }
+
+    public function rules(): array
+    {
+        // Mirrors ClinicProfile page form fields exactly.
+        return [
+            'name'        => ['sometimes', 'required', 'string', 'max:255'],
+            'phone'       => ['sometimes', 'required', 'string', 'max:20'],
+            'email'       => ['nullable', 'email', 'max:255'],
+            'address'     => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'website'     => ['nullable', 'url'],
+            'instagram'   => ['nullable', 'string', 'max:255'],
+            'twitter'     => ['nullable', 'string', 'max:255'],
+            'snapchat'    => ['nullable', 'string', 'max:255'],
+            'logo'        => ['nullable', 'string'],
+            'password'    => ['nullable', Password::min(8)],
+        ];
+    }
+}

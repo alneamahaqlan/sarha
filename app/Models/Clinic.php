@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -11,7 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 
-class Clinic extends Authenticatable implements FilamentUser
+class Clinic extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
@@ -44,11 +42,6 @@ class Clinic extends Authenticatable implements FilamentUser
                 $clinic->slug = Str::slug($clinic->name);
             }
         });
-    }
-
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return $this->status === 'active';
     }
 
     public function isSubscriptionActive(): bool

@@ -1,0 +1,163 @@
+import { NavLink, Outlet } from 'react-router-dom';
+import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2 } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+
+import { useAuth } from '@/app/providers/AuthProvider';
+import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { apiClient } from '@/lib/api-client';
+import { queryClient } from '@/lib/query-client';
+import { cn } from '@/lib/utils';
+import { NotificationBell } from '@/features/notifications/NotificationBell';
+import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
+import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
+import { useClinicNavBadges, type ClinicNavBadges } from '@/features/nav-badges/hooks';
+import { MobileNav } from './MobileNav';
+
+const clinicNav = [
+  { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
+  {
+    group: 'clinic_nav.group.my_services',
+    items: [
+      { to: '/clinic/services', label: 'clinic_nav.services', icon: Sparkles },
+      { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
+      { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.bookings',
+    items: [
+      { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
+      { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.articles',
+    items: [
+      { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText },
+    ],
+  },
+  {
+    group: 'clinic_nav.group.settings',
+    items: [
+      { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
+    ],
+  },
+];
+
+export function ClinicLayout() {
+  const { user } = useAuth();
+  const { t } = useTranslation();
+  const { locale, setLocale } = useLocale();
+  const { data: badges } = useClinicNavBadges();
+
+  const logout = useMutation({
+    mutationFn: () => apiClient.post('/auth/logout'),
+    onSuccess: () => {
+      queryClient.clear();
+      window.location.href = '/app/login';
+    },
+  });
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <ImpersonationBanner />
+      <div className="flex flex-1">
+      <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
+        <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
+          {user?.user.name ?? t('clinic_brand')}
+        </div>
+        <nav className="flex-1 space-y-2 overflow-y-auto p-2">
+          {clinicNav.map((entry, idx) => {
+            if ('group' in entry) {
+              return (
+                <div key={`g-${idx}`} className="space-y-1">
+                  <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
+                    {t(entry.group)}
+                  </div>
+                  {entry.items.map((item) => {
+                    const Icon = item.icon;
+                    const count = item.badge ? badges?.[item.badge] ?? 0 : 0;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                            isActive
+                              ? 'bg-[var(--color-primary)] text-white'
+                              : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                          )
+                        }
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="flex-1">{t(item.label)}</span>
+                        {count > 0 && (
+                          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
+                            {count > 99 ? '99+' : count}
+                          </span>
+                        )}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              );
+            }
+            const Icon = entry.icon;
+            return (
+              <NavLink
+                key={entry.to}
+                to={entry.to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-[var(--color-primary)] text-white'
+                      : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
+                  )
+                }
+              >
+                <Icon className="h-4 w-4" />
+                <span className="flex-1">{t(entry.label)}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <div className="flex flex-1 flex-col">
+        <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
+          <div className="flex items-center gap-2 md:hidden">
+            <MobileNav items={clinicNav} title={user?.user.name ?? t('clinic_brand')} badges={badges} />
+            <span className="text-sm font-medium">{user?.user.name}</span>
+          </div>
+          <div className="ms-auto flex items-center gap-2">
+            <NotificationBell />
+            <button
+              type="button"
+              onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--color-border)] px-3 text-xs font-medium hover:bg-[var(--color-muted)]"
+            >
+              <Languages className="h-3 w-3" />
+              {locale === 'ar' ? 'English' : 'العربية'}
+            </button>
+            <button
+              type="button"
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
+              className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
+            >
+              <LogOut className="h-3 w-3" />
+              {t('common.logout')}
+            </button>
+          </div>
+        </header>
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </div>
+      </div>
+      <AiChatWidget />
+    </div>
+  );
+}

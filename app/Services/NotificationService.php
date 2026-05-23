@@ -24,7 +24,7 @@ class NotificationService
         $this->broadcastToAdmins(
             type: 'new_booking',
             icon: 'heroicon-o-calendar',
-            url: route('filament.admin.resources.bookings.edit', $booking),
+            url: '/app/admin/bookings',
             priority: 'normal',
             title: __('admin.notif.new_booking_title'),
             body:  __('admin.notif.new_booking_body', [
@@ -40,7 +40,7 @@ class NotificationService
         $this->broadcastToAdmins(
             type: 'new_complaint',
             icon: 'heroicon-o-exclamation-triangle',
-            url: route('filament.admin.resources.complaints.edit', $complaint),
+            url: '/app/admin/complaints',
             priority: $complaint->priority === 'high' ? 'high' : 'normal',
             title: __('admin.notif.new_complaint_title'),
             body:  __('admin.notif.new_complaint_body', [
@@ -58,7 +58,7 @@ class NotificationService
                 $quote->clinic,
                 type: 'new_price_quote',
                 icon: 'heroicon-o-currency-dollar',
-                url: route('filament.clinic.resources.price-quote-requests.edit', $quote),
+                url: '/app/clinic/price-quotes',
                 priority: 'high',
                 title: __('admin.notif.new_quote_title'),
                 body:  __('admin.notif.new_quote_body', [
@@ -77,7 +77,7 @@ class NotificationService
             $booking->clinic,
             type: 'new_booking',
             icon: 'heroicon-o-calendar',
-            url: route('filament.clinic.resources.bookings.edit', $booking),
+            url: '/app/clinic/bookings',
             priority: 'high',
             title: __('admin.notif.new_booking_clinic_title'),
             body:  __('admin.notif.new_booking_clinic_body', [
@@ -93,7 +93,7 @@ class NotificationService
         $this->broadcastToAdmins(
             type: 'lead_converted',
             icon: 'heroicon-o-check-badge',
-            url: route('filament.admin.resources.clinics.edit', $clinic),
+            url: '/app/admin/clinics',
             priority: 'normal',
             title: __('admin.notif.lead_converted_title'),
             body:  __('admin.notif.lead_converted_body', ['clinic' => $clinic->name]),
@@ -121,7 +121,7 @@ class NotificationService
         $this->broadcastToAdmins(
             type: 'subscription_expiring',
             icon: 'heroicon-o-clock',
-            url: route('filament.admin.resources.clinics.edit', $clinic),
+            url: '/app/admin/clinics',
             priority: 'high',
             title: $title,
             body:  $body,
@@ -144,7 +144,7 @@ class NotificationService
         $this->broadcastToAdmins(
             type: 'subscription_expired',
             icon: 'heroicon-o-x-circle',
-            url: route('filament.admin.resources.clinics.edit', $clinic),
+            url: '/app/admin/clinics',
             priority: 'high',
             title: __('admin.notif.expired_title_admin', ['clinic' => $clinic->name]),
             body:  __('admin.notif.expired_body_admin'),
