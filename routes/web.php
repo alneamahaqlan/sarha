@@ -37,6 +37,7 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
 // Public website
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/search/suggest', [SearchController::class, 'suggest'])->middleware('throttle:60,1')->name('search.suggest');
 Route::get('/compare', [CompareController::class, 'index'])->name('compare');
 
 // Fire-and-forget click tracking for clinic action buttons (sendBeacon, CSRF-excluded).
