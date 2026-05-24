@@ -148,6 +148,33 @@ class Clinic extends Authenticatable
         return $this->hasMany(SubClinic::class)->orderBy('sort_order')->orderBy('name');
     }
 
+    public function doctors()
+    {
+        return $this->hasMany(Doctor::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /** Unfiltered doctors (active + inactive) — used by the clinic panel. */
+    public function doctorsAll()
+    {
+        return $this->hasMany(Doctor::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function packages()
+    {
+        return $this->hasMany(Package::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /** Unfiltered packages (active + inactive) — used by the clinic panel. */
+    public function packagesAll()
+    {
+        return $this->hasMany(Package::class)->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function categoryRequests()
+    {
+        return $this->hasMany(CategoryRequest::class);
+    }
+
     public function whatsappLink(?string $message = null): string
     {
         $phone = preg_replace('/\D/', '', $this->phone ?? '');

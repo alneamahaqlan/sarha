@@ -34,8 +34,11 @@ class DemoSeeder extends Seeder
         $this->seedAdmins();
         $this->seedUsers();
         $this->seedClinics();
-        $this->seedClinicChildren();   // working hours, custom categories, sub-clinics, pivot
+        $this->seedClinicChildren();   // working hours, sub-clinics, category pivot
         $this->seedServices();
+        $this->seedFeaturedOffers();
+        $this->seedDoctors();
+        $this->seedPackages();
         $this->seedArticles();
         $this->seedBookings();
         $this->seedPriceQuotes();
@@ -270,12 +273,85 @@ class DemoSeeder extends Seeder
                     'name'             => $this->pick($names),
                     'description'      => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
                     'price'            => $price,
-                    'old_price'        => $hasOffer ? $price + rand(50, 500) : null,
-                    'offer_expires_at' => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
+                    'old_price'         => $hasOffer ? $price + rand(50, 500) : null,
+                    'offer_expires_at'  => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
+                    'is_featured_offer' => $hasOffer,
+                    'is_active'         => true,
+                    'sort_order'        => $j,
+                    'created_at'        => $this->ts(rand(1, 120)),
+                    'updated_at'        => $this->now,
+                ]);
+            }
+        }
+    }
+
+    /** Flag discounted services as "featured offers" so the offers tab has demo data. */
+    private function seedFeaturedOffers(): void
+    {
+        DB::table('services')
+            ->whereNotNull('old_price')
+            ->where('is_featured_offer', false)
+            ->update(['is_featured_offer' => true]);
+    }
+
+    private function seedDoctors(): void
+    {
+        if (DB::table('doctors')->count() >= 24) return;
+        $specialties = ['استشاري جراحة عامة', 'أخصائي أسنان', 'استشاري جلدية', 'أخصائي عيون', 'استشاري نساء وولادة', 'أخصائي أطفال', 'استشاري عظام', 'أخصائي باطنية'];
+        $first = ['د. أحمد', 'د. سارة', 'د. خالد', 'د. نورة', 'د. محمد', 'د. ريم', 'د. عبدالله', 'د. منى'];
+        $last  = ['العتيبي', 'الزهراني', 'القحطاني', 'الشمري', 'الدوسري', 'الحربي', 'الغامدي', 'المالكي'];
+
+        foreach ($this->ids('clinics') as $cid) {
+            if (DB::table('doctors')->where('clinic_id', $cid)->exists()) continue;
+            $n = rand(2, 4);
+            for ($j = 0; $j < $n; $j++) {
+                DB::table('doctors')->insert([
+                    'clinic_id'        => $cid,
+                    'name'             => $this->pick($first) . ' ' . $this->pick($last),
+                    'specialty'        => $this->pick($specialties),
+                    'photo'            => null,
+                    'bio'              => 'خبرة واسعة في تشخيص وعلاج الحالات بأحدث التقنيات الطبية.',
+                    'years_experience' => rand(3, 25),
                     'is_active'        => true,
                     'sort_order'       => $j,
-                    'created_at'       => $this->ts(rand(1, 120)),
+                    'created_at'       => $this->now,
                     'updated_at'       => $this->now,
+                ]);
+            }
+        }
+    }
+
+    private function seedPackages(): void
+    {
+        if (DB::table('packages')->count() >= 12) return;
+        $names = ['باقة العناية المتكاملة', 'باقة الابتسامة', 'باقة الفحص الشامل', 'باقة التجميل', 'باقة الأمومة'];
+        $svcByClinic = DB::table('services')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+
+        foreach ($this->ids('clinics') as $cid) {
+            if (DB::table('packages')->where('clinic_id', $cid)->exists()) continue;
+            $svc = $svcByClinic[$cid] ?? collect();
+            if ($svc->count() < 2) continue;
+
+            $price = rand(300, 1500);
+            $packageId = DB::table('packages')->insertGetId([
+                'clinic_id'   => $cid,
+                'name'        => $this->pick($names),
+                'description' => 'باقة مميزة تجمع عدة خدمات بسعر موفّر.',
+                'price'       => $price,
+                'old_price'   => $price + rand(100, 600),
+                'expires_at'  => $this->now->copy()->addDays(rand(10, 60))->toDateString(),
+                'is_active'   => true,
+                'sort_order'  => 0,
+                'created_at'  => $this->now,
+                'updated_at'  => $this->now,
+            ]);
+
+            foreach ($svc->take(rand(2, min(3, $svc->count()))) as $s) {
+                DB::table('package_service')->insert([
+                    'package_id' => $packageId,
+                    'service_id' => $s->id,
+                    'created_at' => $this->now,
+                    'updated_at' => $this->now,
                 ]);
             }
         }
@@ -355,6 +431,61 @@ class DemoSeeder extends Seeder
                 'created_at'     => $this->ts(rand(0, 45)),
                 'updated_at'     => $this->now,
             ]);
+        }
+
+        $this->seedBroadcastQuotes();
+    }
+
+    /** Broadcast quote requests (no clinic) targeting cities, with public/private replies. */
+    private function seedBroadcastQuotes(): void
+    {
+        if (DB::table('price_quote_requests')->whereNull('clinic_id')->count() >= 10) {
+            return;
+        }
+
+        $cityIds = collect($this->ids('cities'));
+        $userIds = $this->ids('users');
+        $services = ['زراعة أسنان', 'عملية ليزك', 'جلسات تنحيف', 'تقويم شفاف', 'باقة عناية شاملة'];
+        $clinicsByCity = DB::table('clinics')->where('status', 'active')->get(['id', 'city_id'])->groupBy('city_id');
+
+        for ($i = 0; $i < 10; $i++) {
+            $cities = $cityIds->shuffle()->take(rand(1, 2))->values();
+
+            $reqId = DB::table('price_quote_requests')->insertGetId([
+                'clinic_id'      => null,
+                'user_id'        => $this->pick($userIds),
+                'customer_name'  => 'طالب عرض ' . ($i + 1),
+                'customer_phone' => $this->phone(600000 + $i),
+                'service_name'   => $this->pick($services),
+                'description'    => 'أرغب بمعرفة السعر التقريبي والمدة وأقرب موعد متاح، مع تفاصيل الباقة إن وُجدت.',
+                'status'         => 'replied',
+                'created_at'     => $this->ts(rand(0, 20)),
+                'updated_at'     => $this->now,
+            ]);
+
+            foreach ($cities as $cid) {
+                DB::table('price_quote_request_city')->insertOrIgnore([
+                    'price_quote_request_id' => $reqId,
+                    'city_id'                => $cid,
+                ]);
+            }
+
+            $clinics = collect();
+            foreach ($cities as $cid) {
+                $clinics = $clinics->merge($clinicsByCity[$cid] ?? collect());
+            }
+
+            foreach ($clinics->take(rand(1, 3))->values() as $idx => $clinic) {
+                DB::table('price_quote_replies')->insertOrIgnore([
+                    'price_quote_request_id' => $reqId,
+                    'clinic_id'              => $clinic->id,
+                    'body'                   => 'يسعدنا خدمتك. السعر يبدأ من ' . rand(500, 5000) . ' ريال حسب الحالة، ويمكن تحديد موعد خلال 48 ساعة.',
+                    'price'                  => rand(500, 5000),
+                    'is_public'              => $idx === 0, // first reply is public (feeds the board)
+                    'created_at'             => $this->now,
+                    'updated_at'             => $this->now,
+                ]);
+            }
         }
     }
 

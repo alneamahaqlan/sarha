@@ -23,4 +23,20 @@ class PriceQuoteRequest extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /** Cities this broadcast request targets — every clinic in them sees it. */
+    public function cities()
+    {
+        return $this->belongsToMany(City::class, 'price_quote_request_city');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(PriceQuoteReply::class);
+    }
+
+    public function publicReplies()
+    {
+        return $this->hasMany(PriceQuoteReply::class)->where('is_public', true);
+    }
 }

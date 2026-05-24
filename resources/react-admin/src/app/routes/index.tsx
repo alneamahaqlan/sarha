@@ -29,11 +29,14 @@ const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/Audit
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
 const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
+const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
 
 const ClinicDashboardPage = lazy(() => import('@/features/clinic/dashboard/pages/ClinicDashboardPage').then(m => ({ default: m.ClinicDashboardPage })));
 const ClinicMyStatsPage   = lazy(() => import('@/features/clinic/stats/pages/ClinicMyStatsPage').then(m => ({ default: m.ClinicMyStatsPage })));
 const ClinicServicesIndex = lazy(() => import('@/features/clinic/services/pages/ClinicServicesIndex').then(m => ({ default: m.ClinicServicesIndex })));
 const ClinicSubClinicsIndex = lazy(() => import('@/features/clinic/sub-clinics/pages/ClinicSubClinicsIndex').then(m => ({ default: m.ClinicSubClinicsIndex })));
+const ClinicDoctorsIndex  = lazy(() => import('@/features/clinic/doctors/pages/ClinicDoctorsIndex').then(m => ({ default: m.ClinicDoctorsIndex })));
+const ClinicPackagesIndex = lazy(() => import('@/features/clinic/packages/pages/ClinicPackagesIndex').then(m => ({ default: m.ClinicPackagesIndex })));
 const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
 const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/ClinicArticlesIndex').then(m => ({ default: m.ClinicArticlesIndex })));
@@ -98,6 +101,7 @@ export function AppRoutes() {
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
+              <Route path="category-requests" element={<CategoryRequestsIndex />} />
             </Route>
           </Route>
           <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />
@@ -119,6 +123,8 @@ export function AppRoutes() {
               <Route path="stats" element={<ClinicMyStatsPage />} />
               <Route path="services" element={<ClinicServicesIndex />} />
               <Route path="sub-clinics" element={<ClinicSubClinicsIndex />} />
+              <Route path="doctors" element={<ClinicDoctorsIndex />} />
+              <Route path="packages" element={<ClinicPackagesIndex />} />
               <Route path="bookings" element={<ClinicBookingsIndex />} />
               <Route path="price-quotes" element={<ClinicQuotesIndex />} />
               <Route path="articles" element={<ClinicArticlesIndex />} />

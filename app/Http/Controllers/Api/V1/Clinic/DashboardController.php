@@ -102,8 +102,10 @@ class DashboardController extends Controller
 
         return response()->json([
             'data' => [
-                'price_quotes' => PriceQuoteRequest::where('clinic_id', $clinicId)
-                    ->where('status', 'new')->count(),
+                // Broadcast requests targeting this complex's city that it hasn't replied to yet.
+                'price_quotes' => PriceQuoteRequest::whereHas('cities', fn ($q) => $q->where('cities.id', $clinic->city_id))
+                    ->whereDoesntHave('replies', fn ($q) => $q->where('clinic_id', $clinicId))
+                    ->count(),
                 'subscription_expiring' => $subscriptionExpiring,
                 'offer_expiring'        => $offerExpiring,
             ],

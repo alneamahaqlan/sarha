@@ -450,9 +450,17 @@ return [
         'old_price_helper' => 'When filled, must be greater than current price and the offer expiry becomes required',
         'offer_expires_helper' => 'Required when an old price is set (so the offer badge can be displayed)',
         'profile_saved' => 'Changes saved successfully',
-        'city_has_clinics' => 'Cannot delete a city that has clinics',
-        'category_has_clinics' => 'Cannot delete a category that has clinics',
+        'city_has_clinics' => 'Cannot delete a city that has complexes',
+        'category_has_clinics' => 'Cannot delete a category that has complexes',
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
+    ],
+
+    // Specialty (category) requests submitted by complexes
+    'category_requests' => [
+        'submitted' => 'Your specialty request was sent to the admins for review',
+        'approved' => 'Specialty approved and added',
+        'rejected' => 'Specialty request rejected',
+        'already_reviewed' => 'This request has already been reviewed',
     ],
 
     // ============================================

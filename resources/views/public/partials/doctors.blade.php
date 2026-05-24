@@ -1,0 +1,37 @@
+{{--
+    Doctors showcase tab. Expects: $clinic with `doctors` loaded.
+--}}
+@if($clinic->doctors->isEmpty())
+    <div class="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">
+        @lang('site.no_doctors_yet')
+    </div>
+@else
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        @foreach($clinic->doctors as $doctor)
+            <div class="bg-white rounded-xl shadow-sm p-5 flex gap-4 items-start">
+                @if($doctor->photo)
+                    <img src="{{ Storage::url($doctor->photo) }}" alt="{{ $doctor->name }}" loading="lazy"
+                         class="h-16 w-16 rounded-full object-cover flex-shrink-0">
+                @else
+                    <span class="h-16 w-16 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center flex-shrink-0">
+                        <x-icon name="user" class="w-8 h-8" />
+                    </span>
+                @endif
+                <div class="min-w-0">
+                    <h3 class="font-bold text-gray-800">{{ $doctor->name }}</h3>
+                    @if($doctor->specialty)
+                        <p class="text-sm text-teal-700">{{ $doctor->specialty }}</p>
+                    @endif
+                    @if($doctor->years_experience)
+                        <p class="text-xs text-gray-500 mt-0.5">
+                            {{ __('site.years_experience', ['count' => $doctor->years_experience]) }}
+                        </p>
+                    @endif
+                    @if($doctor->bio)
+                        <p class="text-sm text-gray-600 mt-2 leading-relaxed">{{ Str::limit($doctor->bio, 140) }}</p>
+                    @endif
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif

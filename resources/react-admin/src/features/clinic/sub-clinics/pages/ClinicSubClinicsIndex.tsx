@@ -28,6 +28,42 @@ import {
   useClinicSubClinics, useCreateClinicSubClinic, useDeleteClinicSubClinic, useUpdateClinicSubClinic,
 } from '../hooks';
 import type { ClinicSubClinic } from '../api';
+import { useCreateClinicCategoryRequest } from '@/features/clinic/category-requests/hooks';
+
+function RequestSpecialtyInline() {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const submit = useCreateClinicCategoryRequest();
+
+  const send = async () => {
+    if (!name.trim()) return;
+    try {
+      const res = await submit.mutateAsync(name.trim());
+      toast.success(res.message ?? t('clinic_sub_clinics.specialty_requested'));
+      setName(''); setOpen(false);
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
+  if (!open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)}
+        className="mt-1 inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline">
+        <Plus className="h-3 w-3" /> {t('clinic_sub_clinics.request_specialty')}
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex items-center gap-2">
+      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('clinic_sub_clinics.request_specialty_placeholder')} className="h-8 text-sm" />
+      <Button type="button" size="sm" onClick={send} disabled={submit.isPending}>{t('common.save')}</Button>
+      <Button type="button" size="sm" variant="ghost" onClick={() => { setOpen(false); setName(''); }}>{t('common.cancel')}</Button>
+    </div>
+  );
+}
 
 const schema = z.object({
   name: z.string().min(1).max(255),
@@ -96,6 +132,7 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
                 <option value="">—</option>
                 {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </Select>
+              <RequestSpecialtyInline />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinic_sub_clinics.description')}</Label>

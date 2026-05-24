@@ -5,6 +5,7 @@
             $items = [
                 ['route' => 'account.show',      'label' => 'site.account_profile',      'icon' => 'user'],
                 ['route' => 'account.bookings',  'label' => 'site.account_my_bookings',  'icon' => 'calendar'],
+                ['route' => 'account.quotes',    'label' => 'site.account_my_quotes',    'icon' => 'clipboard'],
                 ['route' => 'account.favorites', 'label' => 'site.account_my_favorites', 'icon' => 'star'],
             ];
         @endphp

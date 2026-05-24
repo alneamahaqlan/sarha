@@ -1,17 +1,39 @@
 import { apiClient } from '@/lib/api-client';
 import type { PaginatedResponse, SingleResponse } from '@/types/api';
-import type { PriceQuote, PriceQuoteStatus } from '@/features/price-quotes/types';
 
-export interface ClinicQuoteUpdateValues {
-  status?: PriceQuoteStatus;
-  clinic_reply?: string | null;
+export type ClinicQuoteFilter = 'pending' | 'replied';
+
+export interface QuoteReply {
+  id: number;
+  body: string;
+  price: number | null;
+  is_public: boolean;
+}
+
+export interface BroadcastQuote {
+  id: number;
+  customer_name: string;
+  customer_phone: string;
+  service_name: string;
+  description: string | null;
+  status: string;
+  created_at: string | null;
+  cities: { id: number; name: string }[];
+  replies_count: number;
+  my_reply: QuoteReply | null;
+}
+
+export interface QuoteReplyValues {
+  body: string;
+  price?: number | null;
+  is_public?: boolean;
 }
 
 export interface ListParams {
   page?: number;
   per_page?: number;
   search?: string;
-  filter?: { status?: PriceQuoteStatus };
+  filter?: { status?: ClinicQuoteFilter };
 }
 
 function buildParams(p: ListParams) {
@@ -25,11 +47,11 @@ function buildParams(p: ListParams) {
 
 export const clinicQuotesApi = {
   list: async (params: ListParams = {}) => {
-    const res = await apiClient.get<PaginatedResponse<PriceQuote>>('/clinic/price-quotes', { params: buildParams(params) });
+    const res = await apiClient.get<PaginatedResponse<BroadcastQuote>>('/clinic/price-quotes', { params: buildParams(params) });
     return res.data;
   },
-  update: async (id: number, values: ClinicQuoteUpdateValues) => {
-    const res = await apiClient.patch<SingleResponse<PriceQuote>>(`/clinic/price-quotes/${id}`, values);
+  reply: async (id: number, values: QuoteReplyValues) => {
+    const res = await apiClient.post<SingleResponse<BroadcastQuote>>(`/clinic/price-quotes/${id}/reply`, values);
     return res.data.data;
   },
 };

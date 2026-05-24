@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
+use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 
 class ClinicController extends Controller
 {
+    use IdentifiesCustomer;
+
     public function show(string $slug)
     {
         $clinic = Clinic::publiclyVisible()
@@ -22,6 +27,9 @@ class ClinicController extends Controller
                 // Sub-clinics + their active services for the nested services tab.
                 'subClinics.category',
                 'subClinics.services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                // Doctors showcase + packages (with their services) for their tabs.
+                'doctors',
+                'packages.services' => fn($q) => $q->where('is_active', true),
                 'articles' => fn($q) => $q->where('is_published', true)->latest()->limit(6),
                 'googleReviews' => fn($q) => $q->where('is_visible', true)->latest('reviewed_at')->limit(20),
                 'workingHours' => fn($q) => $q->orderBy('day_of_week'),
@@ -60,7 +68,10 @@ class ClinicController extends Controller
             ? $clinic->services->firstWhere('id', $request->integer('service'))
             : null;
 
-        return view('public.booking-form', compact('clinic', 'service'));
+        // Returning customer's saved identity (from a prior verified booking).
+        $identity = $this->customerIdentity($request);
+
+        return view('public.booking-form', compact('clinic', 'service', 'identity'));
     }
 
     public function book(Request $request, string $slug)
@@ -68,9 +79,7 @@ class ClinicController extends Controller
         $clinic = Clinic::publiclyVisible()->where('slug', $slug)->firstOrFail();
 
         if (auth('web')->check() && ! auth('web')->user()->is_active) {
-            return back()->withErrors([
-                'account' => __('site.account_blocked'),
-            ])->withInput();
+            return back()->withErrors(['account' => __('site.account_blocked')])->withInput();
         }
 
         $validated = $request->validate([
@@ -82,20 +91,98 @@ class ClinicController extends Controller
             'customer_phone.regex' => __('site.phone_invalid'),
         ]);
 
+        // A logged-in customer, or a returning device whose saved phone matches,
+        // skips OTP. First-time guests must verify once (registers them).
+        if ($this->customerVerified($request, $validated['customer_phone'])) {
+            $booking = $this->createBooking($clinic, $validated);
+
+            return redirect()->route('booking.confirmation', $booking->reference_code)
+                ->withCookie($this->identityCookie($validated['customer_name'], $validated['customer_phone']));
+        }
+
+        // First-time: generate + send OTP, stash the pending booking, show the step.
+        $otp = OtpCode::generate($validated['customer_phone'], 'booking');
+        app(SmsService::class)->send($validated['customer_phone'], __('site.otp_sms', ['code' => $otp->code]));
+        session()->put('pending_booking', $validated + ['slug' => $slug]);
+
+        $redirect = back()
+            ->with('otp_required', true)
+            ->with('otp_phone', $validated['customer_phone'])
+            ->withInput();
+
+        if (app()->environment('local')) {
+            $redirect->with('dev_code', $otp->code);
+        }
+
+        return $redirect;
+    }
+
+    /** Verify the one-time code for a first booking, register the customer, then store the booking. */
+    public function bookVerify(Request $request, string $slug)
+    {
+        $request->validate(['code' => 'required|string|size:6']);
+
+        $pending = session('pending_booking');
+        if (! $pending || ($pending['slug'] ?? null) !== $slug) {
+            return redirect()->route('clinic.book.form', $slug)
+                ->withErrors(['code' => __('site.booking_session_expired')]);
+        }
+
+        $clinic = Clinic::publiclyVisible()->where('slug', $slug)->firstOrFail();
+
+        $otp = OtpCode::where('phone', $pending['customer_phone'])
+            ->where('code', $request->string('code'))
+            ->where('purpose', 'booking')
+            ->where('is_used', false)
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+
+        if (! $otp) {
+            return back()
+                ->with('otp_required', true)
+                ->with('otp_phone', $pending['customer_phone'])
+                ->withErrors(['code' => __('site.otp_invalid')]);
+        }
+
+        $otp->update(['is_used' => true]);
+
+        $user = $this->resolveCustomerUser($pending['customer_name'], $pending['customer_phone']);
+
+        if (! $user->is_active) {
+            session()->forget('pending_booking');
+            return redirect()->route('clinic.book.form', $slug)->withErrors(['account' => __('site.account_blocked')]);
+        }
+
+        auth('web')->login($user, true);
+
+        $booking = $this->createBooking($clinic, $pending);
+        session()->forget('pending_booking');
+
+        return redirect()->route('booking.confirmation', $booking->reference_code)
+            ->withCookie($this->identityCookie($pending['customer_name'], $pending['customer_phone']));
+    }
+
+    /** Create the booking, attaching/creating the customer user for persistence. */
+    private function createBooking(Clinic $clinic, array $data): Booking
+    {
+        $userId = auth('web')->id()
+            ?? $this->resolveCustomerUser($data['customer_name'], $data['customer_phone'])->id;
+
         $booking = Booking::create([
             'clinic_id'      => $clinic->id,
-            'user_id'        => auth('web')->id(),
-            'service_id'     => $validated['service_id'] ?? null,
-            'customer_name'  => $validated['customer_name'],
-            'customer_phone' => $validated['customer_phone'],
-            'notes'          => $validated['notes'] ?? null,
+            'user_id'        => $userId,
+            'service_id'     => $data['service_id'] ?? null,
+            'customer_name'  => $data['customer_name'],
+            'customer_phone' => $data['customer_phone'],
+            'notes'          => $data['notes'] ?? null,
             'status'         => 'new',
             'source'         => 'website',
         ]);
 
         ClinicStat::bump($clinic->id, 'bookings_count');
 
-        return redirect()->route('booking.confirmation', $booking->reference_code);
+        return $booking;
     }
 
     public function bookingConfirmation(string $reference)

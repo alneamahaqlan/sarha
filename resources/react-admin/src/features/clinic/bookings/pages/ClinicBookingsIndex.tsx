@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
+import { OutreachButtons } from '@/features/clinic/outreach/OutreachButtons';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '@/features/bookings/types';
@@ -176,7 +177,10 @@ export function ClinicBookingsIndex() {
                 <TableCell><BookingStatusBadge status={b.status} /></TableCell>
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmt(b.created_at)}</TableCell>
                 <TableCell className="text-end">
-                  <Button variant="ghost" size="icon" onClick={() => setEditing(b)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <OutreachButtons phone={b.customer_phone} context="booking" refId={b.id} />
+                    <Button variant="ghost" size="icon" onClick={() => setEditing(b)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))

@@ -16,10 +16,13 @@
     </div>
     <div class="text-end flex-shrink-0">
         @if($service->price)
+            @if($service->old_price)
+                <span class="block text-[11px] text-gray-400" title="@lang('site.price_before_discount')">
+                    @lang('site.price_before_discount'): <span class="line-through">{{ number_format($service->old_price) }}</span>
+                </span>
+            @endif
             <span class="text-teal-700 font-bold">
-                @if($service->old_price)
-                    <span class="line-through text-gray-400 text-sm me-1">{{ number_format($service->old_price) }}</span>
-                @endif
+                <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
                 {{ number_format($service->price) }}
                 <span class="text-xs font-normal">@lang('site.currency_sar')</span>
             </span>

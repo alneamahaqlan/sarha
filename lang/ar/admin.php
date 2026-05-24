@@ -450,9 +450,17 @@ return [
         'old_price_helper' => 'عند تعبئته يجب أن يكون أكبر من السعر الحالي، ويصبح تاريخ انتهاء العرض إلزامياً',
         'offer_expires_helper' => 'مطلوب عند وجود سعر قديم (لإظهار شارة العرض)',
         'profile_saved' => 'تم حفظ التغييرات بنجاح',
-        'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بعيادات',
-        'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بعيادات',
+        'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بمجمعات',
+        'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بمجمعات',
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
+    ],
+
+    // Specialty (category) requests submitted by complexes
+    'category_requests' => [
+        'submitted' => 'تم إرسال طلب التخصص للإدارة للمراجعة',
+        'approved' => 'تم اعتماد التخصص وإضافته',
+        'rejected' => 'تم رفض طلب التخصص',
+        'already_reviewed' => 'تمت مراجعة هذا الطلب مسبقاً',
     ],
 
     // ============================================

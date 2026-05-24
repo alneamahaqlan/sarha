@@ -25,6 +25,7 @@ class StoreServiceRequest extends FormRequest
             'price'              => ['required', 'numeric', 'min:0'],
             'old_price'          => ['nullable', 'numeric', 'min:0'],
             'offer_expires_at'   => ['nullable', 'date', 'after:today'],
+            'is_featured_offer'  => ['nullable', 'boolean'],
             'is_active'          => ['nullable', 'boolean'],
             'sort_order'         => ['nullable', 'integer'],
         ];

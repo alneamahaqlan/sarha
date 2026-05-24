@@ -61,6 +61,7 @@
 
             <div class="hidden md:flex items-center gap-6">
                 <a href="{{ route('search') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_search')</a>
+                <a href="{{ route('quotes.board') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_quotes')</a>
             </div>
 
             <div class="flex items-center gap-3">
@@ -95,6 +96,7 @@
         <div x-show="open" x-cloak @click.outside="open = false"
              class="md:hidden border-t border-gray-100 py-2">
             <a href="{{ route('search') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_search')</a>
+            <a href="{{ route('quotes.board') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_quotes')</a>
             @auth('web')
                 <a href="{{ route('account.show') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_profile')</a>
                 <a href="{{ route('account.bookings') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_my_bookings')</a>

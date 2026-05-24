@@ -8,6 +8,7 @@ export interface Service {
   price: number;
   old_price: number | null;
   offer_expires_at: string | null;
+  is_featured_offer: boolean;
   has_active_offer: boolean;
   discount_percentage: number;
   image: string | null;

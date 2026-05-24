@@ -36,18 +36,42 @@
                     </div>
                 @endif
 
+                @if(session('otp_required'))
+                    {{-- One-time verification step (first booking → registers the customer). --}}
+                    <div class="bg-teal-50 border border-teal-200 text-teal-900 rounded-lg p-4 text-sm mb-5 space-y-1">
+                        <p class="font-semibold">@lang('site.otp_step_title')</p>
+                        <p>@lang('site.otp_step_intro')</p>
+                        <p class="text-xs text-teal-700">{{ __('site.otp_sent_to', ['phone' => session('otp_phone')]) }}</p>
+                        @if(session('dev_code'))
+                            <p class="text-xs font-mono bg-white inline-block px-2 py-1 rounded border border-teal-200">DEV: {{ session('dev_code') }}</p>
+                        @endif
+                    </div>
+
+                    <form method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
+                        @csrf
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
+                            <input type="text" name="code" inputmode="numeric" maxlength="6" required autofocus
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 text-center tracking-[0.5em] text-lg focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
+                        </div>
+                        <p class="text-xs text-gray-500">@lang('site.otp_step_terms')</p>
+                        <button type="submit" class="w-full bg-teal-600 text-white py-3.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors text-lg">
+                            @lang('site.otp_verify_submit')
+                        </button>
+                    </form>
+                @else
                 <form method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5">
                     @csrf
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.full_name') <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name', auth('web')->user()?->name) }}"
+                        <input type="text" name="customer_name" value="{{ old('customer_name', auth('web')->user()?->name ?? ($identity['name'] ?? '')) }}"
                                required class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.phone_number') <span class="text-red-500">*</span></label>
-                        <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth('web')->user()?->phone) }}"
+                        <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth('web')->user()?->phone ?? ($identity['phone'] ?? '')) }}"
                                required pattern="05[0-9]{8}" placeholder="05XXXXXXXX"
                                class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
                     </div>
@@ -70,10 +94,15 @@
                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400">{{ old('notes') }}</textarea>
                     </div>
 
+                    @guest('web')
+                        <p class="text-xs text-gray-500">@lang('site.otp_step_terms')</p>
+                    @endguest
+
                     <button type="submit" class="w-full bg-teal-600 text-white py-3.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors text-lg">
                         @lang('site.submit_booking')
                     </button>
                 </form>
+                @endif
             </div>
         </div>
 

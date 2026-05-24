@@ -125,11 +125,17 @@
     </div>
 
     {{-- Tabs --}}
-    <div x-data="{ tab: 'services' }" class="mb-8">
+    @php
+        $featuredOffers = $clinic->services->where('is_featured_offer', true);
+        $offersCount = $featuredOffers->count() + $clinic->packages->count();
+    @endphp
+    <div x-data="{ tab: 'clinics' }" class="mb-8">
         <div class="border-b border-gray-200 mb-6 overflow-x-auto">
             <div class="flex gap-1 min-w-max">
                 @foreach([
-                    'services' => ['site.tab_services', $clinic->services->count()],
+                    'clinics'  => ['site.tab_clinics', $clinic->subClinics->count()],
+                    'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
+                    'offers'   => ['site.tab_offers', $offersCount],
                     'reviews'  => ['site.tab_reviews', $clinic->google_reviews_count ?? 0],
                     'articles' => ['site.tab_articles', $clinic->articles->count()],
                     'about'    => ['site.tab_about', null],
@@ -150,9 +156,19 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Services tab — complex → clinic → services, nested. --}}
-                <div x-show="tab === 'services'" x-cloak class="space-y-6">
+                {{-- Clinics tab — complex → clinic → services, nested. --}}
+                <div x-show="tab === 'clinics'" x-cloak class="space-y-6">
                     @include('public.partials.sub-clinics')
+                </div>
+
+                {{-- Doctors tab --}}
+                <div x-show="tab === 'doctors'" x-cloak class="space-y-6">
+                    @include('public.partials.doctors')
+                </div>
+
+                {{-- Offers & packages tab --}}
+                <div x-show="tab === 'offers'" x-cloak class="space-y-6">
+                    @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
                 </div>
 
                 {{-- Reviews tab --}}
@@ -242,50 +258,14 @@
                     </div>
                 </div>
 
-                {{-- Custom price quote --}}
-                <div class="bg-white rounded-xl shadow-sm p-6" x-data="{ open: false }">
+                {{-- Custom price quote — broadcast to all complexes in the chosen cities --}}
+                <div class="bg-white rounded-xl shadow-sm p-6">
                     <h3 class="font-bold text-gray-800 mb-2">@lang('site.request_price_quote')</h3>
-                    <p class="text-sm text-gray-500 mb-4">@lang('site.price_quote_subtitle')</p>
-                    <button type="button" @click="open = true"
-                            class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg font-semibold transition-colors">
+                    <p class="text-sm text-gray-500 mb-4">@lang('site.quote_request_subtitle')</p>
+                    <a href="{{ route('quotes.request') }}"
+                       class="block text-center w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg font-semibold transition-colors">
                         @lang('site.request_price_quote')
-                    </button>
-
-                    {{-- Modal --}}
-                    <div x-show="open" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" @click.self="open = false">
-                        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-bold text-gray-800">@lang('site.request_price_quote')</h3>
-                                <button type="button" @click="open = false" class="text-gray-400 hover:text-gray-700">✕</button>
-                            </div>
-                            <form method="POST" action="{{ route('clinic.quote', $clinic->slug) }}" class="space-y-3">
-                                @csrf
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.full_name')</label>
-                                    <input type="text" name="customer_name" required value="{{ auth('web')->user()?->name }}"
-                                           class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.phone_number')</label>
-                                    <input type="tel" name="customer_phone" required pattern="05[0-9]{8}" value="{{ auth('web')->user()?->phone }}"
-                                           class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.service_short_name')</label>
-                                    <input type="text" name="service_name" required maxlength="255"
-                                           class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.service_description')</label>
-                                    <textarea name="description" rows="3" required minlength="10" maxlength="2000"
-                                              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"></textarea>
-                                </div>
-                                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg font-semibold transition-colors">
-                                    @lang('site.submit_quote_request')
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    </a>
                 </div>
             </aside>
         </div>

@@ -9,6 +9,7 @@ export interface ClinicServiceFormValues {
   price: number;
   old_price?: number | null;
   offer_expires_at?: string | null;
+  is_featured_offer?: boolean;
   is_active: boolean;
   sort_order?: number;
 }

@@ -41,6 +41,7 @@ const schema = z
     old_price: z.union([z.number().min(0), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     offer_expires_at: z.string().nullish(),
+    is_featured_offer: z.boolean().default(false),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
   })
@@ -72,6 +73,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       price: service?.price ?? 0,
       old_price: service?.old_price ?? null,
       offer_expires_at: toLocal(service?.offer_expires_at) || null,
+      is_featured_offer: service?.is_featured_offer ?? false,
       is_active: service?.is_active ?? true,
       sort_order: service?.sort_order ?? 0,
     },
@@ -140,6 +142,10 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="flex items-end gap-3 pb-2">
               <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
               <Label>{t('clinic_services.is_active')}</Label>
+            </div>
+            <div className="flex items-end gap-3 pb-2">
+              <Switch checked={form.watch('is_featured_offer')} onCheckedChange={(c) => form.setValue('is_featured_offer', c, { shouldDirty: true })} />
+              <Label>{t('clinic_services.is_featured_offer')}</Label>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>

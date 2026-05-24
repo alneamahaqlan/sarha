@@ -53,6 +53,21 @@ class AccountController extends Controller
         return view('public.account.favorites', compact('favorites'));
     }
 
+    public function quotes()
+    {
+        $user = auth('web')->user();
+        $quotes = $user->priceQuoteRequests()
+            ->with('cities:id,name,name_en')
+            ->withCount('replies')
+            ->latest()
+            ->paginate(10);
+
+        $bookingsCount = $user->bookings()->count();
+        $favoritesCount = $user->favorites()->count();
+
+        return view('public.account.quotes', compact('quotes', 'user', 'bookingsCount', 'favoritesCount'));
+    }
+
     public function toggleFavorite(Clinic $clinic)
     {
         $user = auth('web')->user();

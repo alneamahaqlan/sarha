@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Admin\ArticleController as AdminArticleControlle
 use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\CategoryRequestController as AdminCategoryRequestController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ClinicController;
 use App\Http\Controllers\Api\V1\Admin\ComplaintController;
@@ -18,6 +19,10 @@ use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
+use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
+use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
+use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
+use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
 use App\Http\Controllers\Api\V1\Clinic\SubClinicController as ClinicSubClinicController;
 use App\Http\Controllers\Api\V1\Clinic\DashboardController as ClinicDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportServicesController;
@@ -129,6 +134,11 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
         Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
 
+        // Specialty (category) requests submitted by complexes — review queue.
+        Route::get('category-requests', [AdminCategoryRequestController::class, 'index'])->name('category-requests.index');
+        Route::post('category-requests/{categoryRequest}/approve', [AdminCategoryRequestController::class, 'approve'])->name('category-requests.approve');
+        Route::post('category-requests/{categoryRequest}/reject', [AdminCategoryRequestController::class, 'reject'])->name('category-requests.reject');
+
         // Clinic — 6 action endpoints (approve/reject/activate/suspend/extend/impersonate)
         // each delegates to ClinicService. Soft-deleted rows reachable via {clinic_trashed}.
         Route::bind('clinic_trashed', fn ($id) => Clinic::withTrashed()->findOrFail($id));
@@ -195,17 +205,33 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             ->only(['index', 'store', 'update', 'destroy'])
             ->parameters(['sub-clinics' => 'subClinic']);
 
+        // Doctors (showcase) — clinic-owned CRUD.
+        Route::apiResource('doctors', ClinicDoctorController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('clinic.doctors');
+
+        // Packages (bundles of services) — clinic-owned CRUD.
+        Route::apiResource('packages', ClinicPackageController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('clinic.packages');
+
+        // Specialty (category) requests submitted to the admins.
+        Route::get('category-requests', [ClinicCategoryRequestController::class, 'index'])->name('clinic.category-requests.index');
+        Route::post('category-requests', [ClinicCategoryRequestController::class, 'store'])->name('clinic.category-requests.store');
+
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'show', 'update'])
             ->names('clinic.bookings');
 
-        // Price quote requests — clinic can update status + reply.
-        Route::apiResource('price-quotes', ClinicPriceQuoteRequestController::class)
-            ->only(['index', 'show', 'update'])
-            ->parameters(['price-quotes' => 'priceQuote'])
-            ->names('clinic.price-quotes');
+        // Broadcast price quote requests — clinic sees requests targeting its
+        // city and posts one reply (public/private) per request.
+        Route::get('price-quotes', [ClinicPriceQuoteRequestController::class, 'index'])->name('clinic.price-quotes.index');
+        Route::post('price-quotes/{priceQuote}/reply', [ClinicPriceQuoteRequestController::class, 'reply'])->name('clinic.price-quotes.reply');
+
+        // Records a complex's outreach to a customer (WhatsApp/call) → stats + visibility.
+        Route::post('outreach', [ClinicOutreachController::class, 'store'])->name('clinic.outreach');
 
         // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
         // the basic-plan monthly publish limit; preserved as-is via Model events.

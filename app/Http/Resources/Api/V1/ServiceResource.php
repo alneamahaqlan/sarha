@@ -21,6 +21,7 @@ class ServiceResource extends JsonResource
             'price'              => (float) $this->price,
             'old_price'          => $this->old_price !== null ? (float) $this->old_price : null,
             'offer_expires_at'   => $this->offer_expires_at?->toIso8601String(),
+            'is_featured_offer'  => (bool) $this->is_featured_offer,
             'has_active_offer'   => $this->hasActiveOffer(),
             'discount_percentage'=> $this->discountPercentage(),
             'image'              => $this->image,
