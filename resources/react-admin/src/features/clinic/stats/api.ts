@@ -10,6 +10,7 @@ export interface StatsSummary {
   quote_requests: number;
   whatsapp_clicks: number;
   call_clicks: number;
+  directions_clicks: number;
   booking_clicks: number;
   conversion_rate: number;
 }

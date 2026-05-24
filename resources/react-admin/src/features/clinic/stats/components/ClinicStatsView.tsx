@@ -1,4 +1,4 @@
-import { Bell, Calendar, DollarSign, Eye, MessageCircle, MousePointerClick, Phone, Search, TrendingUp, Sparkles } from 'lucide-react';
+import { Bell, Calendar, DollarSign, Eye, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -33,7 +33,10 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
         <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
+        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
         <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_clicks')} value={nf.format(s.booking_clicks)} />
+      </div>
+      <div className="grid grid-cols-1">
         <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
       </div>
 

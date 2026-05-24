@@ -72,7 +72,8 @@ class ClinicStatsService
         $t = (clone $scoped)->selectRaw(
             'COALESCE(SUM(search_appearances),0) sa, COALESCE(SUM(page_views),0) pv, '
             . 'COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr, '
-            . 'COALESCE(SUM(whatsapp_clicks),0) wa, COALESCE(SUM(call_clicks),0) cl, COALESCE(SUM(booking_clicks),0) bc'
+            . 'COALESCE(SUM(whatsapp_clicks),0) wa, COALESCE(SUM(call_clicks),0) cl, '
+            . 'COALESCE(SUM(booking_clicks),0) bc, COALESCE(SUM(directions_clicks),0) dr'
         )->first();
 
         $pv = (int) $t->pv;
@@ -86,6 +87,7 @@ class ClinicStatsService
             'quote_requests'     => $qr,
             'whatsapp_clicks'    => (int) $t->wa,
             'call_clicks'        => (int) $t->cl,
+            'directions_clicks'  => (int) $t->dr,
             'booking_clicks'     => (int) $t->bc,
             'conversion_rate'    => $pv > 0 ? round((($bk + $qr) / $pv) * 100, 1) : 0.0,
         ];
