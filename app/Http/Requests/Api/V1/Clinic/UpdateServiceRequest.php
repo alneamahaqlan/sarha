@@ -20,7 +20,6 @@ class UpdateServiceRequest extends FormRequest
 
         return [
             'name'               => ['sometimes', 'required', 'string', 'max:255'],
-            'custom_category_id' => ['nullable', 'integer', Rule::exists('custom_categories', 'id')->where('clinic_id', $clinicId)],
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],
             'price'              => ['sometimes', 'required', 'numeric', 'min:0'],

@@ -10,11 +10,11 @@
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: __('site.account_my_bookings') }}</h1>
         <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
         <div class="flex flex-wrap gap-4 mt-4 text-sm">
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                📅 {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="calendar" class="w-4 h-4" /> {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
             </span>
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                ⭐ {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="star" class="w-4 h-4" /> {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
             </span>
         </div>
     </div>
@@ -37,8 +37,8 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-4 text-sm">
-                        <span class="text-gray-500">
-                            🕒 {{ $booking->created_at->diffForHumans() }}
+                        <span class="inline-flex items-center gap-1.5 text-gray-500">
+                            <x-icon name="clock" class="w-4 h-4" /> {{ $booking->created_at->diffForHumans() }}
                         </span>
                         @if($booking->service)
                             <span class="text-gray-700">{{ $booking->service->name }}</span>
@@ -52,13 +52,13 @@
                     <div class="mt-3 pt-3 border-t border-gray-100">
                         <a href="{{ route('clinic.book.form', ['slug' => $booking->clinic->slug] + ($booking->service_id ? ['service' => $booking->service_id] : [])) }}"
                            class="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium">
-                            🔄 @lang('site.rebook')
+                            <x-icon name="refresh" class="w-4 h-4" /> @lang('site.rebook')
                         </a>
                     </div>
                 </div>
             @empty
                 <div class="bg-white rounded-xl shadow-sm p-10 text-center">
-                    <div class="text-6xl mb-3">📋</div>
+                    <x-icon name="clipboard" class="w-16 h-16 mx-auto mb-3 text-gray-300" />
                     <p class="text-gray-500 mb-4">@lang('site.account_no_bookings')</p>
                     <a href="{{ route('search') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
                         @lang('site.account_start_browsing')

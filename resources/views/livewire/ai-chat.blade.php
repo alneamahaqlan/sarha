@@ -23,7 +23,7 @@
         {{-- Header --}}
         <div class="bg-gradient-to-r from-teal-700 to-teal-900 text-white p-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-lg">🤖</div>
+                <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center"><x-icon name="cpu" class="w-5 h-5" /></div>
                 <div>
                     <h3 class="font-bold text-sm">@lang('site.ai_chat_title')</h3>
                     <p class="text-xs text-teal-100">@lang('site.ai_chat_subtitle')</p>
@@ -42,8 +42,8 @@
                         @foreach($this->quickPrompts as $key => $labelKey)
                             <button type="button"
                                     wire:click="quickPrompt('{{ $key }}')"
-                                    class="w-full text-start text-sm bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-2 rounded-lg transition-colors">
-                                💡 @lang($labelKey)
+                                    class="w-full text-start text-sm bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-2">
+                                <x-icon name="light-bulb" class="w-4 h-4 shrink-0" /> @lang($labelKey)
                             </button>
                         @endforeach
                     </div>
@@ -62,8 +62,8 @@
                         <div class="bg-white shadow-sm rounded-2xl rounded-bs-sm max-w-[85%] overflow-hidden">
                             <div class="p-3">
                                 @if(($msg['kind'] ?? '') === 'rejected')
-                                    <div class="text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs mb-2">
-                                        ⚠️ @lang('site.ai_medical_warning')
+                                    <div class="flex items-center gap-1.5 text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2 text-xs mb-2">
+                                        <x-icon name="warning" class="w-3.5 h-3.5 shrink-0" /> @lang('site.ai_medical_warning')
                                     </div>
                                 @endif
                                 <p class="text-sm text-gray-700 leading-relaxed">{{ $msg['content'] }}</p>
@@ -77,7 +77,7 @@
                                             <p class="font-bold text-gray-800 text-sm">{{ $c['name'] }}</p>
                                             <div class="flex items-center gap-3 text-xs text-gray-500 mt-1">
                                                 @if($c['city'])
-                                                    <span>📍 {{ $c['city'] }}</span>
+                                                    <span class="inline-flex items-center gap-1"><x-icon name="map-pin" class="w-3.5 h-3.5" /> {{ $c['city'] }}</span>
                                                 @endif
                                                 @if($c['rating'] > 0)
                                                     <span>★ {{ $c['rating'] }}</span>

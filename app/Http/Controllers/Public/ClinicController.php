@@ -19,6 +19,9 @@ class ClinicController extends Controller
                 'city',
                 'categories',
                 'services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                // Sub-clinics + their active services for the nested services tab.
+                'subClinics.category',
+                'subClinics.services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
                 'articles' => fn($q) => $q->where('is_published', true)->latest()->limit(6),
                 'googleReviews' => fn($q) => $q->where('is_visible', true)->latest('reviewed_at')->limit(20),
                 'workingHours' => fn($q) => $q->orderBy('day_of_week'),

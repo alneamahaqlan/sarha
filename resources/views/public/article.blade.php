@@ -31,12 +31,12 @@
             {{-- Meta row --}}
             <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-100">
                 <a href="{{ route('clinic.show', $article->clinic->slug) }}" class="flex items-center gap-1.5 hover:text-teal-600">
-                    🏥 <span class="font-medium">{{ $article->clinic->name }}</span>
+                    <x-icon name="building" class="w-4 h-4" /> <span class="font-medium">{{ $article->clinic->name }}</span>
                 </a>
                 @if($article->published_at ?? $article->created_at)
-                    <span>🗓 {{ ($article->published_at ?? $article->created_at)->translatedFormat('d M Y') }}</span>
+                    <span class="inline-flex items-center gap-1.5"><x-icon name="calendar" class="w-4 h-4" /> {{ ($article->published_at ?? $article->created_at)->translatedFormat('d M Y') }}</span>
                 @endif
-                <span>👁 {{ __('site.article_views', ['count' => $article->views_count]) }}</span>
+                <span class="inline-flex items-center gap-1.5"><x-icon name="eye" class="w-4 h-4" /> {{ __('site.article_views', ['count' => $article->views_count]) }}</span>
             </div>
 
             {{-- Body (rich HTML from the clinic's editor) --}}

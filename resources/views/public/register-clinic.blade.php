@@ -14,7 +14,7 @@
 
     @if(session('success'))
         <div class="bg-white rounded-2xl shadow-sm p-10 text-center">
-            <div class="text-6xl mb-4">✅</div>
+            <x-icon name="check-circle" class="w-16 h-16 mx-auto mb-4 text-emerald-500" />
             <h2 class="text-xl font-bold text-gray-800 mb-2">@lang('site.register_clinic_success_title')</h2>
             <p class="text-gray-500 mb-6">{{ session('success') }}</p>
             <a href="{{ route('home') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">

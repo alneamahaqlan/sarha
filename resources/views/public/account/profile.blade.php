@@ -10,11 +10,11 @@
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: '—' }}</h1>
         <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
         <div class="flex flex-wrap gap-4 mt-4 text-sm">
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                📅 {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="calendar" class="w-4 h-4" /> {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
             </span>
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                ⭐ {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="star" class="w-4 h-4" /> {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
             </span>
         </div>
     </div>

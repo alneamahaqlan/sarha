@@ -15,7 +15,7 @@
 
     @if($reviewsCount === 0)
         <div class="text-center py-8 text-gray-400">
-            <div class="text-4xl mb-2">⭐</div>
+            <x-icon name="star" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
             <p class="text-sm">@lang('site.reviews_unlinked')</p>
         </div>
     @else

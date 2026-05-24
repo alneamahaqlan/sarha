@@ -21,8 +21,11 @@ export interface StatsComparison {
   avg_bookings: number;
   clinic_visits: number;
   avg_visits: number;
+  clinic_appearances: number;
+  avg_appearances: number;
   bookings_vs_avg_pct: number | null;
   visits_vs_avg_pct: number | null;
+  appearances_vs_avg_pct: number | null;
 }
 
 export interface StatsTrendPoint {

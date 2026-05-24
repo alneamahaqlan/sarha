@@ -2,7 +2,7 @@
 
 return [
     // Brand & meta
-    'brand' => 'Saerha',
+    'brand' => 'Medical Complexes Directory',
     'tagline' => 'Medical services platform',
     'meta_description' => 'Search, compare, and book the best complexs and medical services in Saudi Arabia',
 
@@ -29,7 +29,7 @@ return [
     'featured_complexs' => 'Featured complexs',
     'view_all' => 'View all',
     'cta_title' => 'Own a complex?',
-    'cta_subtitle' => 'Join thousands of complexs on Saerha and reach more patients.',
+    'cta_subtitle' => 'Join thousands of complexes on Medical Complexes Directory and reach more patients.',
     'cta_button' => 'List your complex now',
 
     // Home extra sections
@@ -115,6 +115,9 @@ return [
     // Sub-clinics
     'sub_clinics_title' => 'Clinics & departments',
     'services_count' => ':count services',
+    'general_services' => 'General services',
+    'no_services_yet' => 'No services published yet',
+    'no_services_in_sub_clinic' => 'No services in this clinic yet',
 
     // Share
     'share' => 'Share',
@@ -169,7 +172,7 @@ return [
     'article_views' => ':count views',
 
     // List your complex (public registration → sales lead)
-    'register_clinic_title' => 'List your complex on Saerha',
+    'register_clinic_title' => 'List your complex on Medical Complexes Directory',
     'register_clinic_subtitle' => 'Fill in your details and our team will contact you to complete the setup.',
     'register_clinic_name' => 'Complex name',
     'register_contact_name' => 'Contact person name',
@@ -241,7 +244,7 @@ return [
     'send_otp' => 'Send verification code',
     'otp_label' => 'Verification code',
     'otp_sent_to' => 'A code has been sent to :phone',
-    'otp_sms' => 'Your Saerha verification code: :code',
+    'otp_sms' => 'Your Medical Complexes Directory verification code: :code',
     'email_view_details' => 'View details',
 
     // Compare complexes
@@ -280,6 +283,6 @@ return [
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',
     'footer_quick_links' => 'Quick links',
     'footer_for_complexs' => 'Own a complex?',
-    'footer_for_complexs_desc' => 'Join Saerha and showcase your services to thousands of patients.',
-    'footer_rights' => '© :year Saerha. All rights reserved.',
+    'footer_for_complexs_desc' => 'Join Medical Complexes Directory and showcase your services to thousands of patients.',
+    'footer_rights' => '© :year Medical Complexes Directory. All rights reserved.',
 ];

@@ -1,8 +1,8 @@
 export interface Service {
   id: number;
   clinic_id: number;
-  custom_category_id: number | null;
   sub_clinic_id: number | null;
+  sub_clinic?: { id: number; name: string } | null;
   name: string;
   description: string | null;
   price: number;

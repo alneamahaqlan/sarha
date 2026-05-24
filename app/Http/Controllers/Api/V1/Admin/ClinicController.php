@@ -81,6 +81,65 @@ class ClinicController extends Controller
         return new ClinicApiResource($clinic->load(['city:id,name', 'categories:id,name']));
     }
 
+    /**
+     * Return the complex → clinic (sub-clinic) → services tree for the admin
+     * view. Sub-clinics here include both active and inactive ones (admins need
+     * the full picture); same for services. The clinic-side `subClinics`
+     * relation is filtered to active-only, so we go through `subClinicsAll`.
+     */
+    public function structure(Clinic $clinic): JsonResponse
+    {
+        $this->authorize('view', $clinic);
+
+        $clinic->load([
+            'subClinicsAll.category:id,name,emoji',
+            'subClinicsAll.allServices' => fn ($q) => $q->orderBy('sort_order')->orderBy('name'),
+            // Services without a sub-clinic ("general" bucket) — still need them.
+            'services' => fn ($q) => $q->whereNull('sub_clinic_id')->orderBy('sort_order')->orderBy('name'),
+        ]);
+
+        $serviceShape = fn ($s) => [
+            'id'         => $s->id,
+            'name'       => $s->name,
+            'price'      => $s->price,
+            'old_price'  => $s->old_price,
+            'is_active'  => (bool) $s->is_active,
+        ];
+
+        $subClinics = $clinic->subClinicsAll->map(fn ($sub) => [
+            'id'             => $sub->id,
+            'name'           => $sub->name,
+            'name_en'        => $sub->name_en,
+            'description'    => $sub->description,
+            'is_active'      => (bool) $sub->is_active,
+            'sort_order'     => (int) $sub->sort_order,
+            'category'       => $sub->category ? [
+                'id'    => $sub->category->id,
+                'name'  => $sub->category->name,
+                'emoji' => $sub->category->emoji,
+            ] : null,
+            'services_count' => $sub->allServices->count(),
+            'services'       => $sub->allServices->map($serviceShape)->values(),
+        ])->values();
+
+        $generalServices = $clinic->services->map($serviceShape)->values();
+
+        return response()->json([
+            'data' => [
+                'clinic' => [
+                    'id'   => $clinic->id,
+                    'name' => $clinic->name,
+                ],
+                'sub_clinics'      => $subClinics,
+                'general_services' => $generalServices,
+                'totals' => [
+                    'sub_clinics' => $subClinics->count(),
+                    'services'    => $subClinics->sum('services_count') + $generalServices->count(),
+                ],
+            ],
+        ]);
+    }
+
     public function store(StoreClinicRequest $request): JsonResponse
     {
         $data = $request->validated();

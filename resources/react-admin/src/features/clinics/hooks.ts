@@ -28,6 +28,15 @@ export function useClinicStats(id: number | undefined, period: ClinicStatsPeriod
   });
 }
 
+export function useClinicStructure(id: number | undefined) {
+  return useQuery({
+    queryKey: [...KEY, 'structure', id],
+    queryFn: () => clinicsApi.structure(id!),
+    enabled: !!id,
+    staleTime: 30_000,
+  });
+}
+
 function invalidator(qc: ReturnType<typeof useQueryClient>) {
   return () => qc.invalidateQueries({ queryKey: KEY });
 }

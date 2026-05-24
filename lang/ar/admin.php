@@ -4,8 +4,8 @@ return [
     // ============================================
     // Brand
     // ============================================
-    'admin_brand' => 'سعرها — لوحة التحكم',
-    'clinic_brand' => 'سعرها — لوحة المجمع',
+    'admin_brand' => 'دليل المجمعات الطبية — لوحة التحكم',
+    'clinic_brand' => 'دليل المجمعات الطبية — لوحة المجمع',
 
     // ============================================
     // Navigation groups (admin)
@@ -59,8 +59,6 @@ return [
     'res_system_settings' => 'إعدادات النظام',
     'res_system_setting' => 'إعداد',
     'res_system_settings_plural' => 'الإعدادات',
-    'res_custom_category' => 'تصنيف خاص',
-    'res_custom_categorys' => 'تصنيفاتي الخاصة',
 
     // ============================================
     // Form/Table field labels
@@ -264,7 +262,7 @@ return [
         'premium' => 'مميز',
         'basic_priced' => 'أساسي (300 ريال)',
         'premium_priced' => 'مميز (400 ريال)',
-        'premium_with_star' => 'مميز ⭐',
+        'premium_with_star' => 'مميز',
     ],
 
     // ============================================
@@ -423,7 +421,7 @@ return [
     'ai' => [
         'title_first' => 'أدخل عنوان المقال أولاً',
         'not_configured' => 'مفتاح Claude API غير مفعّل. أضف ANTHROPIC_API_KEY في .env',
-        'generated' => 'تم التوليد بنجاح ✨',
+        'generated' => 'تم التوليد بنجاح',
         'failed' => 'تعذّر التوليد',
         'excel_analyzing' => 'يجري تحليل الملف…',
         'excel_done' => 'تم التحليل',
@@ -454,6 +452,7 @@ return [
         'profile_saved' => 'تم حفظ التغييرات بنجاح',
         'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بعيادات',
         'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بعيادات',
+        'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
     ],
 
     // ============================================

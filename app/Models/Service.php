@@ -11,7 +11,7 @@ class Service extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'clinic_id', 'custom_category_id', 'sub_clinic_id',
+        'clinic_id', 'sub_clinic_id',
         'name', 'description',
         'price', 'old_price', 'offer_expires_at', 'image',
         'is_active', 'sort_order',
@@ -43,11 +43,6 @@ class Service extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
-    }
-
-    public function customCategory()
-    {
-        return $this->belongsTo(CustomCategory::class);
     }
 
     public function subClinic()

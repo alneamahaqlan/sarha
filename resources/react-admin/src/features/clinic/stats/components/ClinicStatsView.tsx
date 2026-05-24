@@ -25,7 +25,7 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
     <div className="space-y-6">
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Search} tone="info" label={t('clinic_stats.search_appearances')} value={nf.format(s.search_appearances)} />
+        <Card icon={Search} tone="info" label={t('clinic_stats.search_appearances')} value={nf.format(s.search_appearances)} delta={c.appearances_vs_avg_pct} />
         <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct} />
         <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct} />
         <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} />
@@ -44,14 +44,14 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
           <p className="mt-2 text-sm leading-relaxed">
             {t('clinic_stats.rank_line', { rank: c.rank, total: c.total })}
             {' · '}
-            <span className="font-semibold">{t('clinic_stats.your_bookings', { count: c.clinic_bookings })}</span>
+            <span className="font-semibold">{t('clinic_stats.your_appearances', { count: c.clinic_appearances })}</span>
             {' · '}
-            {t('clinic_stats.platform_avg', { avg: c.avg_bookings })}
-            {c.bookings_vs_avg_pct !== null && (
-              <span className={cn('ms-1 font-semibold', c.bookings_vs_avg_pct >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
-                {c.bookings_vs_avg_pct >= 0
-                  ? t('clinic_stats.above_avg', { pct: Math.abs(c.bookings_vs_avg_pct) })
-                  : t('clinic_stats.below_avg', { pct: Math.abs(c.bookings_vs_avg_pct) })}
+            {t('clinic_stats.platform_avg', { avg: c.avg_appearances })}
+            {c.appearances_vs_avg_pct !== null && (
+              <span className={cn('ms-1 font-semibold', c.appearances_vs_avg_pct >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
+                {c.appearances_vs_avg_pct >= 0
+                  ? t('clinic_stats.above_avg', { pct: Math.abs(c.appearances_vs_avg_pct) })
+                  : t('clinic_stats.below_avg', { pct: Math.abs(c.appearances_vs_avg_pct) })}
               </span>
             )}
           </p>

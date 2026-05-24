@@ -61,7 +61,7 @@
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-2xl font-bold text-gray-900">{{ $clinic->name }}</h1>
                         @if($clinic->is_featured)
-                            <span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-semibold">⭐ @lang('site.featured')</span>
+                            <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-semibold"><x-icon name="star-solid" class="w-3.5 h-3.5" /> @lang('site.featured')</span>
                         @endif
                         @if($clinic->isPremium())
                             <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">@lang('site.premium_badge')</span>
@@ -108,7 +108,7 @@
                                 <button type="submit"
                                         title="{{ $isFavorited ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                         class="w-9 h-9 rounded-full {{ $isFavorited ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }} flex items-center justify-center transition-colors">
-                                    {{ $isFavorited ? '❤️' : '🤍' }}
+                                    <x-icon :name="$isFavorited ? 'heart-solid' : 'heart'" class="w-4 h-4" />
                                 </button>
                             </form>
                         @endauth
@@ -150,50 +150,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Services tab --}}
+                {{-- Services tab — complex → clinic → services, nested. --}}
                 <div x-show="tab === 'services'" x-cloak class="space-y-6">
                     @include('public.partials.sub-clinics')
-
-                    @if($clinic->services->isNotEmpty())
-                        <div class="bg-white rounded-xl shadow-sm p-6">
-                            <h2 class="text-lg font-bold text-gray-800 mb-4">@lang('site.services_and_prices')</h2>
-                            <div class="divide-y divide-gray-100">
-                                @foreach($clinic->services as $service)
-                                    <div class="py-3 flex items-center justify-between gap-4">
-                                        <div class="flex-1 min-w-0">
-                                            <p class="font-medium text-gray-800">{{ $service->name }}</p>
-                                            @if($service->description)
-                                                <p class="text-sm text-gray-500 mt-0.5">{{ $service->description }}</p>
-                                            @endif
-                                            @if($service->hasActiveOffer())
-                                                <span class="inline-block mt-1 bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold">
-                                                    -{{ $service->discountPercentage() }}%
-                                                </span>
-                                            @endif
-                                        </div>
-                                        <div class="text-end flex-shrink-0">
-                                            @if($service->price)
-                                                <span class="text-teal-700 font-bold">
-                                                    @if($service->old_price)
-                                                        <span class="line-through text-gray-400 text-sm me-1">{{ number_format($service->old_price) }}</span>
-                                                    @endif
-                                                    {{ number_format($service->price) }}
-                                                    <span class="text-xs font-normal">@lang('site.currency_sar')</span>
-                                                </span>
-                                                <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
-                                                   data-track="booking" data-clinic="{{ $clinic->id }}"
-                                                   class="block mt-1 text-xs text-teal-600 hover:underline">
-                                                    @lang('site.book_appointment')
-                                                </a>
-                                            @else
-                                                <span class="text-gray-400 text-sm">@lang('site.call_for_inquiry')</span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endif
                 </div>
 
                 {{-- Reviews tab --}}
@@ -239,8 +198,8 @@
                                     loading="lazy"></iframe>
                             <a href="https://www.google.com/maps/dir/?api=1&destination={{ $clinic->latitude }},{{ $clinic->longitude }}"
                                target="_blank" rel="noopener"
-                               class="block mt-3 text-center bg-teal-50 text-teal-700 hover:bg-teal-100 py-2 rounded-lg text-sm font-semibold transition-colors">
-                                🗺 @lang('site.directions_open_maps')
+                               class="mt-3 inline-flex w-full items-center justify-center gap-2 text-center bg-teal-50 text-teal-700 hover:bg-teal-100 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                <x-icon name="map" class="w-4 h-4" /> @lang('site.directions_open_maps')
                             </a>
                         </div>
                     @endif
@@ -258,25 +217,25 @@
                     <div class="space-y-3">
                         @if($clinic->phone)
                             <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-teal-600">
-                                <span class="bg-teal-50 p-2 rounded-lg">📞</span>
+                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="phone" class="w-4 h-4" /></span>
                                 <span dir="ltr">{{ $clinic->phone }}</span>
                             </a>
                         @endif
                         @if($clinic->email)
                             <div class="flex items-center gap-3 text-gray-700">
-                                <span class="bg-teal-50 p-2 rounded-lg">✉️</span>
+                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="envelope" class="w-4 h-4" /></span>
                                 <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
                             </div>
                         @endif
                         @if($clinic->instagram)
                             <a href="https://instagram.com/{{ $clinic->instagram }}" target="_blank" rel="noopener" class="flex items-center gap-3 text-gray-700 hover:text-pink-600">
-                                <span class="bg-pink-50 p-2 rounded-lg">📸</span>
+                                <span class="bg-pink-50 text-pink-600 p-2 rounded-lg"><x-icon name="camera" class="w-4 h-4" /></span>
                                 <span class="text-sm" dir="ltr">@{{ $clinic->instagram }}</span>
                             </a>
                         @endif
                         @if($clinic->twitter)
                             <div class="flex items-center gap-3 text-gray-700">
-                                <span class="bg-blue-50 p-2 rounded-lg">🐦</span>
+                                <span class="bg-blue-50 text-blue-500 p-2 rounded-lg"><x-icon name="twitter" class="w-4 h-4" /></span>
                                 <span class="text-sm" dir="ltr">{{ $clinic->twitter }}</span>
                             </div>
                         @endif

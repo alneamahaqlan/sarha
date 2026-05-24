@@ -24,7 +24,7 @@ import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import type { Service } from '@/features/services/types';
-import { useClinicCategories } from '@/features/clinic/categories/hooks';
+import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { useClinicProfile } from '@/features/clinic/profile/hooks';
 
 import {
@@ -34,8 +34,6 @@ import {
 const schema = z
   .object({
     name: z.string().min(1).max(255),
-    custom_category_id: z.union([z.number(), z.literal('')]).optional().nullable()
-      .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
@@ -62,7 +60,6 @@ function toLocal(iso?: string | null) {
 
 function ServiceDialog({ service, onClose }: { service: Service | null; onClose: () => void }) {
   const { t } = useTranslation();
-  const { data: cats } = useClinicCategories();
   const { data: subClinics } = useSubClinicLookup();
   const create = useCreateClinicService();
   const update = useUpdateClinicService(service?.id ?? 0);
@@ -70,7 +67,6 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: service?.name ?? '',
-      custom_category_id: service?.custom_category_id ?? null,
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
@@ -110,13 +106,6 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               <Label htmlFor="name">{t('clinic_services.name')}</Label>
               <Input id="name" {...form.register('name')} />
               {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <Label htmlFor="custom_category_id">{t('clinic_services.category')}</Label>
-              <Select id="custom_category_id" {...form.register('custom_category_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
-                <option value="">—</option>
-                {cats?.data.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
-              </Select>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="sub_clinic_id">{t('clinic_services.sub_clinic')}</Label>
@@ -171,7 +160,7 @@ export function ClinicServicesIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const { data, isLoading } = useClinicServices({ per_page: 50, sort: 'sort_order' });
-  const { data: cats } = useClinicCategories();
+  const { data: subClinics } = useClinicSubClinics();
   const { data: profile } = useClinicProfile();
   const del = useDeleteClinicService();
   const clinicSlug = profile?.slug;
@@ -189,37 +178,37 @@ export function ClinicServicesIndex() {
     catch (err) { toast.error(extractMessage(err, t('errors.generic'))); }
   };
 
-  const catName = useMemo(() => {
+  const subClinicName = useMemo(() => {
     const map = new Map<number, string>();
-    cats?.data.forEach((c) => map.set(c.id, `${c.emoji ? `${c.emoji} ` : ''}${c.name}`));
+    subClinics?.data.forEach((s) => map.set(s.id, s.name));
     return map;
-  }, [cats]);
+  }, [subClinics]);
 
-  // Group services under their category (uncategorized last).
+  // Group services under their owning clinic (sub_clinic); unassigned bucket last.
   const groups = useMemo(() => {
     const list = data?.data ?? [];
     const buckets = new Map<number | 'none', Service[]>();
     for (const s of list) {
-      const key = s.custom_category_id ?? 'none';
+      const key = s.sub_clinic_id ?? 'none';
       if (!buckets.has(key)) buckets.set(key, []);
       buckets.get(key)!.push(s);
     }
     const ordered: { key: number | 'none'; label: string; items: Service[] }[] = [];
-    cats?.data.forEach((c) => {
-      const items = buckets.get(c.id);
-      if (items?.length) ordered.push({ key: c.id, label: catName.get(c.id) ?? c.name, items });
+    subClinics?.data.forEach((sc) => {
+      const items = buckets.get(sc.id);
+      if (items?.length) ordered.push({ key: sc.id, label: subClinicName.get(sc.id) ?? sc.name, items });
     });
     const none = buckets.get('none');
-    if (none?.length) ordered.push({ key: 'none', label: t('clinic_services.uncategorized'), items: none });
+    if (none?.length) ordered.push({ key: 'none', label: t('clinic_services.general'), items: none });
     return ordered;
-  }, [data, cats, catName, t]);
+  }, [data, subClinics, subClinicName, t]);
 
-  const renderRow = (s: Service, showCategory: boolean) => (
+  const renderRow = (s: Service, showSubClinic: boolean) => (
     <TableRow key={s.id}>
       <TableCell className="font-medium">{s.name}</TableCell>
-      {showCategory && (
+      {showSubClinic && (
         <TableCell className="text-sm text-[var(--color-muted-foreground)]">
-          {s.custom_category_id ? catName.get(s.custom_category_id) ?? '—' : '—'}
+          {s.sub_clinic_id ? subClinicName.get(s.sub_clinic_id) ?? '—' : '—'}
         </TableCell>
       )}
       <TableCell>
@@ -252,11 +241,11 @@ export function ClinicServicesIndex() {
     </TableRow>
   );
 
-  const header = (showCategory: boolean) => (
+  const header = (showSubClinic: boolean) => (
     <TableHeader>
       <TableRow>
         <TableHead>{t('clinic_services.name')}</TableHead>
-        {showCategory && <TableHead>{t('clinic_services.category')}</TableHead>}
+        {showSubClinic && <TableHead>{t('clinic_services.sub_clinic')}</TableHead>}
         <TableHead>{t('clinic_services.price')}</TableHead>
         <TableHead>{t('clinic_services.offer')}</TableHead>
         <TableHead>{t('clinic_services.is_active')}</TableHead>

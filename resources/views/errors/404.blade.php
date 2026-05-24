@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-2xl mx-auto px-4 py-16 text-center">
     <div class="bg-white rounded-2xl shadow-sm p-10">
-        <div class="text-8xl mb-4">🔍</div>
+        <x-icon name="search" class="w-20 h-20 mx-auto mb-4 text-gray-300" />
         <h1 class="text-3xl font-bold text-gray-900 mb-2">@lang('errors.404_title')</h1>
         <p class="text-gray-500 mb-8">@lang('errors.404_subtitle')</p>
 

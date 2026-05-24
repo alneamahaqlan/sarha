@@ -8,7 +8,7 @@
 <section class="bg-gradient-to-br from-teal-700 to-teal-900 text-white py-20 px-4">
     <div class="max-w-4xl mx-auto text-center">
         @if($user)
-            <p class="text-teal-100 text-base md:text-lg mb-3">{{ __('site.greeting_welcome', ['name' => $user->name ?: '']) }} 👋</p>
+            <p class="text-teal-100 text-base md:text-lg mb-3">{{ __('site.greeting_welcome', ['name' => $user->name ?: '']) }}</p>
         @endif
         <h1 class="text-4xl md:text-5xl font-bold mb-4">@lang('site.hero_title')</h1>
         <p class="text-teal-200 text-lg mb-10">@lang('site.hero_subtitle')</p>
@@ -55,7 +55,11 @@
             @foreach($categories->take(14) as $category)
                 <a href="{{ route('search', ['category' => $category->id]) }}"
                    class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md hover:ring-2 hover:ring-teal-200 transition-all text-center group">
-                    <span class="text-3xl mb-2">{{ $category->emoji ?? '🏥' }}</span>
+                    @if($category->emoji)
+                        <span class="text-3xl mb-2">{{ $category->emoji }}</span>
+                    @else
+                        <x-icon name="building" class="w-8 h-8 mb-2 text-teal-600" />
+                    @endif
                     <span class="text-xs text-gray-700 group-hover:text-teal-600 font-medium">{{ $category->display_name }}</span>
                 </a>
             @endforeach
@@ -71,19 +75,19 @@
             <p class="text-gray-500 mt-2">@lang('site.how_it_works_subtitle')</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            @foreach([['🔍', 'how_step_1', 'teal'], ['⚖️', 'how_step_2', 'amber'], ['📞', 'how_step_3', 'emerald']] as $i => [$emoji, $key, $color])
+            @foreach([['search', 'how_step_1', 'teal'], ['scale', 'how_step_2', 'amber'], ['phone', 'how_step_3', 'emerald']] as $i => [$icon, $key, $color])
                 <div class="bg-white rounded-xl border border-gray-100 p-6 text-center relative">
                     <div class="absolute top-3 start-3 w-7 h-7 rounded-full bg-{{ $color }}-100 text-{{ $color }}-700 flex items-center justify-center text-sm font-bold">
                         {{ $i + 1 }}
                     </div>
-                    <div class="text-5xl mb-3">{{ $emoji }}</div>
+                    <div class="mb-3 flex justify-center text-{{ $color }}-600"><x-icon :name="$icon" class="w-10 h-10" /></div>
                     <h3 class="font-bold text-gray-800 mb-1">@lang('site.' . $key . '_title')</h3>
                     <p class="text-sm text-gray-500 leading-relaxed">@lang('site.' . $key . '_desc')</p>
                 </div>
             @endforeach
         </div>
-        <div class="mt-6 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-sm text-center">
-            ⚠️ @lang('site.how_not_appointment_notice')
+        <div class="mt-6 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-sm flex items-center justify-center gap-2">
+            <x-icon name="warning" class="w-4 h-4 shrink-0" /> @lang('site.how_not_appointment_notice')
         </div>
     </div>
 </section>

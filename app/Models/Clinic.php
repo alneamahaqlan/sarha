@@ -82,11 +82,6 @@ class Clinic extends Authenticatable
         return $this->belongsToMany(Category::class, 'clinic_categories');
     }
 
-    public function customCategories()
-    {
-        return $this->hasMany(CustomCategory::class);
-    }
-
     public function services()
     {
         return $this->hasMany(Service::class);
@@ -145,6 +140,12 @@ class Clinic extends Authenticatable
     public function subClinics()
     {
         return $this->hasMany(SubClinic::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /** Unfiltered sub-clinics (active + inactive) — used by admin views. */
+    public function subClinicsAll()
+    {
+        return $this->hasMany(SubClinic::class)->orderBy('sort_order')->orderBy('name');
     }
 
     public function whatsappLink(?string $message = null): string

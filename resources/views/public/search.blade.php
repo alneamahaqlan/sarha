@@ -68,7 +68,7 @@
 
     @if($clinics->isEmpty())
         <div class="text-center py-16 text-gray-500">
-            <div class="text-6xl mb-4">🔍</div>
+            <x-icon name="search" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p class="text-xl font-semibold mb-2">@lang('site.no_results_title')</p>
             <p>@lang('site.no_results_subtitle')</p>
         </div>

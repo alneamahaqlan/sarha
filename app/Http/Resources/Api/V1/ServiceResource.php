@@ -11,8 +11,11 @@ class ServiceResource extends JsonResource
         return [
             'id'                 => $this->id,
             'clinic_id'          => $this->clinic_id,
-            'custom_category_id' => $this->custom_category_id,
             'sub_clinic_id'      => $this->sub_clinic_id,
+            'sub_clinic'         => $this->whenLoaded('subClinic', fn () => $this->subClinic ? [
+                'id'   => $this->subClinic->id,
+                'name' => $this->subClinic->name,
+            ] : null),
             'name'               => $this->name,
             'description'        => $this->description,
             'price'              => (float) $this->price,

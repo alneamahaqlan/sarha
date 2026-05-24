@@ -2,7 +2,7 @@
 
 return [
     // Brand & meta
-    'brand' => 'سعرها',
+    'brand' => 'دليل المجمعات الطبية',
     'tagline' => 'منصة الخدمات الطبية',
     'meta_description' => 'ابحث وقارن وأحجز أفضل المجمعات والخدمات الطبية في المملكة العربية السعودية',
 
@@ -29,7 +29,7 @@ return [
     'featured_clinics' => 'مجمعات مميزة',
     'view_all' => 'عرض الكل',
     'cta_title' => 'هل تملك مجمع؟',
-    'cta_subtitle' => 'انضم إلى آلاف المجمعات على منصة سعرها واحصل على المزيد من العملاء.',
+    'cta_subtitle' => 'انضم إلى آلاف المجمعات على منصة دليل المجمعات الطبية واحصل على المزيد من العملاء.',
     'cta_button' => 'سجّل مجمعك الآن',
 
     // Home extra sections
@@ -115,6 +115,9 @@ return [
     // Sub-clinics
     'sub_clinics_title' => 'العيادات والأقسام',
     'services_count' => ':count خدمة',
+    'general_services' => 'خدمات عامة',
+    'no_services_yet' => 'لا توجد خدمات منشورة بعد',
+    'no_services_in_sub_clinic' => 'لا توجد خدمات في هذه العيادة بعد',
 
     // Share
     'share' => 'مشاركة',
@@ -169,7 +172,7 @@ return [
     'article_views' => ':count مشاهدة',
 
     // تسجيل مجمع جديد (تسجيل عام → عميل محتمل)
-    'register_clinic_title' => 'سجّل مجمعك في سعرها',
+    'register_clinic_title' => 'سجّل مجمعك في دليل المجمعات الطبية',
     'register_clinic_subtitle' => 'أدخل بياناتك وسيتواصل معك فريقنا لإكمال التسجيل.',
     'register_clinic_name' => 'اسم المجمع',
     'register_contact_name' => 'اسم مسؤول التواصل',
@@ -240,7 +243,7 @@ return [
     'send_otp' => 'إرسال رمز التحقق',
     'otp_label' => 'رمز التحقق',
     'otp_sent_to' => 'تم إرسال رمز التحقق إلى :phone',
-    'otp_sms' => 'رمز التحقق في سعرها: :code',
+    'otp_sms' => 'رمز التحقق في دليل المجمعات الطبية: :code',
     'email_view_details' => 'عرض التفاصيل',
 
     // مقارنة المجمعات
@@ -279,6 +282,6 @@ return [
     'footer_about' => 'منصة متخصصة للبحث والمقارنة وحجز الخدمات الطبية في المملكة العربية السعودية.',
     'footer_quick_links' => 'روابط سريعة',
     'footer_for_clinics' => 'هل تملك مجمع؟',
-    'footer_for_clinics_desc' => 'انضم إلى منصة سعرها واعرض خدماتك لآلاف العملاء.',
-    'footer_rights' => '© :year سعرها. جميع الحقوق محفوظة.',
+    'footer_for_clinics_desc' => 'انضم إلى منصة دليل المجمعات الطبية واعرض خدماتك لآلاف العملاء.',
+    'footer_rights' => '© :year دليل المجمعات الطبية. جميع الحقوق محفوظة.',
 ];

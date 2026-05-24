@@ -12,7 +12,7 @@
 
     @if($clinics->isEmpty())
         <div class="bg-white rounded-xl shadow-sm p-12 text-center">
-            <div class="text-6xl mb-4">⚖️</div>
+            <x-icon name="scale" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p class="text-gray-600 mb-4">@lang('site.compare_empty')</p>
             <a href="{{ route('search') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
                 @lang('site.account_start_browsing')
@@ -37,7 +37,7 @@
                                         <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy"
                                              class="mx-auto h-16 w-16 rounded-full object-cover mb-2">
                                     @else
-                                        <div class="mx-auto h-16 w-16 rounded-full bg-teal-100 flex items-center justify-center text-2xl mb-2">🏥</div>
+                                        <div class="mx-auto h-16 w-16 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center mb-2"><x-icon name="building" class="w-8 h-8" /></div>
                                     @endif
                                     <span class="font-bold text-gray-800 group-hover:text-teal-600">{{ $clinic->name }}</span>
                                 </a>
@@ -59,7 +59,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 @if(($clinic->google_reviews_avg_rating ?? 0) > 0)
-                                    <span class="font-semibold text-gray-800">⭐ {{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
+                                    <span class="inline-flex items-center gap-1 font-semibold text-gray-800"><x-icon name="star-solid" class="w-4 h-4 text-yellow-500" /> {{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
                                     <span class="text-xs text-gray-400 block">{{ __('site.reviews_count_label', ['count' => $clinic->google_reviews_count]) }}</span>
                                 @else
                                     <span class="text-gray-400">—</span>
@@ -108,7 +108,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 @if($clinic->is_featured)
-                                    <span class="text-yellow-600">⭐ @lang('site.featured')</span>
+                                    <span class="inline-flex items-center gap-1 text-yellow-600"><x-icon name="star-solid" class="w-4 h-4" /> @lang('site.featured')</span>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif

@@ -233,17 +233,6 @@ class DemoSeeder extends Seeder
                 }
             }
 
-            // custom categories (2 per clinic)
-            if (! DB::table('custom_categories')->where('clinic_id', $cid)->exists()) {
-                foreach (['الباقات', 'العروض'] as $idx => $cc) {
-                    DB::table('custom_categories')->insert([
-                        'clinic_id' => $cid, 'name' => $cc, 'emoji' => $idx === 0 ? '📦' : '🏷️',
-                        'is_active' => true, 'sort_order' => $idx,
-                        'created_at' => $this->now, 'updated_at' => $this->now,
-                    ]);
-                }
-            }
-
             // sub-clinics (2 per clinic)
             if (! DB::table('sub_clinics')->where('clinic_id', $cid)->exists()) {
                 foreach (['القسم الرئيسي', 'الفرع النسائي'] as $idx => $sc) {
@@ -261,29 +250,32 @@ class DemoSeeder extends Seeder
     {
         if (DB::table('services')->count() >= 40) return;
         $clinicIds = $this->ids('clinics');
-        $catByClinic = DB::table('custom_categories')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+        // Sub-clinics grouped by clinic — services are distributed among them.
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
         $names = ['تنظيف الأسنان', 'تبييض الأسنان', 'حشوة تجميلية', 'كشف عام', 'تقشير البشرة', 'فيلر', 'بوتكس', 'فحص نظر', 'عدسات لاصقة', 'جلسة ليزر', 'تحليل دم شامل', 'أشعة سينية', 'استشارة تغذية', 'جلسة علاج طبيعي', 'تركيب تقويم'];
 
         foreach ($clinicIds as $cid) {
             $count = DB::table('services')->where('clinic_id', $cid)->count();
             if ($count >= 3) continue;
-            $ccs = $catByClinic[$cid] ?? collect();
+            $subs = $subsByClinic[$cid] ?? collect();
             for ($j = $count; $j < 3; $j++) {
+                // First two services go to the two sub-clinics; the third stays
+                // "general" (no sub-clinic) so we exercise that UI bucket too.
+                $sub = ($j < 2 && $subs->isNotEmpty()) ? $subs[$j % $subs->count()] : null;
                 $price = rand(100, 2000);
                 $hasOffer = rand(0, 2) === 0;
                 DB::table('services')->insert([
-                    'clinic_id'          => $cid,
-                    'sub_clinic_id'      => null,
-                    'custom_category_id' => $ccs->isNotEmpty() ? $ccs->random()->id : null,
-                    'name'               => $this->pick($names),
-                    'description'        => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
-                    'price'              => $price,
-                    'old_price'          => $hasOffer ? $price + rand(50, 500) : null,
-                    'offer_expires_at'   => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
-                    'is_active'          => true,
-                    'sort_order'         => $j,
-                    'created_at'         => $this->ts(rand(1, 120)),
-                    'updated_at'         => $this->now,
+                    'clinic_id'        => $cid,
+                    'sub_clinic_id'    => $sub?->id,
+                    'name'             => $this->pick($names),
+                    'description'      => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
+                    'price'            => $price,
+                    'old_price'        => $hasOffer ? $price + rand(50, 500) : null,
+                    'offer_expires_at' => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
+                    'is_active'        => true,
+                    'sort_order'       => $j,
+                    'created_at'       => $this->ts(rand(1, 120)),
+                    'updated_at'       => $this->now,
                 ]);
             }
         }

@@ -39,7 +39,7 @@
         </div>
     @else
         <div class="h-40 bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
-            <span class="text-5xl">🏥</span>
+            <x-icon name="building" class="w-12 h-12 text-teal-600/40" />
         </div>
     @endif
 
@@ -49,7 +49,7 @@
                 {{ $clinic->name }}
             </h3>
             @if($clinic->is_featured && empty($badges))
-                <span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">{{ __('site.featured') }} ⭐</span>
+                <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"><x-icon name="star-solid" class="w-3 h-3" /> {{ __('site.featured') }}</span>
             @endif
         </div>
 

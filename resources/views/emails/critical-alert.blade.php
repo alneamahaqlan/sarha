@@ -13,7 +13,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background:#ffffff; border-radius:12px; overflow:hidden;">
                     <tr>
                         <td style="background:#0d6e6e; padding:20px 24px; color:#ffffff; font-size:18px; font-weight:bold;">
-                            {{ config('app.name', 'Saerha') }}
+                            {{ config('app.name', 'دليل المجمعات الطبية') }}
                         </td>
                     </tr>
                     <tr>

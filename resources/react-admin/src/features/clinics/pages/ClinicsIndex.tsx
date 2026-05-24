@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { BarChart3, FileSpreadsheet, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, ListTree, Pencil, Plus, RotateCcw, Search, Star, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -394,14 +394,25 @@ export function ClinicsIndex() {
                   ) : (
                     <div className="flex justify-end gap-1">
                       {can('clinics.viewAny') && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/admin/clinics/${clinic.id}/stats`)}
-                          aria-label={t('clinics.stats.title')}
-                        >
-                          <BarChart3 className="h-4 w-4" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/admin/clinics/${clinic.id}/structure`)}
+                            aria-label={t('clinics.structure.title')}
+                            title={t('clinics.structure.title')}
+                          >
+                            <ListTree className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/admin/clinics/${clinic.id}/stats`)}
+                            aria-label={t('clinics.stats.title')}
+                          >
+                            <BarChart3 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                       {can('clinics.update') && (
                         <Button variant="ghost" size="icon" onClick={() => setEditingId(clinic.id)} aria-label={t('common.edit')}>

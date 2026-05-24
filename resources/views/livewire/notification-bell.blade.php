@@ -52,7 +52,7 @@
                 </a>
             @empty
                 <div class="px-4 py-10 text-center">
-                    <div class="text-4xl mb-2">🔔</div>
+                    <x-icon name="bell" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
                     <p class="text-sm text-gray-500">@lang('admin.notif.empty')</p>
                 </div>
             @endforelse

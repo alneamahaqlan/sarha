@@ -4,8 +4,8 @@ return [
     // ============================================
     // Brand
     // ============================================
-    'admin_brand' => 'Saerha — Admin Panel',
-    'clinic_brand' => 'Saerha — Complex Panel',
+    'admin_brand' => 'Medical Complexes Directory — Admin Panel',
+    'clinic_brand' => 'Medical Complexes Directory — Complex Panel',
 
     // ============================================
     // Navigation groups (admin)
@@ -59,8 +59,6 @@ return [
     'res_system_settings' => 'System Settings',
     'res_system_setting' => 'Setting',
     'res_system_settings_plural' => 'Settings',
-    'res_custom_category' => 'Custom category',
-    'res_custom_categorys' => 'My custom categories',
 
     // ============================================
     // Form/Table field labels
@@ -264,7 +262,7 @@ return [
         'premium' => 'Premium',
         'basic_priced' => 'Basic (300 SAR)',
         'premium_priced' => 'Premium (400 SAR)',
-        'premium_with_star' => 'Premium ⭐',
+        'premium_with_star' => 'Premium',
     ],
 
     // ============================================
@@ -423,7 +421,7 @@ return [
     'ai' => [
         'title_first' => 'Please enter the article title first',
         'not_configured' => 'Claude API key is not configured. Add ANTHROPIC_API_KEY to .env',
-        'generated' => 'Generated successfully ✨',
+        'generated' => 'Generated successfully',
         'failed' => 'Generation failed',
         'excel_analyzing' => 'Analyzing file…',
         'excel_done' => 'Analysis complete',
@@ -454,6 +452,7 @@ return [
         'profile_saved' => 'Changes saved successfully',
         'city_has_clinics' => 'Cannot delete a city that has clinics',
         'category_has_clinics' => 'Cannot delete a category that has clinics',
+        'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
     ],
 
     // ============================================

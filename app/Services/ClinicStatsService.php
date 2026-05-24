@@ -100,7 +100,7 @@ class ClinicStatsService
                 'quote_requests'     => (int) $s->quote_requests_count,
             ])->values();
 
-        $comparison = $this->comparison($clinic, $fromDate, $toDate, $bk, $pv);
+        $comparison = $this->comparison($clinic, $fromDate, $toDate, $bk, $pv, (int) $t->sa);
 
         // ---- bookings & quotes distributions ----
         $bookings = Booking::where('clinic_id', $clinic->id)->whereBetween('created_at', [$startAt, $endAt]);
@@ -167,42 +167,51 @@ class ClinicStatsService
         ];
     }
 
-    private function comparison(Clinic $clinic, string $from, string $to, int $bookings, int $visits): array
+    private function comparison(Clinic $clinic, string $from, string $to, int $bookings, int $visits, int $appearances): array
     {
-        $ordered = Cache::remember("stats:rankmap:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
+        // Rank active complexes by total search appearances (visibility/الظهور),
+        // not by bookings. Cache key is versioned (v2) so the previous
+        // booking-based ranking can't be served stale after this change.
+        $ordered = Cache::remember("stats:rankmap:v2:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
             $active = Clinic::where('status', 'active')->pluck('id');
             $sums = ClinicStat::whereIn('clinic_id', $active)->whereBetween('date', [$from, $to])
-                ->selectRaw('clinic_id, SUM(bookings_count) b')->groupBy('clinic_id')->pluck('b', 'clinic_id');
+                ->selectRaw('clinic_id, SUM(search_appearances) a')->groupBy('clinic_id')->pluck('a', 'clinic_id');
 
             return $active->mapWithKeys(fn ($id) => [$id => (int) ($sums[$id] ?? 0)])
                 ->sortDesc()->keys()->values()->all();
         });
 
-        $averages = Cache::remember("stats:avg:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
+        $averages = Cache::remember("stats:avg:v2:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
             $active = Clinic::where('status', 'active')->pluck('id');
             $count = max($active->count(), 1);
             $agg = ClinicStat::whereIn('clinic_id', $active)->whereBetween('date', [$from, $to])
-                ->selectRaw('COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(page_views),0) pv')->first();
+                ->selectRaw('COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(page_views),0) pv, COALESCE(SUM(search_appearances),0) sa')
+                ->first();
 
             return [
-                'avg_bookings' => round(((int) $agg->bk) / $count, 1),
-                'avg_visits'   => round(((int) $agg->pv) / $count, 1),
+                'avg_bookings'    => round(((int) $agg->bk) / $count, 1),
+                'avg_visits'      => round(((int) $agg->pv) / $count, 1),
+                'avg_appearances' => round(((int) $agg->sa) / $count, 1),
             ];
         });
 
         $pos = array_search($clinic->id, $ordered, true);
 
         return [
-            'rank'                => $pos === false ? null : $pos + 1,
-            'total'               => count($ordered),
-            'clinic_bookings'     => $bookings,
-            'avg_bookings'        => (float) $averages['avg_bookings'],
-            'clinic_visits'       => $visits,
-            'avg_visits'          => (float) $averages['avg_visits'],
-            'bookings_vs_avg_pct' => $averages['avg_bookings'] > 0
+            'rank'                   => $pos === false ? null : $pos + 1,
+            'total'                  => count($ordered),
+            'clinic_bookings'        => $bookings,
+            'avg_bookings'           => (float) $averages['avg_bookings'],
+            'clinic_visits'          => $visits,
+            'avg_visits'             => (float) $averages['avg_visits'],
+            'clinic_appearances'     => $appearances,
+            'avg_appearances'        => (float) $averages['avg_appearances'],
+            'bookings_vs_avg_pct'    => $averages['avg_bookings'] > 0
                 ? (int) round((($bookings - $averages['avg_bookings']) / $averages['avg_bookings']) * 100) : null,
-            'visits_vs_avg_pct'   => $averages['avg_visits'] > 0
+            'visits_vs_avg_pct'      => $averages['avg_visits'] > 0
                 ? (int) round((($visits - $averages['avg_visits']) / $averages['avg_visits']) * 100) : null,
+            'appearances_vs_avg_pct' => $averages['avg_appearances'] > 0
+                ? (int) round((($appearances - $averages['avg_appearances']) / $averages['avg_appearances']) * 100) : null,
         ];
     }
 
