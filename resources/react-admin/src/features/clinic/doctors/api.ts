@@ -4,12 +4,18 @@ import type { PaginatedResponse, SingleResponse } from '@/types/api';
 export interface ClinicDoctor {
   id: number;
   clinic_id: number;
+  sub_clinic_id: number | null;
+  sub_clinic?: { id: number; name: string } | null;
   name: string;
   specialty: string | null;
+  gender: 'male' | 'female' | null;
   photo: string | null;
   photo_url: string | null;
   bio: string | null;
+  qualifications: string | null;
   years_experience: number | null;
+  university: string | null;
+  languages: string | null;
   is_active: boolean;
   sort_order: number;
   created_at: string | null;
@@ -19,9 +25,14 @@ export interface ClinicDoctor {
 export interface ClinicDoctorFormValues {
   name: string;
   specialty?: string | null;
+  gender?: 'male' | 'female' | null;
+  sub_clinic_id?: number | null;
   photo?: string | null;
   bio?: string | null;
+  qualifications?: string | null;
   years_experience?: number | null;
+  university?: string | null;
+  languages?: string | null;
   is_active: boolean;
   sort_order?: number;
 }

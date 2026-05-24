@@ -28,8 +28,11 @@ class ClinicController extends Controller
                 'subClinics.category',
                 'subClinics.services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
                 // Doctors showcase + packages (with their services) for their tabs.
-                'doctors',
+                'doctors.subClinic',
                 'packages.services' => fn($q) => $q->where('is_active', true),
+                // Before/after gallery (with optional service/sub-clinic links).
+                'beforeAfterPhotos.service:id,name',
+                'beforeAfterPhotos.subClinic:id,name,name_en',
                 'articles' => fn($q) => $q->where('is_published', true)->latest()->limit(6),
                 'googleReviews' => fn($q) => $q->where('is_visible', true)->latest('reviewed_at')->limit(20),
                 'workingHours' => fn($q) => $q->orderBy('day_of_week'),

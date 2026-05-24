@@ -175,6 +175,17 @@ class Clinic extends Authenticatable
         return $this->hasMany(CategoryRequest::class);
     }
 
+    public function beforeAfterPhotos()
+    {
+        return $this->hasMany(BeforeAfterPhoto::class)->where('is_active', true)->orderBy('sort_order');
+    }
+
+    /** Unfiltered before/after photos — used by the clinic panel. */
+    public function beforeAfterPhotosAll()
+    {
+        return $this->hasMany(BeforeAfterPhoto::class)->orderBy('sort_order')->orderByDesc('id');
+    }
+
     public function whatsappLink(?string $message = null): string
     {
         $phone = preg_replace('/\D/', '', $this->phone ?? '');

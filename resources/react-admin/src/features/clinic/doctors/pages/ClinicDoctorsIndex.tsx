@@ -9,9 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -29,10 +31,16 @@ import type { ClinicDoctor } from '../api';
 const schema = z.object({
   name: z.string().min(1).max(255),
   specialty: z.string().max(255).nullish().or(z.literal('')),
+  gender: z.enum(['male', 'female']).nullish().or(z.literal('')),
+  sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
+    .transform((v) => (v === '' || v === undefined ? null : (v as number))),
   photo: z.string().nullish(),
   bio: z.string().max(2000).nullish().or(z.literal('')),
+  qualifications: z.string().max(2000).nullish().or(z.literal('')),
   years_experience: z.union([z.number().int().min(0).max(70), z.nan()]).nullish()
     .transform((v) => (v === undefined || v === null || Number.isNaN(v) ? null : v)),
+  university: z.string().max(255).nullish().or(z.literal('')),
+  languages: z.string().max(255).nullish().or(z.literal('')),
   is_active: z.boolean(),
   sort_order: z.number().int().min(0),
 });
@@ -40,6 +48,7 @@ type FormValues = z.infer<typeof schema>;
 
 function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClose: () => void }) {
   const { t } = useTranslation();
+  const { data: subClinics } = useClinicSubClinics();
   const create = useCreateClinicDoctor();
   const update = useUpdateClinicDoctor(doctor?.id ?? 0);
 
@@ -48,9 +57,14 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
     defaultValues: {
       name: doctor?.name ?? '',
       specialty: doctor?.specialty ?? '',
+      gender: doctor?.gender ?? '',
+      sub_clinic_id: doctor?.sub_clinic_id ?? null,
       photo: doctor?.photo ?? null,
       bio: doctor?.bio ?? '',
+      qualifications: doctor?.qualifications ?? '',
       years_experience: doctor?.years_experience ?? null,
+      university: doctor?.university ?? '',
+      languages: doctor?.languages ?? '',
       is_active: doctor?.is_active ?? true,
       sort_order: doctor?.sort_order ?? 0,
     },
@@ -97,8 +111,35 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
               <Input id="specialty" {...form.register('specialty')} />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="gender">{t('clinic_doctors.gender')}</Label>
+              <Select id="gender" {...form.register('gender')}>
+                <option value="">—</option>
+                <option value="male">{t('clinic_doctors.gender_male')}</option>
+                <option value="female">{t('clinic_doctors.gender_female')}</option>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="sub_clinic_id">{t('clinic_doctors.sub_clinic')}</Label>
+              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+                <option value="">—</option>
+                {subClinics?.data.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+              </Select>
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="years_experience">{t('clinic_doctors.years_experience')}</Label>
               <Input id="years_experience" type="number" min={0} max={70} {...form.register('years_experience', { valueAsNumber: true })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="university">{t('clinic_doctors.university')}</Label>
+              <Input id="university" {...form.register('university')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="languages">{t('clinic_doctors.languages')}</Label>
+              <Input id="languages" {...form.register('languages')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="qualifications">{t('clinic_doctors.qualifications')}</Label>
+              <Textarea id="qualifications" rows={2} {...form.register('qualifications')} />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="bio">{t('clinic_doctors.bio')}</Label>

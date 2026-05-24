@@ -26,7 +26,7 @@ class DoctorController extends Controller
 
     public function index(Request $request): AnonymousResourceCollection
     {
-        $query = Doctor::query()->where('clinic_id', $this->clinicId());
+        $query = Doctor::query()->where('clinic_id', $this->clinicId())->with('subClinic:id,name');
 
         if ($search = $request->string('search')->toString()) {
             $query->where('name', 'like', "%{$search}%");
@@ -46,7 +46,7 @@ class DoctorController extends Controller
 
         $doctor = Doctor::create($data);
 
-        return (new DoctorResource($doctor))->response()->setStatusCode(201);
+        return (new DoctorResource($doctor->load('subClinic:id,name')))->response()->setStatusCode(201);
     }
 
     public function update(UpdateDoctorRequest $request, Doctor $doctor): DoctorResource
@@ -55,7 +55,7 @@ class DoctorController extends Controller
 
         $doctor->update($request->validated());
 
-        return new DoctorResource($doctor->fresh());
+        return new DoctorResource($doctor->fresh()->load('subClinic:id,name'));
     }
 
     public function destroy(Doctor $doctor): JsonResponse

@@ -136,6 +136,7 @@
                     'clinics'  => ['site.tab_clinics', $clinic->subClinics->count()],
                     'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
                     'offers'   => ['site.tab_offers', $offersCount],
+                    'before_after' => ['site.tab_before_after', $clinic->beforeAfterPhotos->count()],
                     'reviews'  => ['site.tab_reviews', $clinic->google_reviews_count ?? 0],
                     'articles' => ['site.tab_articles', $clinic->articles->count()],
                     'about'    => ['site.tab_about', null],
@@ -169,6 +170,11 @@
                 {{-- Offers & packages tab --}}
                 <div x-show="tab === 'offers'" x-cloak class="space-y-6">
                     @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
+                </div>
+
+                {{-- Before / after tab --}}
+                <div x-show="tab === 'before_after'" x-cloak class="space-y-6">
+                    @include('public.partials.before-after')
                 </div>
 
                 {{-- Reviews tab --}}

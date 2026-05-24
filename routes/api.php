@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
+use App\Http\Controllers\Api\V1\Clinic\BeforeAfterController as ClinicBeforeAfterController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
@@ -215,6 +216,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('packages', ClinicPackageController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->names('clinic.packages');
+
+        // Before/after photo gallery — clinic-owned CRUD.
+        Route::apiResource('before-after', ClinicBeforeAfterController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['before-after' => 'beforeAfter'])
+            ->names('clinic.before-after');
 
         // Specialty (category) requests submitted to the admins.
         Route::get('category-requests', [ClinicCategoryRequestController::class, 'index'])->name('clinic.category-requests.index');

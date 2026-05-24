@@ -22,10 +22,25 @@
                     @if($doctor->specialty)
                         <p class="text-sm text-teal-700">{{ $doctor->specialty }}</p>
                     @endif
-                    @if($doctor->years_experience)
-                        <p class="text-xs text-gray-500 mt-0.5">
-                            {{ __('site.years_experience', ['count' => $doctor->years_experience]) }}
-                        </p>
+                    <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
+                        @if($doctor->years_experience)
+                            <span>{{ __('site.years_experience', ['count' => $doctor->years_experience]) }}</span>
+                        @endif
+                        @if($doctor->gender)
+                            <span>{{ __('site.doctor_gender_' . $doctor->gender) }}</span>
+                        @endif
+                        @if($doctor->subClinic)
+                            <span class="inline-flex items-center gap-1"><x-icon name="building" class="w-3 h-3" /> {{ $doctor->subClinic->display_name }}</span>
+                        @endif
+                    </div>
+                    @if($doctor->qualifications)
+                        <p class="text-xs text-gray-600 mt-1.5">{{ $doctor->qualifications }}</p>
+                    @endif
+                    @if($doctor->university)
+                        <p class="text-xs text-gray-500 mt-1">{{ __('site.doctor_university') }}: {{ $doctor->university }}</p>
+                    @endif
+                    @if($doctor->languages)
+                        <p class="text-xs text-gray-500 mt-0.5">{{ __('site.doctor_languages') }}: {{ $doctor->languages }}</p>
                     @endif
                     @if($doctor->bio)
                         <p class="text-sm text-gray-600 mt-2 leading-relaxed">{{ Str::limit($doctor->bio, 140) }}</p>

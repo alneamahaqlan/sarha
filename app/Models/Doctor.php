@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\Storage;
 class Doctor extends Model
 {
     protected $fillable = [
-        'clinic_id', 'name', 'specialty', 'photo', 'bio', 'years_experience',
+        'clinic_id', 'sub_clinic_id', 'name', 'specialty', 'gender', 'photo',
+        'bio', 'qualifications', 'years_experience', 'university', 'languages',
         'is_active', 'sort_order',
     ];
 
@@ -24,6 +25,11 @@ class Doctor extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    public function subClinic()
+    {
+        return $this->belongsTo(SubClinic::class);
     }
 
     public function getPhotoUrlAttribute(): ?string

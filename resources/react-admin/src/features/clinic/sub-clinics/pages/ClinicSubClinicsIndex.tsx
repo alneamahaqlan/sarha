@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Check, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,9 +20,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors, isApiError } from '@/lib/api-client';
 import { useCategoryLookup } from '@/features/lookups/hooks';
+import { useClinicServices } from '@/features/clinic/services/hooks';
 
 import {
   useClinicSubClinics, useCreateClinicSubClinic, useDeleteClinicSubClinic, useUpdateClinicSubClinic,
@@ -159,11 +160,19 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
 
 export function ClinicSubClinicsIndex() {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const { data, isLoading } = useClinicSubClinics();
+  const { data: categories } = useCategoryLookup();
+  const { data: services } = useClinicServices({ per_page: 100 });
   const del = useDeleteClinicSubClinic();
   const [editing, setEditing] = useState<ClinicSubClinic | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<ClinicSubClinic | null>(null);
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  const categoryName = (id: number | null) => (id ? categories?.find((c) => c.id === id)?.name ?? '—' : '—');
+  const servicesFor = (subId: number) => services?.data.filter((s) => s.sub_clinic_id === subId) ?? [];
+  const cf = (n: number) => new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US').format(n);
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -206,25 +215,50 @@ export function ClinicSubClinicsIndex() {
           ) : !data || data.data.length === 0 ? (
             <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
           ) : (
-            data.data.map((s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-medium">
-                  {s.name}
-                  {s.name_en && <span className="ms-2 text-xs text-[var(--color-muted-foreground)]" dir="ltr">({s.name_en})</span>}
-                </TableCell>
-                <TableCell className="text-sm text-[var(--color-muted-foreground)]">
-                  {s.category_id ?? '—'}
-                </TableCell>
-                <TableCell><Badge variant="muted">{s.services_count ?? 0}</Badge></TableCell>
-                <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
-                <TableCell className="text-end">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
+            data.data.flatMap((s) => {
+              const isOpen = expanded === s.id;
+              const rows = servicesFor(s.id);
+              const main = (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">
+                    <button type="button" onClick={() => setExpanded(isOpen ? null : s.id)} className="inline-flex items-center gap-1.5 hover:text-[var(--color-primary)]">
+                      {isOpen ? <ChevronDown className="h-4 w-4 rtl:rotate-180" /> : <ChevronRight className="h-4 w-4 rtl:rotate-180" />}
+                      {s.name}
+                    </button>
+                    {s.name_en && <span className="ms-2 text-xs text-[var(--color-muted-foreground)]" dir="ltr">({s.name_en})</span>}
+                  </TableCell>
+                  <TableCell className="text-sm text-[var(--color-muted-foreground)]">{categoryName(s.category_id)}</TableCell>
+                  <TableCell><Badge variant="muted">{s.services_count ?? 0}</Badge></TableCell>
+                  <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
+                  <TableCell className="text-end">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+              if (!isOpen) return [main];
+              const expandedRow = (
+                <TableRow key={`${s.id}-services`} className="bg-[var(--color-muted)]/30">
+                  <TableCell colSpan={5} className="py-2">
+                    {rows.length === 0 ? (
+                      <p className="px-6 py-2 text-sm text-[var(--color-muted-foreground)]">{t('clinic_sub_clinics.no_services')}</p>
+                    ) : (
+                      <ul className="px-6 divide-y divide-[var(--color-border)]/40">
+                        {rows.map((sv) => (
+                          <li key={sv.id} className="flex items-center justify-between py-1.5 text-sm">
+                            <span className={sv.is_active ? '' : 'text-[var(--color-muted-foreground)] line-through'}>{sv.name}</span>
+                            <span className="text-[var(--color-muted-foreground)]">{sv.price != null ? `${cf(sv.price)} ${t('common.sar')}` : '—'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+              return [main, expandedRow];
+            })
           )}
         </TableBody>
       </Table>

@@ -38,6 +38,7 @@ const ClinicSubClinicsIndex = lazy(() => import('@/features/clinic/sub-clinics/p
 const ClinicDoctorsIndex  = lazy(() => import('@/features/clinic/doctors/pages/ClinicDoctorsIndex').then(m => ({ default: m.ClinicDoctorsIndex })));
 const ClinicPackagesIndex = lazy(() => import('@/features/clinic/packages/pages/ClinicPackagesIndex').then(m => ({ default: m.ClinicPackagesIndex })));
 const ClinicComplaintsIndex = lazy(() => import('@/features/clinic/complaints/pages/ClinicComplaintsIndex').then(m => ({ default: m.ClinicComplaintsIndex })));
+const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
 const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/ClinicArticlesIndex').then(m => ({ default: m.ClinicArticlesIndex })));
@@ -126,6 +127,7 @@ export function AppRoutes() {
               <Route path="sub-clinics" element={<ClinicSubClinicsIndex />} />
               <Route path="doctors" element={<ClinicDoctorsIndex />} />
               <Route path="packages" element={<ClinicPackagesIndex />} />
+              <Route path="before-after" element={<ClinicBeforeAfterIndex />} />
               <Route path="bookings" element={<ClinicBookingsIndex />} />
               <Route path="price-quotes" element={<ClinicQuotesIndex />} />
               <Route path="complaints" element={<ClinicComplaintsIndex />} />

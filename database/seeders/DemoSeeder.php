@@ -296,22 +296,34 @@ class DemoSeeder extends Seeder
 
     private function seedDoctors(): void
     {
+        $this->backfillDoctorDetails();
         if (DB::table('doctors')->count() >= 24) return;
         $specialties = ['استشاري جراحة عامة', 'أخصائي أسنان', 'استشاري جلدية', 'أخصائي عيون', 'استشاري نساء وولادة', 'أخصائي أطفال', 'استشاري عظام', 'أخصائي باطنية'];
         $first = ['د. أحمد', 'د. سارة', 'د. خالد', 'د. نورة', 'د. محمد', 'د. ريم', 'د. عبدالله', 'د. منى'];
         $last  = ['العتيبي', 'الزهراني', 'القحطاني', 'الشمري', 'الدوسري', 'الحربي', 'الغامدي', 'المالكي'];
+        $female = ['د. سارة', 'د. نورة', 'د. ريم', 'د. منى'];
+        $universities = ['جامعة الملك سعود', 'جامعة الملك عبدالعزيز', 'جامعة الملك فيصل', 'جامعة القاهرة', 'جامعة الأردن'];
+        $langs = ['العربية، الإنجليزية', 'العربية', 'العربية، الإنجليزية، الأردية'];
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
 
         foreach ($this->ids('clinics') as $cid) {
             if (DB::table('doctors')->where('clinic_id', $cid)->exists()) continue;
+            $subs = $subsByClinic[$cid] ?? collect();
             $n = rand(2, 4);
             for ($j = 0; $j < $n; $j++) {
+                $fn = $this->pick($first);
                 DB::table('doctors')->insert([
                     'clinic_id'        => $cid,
-                    'name'             => $this->pick($first) . ' ' . $this->pick($last),
+                    'sub_clinic_id'    => $subs->isNotEmpty() ? $subs->random()->id : null,
+                    'name'             => $fn . ' ' . $this->pick($last),
                     'specialty'        => $this->pick($specialties),
+                    'gender'           => in_array($fn, $female, true) ? 'female' : 'male',
                     'photo'            => null,
                     'bio'              => 'خبرة واسعة في تشخيص وعلاج الحالات بأحدث التقنيات الطبية.',
+                    'qualifications'   => 'بورد سعودي، زمالة في التخصص الدقيق.',
                     'years_experience' => rand(3, 25),
+                    'university'       => $this->pick($universities),
+                    'languages'        => $this->pick($langs),
                     'is_active'        => true,
                     'sort_order'       => $j,
                     'created_at'       => $this->now,
@@ -319,6 +331,34 @@ class DemoSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /** Fill the new doctor-detail columns for existing demo doctors (idempotent). */
+    private function backfillDoctorDetails(): void
+    {
+        if (DB::table('doctors')->whereNotNull('gender')->exists()) {
+            return;
+        }
+
+        foreach (['سارة', 'نورة', 'ريم', 'منى'] as $fn) {
+            DB::table('doctors')->where('name', 'like', '%' . $fn . '%')->update(['gender' => 'female']);
+        }
+        DB::table('doctors')->whereNull('gender')->update(['gender' => 'male']);
+
+        DB::table('doctors')->update([
+            'qualifications' => 'بورد سعودي، زمالة في التخصص الدقيق.',
+            'university'     => 'جامعة الملك سعود',
+            'languages'     => 'العربية، الإنجليزية',
+        ]);
+
+        // Link each doctor to a department of its own complex.
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+        DB::table('doctors')->orderBy('id')->select('id', 'clinic_id')->each(function ($d) use ($subsByClinic) {
+            $subs = $subsByClinic[$d->clinic_id] ?? collect();
+            if ($subs->isNotEmpty()) {
+                DB::table('doctors')->where('id', $d->id)->update(['sub_clinic_id' => $subs->random()->id]);
+            }
+        });
     }
 
     private function seedPackages(): void
