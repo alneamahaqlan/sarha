@@ -94,7 +94,7 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
               <Label htmlFor="category_id">{t('clinic_sub_clinics.specialty')}</Label>
               <Select id="category_id" {...form.register('category_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
                 <option value="">—</option>
-                {categories?.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
+                {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </Select>
             </div>
             <div className="space-y-1.5 md:col-span-2">

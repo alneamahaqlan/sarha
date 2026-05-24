@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useCategoryLookup, useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
@@ -292,7 +293,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
                   onChange={() => toggleCategory(c.id)}
                   className="h-4 w-4"
                 />
-                <span className="text-sm">{c.emoji ? `${c.emoji} ` : ''}{c.name}</span>
+                <CategoryIcon emoji={c.emoji} className="h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]" />
+                <span className="text-sm">{c.name}</span>
               </label>
             ))}
           </div>

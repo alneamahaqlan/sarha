@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, ChevronRight, Stethoscope, Tag } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ChevronRight, Stethoscope } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useClinicStructure } from '../hooks';
 import type { StructureService, StructureSubClinic } from '../api/clinics.api';
@@ -61,8 +62,7 @@ function SubClinicCard({ sub }: { sub: StructureSubClinic }) {
             </div>
             {sub.category && (
               <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5 flex items-center gap-1">
-                <Tag className="h-3 w-3" />
-                {sub.category.emoji && <span>{sub.category.emoji}</span>}
+                <CategoryIcon emoji={sub.category.emoji} className="h-3.5 w-3.5" />
                 {sub.category.name}
               </p>
             )}

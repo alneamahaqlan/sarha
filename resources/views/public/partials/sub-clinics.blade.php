@@ -19,8 +19,8 @@
                 <div class="min-w-0">
                     <h2 class="text-lg font-bold text-gray-800">{{ $sub->display_name }}</h2>
                     @if($sub->category)
-                        <p class="text-xs text-gray-500 mt-0.5">
-                            {{ $sub->category->emoji }} {{ $sub->category->display_name }}
+                        <p class="inline-flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                            <x-category-icon :emoji="$sub->category->emoji" class="w-3.5 h-3.5" /> {{ $sub->category->display_name }}
                         </p>
                     @endif
                 </div>

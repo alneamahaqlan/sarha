@@ -55,11 +55,7 @@
             @foreach($categories->take(14) as $category)
                 <a href="{{ route('search', ['category' => $category->id]) }}"
                    class="flex flex-col items-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md hover:ring-2 hover:ring-teal-200 transition-all text-center group">
-                    @if($category->emoji)
-                        <span class="text-3xl mb-2">{{ $category->emoji }}</span>
-                    @else
-                        <x-icon name="building" class="w-8 h-8 mb-2 text-teal-600" />
-                    @endif
+                    <x-category-icon :emoji="$category->emoji" class="w-8 h-8 mb-2 text-teal-600" />
                     <span class="text-xs text-gray-700 group-hover:text-teal-600 font-medium">{{ $category->display_name }}</span>
                 </a>
             @endforeach

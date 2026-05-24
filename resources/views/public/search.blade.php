@@ -25,7 +25,7 @@
                 <option value="">@lang('site.search_all_categories')</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>
-                        {{ $cat->emoji ?? '' }} {{ $cat->display_name }}
+                        {{ $cat->display_name }}
                     </option>
                 @endforeach
             </select>

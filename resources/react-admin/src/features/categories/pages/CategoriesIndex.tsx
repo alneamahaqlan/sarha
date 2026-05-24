@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
@@ -157,7 +158,7 @@ export function CategoriesIndex() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell className="text-lg">{category.emoji ?? '—'}</TableCell>
+                <TableCell><CategoryIcon emoji={category.emoji} className="w-5 h-5 text-[var(--color-foreground)]" /></TableCell>
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]" dir="ltr">{category.slug}</TableCell>
                 <TableCell>

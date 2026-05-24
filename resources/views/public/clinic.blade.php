@@ -90,8 +90,8 @@
                     @if($clinic->categories->isNotEmpty())
                         <div class="flex flex-wrap gap-2 mt-3">
                             @foreach($clinic->categories as $cat)
-                                <span class="bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
-                                    {{ $cat->emoji ?? '' }} {{ $cat->display_name }}
+                                <span class="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
+                                    <x-category-icon :emoji="$cat->emoji" class="w-4 h-4" /> {{ $cat->display_name }}
                                 </span>
                             @endforeach
                         </div>
