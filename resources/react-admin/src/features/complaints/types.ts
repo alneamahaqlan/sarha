@@ -1,7 +1,9 @@
 export type ComplaintType = 'quality' | 'pricing' | 'misleading_info' | 'other';
 export type ComplaintStatus = 'new' | 'in_review' | 'resolved' | 'rejected';
 export type ComplaintPriority = 'low' | 'medium' | 'high';
+export type ComplaintSource = 'admin' | 'customer' | 'clinic';
 
+export const COMPLAINT_SOURCES: ComplaintSource[] = ['customer', 'clinic', 'admin'];
 export const COMPLAINT_TYPES: ComplaintType[] = ['quality', 'pricing', 'misleading_info', 'other'];
 export const COMPLAINT_STATUSES: ComplaintStatus[] = ['new', 'in_review', 'resolved', 'rejected'];
 export const COMPLAINT_PRIORITIES: ComplaintPriority[] = ['low', 'medium', 'high'];
@@ -12,6 +14,7 @@ export interface Complaint {
   clinic_id: number | null;
   user_id: number | null;
   booking_id: number | null;
+  source: ComplaintSource;
   customer_name: string;
   customer_phone: string;
   customer_email: string | null;

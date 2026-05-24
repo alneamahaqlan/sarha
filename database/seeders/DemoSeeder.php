@@ -634,14 +634,17 @@ class DemoSeeder extends Seeder
         $types = ['quality', 'pricing', 'misleading_info', 'other'];
         $statuses = ['new', 'in_review', 'resolved', 'rejected'];
         $priorities = ['low', 'medium', 'high'];
+        $sources = ['customer', 'customer', 'clinic', 'admin'];
         for ($i = $existing; $i < $target; $i++) {
             $st = $this->pick($statuses);
+            $source = $this->pick($sources);
             DB::table('complaints')->insert([
                 'reference_code'    => 'CMP-' . strtoupper(Str::random(8)),
                 'clinic_id'         => $this->pick($clinicIds),
-                'user_id'           => rand(0, 1) ? $this->pick($userIds) : null,
+                'user_id'           => $source === 'customer' ? $this->pick($userIds) : null,
                 'booking_id'        => null,
-                'customer_name'     => 'مشتكٍ ' . ($i + 1),
+                'source'            => $source,
+                'customer_name'     => $source === 'clinic' ? ('مجمع ' . ($i + 1)) : ('مشتكٍ ' . ($i + 1)),
                 'customer_phone'    => $this->phone(800000 + $i),
                 'customer_email'    => rand(0, 1) ? 'c' . $i . '@mail.sa' : null,
                 'type'              => $this->pick($types),
@@ -657,6 +660,16 @@ class DemoSeeder extends Seeder
                 'created_at'        => $this->ts(rand(0, 50)),
                 'updated_at'        => $this->now,
             ]);
+        }
+
+        // Give the demo complaints a realistic source mix so the admin panel
+        // shows customer + complex + admin complaints (idempotent — runs once).
+        if (DB::table('complaints')->whereIn('source', ['customer', 'clinic'])->doesntExist()) {
+            $ids = DB::table('complaints')->pluck('id')->shuffle();
+            DB::table('complaints')->whereIn('id', $ids->take(8)->all())
+                ->update(['source' => 'clinic', 'user_id' => null]);
+            DB::table('complaints')->whereIn('id', $ids->slice(8, 10)->all())
+                ->update(['source' => 'customer', 'user_id' => $this->pick($userIds)]);
         }
     }
 

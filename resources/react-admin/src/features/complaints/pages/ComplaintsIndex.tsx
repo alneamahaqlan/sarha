@@ -23,7 +23,7 @@ import {
 import { CopyBadge } from '@/components/ui/copy-badge';
 import { ComplaintForm } from '../components/ComplaintForm';
 import { ComplaintPriorityBadge, ComplaintStatusBadge } from '../components/ComplaintBadges';
-import { COMPLAINT_PRIORITIES, COMPLAINT_STATUSES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintStatus, type ComplaintType } from '../types';
+import { COMPLAINT_PRIORITIES, COMPLAINT_SOURCES, COMPLAINT_STATUSES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintSource, type ComplaintStatus, type ComplaintType } from '../types';
 
 type ActionDialog =
   | { kind: 'mark_in_review'; complaint: Complaint }
@@ -45,6 +45,7 @@ export function ComplaintsIndex() {
   const [statusTab, setStatusTab] = useState<StatusTab>('all');
   const [typeFilter, setTypeFilter] = useState<ComplaintType | undefined>();
   const [priorityFilter, setPriorityFilter] = useState<ComplaintPriority | undefined>();
+  const [sourceFilter, setSourceFilter] = useState<ComplaintSource | undefined>();
   const [actionDialog, setActionDialog] = useState<ActionDialog>(null);
   const [creating, setCreating] = useState(false);
 
@@ -56,9 +57,9 @@ export function ComplaintsIndex() {
       per_page: 15,
       search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
-      filter: { status: statusFilter, type: typeFilter, priority: priorityFilter },
+      filter: { status: statusFilter, type: typeFilter, priority: priorityFilter, source: sourceFilter },
     }),
-    [page, debouncedSearch, statusFilter, typeFilter, priorityFilter],
+    [page, debouncedSearch, statusFilter, typeFilter, priorityFilter, sourceFilter],
   );
   const { data, isLoading, isFetching } = useComplaints(queryParams);
 
@@ -127,12 +128,21 @@ export function ComplaintsIndex() {
           <option value="">{t('complaints.filter_all_priorities')}</option>
           {COMPLAINT_PRIORITIES.map((s) => <option key={s} value={s}>{t(`complaints.priority.${s}`)}</option>)}
         </Select>
+        <Select
+          value={sourceFilter ?? ''}
+          onChange={(e) => { setSourceFilter((e.target.value || undefined) as ComplaintSource | undefined); setPage(1); }}
+          className="w-40"
+        >
+          <option value="">{t('complaints.filter_all_sources')}</option>
+          {COMPLAINT_SOURCES.map((s) => <option key={s} value={s}>{t(`complaints.source.${s}`)}</option>)}
+        </Select>
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t('complaints.reference')}</TableHead>
+            <TableHead>{t('complaints.source_label')}</TableHead>
             <TableHead>{t('complaints.customer_name')}</TableHead>
             <TableHead>{t('complaints.clinic')}</TableHead>
             <TableHead>{t('complaints.type_label')}</TableHead>
@@ -146,13 +156,13 @@ export function ComplaintsIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={9} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -161,6 +171,11 @@ export function ComplaintsIndex() {
               <TableRow key={c.id}>
                 <TableCell>
                   <CopyBadge value={c.reference_code} />
+                </TableCell>
+                <TableCell>
+                  <Badge variant={c.source === 'clinic' ? 'info' : c.source === 'customer' ? 'success' : 'muted'}>
+                    {t(`complaints.source.${c.source}`)}
+                  </Badge>
                 </TableCell>
                 <TableCell className="font-medium">{c.customer_name}</TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{c.clinic?.name ?? '—'}</TableCell>

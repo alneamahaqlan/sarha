@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardContr
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
+use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
 use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
 use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
 use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
@@ -232,6 +233,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Records a complex's outreach to a customer (WhatsApp/call) → stats + visibility.
         Route::post('outreach', [ClinicOutreachController::class, 'store'])->name('clinic.outreach');
+
+        // Complaints filed BY the complex (admins handle them).
+        Route::get('complaints', [ClinicComplaintController::class, 'index'])->name('clinic.complaints.index');
+        Route::post('complaints', [ClinicComplaintController::class, 'store'])->name('clinic.complaints.store');
 
         // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
         // the basic-plan monthly publish limit; preserved as-is via Model events.

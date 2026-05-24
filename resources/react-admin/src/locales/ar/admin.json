@@ -227,6 +227,13 @@
     "filter_all_statuses": "كل الحالات",
     "filter_all_types": "كل الأنواع",
     "filter_all_priorities": "كل الأولويات",
+    "filter_all_sources": "كل المصادر",
+    "source_label": "المصدر",
+    "source": {
+      "customer": "عميل",
+      "clinic": "مجمع",
+      "admin": "إدارة"
+    },
     "create": "شكوى جديدة",
     "created": "تم إنشاء الشكوى",
     "tabs": {
@@ -667,6 +674,7 @@
     "packages": "الباقات",
     "bookings": "الحجوزات",
     "price_quotes": "طلبات التسعير",
+    "complaints": "الشكاوى",
     "articles": "المقالات",
     "import_services": "استيراد خدمات",
     "subscription": "الاشتراك",
@@ -895,6 +903,26 @@
   "outreach": {
     "whatsapp": "تواصل عبر واتساب",
     "call": "اتصال بالعميل"
+  },
+  "clinic_complaints": {
+    "title": "الشكاوى",
+    "subtitle": "قدّم شكوى لإدارة المنصة وتابع حالتها",
+    "create": "شكوى جديدة",
+    "created": "تم إرسال الشكوى",
+    "reference": "المرجع",
+    "subject": "الموضوع",
+    "description": "التفاصيل",
+    "type": "النوع",
+    "status_label": "الحالة",
+    "resolution": "الحل",
+    "type_quality": "جودة الخدمة",
+    "type_pricing": "الأسعار",
+    "type_misleading_info": "معلومات مضللة",
+    "type_other": "أخرى",
+    "status_new": "جديدة",
+    "status_in_review": "قيد المراجعة",
+    "status_resolved": "تم حلها",
+    "status_rejected": "مرفوضة"
   },
   "clinic_articles": {
     "title": "المقالات",

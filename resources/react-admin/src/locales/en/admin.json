@@ -227,6 +227,13 @@
     "filter_all_statuses": "All statuses",
     "filter_all_types": "All types",
     "filter_all_priorities": "All priorities",
+    "filter_all_sources": "All sources",
+    "source_label": "Source",
+    "source": {
+      "customer": "Customer",
+      "clinic": "Complex",
+      "admin": "Admin"
+    },
     "create": "New complaint",
     "created": "Complaint created",
     "tabs": {
@@ -667,6 +674,7 @@
     "packages": "Packages",
     "bookings": "Bookings",
     "price_quotes": "Price quotes",
+    "complaints": "Complaints",
     "articles": "Articles",
     "import_services": "Import services",
     "subscription": "Subscription",
@@ -895,6 +903,26 @@
   "outreach": {
     "whatsapp": "Contact via WhatsApp",
     "call": "Call customer"
+  },
+  "clinic_complaints": {
+    "title": "Complaints",
+    "subtitle": "File a complaint to the platform team and track its status",
+    "create": "New complaint",
+    "created": "Complaint submitted",
+    "reference": "Reference",
+    "subject": "Subject",
+    "description": "Details",
+    "type": "Type",
+    "status_label": "Status",
+    "resolution": "Resolution",
+    "type_quality": "Service quality",
+    "type_pricing": "Pricing",
+    "type_misleading_info": "Misleading info",
+    "type_other": "Other",
+    "status_new": "New",
+    "status_in_review": "In review",
+    "status_resolved": "Resolved",
+    "status_rejected": "Rejected"
   },
   "clinic_articles": {
     "title": "Articles",

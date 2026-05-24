@@ -16,10 +16,11 @@ class Complaint extends Model
     public const TYPES = ['quality', 'pricing', 'misleading_info', 'other'];
     public const STATUSES = ['new', 'in_review', 'resolved', 'rejected'];
     public const PRIORITIES = ['low', 'medium', 'high'];
+    public const SOURCES = ['admin', 'customer', 'clinic'];
 
     protected $fillable = [
         'reference_code',
-        'clinic_id', 'user_id', 'booking_id',
+        'clinic_id', 'user_id', 'booking_id', 'source',
         'customer_name', 'customer_phone', 'customer_email',
         'type', 'status', 'priority',
         'subject', 'description',

@@ -83,5 +83,7 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/bookings', [AccountController::class, 'bookings'])->name('account.bookings');
     Route::get('/account/favorites', [AccountController::class, 'favorites'])->name('account.favorites');
     Route::get('/account/quotes', [AccountController::class, 'quotes'])->name('account.quotes');
+    Route::get('/account/complaints', [AccountController::class, 'complaints'])->name('account.complaints');
+    Route::post('/account/complaints', [AccountController::class, 'storeComplaint'])->name('account.complaints.store');
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
 });
