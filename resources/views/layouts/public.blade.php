@@ -21,22 +21,20 @@
     <meta property="og:url" content="{{ url()->current() }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    @if($isRtl)
-        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    @else
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    @endif
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    {{-- Brand fonts: Readex Pro (headings), IBM Plex Sans Arabic (body), Inter (latin), JetBrains Mono (numerics/code) --}}
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         [x-cloak] { display: none !important; }
-        html[lang="ar"] body { font-family: 'Cairo', ui-sans-serif, system-ui, sans-serif; }
-        html[lang="en"] body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        body { font-family: 'IBM Plex Sans Arabic', 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif; }
     </style>
 
     @stack('head')
 </head>
-<body class="bg-gray-50 antialiased">
+<body class="bg-cream antialiased">
 
 {{-- Navigation --}}
 <nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ open: false }">
@@ -45,7 +43,7 @@
             <div class="flex items-center gap-2">
                 {{-- Mobile hamburger --}}
                 <button type="button" @click="open = !open"
-                        class="md:hidden p-2 -ms-2 text-gray-600 hover:text-teal-600"
+                        class="md:hidden p-2 -ms-2 text-gray-600 hover:text-sage-600"
                         :aria-expanded="open.toString()" aria-label="@lang('site.menu')">
                     <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -55,27 +53,27 @@
                     </svg>
                 </button>
                 <a href="{{ route('home') }}" class="flex items-center gap-2">
-                    <span class="text-2xl font-bold text-teal-600">@lang('site.brand')</span>
+                    <x-logo :size="40" />
                 </a>
             </div>
 
             <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('search') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_search')</a>
-                <a href="{{ route('quotes.board') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_quotes')</a>
+                <a href="{{ route('search') }}" class="text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_search')</a>
+                <a href="{{ route('quotes.board') }}" class="text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_quotes')</a>
             </div>
 
             <div class="flex items-center gap-3">
                 {{-- Language switcher --}}
                 <a href="{{ route('lang.switch', $altLocale) }}"
-                   class="text-sm text-gray-600 hover:text-teal-600 transition-colors px-2 py-1 border border-gray-200 rounded-lg"
+                   class="text-sm text-gray-600 hover:text-sage-600 transition-colors px-2 py-1 border border-gray-200 rounded-lg"
                    title="@lang('site.language')">
                     {{ $altLocale === 'en' ? 'English' : 'العربية' }}
                 </a>
 
                 @auth('web')
                     <a href="{{ route('account.show') }}"
-                       class="text-sm text-gray-700 hover:text-teal-600 transition-colors flex items-center gap-1.5">
-                        <span class="w-7 h-7 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-xs font-bold">
+                       class="text-sm text-gray-700 hover:text-sage-600 transition-colors flex items-center gap-1.5">
+                        <span class="w-7 h-7 rounded-full bg-sage-100 text-sage-700 flex items-center justify-center text-xs font-bold">
                             {{ mb_substr(auth('web')->user()->name ?: 'م', 0, 1) }}
                         </span>
                         <span class="hidden sm:inline">{{ auth('web')->user()->name ?: __('site.account_title') }}</span>
@@ -85,7 +83,7 @@
                         <button type="submit" class="text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors">
+                    <a href="{{ route('login') }}" class="bg-sage-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-sage-700 transition-colors">
                         @lang('site.nav_login')
                     </a>
                 @endauth
@@ -95,14 +93,14 @@
         {{-- Mobile menu panel --}}
         <div x-show="open" x-cloak @click.outside="open = false"
              class="md:hidden border-t border-gray-100 py-2">
-            <a href="{{ route('search') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_search')</a>
-            <a href="{{ route('quotes.board') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_quotes')</a>
+            <a href="{{ route('search') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_search')</a>
+            <a href="{{ route('quotes.board') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_quotes')</a>
             @auth('web')
-                <a href="{{ route('account.show') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_profile')</a>
-                <a href="{{ route('account.bookings') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_my_bookings')</a>
-                <a href="{{ route('account.favorites') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_my_favorites')</a>
+                <a href="{{ route('account.show') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_profile')</a>
+                <a href="{{ route('account.bookings') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
+                <a href="{{ route('account.favorites') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>
             @else
-                <a href="{{ route('login') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_login')</a>
+                <a href="{{ route('login') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
             @endauth
         </div>
     </div>
@@ -130,12 +128,12 @@
 
 @yield('content')
 
-<footer class="bg-gray-900 text-gray-400 mt-16">
+<footer class="bg-charcoal text-gray-400 mt-16">
     <div class="max-w-7xl mx-auto px-4 py-12">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-                <h3 class="text-white text-xl font-bold mb-3">@lang('site.brand')</h3>
-                <p class="text-sm leading-relaxed">@lang('site.footer_about')</p>
+                <x-logo :size="44" :on-dark="true" class="mb-3" />
+                <p class="text-sm leading-relaxed mt-3">@lang('site.footer_about')</p>
             </div>
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_quick_links')</h4>
@@ -147,7 +145,7 @@
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_for_clinics')</h4>
                 <p class="text-sm mb-3">@lang('site.footer_for_clinics_desc')</p>
-                <a href="{{ route('clinic.register') }}" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors inline-block">
+                <a href="{{ route('clinic.register') }}" class="bg-sage-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-sage-700 transition-colors inline-block">
                     @lang('site.nav_register_clinic')
                 </a>
             </div>
@@ -167,7 +165,7 @@
         <span class="text-sm">
             <span id="compare-count">0</span> {{ __('site.compare_selected') }}
         </span>
-        <a id="compare-go" href="#" class="ms-auto rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold hover:bg-teal-600">
+        <a id="compare-go" href="#" class="ms-auto rounded-lg bg-sage-500 px-4 py-2 text-sm font-semibold hover:bg-sage-600">
             @lang('site.compare_now')
         </a>
         <button id="compare-clear" type="button" class="text-sm text-gray-300 hover:text-white">

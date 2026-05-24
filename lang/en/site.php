@@ -20,7 +20,7 @@ return [
     'switch_to_english' => 'العربية',
 
     // Home page
-    'hero_title' => 'Find the best complexs',
+    'hero_title' => 'Find the best medical complexes',
     'hero_subtitle' => 'Compare prices and services, book appointments in seconds',
     'search_placeholder' => 'Search by specialty or complex name...',
     'search_all_cities' => 'All cities',
@@ -32,6 +32,25 @@ return [
     'cta_title' => 'Own a complex?',
     'cta_subtitle' => 'Join thousands of complexes on Medical Complexes Directory and reach more patients.',
     'cta_button' => 'List your complex now',
+
+    // Home v2 — hero, stats, AI highlight
+    'hero_badge' => 'Your trusted directory · powered by AI',
+    'hero_chip_verified' => 'Verified complexes',
+    'hero_chip_prices' => 'Transparent prices',
+    'hero_chip_ai' => 'Smart search',
+    'stats_clinics' => 'Medical complexes',
+    'stats_cities' => 'Cities',
+    'stats_specialties' => 'Specialties',
+    'stats_services' => 'Services',
+    'categories_eyebrow' => 'Explore by specialty',
+    'featured_eyebrow' => 'Hand-picked',
+    'ai_home_eyebrow' => 'AI-powered',
+    'ai_home_title' => 'Not sure which complex fits? Let the AI assistant guide you',
+    'ai_home_desc' => 'Ask in plain language about any specialty, service or city, and the AI assistant instantly suggests the best complexes — with prices and ratings.',
+    'ai_home_point1' => 'Understands natural language',
+    'ai_home_point2' => 'Compares prices & ratings',
+    'ai_home_point3' => 'Recommends the right fit',
+    'ai_home_cta' => 'Try the AI assistant',
 
     // Home extra sections
     'top_rated_clinics' => 'Top-rated complexes',

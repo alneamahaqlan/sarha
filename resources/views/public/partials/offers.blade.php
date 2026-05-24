@@ -13,7 +13,7 @@
             <h2 class="text-lg font-bold text-gray-800">@lang('site.packages_title')</h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach($clinic->packages as $package)
-                    <div class="bg-white rounded-xl shadow-sm p-5 border border-teal-100">
+                    <div class="bg-white rounded-xl shadow-sm p-5 border border-sage-100">
                         <div class="flex items-start justify-between gap-3">
                             <h3 class="font-bold text-gray-800">{{ $package->name }}</h3>
                             @if($package->discountPercentage())
@@ -42,14 +42,14 @@
                                         @lang('site.price_before_discount'): <span class="line-through">{{ number_format($package->old_price) }}</span>
                                     </span>
                                 @endif
-                                <span class="text-teal-700 font-bold text-lg">
+                                <span class="text-sage-700 font-bold text-lg">
                                     {{ number_format($package->price) }}
                                     <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                                 </span>
                             </div>
                             <a href="{{ route('clinic.book.form', $clinic->slug) }}"
                                data-track="booking" data-clinic="{{ $clinic->id }}"
-                               class="bg-teal-600 hover:bg-teal-700 text-white text-sm px-4 py-2 rounded-lg font-semibold transition-colors">
+                               class="bg-sage-600 hover:bg-sage-700 text-white text-sm px-4 py-2 rounded-lg font-semibold transition-colors">
                                 @lang('site.book_appointment')
                             </a>
                         </div>

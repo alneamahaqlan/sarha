@@ -16,7 +16,7 @@
                     </div>
                     <div class="relative">
                         <img src="{{ Storage::url($photo->after_image) }}" alt="@lang('site.after')" loading="lazy" class="h-44 w-full object-cover">
-                        <span class="absolute top-2 start-2 bg-teal-600/85 text-white text-xs px-2 py-0.5 rounded">@lang('site.after')</span>
+                        <span class="absolute top-2 start-2 bg-sage-600/85 text-white text-xs px-2 py-0.5 rounded">@lang('site.after')</span>
                     </div>
                 </div>
                 @if($photo->title || $photo->service || $photo->subClinic)
@@ -29,7 +29,7 @@
                                 <span class="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">{{ $photo->subClinic->display_name }}</span>
                             @endif
                             @if($photo->service)
-                                <span class="bg-teal-50 text-teal-700 text-xs px-2 py-0.5 rounded-full">{{ $photo->service->name }}</span>
+                                <span class="bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full">{{ $photo->service->name }}</span>
                             @endif
                         </div>
                     </div>

@@ -16,7 +16,7 @@
     @if($clinic->phone)
         <a href="tel:{{ $clinic->phone }}"
            data-track="call" data-clinic="{{ $clinic->id }}"
-           class="flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white py-2.5 px-3 rounded-lg font-semibold text-sm transition-colors">
+           class="flex items-center justify-center gap-2 bg-sage-600 hover:bg-sage-700 text-white py-2.5 px-3 rounded-lg font-semibold text-sm transition-colors">
             <x-icon name="phone" class="w-4 h-4" />
             <span>@lang('site.action_call')</span>
         </a>

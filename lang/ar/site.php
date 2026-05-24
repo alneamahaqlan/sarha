@@ -33,6 +33,25 @@ return [
     'cta_subtitle' => 'انضم إلى آلاف المجمعات على منصة دليل المجمعات الطبية واحصل على المزيد من العملاء.',
     'cta_button' => 'سجّل مجمعك الآن',
 
+    // Home v2 — hero, stats, AI highlight
+    'hero_badge' => 'دليلك الموثوق · مدعوم بالذكاء الاصطناعي',
+    'hero_chip_verified' => 'مجمعات موثّقة',
+    'hero_chip_prices' => 'أسعار شفافة',
+    'hero_chip_ai' => 'بحث ذكي',
+    'stats_clinics' => 'مجمع طبي',
+    'stats_cities' => 'مدينة',
+    'stats_specialties' => 'تخصص',
+    'stats_services' => 'خدمة',
+    'categories_eyebrow' => 'استكشف حسب التخصص',
+    'featured_eyebrow' => 'مختارة بعناية',
+    'ai_home_eyebrow' => 'مدعوم بالذكاء الاصطناعي',
+    'ai_home_title' => 'لا تعرف أي مجمع يناسبك؟ دع المساعد الذكي يرشدك',
+    'ai_home_desc' => 'اسأل بالعربية الدارجة عن أي تخصص أو خدمة أو مدينة، وسيقترح عليك المساعد الذكي أنسب المجمعات فورًا — مع الأسعار والتقييمات.',
+    'ai_home_point1' => 'يفهم لغتك الطبيعية',
+    'ai_home_point2' => 'يقارن الأسعار والتقييمات',
+    'ai_home_point3' => 'يرشّح أنسب مجمع لحالتك',
+    'ai_home_cta' => 'جرّب المساعد الذكي',
+
     // Home extra sections
     'top_rated_clinics' => 'المجمعات الأعلى تقييماً',
     'top_rated_subtitle' => 'بناءً على تقييمات Google الفعلية',

@@ -5,9 +5,9 @@
 @section('content')
 <div class="max-w-3xl mx-auto px-4 py-8">
     <nav class="text-sm text-gray-500 mb-6">
-        <a href="{{ route('home') }}" class="hover:text-teal-600">@lang('site.breadcrumb_home')</a>
+        <a href="{{ route('home') }}" class="hover:text-sage-600">@lang('site.breadcrumb_home')</a>
         <span class="mx-2">/</span>
-        <a href="{{ route('quotes.board') }}" class="hover:text-teal-600">@lang('site.quotes_board_title')</a>
+        <a href="{{ route('quotes.board') }}" class="hover:text-sage-600">@lang('site.quotes_board_title')</a>
         <span class="mx-2">/</span>
         <span class="text-gray-800">{{ Str::limit($quoteRequest->service_name, 40) }}</span>
     </nav>
@@ -45,12 +45,12 @@
             @foreach($replies as $reply)
                 <div class="bg-white rounded-xl shadow-sm p-5">
                     <div class="flex items-center justify-between gap-3 mb-2">
-                        <a href="{{ route('clinic.show', $reply->clinic->slug) }}" class="font-bold text-gray-800 hover:text-teal-600">
+                        <a href="{{ route('clinic.show', $reply->clinic->slug) }}" class="font-bold text-gray-800 hover:text-sage-600">
                             {{ $reply->clinic->name }}
                         </a>
                         <div class="flex items-center gap-2">
                             @if($reply->price)
-                                <span class="text-teal-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                                <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
                             @endif
                             @if($isOwner && ! $reply->is_public)
                                 <span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">@lang('site.quote_reply_private')</span>

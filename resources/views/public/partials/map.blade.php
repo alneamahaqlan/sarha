@@ -25,7 +25,7 @@
         <div id="{{ $mapId }}" class="w-full h-80 md:h-96 rounded-2xl overflow-hidden border border-gray-200 z-0"></div>
         @if($showAreaSearch)
             <button type="button" id="{{ $mapId }}-area-btn"
-                    class="absolute top-3 end-3 z-[400] bg-white text-teal-700 text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-teal-50 transition-colors">
+                    class="absolute top-3 end-3 z-[400] bg-white text-sage-700 text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-sage-50 transition-colors">
                 @lang('site.map_search_this_area')
             </button>
         @endif
@@ -52,7 +52,7 @@
             var href = clinicUrlTpl.replace('__SLUG__', encodeURIComponent(c.slug));
             marker.bindPopup(
                 '<strong>' + (c.name || '') + '</strong><br>' +
-                '<a href="' + href + '" class="text-teal-600">' + viewLabel + '</a>'
+                '<a href="' + href + '" class="text-sage-600">' + viewLabel + '</a>'
             );
             bounds.push([c.lat, c.lng]);
         });

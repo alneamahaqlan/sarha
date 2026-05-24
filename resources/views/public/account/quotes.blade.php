@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="bg-gradient-to-l from-teal-600 to-teal-700 rounded-xl p-6 text-white mb-6">
+    <div class="bg-gradient-to-l from-sage-600 to-sage-700 rounded-xl p-6 text-white mb-6">
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: __('site.account_my_quotes') }}</h1>
-        <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
+        <p class="text-sage-100" dir="ltr">{{ $user->phone }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -20,7 +20,7 @@
                             <h2 class="font-bold text-gray-800">{{ $quote->service_name }}</h2>
                             <p class="text-sm text-gray-500 mt-1">{{ Str::limit($quote->description, 140) }}</p>
                         </div>
-                        <span class="bg-teal-50 text-teal-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                        <span class="bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
                             {{ __('site.quote_replies_count', ['count' => $quote->replies_count]) }}
                         </span>
                     </div>
@@ -37,7 +37,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-10 text-center">
                     <x-icon name="clipboard" class="w-16 h-16 mx-auto mb-3 text-gray-300" />
                     <p class="text-gray-500 mb-4">@lang('site.account_no_quotes')</p>
-                    <a href="{{ route('quotes.request') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
+                    <a href="{{ route('quotes.request') }}" class="bg-sage-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors inline-block">
                         @lang('site.quote_request_cta')
                     </a>
                 </div>

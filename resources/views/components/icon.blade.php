@@ -1,7 +1,7 @@
 @props(['name'])
 @php
     // Professional vector icons (Heroicons) replacing emoji UI glyphs.
-    // Usage: <x-icon name="phone" class="w-5 h-5 text-teal-600" />
+    // Usage: <x-icon name="phone" class="w-5 h-5 text-sage-600" />
     $solid = in_array($name, ['heart-solid', 'star-solid', 'twitter'], true);
 
     $paths = [

@@ -10,7 +10,7 @@
         <p class="text-gray-500 mb-8">@lang('errors.404_subtitle')</p>
 
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ route('home') }}" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+            <a href="{{ route('home') }}" class="bg-sage-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sage-700 transition-colors">
                 @lang('errors.404_back_home')
             </a>
             <a href="{{ route('search') }}" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">

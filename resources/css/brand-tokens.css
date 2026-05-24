@@ -1,0 +1,79 @@
+/*
+ |==========================================================================
+ | Brand Identity — دليل المجمعات الطبية · Daleel Medical Directory
+ | Version 1.3 · Canonical design-token reference
+ |==========================================================================
+ | This file is the single source of truth for the visual identity. The
+ | tokens below are mirrored into the two Tailwind v4 entry points:
+ |   • Public site:  resources/css/app.css
+ |   • Admin/Clinic: resources/react-admin/src/styles/index.css
+ |
+ | Rules of thumb:
+ |   • Sage green  → primary actions, links, the wordmark.
+ |   • Gold        → premium / featured accents only (a touch, not a flood).
+ |   • Plum        → AI features EXCLUSIVELY — never elsewhere.
+ |   • Cream       → page background; white → cards.
+ |   • For gold text on light backgrounds use gold-deep (#8A6A28, AA 5.1:1),
+ |     reserve gold-primary (#C9A961) for large text / backgrounds / icons.
+ */
+
+:root {
+  /* ---- Sage · primary green ---- */
+  --sage-deep:    #1F4A3F;
+  --sage-primary: #2D6A5C;
+  --sage-medium:  #4A8A7A;
+  --sage-soft:    #A8C8BD;
+  --sage-mist:    #E8F0EC;
+
+  /* ---- Gold · premium accent ---- */
+  --gold-deep:    #8A6A28; /* text on light (AA) */
+  --gold-display: #A88845; /* large text only */
+  --gold-primary: #C9A961;
+  --gold-soft:    #E5D4A8;
+  --gold-whisper: #F5EFD9;
+
+  /* ---- Plum · AI features only ---- */
+  --plum-deep:    #3E2654;
+  --plum-primary: #6B4985;
+  --plum-medium:  #8B6FA8;
+  --plum-soft:    #C5B0D6;
+  --plum-whisper: #EDE5F2;
+
+  /* ---- Neutrals ---- */
+  --cream:      #FAF7F2;
+  --cream-dark: #F2EDE3;
+  --charcoal:   #1A2B26;
+  --slate-warm: #4A5854;
+  --gray:       #8A938F;
+  --gray-light: #D8DCD9;
+  --white:      #FFFFFF;
+
+  /* ---- Status ---- */
+  --success: #5C9F7F;
+  --warning: #D9A547;
+  --danger:  #C76B57;
+  --info:    #5B85A8;
+
+  /* ---- Gradients ---- */
+  --ai-gradient: linear-gradient(135deg, #6B4985 0%, #8B6FA8 60%, #C5B0D6 100%);
+  --grad-pine:   linear-gradient(135deg, #1F4A3F 0%, #2D6A5C 100%);
+  --grad-gold:   linear-gradient(135deg, #A88845 0%, #C9A961 100%);
+
+  /* ---- Typography ---- */
+  --font-display: 'Readex Pro';            /* headings + wordmark */
+  --font-body:    'IBM Plex Sans Arabic';  /* body */
+  --font-latin:   'Inter';                 /* latin text */
+  --font-mono:    'JetBrains Mono';         /* numerics / code / IDs */
+
+  /* ---- Radius ---- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 24px;
+  --radius-full: 9999px;
+
+  /* ---- Spacing (4px base) ---- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-6: 24px; --sp-8: 32px; --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+}

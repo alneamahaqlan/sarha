@@ -42,12 +42,12 @@
                 $row = $byDay->get($d);
                 $isToday = $d === $todayIdx;
             @endphp
-            <div class="flex items-center justify-between py-1 px-2 rounded {{ $isToday ? 'bg-teal-50' : '' }}">
-                <span class="{{ $isToday ? 'font-bold text-teal-700' : 'text-gray-600' }}">
+            <div class="flex items-center justify-between py-1 px-2 rounded {{ $isToday ? 'bg-sage-50' : '' }}">
+                <span class="{{ $isToday ? 'font-bold text-sage-700' : 'text-gray-600' }}">
                     {{ __('site.days.' . $d) }}
                 </span>
                 @if($row && $row->is_open && $row->opens_at && $row->closes_at)
-                    <span class="{{ $isToday ? 'font-semibold text-teal-700' : 'text-gray-700' }}" dir="ltr">
+                    <span class="{{ $isToday ? 'font-semibold text-sage-700' : 'text-gray-700' }}" dir="ltr">
                         {{ \Carbon\Carbon::parse($row->opens_at)->format('h:i A') }}
                         —
                         {{ \Carbon\Carbon::parse($row->closes_at)->format('h:i A') }}

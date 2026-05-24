@@ -44,7 +44,7 @@
     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
        data-track="booking" data-clinic="{{ $clinic->id }}"
        title="@lang('site.book_now_label')"
-       class="group flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
+       class="group flex items-center gap-2 bg-sage-600 hover:bg-sage-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
         <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>

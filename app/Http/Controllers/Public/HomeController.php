@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Service;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
@@ -67,6 +69,14 @@ class HomeController extends Controller
         // Personalised greeting for signed-in customers (null for guests).
         $user = auth('web')->user();
 
-        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics', 'mapClinics', 'user'));
+        // Headline counters (cached 1h — cheap COUNTs that drive the animated stats band).
+        $stats = Cache::remember('home:stats:v1', now()->addHour(), fn () => [
+            'clinics'     => Clinic::publiclyVisible()->count(),
+            'cities'      => City::where('is_active', true)->count(),
+            'specialties' => Category::where('is_active', true)->count(),
+            'services'    => Service::where('is_active', true)->count(),
+        ]);
+
+        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics', 'mapClinics', 'user', 'stats'));
     }
 }

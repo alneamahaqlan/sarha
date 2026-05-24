@@ -13,14 +13,14 @@
                     <img src="{{ Storage::url($doctor->photo) }}" alt="{{ $doctor->name }}" loading="lazy"
                          class="h-16 w-16 rounded-full object-cover flex-shrink-0">
                 @else
-                    <span class="h-16 w-16 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center flex-shrink-0">
+                    <span class="h-16 w-16 rounded-full bg-sage-50 text-sage-600 flex items-center justify-center flex-shrink-0">
                         <x-icon name="user" class="w-8 h-8" />
                     </span>
                 @endif
                 <div class="min-w-0">
                     <h3 class="font-bold text-gray-800">{{ $doctor->name }}</h3>
                     @if($doctor->specialty)
-                        <p class="text-sm text-teal-700">{{ $doctor->specialty }}</p>
+                        <p class="text-sm text-sage-700">{{ $doctor->specialty }}</p>
                     @endif
                     <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-gray-500">
                         @if($doctor->years_experience)

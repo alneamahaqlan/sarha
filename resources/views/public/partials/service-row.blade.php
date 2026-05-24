@@ -21,14 +21,14 @@
                     @lang('site.price_before_discount'): <span class="line-through">{{ number_format($service->old_price) }}</span>
                 </span>
             @endif
-            <span class="text-teal-700 font-bold">
+            <span class="text-sage-700 font-bold">
                 <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
                 {{ number_format($service->price) }}
                 <span class="text-xs font-normal">@lang('site.currency_sar')</span>
             </span>
             <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
                data-track="booking" data-clinic="{{ $clinic->id }}"
-               class="block mt-1 text-xs text-teal-600 hover:underline">
+               class="block mt-1 text-xs text-sage-600 hover:underline">
                 @lang('site.book_appointment')
             </a>
         @else

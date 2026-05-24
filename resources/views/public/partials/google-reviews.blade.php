@@ -64,7 +64,7 @@
                         <img src="{{ $review->reviewer_photo }}" alt="{{ $review->reviewer_name }}" loading="lazy"
                              class="w-10 h-10 rounded-full object-cover">
                     @else
-                        <div class="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                        <div class="w-10 h-10 bg-sage-100 text-sage-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">
                             {{ mb_substr($review->reviewer_name ?? 'G', 0, 1) }}
                         </div>
                     @endif

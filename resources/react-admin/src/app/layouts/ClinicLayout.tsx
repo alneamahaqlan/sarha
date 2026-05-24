@@ -16,6 +16,7 @@ import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanne
 import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
 import { useClinicNavBadges, type ClinicNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
+import { Logo } from '@/components/ui/Logo';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
@@ -69,12 +70,13 @@ export function ClinicLayout() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+    <div className="flex min-h-screen flex-col bg-[var(--color-background)]">
       <ImpersonationBanner />
       <div className="flex flex-1">
       <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
-        <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
-          {user?.user.name ?? t('clinic_brand')}
+        <div className="flex items-center gap-2.5 border-b border-[var(--color-border)] px-5 py-4">
+          <Logo withText={false} size={32} />
+          <span className="text-sm font-semibold leading-tight">{user?.user.name ?? t('clinic_brand')}</span>
         </div>
         <nav className="flex-1 space-y-2 overflow-y-auto p-2">
           {clinicNav.map((entry, idx) => {

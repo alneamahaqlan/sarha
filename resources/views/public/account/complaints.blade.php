@@ -4,9 +4,9 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-8">
-    <div class="bg-gradient-to-l from-teal-600 to-teal-700 rounded-xl p-6 text-white mb-6">
+    <div class="bg-gradient-to-l from-sage-600 to-sage-700 rounded-xl p-6 text-white mb-6">
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: __('site.account_my_complaints') }}</h1>
-        <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
+        <p class="text-sage-100" dir="ltr">{{ $user->phone }}</p>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -29,7 +29,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_type') <span class="text-red-500">*</span></label>
-                            <select name="type" required class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                            <select name="type" required class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
                                 @foreach(\App\Models\Complaint::TYPES as $t)
                                     <option value="{{ $t }}" @selected(old('type') === $t)>@lang('site.complaint_type_' . $t)</option>
                                 @endforeach
@@ -38,7 +38,7 @@
                         @if($clinics->isNotEmpty())
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_about_clinic')</label>
-                                <select name="clinic_id" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                                <select name="clinic_id" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
                                     <option value="">—</option>
                                     @foreach($clinics as $c)
                                         <option value="{{ $c->id }}" @selected((int) old('clinic_id') === $c->id)>{{ $c->name }}</option>
@@ -50,14 +50,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_subject') <span class="text-red-500">*</span></label>
                         <input type="text" name="subject" value="{{ old('subject') }}" required maxlength="255"
-                               class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                               class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_details') <span class="text-red-500">*</span></label>
                         <textarea name="description" rows="4" required minlength="10" maxlength="2000"
-                                  class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">{{ old('description') }}</textarea>
+                                  class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('description') }}</textarea>
                     </div>
-                    <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors">
+                    <button type="submit" class="bg-sage-600 hover:bg-sage-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors">
                         @lang('site.complaint_submit')
                     </button>
                 </form>

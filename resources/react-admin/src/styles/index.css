@@ -1,48 +1,125 @@
 @import "tailwindcss";
 
+/*
+ |--------------------------------------------------------------------------
+ | Brand identity — دليل المجمعات الطبية (Daleel) · v1.3
+ |--------------------------------------------------------------------------
+ | Admin/clinic panel. Semantic tokens are mapped onto the brand palette so
+ | the whole panel re-themes from here. Plum is reserved for AI features.
+ | Full reference: resources/css/brand-tokens.css
+ */
 @theme {
-  --color-primary: #0066cc;
+  /* Fonts */
+  --font-sans: 'IBM Plex Sans Arabic', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Readex Pro', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Semantic tokens → brand */
+  --color-primary: #2D6A5C;            /* sage-primary */
   --color-primary-foreground: #ffffff;
 
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  --color-background: #FAF7F2;          /* cream */
+  --color-foreground: #1A2B26;          /* charcoal */
 
   --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
+  --color-card-foreground: #1A2B26;
 
   --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
+  --color-popover-foreground: #1A2B26;
 
-  --color-muted: #f1f5f9;
-  --color-muted-foreground: #64748b;
+  --color-muted: #F2EDE3;              /* cream-dark */
+  --color-muted-foreground: #4A5854;  /* slate-warm */
 
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
+  --color-accent: #E8F0EC;            /* sage-mist */
+  --color-accent-foreground: #1F4A3F; /* sage-deep */
 
-  --color-destructive: #ef4444;
+  --color-destructive: #C76B57;       /* danger */
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e2e8f0;
-  --color-input: #e2e8f0;
-  --color-ring: #0066cc;
+  --color-border: #D8DCD9;
+  --color-input: #D8DCD9;
+  --color-ring: #C9A961;              /* gold focus ring */
 
   --radius: 0.5rem;
+
+  /* Named brand palette (mirrors public app.css) */
+  --color-sage-deep: #1F4A3F;
+  --color-sage-primary: #2D6A5C;
+  --color-sage-medium: #4A8A7A;
+  --color-sage-soft: #A8C8BD;
+  --color-sage-mist: #E8F0EC;
+  --color-sage-50: #E8F0EC;
+  --color-sage-100: #D6E6DF;
+  --color-sage-200: #A8C8BD;
+  --color-sage-300: #7FB0A1;
+  --color-sage-400: #4A8A7A;
+  --color-sage-500: #3A7868;
+  --color-sage-600: #2D6A5C;
+  --color-sage-700: #245549;
+  --color-sage-800: #1F4A3F;
+  --color-sage-900: #163A31;
+  --color-sage-950: #0C1A17;
+
+  --color-gold-deep: #8A6A28;
+  --color-gold-display: #A88845;
+  --color-gold-primary: #C9A961;
+  --color-gold-soft: #E5D4A8;
+  --color-gold-whisper: #F5EFD9;
+
+  --color-plum-deep: #3E2654;
+  --color-plum-primary: #6B4985;
+  --color-plum-medium: #8B6FA8;
+  --color-plum-soft: #C5B0D6;
+  --color-plum-whisper: #EDE5F2;
+
+  --color-cream: #FAF7F2;
+  --color-cream-dark: #F2EDE3;
+  --color-charcoal: #1A2B26;
+  --color-slate-warm: #4A5854;
+
+  --color-success: #5C9F7F;
+  --color-warning: #D9A547;
+  --color-danger: #C76B57;
+  --color-info: #5B85A8;
+
+  /* Legacy blue/sky → plum (AI) safety net is handled per-component;
+     keep built-ins intact here. */
+}
+
+/* Dark mode · opt-in, not automatic. Add class="auto-dark" to <html> (or a
+   toggle) — only then does prefers-color-scheme:dark flip the tokens. */
+@media (prefers-color-scheme: dark) {
+  :root.auto-dark {
+    --color-background: #0C1A17;
+    --color-foreground: #E8E5DE;
+    --color-card: #142420;
+    --color-card-foreground: #E8E5DE;
+    --color-popover: #142420;
+    --color-popover-foreground: #E8E5DE;
+    --color-muted: #1A2B26;
+    --color-muted-foreground: #B0B5B0;
+    --color-accent: #1A2B26;
+    --color-accent-foreground: #E8E5DE;
+    --color-border: #2A3530;
+    --color-input: #2A3530;
+    --color-primary: #5FB39E;
+  }
 }
 
 html, body, #react-admin-root {
   height: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Tajawal", "Cairo",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'IBM Plex Sans Arabic', 'Inter', -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-html[dir="rtl"] body {
-  font-family: "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, sans-serif;
+h1, h2, h3, h4 {
+  font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif;
 }
 
 body {
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   -webkit-font-smoothing: antialiased;
 }
 

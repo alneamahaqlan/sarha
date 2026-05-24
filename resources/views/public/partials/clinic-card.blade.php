@@ -20,7 +20,7 @@
     {{-- Compare toggle (search results) — handled by the global compare tray script --}}
     @if($compare ?? false)
         <button type="button"
-                class="compare-toggle absolute top-3 end-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-colors hover:text-teal-600 [&.is-selected]:bg-teal-600 [&.is-selected]:text-white [&.is-selected]:ring-teal-600"
+                class="compare-toggle absolute top-3 end-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-colors hover:text-sage-600 [&.is-selected]:bg-sage-600 [&.is-selected]:text-white [&.is-selected]:ring-sage-600"
                 data-compare-id="{{ $clinic->id }}"
                 data-compare-name="{{ $clinic->name }}"
                 aria-pressed="false"
@@ -38,18 +38,18 @@
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
     @else
-        <div class="h-40 bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
-            <x-icon name="building" class="w-12 h-12 text-teal-600/40" />
+        <div class="h-40 bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+            <x-icon name="building" class="w-12 h-12 text-sage-600/40" />
         </div>
     @endif
 
     <div class="p-4">
         <div class="flex items-start justify-between mb-2 gap-2">
-            <h3 class="font-bold text-gray-800 group-hover:text-teal-600 transition-colors leading-snug">
+            <h3 class="font-bold text-gray-800 group-hover:text-sage-600 transition-colors leading-snug">
                 {{ $clinic->name }}
             </h3>
             @if($clinic->is_featured && empty($badges))
-                <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"><x-icon name="star-solid" class="w-3 h-3" /> {{ __('site.featured') }}</span>
+                <span class="inline-flex items-center gap-1 bg-gold-whisper text-gold-deep text-xs px-2 py-0.5 rounded-full whitespace-nowrap shrink-0"><x-icon name="star-solid" class="w-3 h-3" /> {{ __('site.featured') }}</span>
             @endif
         </div>
 
@@ -73,7 +73,7 @@
         @if($clinic->categories->isNotEmpty())
             <div class="flex flex-wrap gap-1">
                 @foreach($clinic->categories->take(3) as $cat)
-                    <span class="inline-flex items-center gap-1 bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full">
+                    <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full">
                         <x-category-icon :emoji="$cat->emoji" class="w-3 h-3" /> {{ $cat->display_name }}
                     </span>
                 @endforeach
@@ -82,7 +82,7 @@
 
         {{-- Starting price — shown whenever the list query loaded min_price --}}
         @if(! is_null($clinic->min_price ?? null))
-            <p class="mt-3 text-sm font-semibold text-teal-700">
+            <p class="mt-3 text-sm font-semibold text-sage-700">
                 {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
             </p>
         @endif

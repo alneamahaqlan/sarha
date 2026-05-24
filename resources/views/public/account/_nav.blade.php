@@ -12,7 +12,7 @@
         @endphp
         @foreach($items as $item)
             <a href="{{ route($item['route']) }}"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {{ request()->routeIs($item['route']) ? 'bg-teal-50 text-teal-700 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}">
+               class="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors {{ request()->routeIs($item['route']) ? 'bg-sage-50 text-sage-700 font-semibold' : 'text-gray-600 hover:bg-gray-50' }}">
                 <x-icon :name="$item['icon']" class="w-4 h-4" />
                 <span>@lang($item['label'])</span>
             </a>

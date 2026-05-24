@@ -14,7 +14,7 @@
         <div class="bg-white rounded-xl shadow-sm p-12 text-center">
             <x-icon name="scale" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
             <p class="text-gray-600 mb-4">@lang('site.compare_empty')</p>
-            <a href="{{ route('search') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
+            <a href="{{ route('search') }}" class="bg-sage-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors inline-block">
                 @lang('site.account_start_browsing')
             </a>
         </div>
@@ -37,9 +37,9 @@
                                         <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy"
                                              class="mx-auto h-16 w-16 rounded-full object-cover mb-2">
                                     @else
-                                        <div class="mx-auto h-16 w-16 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center mb-2"><x-icon name="building" class="w-8 h-8" /></div>
+                                        <div class="mx-auto h-16 w-16 rounded-full bg-sage-100 text-sage-600 flex items-center justify-center mb-2"><x-icon name="building" class="w-8 h-8" /></div>
                                     @endif
-                                    <span class="font-bold text-gray-800 group-hover:text-teal-600">{{ $clinic->name }}</span>
+                                    <span class="font-bold text-gray-800 group-hover:text-sage-600">{{ $clinic->name }}</span>
                                 </a>
                             </th>
                         @endforeach
@@ -73,7 +73,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 @if(! is_null($clinic->min_price))
-                                    <span class="font-semibold text-teal-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}</span>
+                                    <span class="font-semibold text-sage-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}</span>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
@@ -94,7 +94,7 @@
                             <td class="p-4 text-center">
                                 <div class="flex flex-wrap justify-center gap-1">
                                     @forelse($clinic->categories->take(3) as $cat)
-                                        <span class="inline-flex items-center gap-1 bg-teal-50 text-teal-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
+                                        <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
                                     @empty
                                         <span class="text-gray-400">—</span>
                                     @endforelse
@@ -121,7 +121,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 <a href="{{ route('clinic.show', $clinic->slug) }}"
-                                   class="inline-block bg-teal-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-teal-700 transition-colors">
+                                   class="inline-block bg-sage-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-sage-700 transition-colors">
                                     @lang('site.compare_visit')
                                 </a>
                             </td>

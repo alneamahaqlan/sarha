@@ -24,7 +24,7 @@
                         </p>
                     @endif
                 </div>
-                <span class="bg-teal-50 text-teal-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                <span class="bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
                     {{ __('site.services_count', ['count' => $sub->services->count()]) }}
                 </span>
             </div>

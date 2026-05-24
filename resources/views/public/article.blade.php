@@ -12,9 +12,9 @@
 
     {{-- Breadcrumb --}}
     <nav class="flex flex-wrap items-center gap-2 text-sm text-gray-500 mb-6">
-        <a href="{{ route('home') }}" class="hover:text-teal-600">@lang('site.breadcrumb_home')</a>
+        <a href="{{ route('home') }}" class="hover:text-sage-600">@lang('site.breadcrumb_home')</a>
         <span>/</span>
-        <a href="{{ route('clinic.show', $article->clinic->slug) }}" class="hover:text-teal-600">{{ $article->clinic->name }}</a>
+        <a href="{{ route('clinic.show', $article->clinic->slug) }}" class="hover:text-sage-600">{{ $article->clinic->name }}</a>
         <span>/</span>
         <span class="text-gray-700 truncate">{{ $article->title }}</span>
     </nav>
@@ -30,7 +30,7 @@
 
             {{-- Meta row --}}
             <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6 pb-6 border-b border-gray-100">
-                <a href="{{ route('clinic.show', $article->clinic->slug) }}" class="flex items-center gap-1.5 hover:text-teal-600">
+                <a href="{{ route('clinic.show', $article->clinic->slug) }}" class="flex items-center gap-1.5 hover:text-sage-600">
                     <x-icon name="building" class="w-4 h-4" /> <span class="font-medium">{{ $article->clinic->name }}</span>
                 </a>
                 @if($article->published_at ?? $article->created_at)
@@ -40,14 +40,14 @@
             </div>
 
             {{-- Body (rich HTML from the clinic's editor) --}}
-            <div class="prose prose-teal max-w-none text-gray-700 leading-relaxed [&_h2]:font-bold [&_h2]:text-gray-800 [&_h2]:text-xl [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-semibold [&_h3]:text-gray-800 [&_h3]:mt-4 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_a]:text-teal-600 [&_a]:underline [&_p]:mb-3">
+            <div class="prose prose-teal max-w-none text-gray-700 leading-relaxed [&_h2]:font-bold [&_h2]:text-gray-800 [&_h2]:text-xl [&_h2]:mt-6 [&_h2]:mb-2 [&_h3]:font-semibold [&_h3]:text-gray-800 [&_h3]:mt-4 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:list-decimal [&_ol]:ps-5 [&_a]:text-sage-600 [&_a]:underline [&_p]:mb-3">
                 {!! $article->body !!}
             </div>
 
             @if($article->tags)
                 <div class="flex flex-wrap gap-2 mt-6">
                     @foreach($article->tags as $tag)
-                        <span class="bg-teal-50 text-teal-600 text-xs px-2.5 py-1 rounded-full">#{{ $tag }}</span>
+                        <span class="bg-sage-50 text-sage-600 text-xs px-2.5 py-1 rounded-full">#{{ $tag }}</span>
                     @endforeach
                 </div>
             @endif
@@ -57,7 +57,7 @@
     {{-- Back to clinic --}}
     <div class="mt-6">
         <a href="{{ route('clinic.show', $article->clinic->slug) }}"
-           class="inline-flex items-center gap-1.5 text-teal-600 hover:text-teal-700 font-medium">
+           class="inline-flex items-center gap-1.5 text-sage-600 hover:text-sage-700 font-medium">
             ← {{ $article->clinic->name }}
         </a>
     </div>

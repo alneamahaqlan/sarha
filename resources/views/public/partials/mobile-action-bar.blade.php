@@ -17,7 +17,7 @@
     <div class="grid grid-cols-4 divide-x divide-gray-100 text-center" dir="ltr">
         @if($clinic->phone)
             <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}"
-               class="flex flex-col items-center justify-center gap-1 py-2.5 text-teal-600 active:bg-teal-50">
+               class="flex flex-col items-center justify-center gap-1 py-2.5 text-sage-600 active:bg-sage-50">
                 <x-icon name="phone" class="w-5 h-5" />
                 <span class="text-[11px] font-semibold">@lang('site.action_call')</span>
             </a>
@@ -42,7 +42,7 @@
         @endif
 
         <a href="{{ route('clinic.book.form', $clinic->slug) }}" data-track="booking" data-clinic="{{ $clinic->id }}"
-           class="flex flex-col items-center justify-center gap-1 py-2.5 bg-teal-600 text-white active:bg-teal-700">
+           class="flex flex-col items-center justify-center gap-1 py-2.5 bg-sage-600 text-white active:bg-sage-700">
             <x-icon name="calendar" class="w-5 h-5" />
             <span class="text-[11px] font-semibold">@lang('site.book_now_label')</span>
         </a>

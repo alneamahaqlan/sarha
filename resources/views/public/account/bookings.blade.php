@@ -6,9 +6,9 @@
 <div class="max-w-6xl mx-auto px-4 py-8">
 
     {{-- Header — mirrors the profile page for a consistent account experience --}}
-    <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-2xl p-6 mb-6">
+    <div class="bg-gradient-to-r from-sage-600 to-sage-800 text-white rounded-2xl p-6 mb-6">
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: __('site.account_my_bookings') }}</h1>
-        <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
+        <p class="text-sage-100" dir="ltr">{{ $user->phone }}</p>
         <div class="flex flex-wrap gap-4 mt-4 text-sm">
             <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
                 <x-icon name="calendar" class="w-4 h-4" /> {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
@@ -28,7 +28,7 @@
                     <div class="flex items-start justify-between mb-3 gap-4">
                         <div class="flex-1">
                             <a href="{{ route('clinic.show', $booking->clinic->slug) }}"
-                               class="font-bold text-gray-800 hover:text-teal-600 transition-colors">
+                               class="font-bold text-gray-800 hover:text-sage-600 transition-colors">
                                 {{ $booking->clinic->name }}
                             </a>
                             <p class="text-xs text-gray-500 mt-1">{{ $booking->clinic->city->display_name ?? '' }}</p>
@@ -51,7 +51,7 @@
                     {{-- Re-book: reopens the booking form for the same clinic with the service pre-selected --}}
                     <div class="mt-3 pt-3 border-t border-gray-100">
                         <a href="{{ route('clinic.book.form', ['slug' => $booking->clinic->slug] + ($booking->service_id ? ['service' => $booking->service_id] : [])) }}"
-                           class="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium">
+                           class="inline-flex items-center gap-1.5 text-sm text-sage-600 hover:text-sage-700 font-medium">
                             <x-icon name="refresh" class="w-4 h-4" /> @lang('site.rebook')
                         </a>
                     </div>
@@ -60,7 +60,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-10 text-center">
                     <x-icon name="clipboard" class="w-16 h-16 mx-auto mb-3 text-gray-300" />
                     <p class="text-gray-500 mb-4">@lang('site.account_no_bookings')</p>
-                    <a href="{{ route('search') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
+                    <a href="{{ route('search') }}" class="bg-sage-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors inline-block">
                         @lang('site.account_start_browsing')
                     </a>
                 </div>

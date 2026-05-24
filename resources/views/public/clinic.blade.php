@@ -43,9 +43,9 @@
 
     {{-- Breadcrumb --}}
     <nav class="text-sm text-gray-500 mb-6">
-        <a href="{{ route('home') }}" class="hover:text-teal-600">@lang('site.breadcrumb_home')</a>
+        <a href="{{ route('home') }}" class="hover:text-sage-600">@lang('site.breadcrumb_home')</a>
         <span class="mx-2">/</span>
-        <a href="{{ route('search') }}" class="hover:text-teal-600">@lang('site.breadcrumb_clinics')</a>
+        <a href="{{ route('search') }}" class="hover:text-sage-600">@lang('site.breadcrumb_clinics')</a>
         <span class="mx-2">/</span>
         <span class="text-gray-800">{{ $clinic->name }}</span>
     </nav>
@@ -63,10 +63,10 @@
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-2xl font-bold text-gray-900">{{ $clinic->name }}</h1>
                         @if($clinic->is_featured)
-                            <span class="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-semibold"><x-icon name="star-solid" class="w-3.5 h-3.5" /> @lang('site.featured')</span>
+                            <span class="inline-flex items-center gap-1 bg-gold-whisper text-gold-deep px-2 py-0.5 rounded-full text-xs font-semibold"><x-icon name="star-solid" class="w-3.5 h-3.5" /> @lang('site.featured')</span>
                         @endif
                         @if($clinic->isPremium())
-                            <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">@lang('site.premium_badge')</span>
+                            <span class="inline-flex items-center gap-1 bg-gradient-to-l from-gold-primary to-gold-deep text-white px-2.5 py-0.5 rounded-full text-xs font-semibold"><x-icon name="star-solid" class="w-3.5 h-3.5" /> @lang('site.premium_badge')</span>
                         @endif
                         @if($clinic->workingHours->isNotEmpty())
                             @if($clinic->isOpenNow())
@@ -88,7 +88,7 @@
                         @endif
                         @php $heroDirections = $clinic->directionsUrl(); @endphp
                         <a @if($heroDirections) href="{{ $heroDirections }}" target="_blank" rel="noopener" data-track="directions" data-clinic="{{ $clinic->id }}" @endif
-                           class="flex items-center gap-1 {{ $heroDirections ? 'hover:text-teal-600 transition-colors' : 'pointer-events-none' }}">
+                           class="flex items-center gap-1 {{ $heroDirections ? 'hover:text-sage-600 transition-colors' : 'pointer-events-none' }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -101,7 +101,7 @@
                     @if($clinic->categories->isNotEmpty())
                         <div class="flex flex-wrap gap-2 mt-3">
                             @foreach($clinic->categories as $cat)
-                                <span class="inline-flex items-center gap-1.5 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-sm">
+                                <span class="inline-flex items-center gap-1.5 bg-sage-50 text-sage-700 px-3 py-1 rounded-full text-sm">
                                     <x-category-icon :emoji="$cat->emoji" class="w-4 h-4" /> {{ $cat->display_name }}
                                 </span>
                             @endforeach
@@ -127,7 +127,7 @@
                     </div>
                     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
                        data-track="booking" data-clinic="{{ $clinic->id }}"
-                       class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
+                       class="bg-sage-600 hover:bg-sage-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
                         @lang('site.book_appointment')
                     </a>
                 </div>
@@ -158,11 +158,11 @@
                     'about'    => ['site.tab_about', null],
                 ] as $key => [$labelKey, $count])
                     <button @click="tab = '{{ $key }}'"
-                            :class="tab === '{{ $key }}' ? 'border-teal-600 text-teal-700' : 'border-transparent text-gray-500 hover:text-gray-800'"
+                            :class="tab === '{{ $key }}' ? 'border-sage-600 text-sage-700' : 'border-transparent text-gray-500 hover:text-gray-800'"
                             class="px-4 py-3 font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap">
                         @lang($labelKey)
                         @if(! is_null($count))
-                            <span :class="tab === '{{ $key }}' ? 'bg-teal-100 text-teal-700' : 'bg-gray-100 text-gray-600'"
+                            <span :class="tab === '{{ $key }}' ? 'bg-sage-100 text-sage-700' : 'bg-gray-100 text-gray-600'"
                                   class="text-xs px-2 py-0.5 rounded-full">{{ $count }}</span>
                         @endif
                     </button>
@@ -208,10 +208,10 @@
                             <div class="space-y-3">
                                 @foreach($clinic->articles as $article)
                                     <a href="{{ route('article.show', $article->slug) }}"
-                                       class="block border border-gray-100 rounded-lg p-4 hover:border-teal-200 hover:shadow-sm transition-all group">
-                                        <h3 class="font-semibold text-gray-800 mb-1 group-hover:text-teal-600 transition-colors">{{ $article->title }}</h3>
+                                       class="block border border-gray-100 rounded-lg p-4 hover:border-sage-200 hover:shadow-sm transition-all group">
+                                        <h3 class="font-semibold text-gray-800 mb-1 group-hover:text-sage-600 transition-colors">{{ $article->title }}</h3>
                                         <p class="text-sm text-gray-500">{{ Str::limit($article->meta_description ?? strip_tags($article->body ?? ''), 160) }}</p>
-                                        <span class="inline-block mt-2 text-xs text-teal-600 font-medium">@lang('site.read_more') →</span>
+                                        <span class="inline-block mt-2 text-xs text-sage-600 font-medium">@lang('site.read_more') →</span>
                                     </a>
                                 @endforeach
                             </div>
@@ -236,7 +236,7 @@
                                     loading="lazy"></iframe>
                             <a href="https://www.google.com/maps/dir/?api=1&destination={{ $clinic->latitude }},{{ $clinic->longitude }}"
                                target="_blank" rel="noopener"
-                               class="mt-3 inline-flex w-full items-center justify-center gap-2 text-center bg-teal-50 text-teal-700 hover:bg-teal-100 py-2 rounded-lg text-sm font-semibold transition-colors">
+                               class="mt-3 inline-flex w-full items-center justify-center gap-2 text-center bg-sage-50 text-sage-700 hover:bg-sage-100 py-2 rounded-lg text-sm font-semibold transition-colors">
                                 <x-icon name="map" class="w-4 h-4" /> @lang('site.directions_open_maps')
                             </a>
                         </div>
@@ -254,20 +254,20 @@
                     <h3 class="font-bold text-gray-800 mb-4">@lang('site.contact_info')</h3>
                     <div class="space-y-3">
                         @if($clinic->phone)
-                            <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-teal-600">
-                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="phone" class="w-4 h-4" /></span>
+                            <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-sage-600">
+                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="phone" class="w-4 h-4" /></span>
                                 <span dir="ltr">{{ $clinic->phone }}</span>
                             </a>
                         @endif
                         @if($clinic->email)
                             <div class="flex items-center gap-3 text-gray-700">
-                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="envelope" class="w-4 h-4" /></span>
+                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="envelope" class="w-4 h-4" /></span>
                                 <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
                             </div>
                         @endif
                         @if($address = $clinic->address)
                             <div class="flex items-start gap-3 text-gray-700">
-                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="map-pin" class="w-4 h-4" /></span>
+                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="map-pin" class="w-4 h-4" /></span>
                                 <span class="text-sm">{{ $clinic->city->display_name ?? '' }}@if($clinic->city) — @endif{{ $address }}</span>
                             </div>
                         @endif
@@ -282,7 +282,7 @@
                     <h3 class="font-bold text-gray-800 mb-2">@lang('site.request_price_quote')</h3>
                     <p class="text-sm text-gray-500 mb-4">@lang('site.quote_request_subtitle')</p>
                     <a href="{{ route('quotes.request') }}"
-                       class="block text-center w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-lg font-semibold transition-colors">
+                       class="block text-center w-full bg-gradient-to-l from-gold-primary to-gold-deep hover:from-gold-deep hover:to-gold-deep text-white py-2.5 rounded-lg font-semibold transition-colors">
                         @lang('site.request_price_quote')
                     </a>
                 </div>

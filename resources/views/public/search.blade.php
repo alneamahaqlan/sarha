@@ -13,15 +13,15 @@
                 name="q"
                 value="{{ request('q') }}"
                 placeholder="@lang('site.search_clinic_or_specialty')"
-                class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:ring-2 focus:ring-sage-400"
             >
-            <select name="city" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <select name="city" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
                 <option value="">@lang('site.search_all_cities')</option>
                 @foreach($cities as $city)
                     <option value="{{ $city->id }}" @selected(request('city') == $city->id)>{{ $city->display_name }}</option>
                 @endforeach
             </select>
-            <select name="category" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <select name="category" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
                 <option value="">@lang('site.search_all_categories')</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>
@@ -29,7 +29,7 @@
                     </option>
                 @endforeach
             </select>
-            <select name="sort" id="search-sort" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-400">
+            <select name="sort" id="search-sort" class="border border-gray-200 rounded-lg px-4 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
                 <option value="featured" @selected(($sort ?? 'featured') === 'featured')>@lang('site.sort_featured')</option>
                 <option value="top_rated" @selected(($sort ?? '') === 'top_rated')>@lang('site.sort_top_rated')</option>
                 <option value="cheapest" @selected(($sort ?? '') === 'cheapest')>@lang('site.sort_cheapest')</option>
@@ -39,7 +39,7 @@
             {{-- Preserve geolocation for "nearest" across pagination / re-submits. --}}
             <input type="hidden" name="lat" id="search-lat" value="{{ request('lat') }}">
             <input type="hidden" name="lng" id="search-lng" value="{{ request('lng') }}">
-            <button type="submit" class="bg-teal-600 text-white rounded-lg py-2.5 font-semibold hover:bg-teal-700 transition-colors">
+            <button type="submit" class="bg-sage-600 text-white rounded-lg py-2.5 font-semibold hover:bg-sage-700 transition-colors">
                 @lang('site.search_button')
             </button>
         </div>
@@ -62,7 +62,7 @@
             @endif
         </p>
         @if(request()->hasAny(['q', 'city', 'category', 'featured', 'sort']))
-            <a href="{{ route('search', ['clear' => 1]) }}" class="text-sm text-teal-600 hover:underline">@lang('site.clear_filters')</a>
+            <a href="{{ route('search', ['clear' => 1]) }}" class="text-sm text-sage-600 hover:underline">@lang('site.clear_filters')</a>
         @endif
     </div>
 

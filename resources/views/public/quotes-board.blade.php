@@ -11,7 +11,7 @@
             <p class="text-sm text-gray-500 mt-1">@lang('site.quotes_board_subtitle')</p>
         </div>
         <a href="{{ route('quotes.request') }}"
-           class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
+           class="bg-sage-600 hover:bg-sage-700 text-white px-5 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
             @lang('site.quote_request_cta')
         </a>
     </div>
@@ -29,7 +29,7 @@
                             <h2 class="font-bold text-gray-800">{{ $req->service_name }}</h2>
                             <p class="text-sm text-gray-500 mt-1">{{ Str::limit($req->description, 160) }}</p>
                         </div>
-                        <span class="bg-teal-50 text-teal-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
+                        <span class="bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
                             {{ __('site.quote_replies_count', ['count' => $req->public_replies_count]) }}
                         </span>
                     </div>
