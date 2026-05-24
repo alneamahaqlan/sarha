@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\Complaint;
 use App\Models\PlatformNotification;
+use App\Models\PriceQuoteReply;
 use App\Models\PriceQuoteRequest;
 use App\Models\SalesLead;
 use App\Mail\CriticalAlertMail;
@@ -82,6 +83,71 @@ class NotificationService
                     'service' => $quote->service_name,
                 ]),
                 data: ['quote_id' => $quote->id],
+            );
+        }
+    }
+
+    /**
+     * A broadcast quote request targets cities — notify every active complex in
+     * those cities so they can reply. Called AFTER the cities are attached.
+     */
+    public function broadcastQuoteToCityClinics(PriceQuoteRequest $quote): void
+    {
+        $cityIds = $quote->cities()->pluck('cities.id');
+        if ($cityIds->isEmpty()) {
+            return;
+        }
+
+        Clinic::where('status', 'active')
+            ->whereIn('city_id', $cityIds)
+            ->each(function (Clinic $clinic) use ($quote) {
+                $this->push(
+                    $clinic,
+                    type: 'broadcast_quote',
+                    icon: 'heroicon-o-megaphone',
+                    url: '/app/clinic/price-quotes',
+                    priority: 'normal',
+                    title: __('admin.notif.broadcast_quote_title'),
+                    body:  __('admin.notif.broadcast_quote_body', ['service' => $quote->service_name]),
+                    data: ['quote_id' => $quote->id],
+                );
+            });
+    }
+
+    /**
+     * A complex replied to a customer's broadcast quote. The customer has no
+     * in-app bell, so the first reply is also sent by SMS; every reply is still
+     * recorded as an in-app notification.
+     */
+    public function quoteReplied(PriceQuoteReply $reply): void
+    {
+        $request = $reply->request;
+        $user = $request?->user;
+        if (! $user) {
+            return;
+        }
+
+        $clinicName = $reply->clinic?->name ?? '';
+
+        $this->push(
+            $user,
+            type: 'quote_replied',
+            icon: 'heroicon-o-chat-bubble-left-right',
+            url: '/quotes/' . $request->id,
+            priority: 'normal',
+            title: __('site.quote_reply_notify_title'),
+            body:  __('site.quote_reply_notify_body', ['clinic' => $clinicName]),
+            data: ['quote_id' => $request->id, 'reply_id' => $reply->id],
+        );
+
+        // Only the first reply triggers an SMS (avoids spamming on every reply).
+        if ($user->phone && $request->replies()->count() === 1) {
+            app(SmsService::class)->send(
+                $user->phone,
+                __('site.quote_reply_sms', [
+                    'clinic' => $clinicName,
+                    'url'    => route('quotes.show', $request->id),
+                ]),
             );
         }
     }

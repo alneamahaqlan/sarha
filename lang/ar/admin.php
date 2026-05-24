@@ -385,6 +385,8 @@ return [
 
         'new_quote_title' => 'طلب عرض سعر جديد',
         'new_quote_body'  => 'خدمة: :service',
+        'broadcast_quote_title' => 'طلب عرض سعر جديد في مدينتك',
+        'broadcast_quote_body'  => 'خدمة: :service — سارع بالرد لتكسب العميل',
 
         'lead_converted_title' => 'تم تحويل عميل محتمل',
         'lead_converted_body'  => ':clinic أصبح مجمعاً نشطاً',

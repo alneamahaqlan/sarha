@@ -102,6 +102,9 @@ return [
     'quote_your_request' => 'Your request',
     'quote_no_replies' => 'No replies to this request yet.',
     'quote_reply_private' => 'Private reply',
+    'quote_reply_notify_title' => 'You received a new quote',
+    'quote_reply_notify_body' => ':clinic replied to your request',
+    'quote_reply_sms' => 'Medical Complexes Directory: :clinic sent a quote on your request. View: :url',
 
     // Working hours
     'working_hours_title' => 'Working hours',

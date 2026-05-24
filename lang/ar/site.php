@@ -102,6 +102,9 @@ return [
     'quote_your_request' => 'طلبك',
     'quote_no_replies' => 'لا توجد ردود بعد على هذا الطلب.',
     'quote_reply_private' => 'رد خاص',
+    'quote_reply_notify_title' => 'وصلك عرض سعر جديد',
+    'quote_reply_notify_body' => 'ردّ :clinic على طلبك',
+    'quote_reply_sms' => 'دليل المجمعات الطبية: وصلك عرض سعر جديد من :clinic على طلبك. اطّلع: :url',
 
     // Working hours
     'working_hours_title' => 'ساعات العمل',

@@ -385,6 +385,8 @@ return [
 
         'new_quote_title' => 'New price quote request',
         'new_quote_body'  => 'Service: :service',
+        'broadcast_quote_title' => 'New price quote request in your city',
+        'broadcast_quote_body'  => 'Service: :service — reply quickly to win the customer',
 
         'lead_converted_title' => 'Lead converted',
         'lead_converted_body'  => ':clinic is now an active complex',

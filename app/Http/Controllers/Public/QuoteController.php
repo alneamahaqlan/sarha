@@ -9,6 +9,7 @@ use App\Models\Clinic;
 use App\Models\ClinicStat;
 use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
+use App\Services\NotificationService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 
@@ -165,6 +166,9 @@ class QuoteController extends Controller
         // Every clinic in the targeted cities "received" this request.
         Clinic::publiclyVisible()->whereIn('city_id', $data['city_ids'])->pluck('id')
             ->each(fn ($cid) => ClinicStat::bump($cid, 'quote_requests_count'));
+
+        // Notify the targeted complexes (cities are attached now).
+        app(NotificationService::class)->broadcastQuoteToCityClinics($quote);
 
         return $quote;
     }
