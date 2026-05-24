@@ -33,6 +33,8 @@ const schema = z.object({
   city_id: z.coerce.number().int().positive(),
   address: z.string().nullish(),
   district: z.string().max(255).nullish(),
+  latitude: z.string().nullish().or(z.literal('')),
+  longitude: z.string().nullish().or(z.literal('')),
   description: z.string().nullish(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected']),
   subscription_type: z.enum(['basic', 'premium']).nullish().or(z.literal('')),
@@ -78,7 +80,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '', slug: '', phone: '', email: '', license_number: '', password: '',
-      city_id: 0, address: '', district: '', description: '',
+      city_id: 0, address: '', district: '', latitude: '', longitude: '', description: '',
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
       is_featured: false, rejection_reason: '',
@@ -100,6 +102,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         city_id: clinic.city_id ?? 0,
         address: clinic.address ?? '',
         district: clinic.district ?? '',
+        latitude: clinic.latitude != null ? String(clinic.latitude) : '',
+        longitude: clinic.longitude != null ? String(clinic.longitude) : '',
         description: clinic.description ?? '',
         status: clinic.status,
         subscription_type: clinic.subscription_type ?? '',
@@ -236,6 +240,19 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="address">{t('clinics.form.address')}</Label>
               <Textarea id="address" rows={2} {...form.register('address')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="latitude">{t('clinics.form.latitude')}</Label>
+              <Input id="latitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="24.7136" {...form.register('latitude')} />
+              {form.formState.errors.latitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.latitude.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="longitude">{t('clinics.form.longitude')}</Label>
+              <Input id="longitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="46.6753" {...form.register('longitude')} />
+              {form.formState.errors.longitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.longitude.message}</p>}
+            </div>
+            <div className="md:col-span-2 -mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.coords_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinics.form.description')}</Label>

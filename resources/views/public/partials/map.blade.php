@@ -63,6 +63,16 @@
             map.fitBounds(bounds, { padding: [30, 30], maxZoom: 13 });
         }
 
+        // Recompute tile sizing after layout settles and when the map first
+        // scrolls into view — fixes grey/blank tiles for below-the-fold maps.
+        setTimeout(function () { map.invalidateSize(); }, 250);
+        if ('IntersectionObserver' in window) {
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) { if (e.isIntersecting) { map.invalidateSize(); } });
+            });
+            io.observe(el);
+        }
+
         @if($showAreaSearch)
         var areaBtn = document.getElementById(@json($mapId . '-area-btn'));
         if (areaBtn) {

@@ -76,6 +76,7 @@ class BulkShowcaseSeeder extends Seeder
         }
 
         $cityIds = DB::table('cities')->pluck('id')->all();
+        $cityNames = DB::table('cities')->pluck('name', 'id'); // id => Arabic name (for accurate coords)
         $categoryIds = DB::table('categories')->pluck('id')->all();
 
         $types = ['مجمع', 'مركز', 'عيادات', 'مستوصف', 'مجمع عيادات', 'المركز الطبي'];
@@ -122,6 +123,7 @@ class BulkShowcaseSeeder extends Seeder
             $start = $plan ? $this->now->copy()->subDays(rand(5, 300)) : null;
             $ends = $plan ? $this->now->copy()->addDays(rand(-30, 120)) : null;
             $city = $this->pick($cityIds);
+            [$lat, $lng] = BackfillClinicCoordinatesSeeder::jitteredFor($cityNames[$city] ?? null);
             $hasSocials = rand(0, 1) === 1;
 
             $clinicId = DB::table('clinics')->insertGetId([
@@ -133,8 +135,8 @@ class BulkShowcaseSeeder extends Seeder
                 'city_id'                => $city,
                 'district'               => $this->pick($districts),
                 'address'                => 'حي ' . $this->pick($districts) . '، شارع ' . $this->pick(['الملك فهد', 'العليا', 'التحلية', 'الأمير سلطان']) . '، مبنى ' . rand(100, 999),
-                'latitude'               => 24.0 + (rand(0, 9000) / 1000),
-                'longitude'              => 46.0 + (rand(0, 9000) / 1000),
+                'latitude'               => $lat,
+                'longitude'              => $lng,
                 'license_number'         => rand(0, 1) ? 'LIC-' . rand(100000, 999999) : null,
                 'maps_url'               => $hasSocials ? 'https://maps.app.goo.gl/' . Str::random(10) : null,
                 'description'            => 'مجمع طبي متخصص يقدم أفضل الخدمات الطبية بأحدث التقنيات وأمهر الكوادر، مع تجربة مريض متميّزة.',

@@ -25,6 +25,8 @@ class StoreClinicRequest extends FormRequest
             'city_id'           => ['required', 'integer', 'exists:cities,id'],
             'address'           => ['nullable', 'string'],
             'district'          => ['nullable', 'string', 'max:255'],
+            'latitude'          => ['nullable', 'numeric', 'between:-90,90'],
+            'longitude'         => ['nullable', 'numeric', 'between:-180,180'],
             'description'       => ['nullable', 'string'],
             'status'            => ['required', 'in:pending,active,suspended,rejected'],
             'subscription_type' => ['nullable', 'in:basic,premium'],
