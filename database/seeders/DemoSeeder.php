@@ -579,20 +579,50 @@ class DemoSeeder extends Seeder
     private function seedClinicStats(): void
     {
         $clinicIds = $this->ids('clinics');
+        $days = 90; // ~3 months of history so trends/charts look alive
+
         foreach ($clinicIds as $cid) {
-            if (DB::table('clinic_stats')->where('clinic_id', $cid)->count() >= 5) continue;
-            for ($d = 0; $d < 5; $d++) {
-                DB::table('clinic_stats')->insertOrIgnore([
+            // Idempotent: skip clinics already enriched with engagement clicks
+            // (older runs seeded 5 click-less days; this fills/extends them once).
+            if (DB::table('clinic_stats')->where('clinic_id', $cid)->where('directions_clicks', '>', 0)->exists()) {
+                continue;
+            }
+
+            $rows = [];
+            for ($d = 0; $d < $days; $d++) {
+                $date = $this->now->copy()->subDays($d);
+                // Thu/Fri are the busy days in KSA — give them a gentle boost.
+                $boost = in_array((int) $date->dayOfWeek, [4, 5], true) ? 1.3 : 1.0;
+
+                $views       = max(1, (int) round(rand(20, 220) * $boost));
+                $appearances = $views + rand(40, 400);                 // impressions > visits
+                $bookings    = intdiv($views, rand(15, 30)) + rand(0, 2);
+                $quotes      = intdiv($views, rand(25, 60)) + rand(0, 1);
+
+                $rows[] = [
                     'clinic_id'            => $cid,
-                    'date'                 => $this->now->copy()->subDays($d)->toDateString(),
-                    'search_appearances'   => rand(10, 300),
-                    'page_views'           => rand(5, 200),
-                    'bookings_count'       => rand(0, 15),
-                    'quote_requests_count' => rand(0, 8),
+                    'date'                 => $date->toDateString(),
+                    'search_appearances'   => $appearances,
+                    'page_views'           => $views,
+                    'bookings_count'       => $bookings,
+                    'quote_requests_count' => $quotes,
+                    // Engagement clicks correlate with page views.
+                    'whatsapp_clicks'      => (int) round($views * (rand(6, 16) / 100)),
+                    'call_clicks'          => (int) round($views * (rand(3, 10) / 100)),
+                    'directions_clicks'    => (int) round($views * (rand(4, 12) / 100)),
+                    'booking_clicks'       => $bookings + rand(0, 6),  // clicks ≥ submissions
                     'created_at'           => $this->now,
                     'updated_at'           => $this->now,
-                ]);
+                ];
             }
+
+            // upsert so the previously-seeded click-less days get backfilled too.
+            DB::table('clinic_stats')->upsert(
+                $rows,
+                ['clinic_id', 'date'],
+                ['search_appearances', 'page_views', 'bookings_count', 'quote_requests_count',
+                 'whatsapp_clicks', 'call_clicks', 'directions_clicks', 'booking_clicks', 'updated_at']
+            );
         }
     }
 
