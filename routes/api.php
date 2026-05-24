@@ -213,6 +213,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
         Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
         Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
+        Route::get('reviews', [ClinicProfileController::class, 'reviews'])->name('clinic.reviews');
 
         // Subscription — display-only current plan + platform plan prices.
         Route::get('subscription', [ClinicProfileController::class, 'subscription'])->name('clinic.subscription');

@@ -24,6 +24,7 @@ class StoreClinicRequest extends FormRequest
             'password'          => ['required', Password::min(8)],
             'city_id'           => ['required', 'integer', 'exists:cities,id'],
             'address'           => ['nullable', 'string'],
+            'district'          => ['nullable', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
             'status'            => ['required', 'in:pending,active,suspended,rejected'],
             'subscription_type' => ['nullable', 'in:basic,premium'],

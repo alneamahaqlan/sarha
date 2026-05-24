@@ -27,6 +27,7 @@ class UpdateClinicRequest extends FormRequest
             'password'          => ['nullable', Password::min(8)],
             'city_id'           => ['sometimes', 'required', 'integer', 'exists:cities,id'],
             'address'           => ['nullable', 'string'],
+            'district'          => ['nullable', 'string', 'max:255'],
             'description'       => ['nullable', 'string'],
             'status'            => ['sometimes', 'required', 'in:pending,active,suspended,rejected'],
             'subscription_type' => ['nullable', 'in:basic,premium'],

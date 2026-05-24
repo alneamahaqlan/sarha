@@ -1,6 +1,16 @@
 import { apiClient } from '@/lib/api-client';
 import type { PaginatedResponse, SingleResponse } from '@/types/api';
 
+export interface ClinicArticleUsage {
+  published_this_month: number;
+  monthly_limit: number | null;
+  is_premium: boolean;
+}
+
+export type ClinicArticleList = PaginatedResponse<ClinicArticle> & {
+  usage?: ClinicArticleUsage;
+};
+
 export interface ClinicArticle {
   id: number;
   clinic_id: number;
@@ -8,6 +18,7 @@ export interface ClinicArticle {
   slug: string;
   meta_description: string | null;
   body: string;
+  word_count: number;
   cover_image: string | null;
   tags: string[] | null;
   is_published: boolean;
@@ -43,7 +54,7 @@ function buildParams(p: ListParams) {
 
 export const clinicArticlesApi = {
   list: async (params: ListParams = {}) => {
-    const res = await apiClient.get<PaginatedResponse<ClinicArticle>>('/clinic/articles', { params: buildParams(params) });
+    const res = await apiClient.get<ClinicArticleList>('/clinic/articles', { params: buildParams(params) });
     return res.data;
   },
   get: async (id: number) => {

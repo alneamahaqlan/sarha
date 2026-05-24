@@ -562,7 +562,7 @@ class DemoSeeder extends Seeder
         $target = 25;
         $existing = DB::table('audit_logs')->count();
         $admins = DB::table('admins')->get(['id', 'name']);
-        $actions = ['approved_Clinic', 'rejected_Clinic', 'suspended_Clinic', 'updated_Clinic', 'lead_converted', 'created_Subscription', 'updated_City'];
+        $actions = ['clinic.approved', 'clinic.rejected', 'clinic.suspended', 'clinic.updated', 'sales_lead.converted', 'subscription.created', 'city.updated'];
         for ($i = $existing; $i < $target; $i++) {
             $admin = $admins->random();
             DB::table('audit_logs')->insert([

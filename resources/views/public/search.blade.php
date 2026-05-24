@@ -61,8 +61,8 @@
                 {{ __('site.search_results', ['count' => $clinics->total()]) }}
             @endif
         </p>
-        @if(request()->hasAny(['q', 'city', 'category']))
-            <a href="{{ route('search') }}" class="text-sm text-teal-600 hover:underline">@lang('site.clear_filters')</a>
+        @if(request()->hasAny(['q', 'city', 'category', 'featured', 'sort']))
+            <a href="{{ route('search', ['clear' => 1]) }}" class="text-sm text-teal-600 hover:underline">@lang('site.clear_filters')</a>
         @endif
     </div>
 
@@ -75,7 +75,7 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach($clinics as $clinic)
-                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $clinics->getCollection()])
+                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $clinics->getCollection(), 'compare' => true])
             @endforeach
         </div>
 

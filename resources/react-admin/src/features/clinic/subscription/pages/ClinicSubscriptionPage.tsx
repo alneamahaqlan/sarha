@@ -1,8 +1,53 @@
-import { Check, CreditCard, Crown, Clock } from 'lucide-react';
+import { Check, CreditCard, Crown, Clock, MessageCircle, Phone, Mail } from 'lucide-react';
 
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { cn } from '@/lib/utils';
 import { useClinicSubscription } from '@/features/clinic/profile/hooks';
+import type { ClinicSubscription } from '@/features/clinic/profile/api';
+
+function ContactActions({ contact, message }: { contact: ClinicSubscription['contact']; message: string }) {
+  const { t } = useTranslation();
+  const hasAny = contact.whatsapp || contact.phone || contact.email;
+
+  if (!hasAny) {
+    return <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_subscription.contact_admin')}</p>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {contact.whatsapp && (
+        <a
+          href={`https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(message)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-600 px-4 text-sm font-medium text-white hover:bg-emerald-700"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {t('clinic_subscription.contact_whatsapp')}
+        </a>
+      )}
+      {contact.phone && (
+        <a
+          href={`tel:${contact.phone}`}
+          dir="ltr"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-[var(--color-border)] px-4 text-sm font-medium hover:bg-[var(--color-muted)]"
+        >
+          <Phone className="h-4 w-4" />
+          {t('clinic_subscription.contact_call')}
+        </a>
+      )}
+      {contact.email && (
+        <a
+          href={`mailto:${contact.email}?subject=${encodeURIComponent(message)}`}
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-[var(--color-border)] px-4 text-sm font-medium hover:bg-[var(--color-muted)]"
+        >
+          <Mail className="h-4 w-4" />
+          {t('clinic_subscription.contact_email')}
+        </a>
+      )}
+    </div>
+  );
+}
 
 export function ClinicSubscriptionPage() {
   const { t } = useTranslation();
@@ -67,6 +112,13 @@ export function ClinicSubscriptionPage() {
         </div>
       </div>
 
+      {/* Renew / contact admin — always available so any plan can act */}
+      <div className="rounded-lg border border-[var(--color-border)] bg-white p-6">
+        <h3 className="font-semibold">{t('clinic_subscription.renew_title')}</h3>
+        <p className="mb-3 mt-1 text-sm text-[var(--color-muted-foreground)]">{t('clinic_subscription.renew_body')}</p>
+        <ContactActions contact={data.contact} message={t('clinic_subscription.contact_message')} />
+      </div>
+
       {/* Plan comparison */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <PlanCard
@@ -97,7 +149,9 @@ export function ClinicSubscriptionPage() {
             <div>
               <h3 className="font-semibold text-amber-900">{t('clinic_subscription.upgrade_title')}</h3>
               <p className="mt-1 text-sm text-amber-800">{t('clinic_subscription.upgrade_body')}</p>
-              <p className="mt-2 text-xs text-amber-700">{t('clinic_subscription.contact_admin')}</p>
+              <div className="mt-3">
+                <ContactActions contact={data.contact} message={t('clinic_subscription.upgrade_message')} />
+              </div>
             </div>
           </div>
         </div>

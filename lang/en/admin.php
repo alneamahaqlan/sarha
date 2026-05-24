@@ -382,6 +382,9 @@ return [
         'new_complaint_title' => 'New complaint',
         'new_complaint_body'  => ':subject',
 
+        'new_lead_title' => 'New complex registration',
+        'new_lead_body'  => ':clinic requested to join — review in the sales pipeline',
+
         'new_quote_title' => 'New price quote request',
         'new_quote_body'  => 'Service: :service',
 

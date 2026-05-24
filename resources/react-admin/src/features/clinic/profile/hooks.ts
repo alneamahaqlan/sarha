@@ -4,6 +4,7 @@ import { clinicProfileApi, type ProfileFormValues, type WorkingHourRow } from '.
 const KEY = ['clinic', 'profile'] as const;
 const WORKING_HOURS_KEY = ['clinic', 'working-hours'] as const;
 const SUBSCRIPTION_KEY = ['clinic', 'subscription'] as const;
+const REVIEWS_KEY = ['clinic', 'reviews'] as const;
 
 export function useClinicProfile() {
   return useQuery({ queryKey: KEY, queryFn: () => clinicProfileApi.show() });
@@ -25,7 +26,15 @@ export function useExtractCoords() {
 }
 
 export function useSyncReviews() {
-  return useMutation({ mutationFn: () => clinicProfileApi.syncReviews() });
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => clinicProfileApi.syncReviews(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: REVIEWS_KEY }),
+  });
+}
+
+export function useClinicReviews() {
+  return useQuery({ queryKey: REVIEWS_KEY, queryFn: () => clinicProfileApi.reviews() });
 }
 
 export function useWorkingHours() {

@@ -2,6 +2,10 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { apiClient } from '@/lib/api-client';
@@ -142,15 +146,30 @@ export function ClinicLayout() {
               <Languages className="h-3 w-3" />
               {locale === 'ar' ? 'English' : 'العربية'}
             </button>
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
-            >
-              <LogOut className="h-3 w-3" />
-              {t('common.logout')}
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  disabled={logout.isPending}
+                  className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
+                >
+                  <LogOut className="h-3 w-3" />
+                  {t('common.logout')}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('common.logout_confirm_title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('common.logout_confirm_body')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => logout.mutate()} disabled={logout.isPending}>
+                    {t('common.logout')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
         <main className="flex-1 p-6">

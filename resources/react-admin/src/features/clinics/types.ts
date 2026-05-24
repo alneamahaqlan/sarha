@@ -13,6 +13,7 @@ export interface Clinic {
   license_number: string | null;
   city_id: number;
   address: string | null;
+  district: string | null;
   description: string | null;
   logo: string | null;
   gallery: string[] | null;

@@ -17,9 +17,24 @@
         </div>
     @endif
 
+    {{-- Compare toggle (search results) — handled by the global compare tray script --}}
+    @if($compare ?? false)
+        <button type="button"
+                class="compare-toggle absolute top-3 end-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-colors hover:text-teal-600 [&.is-selected]:bg-teal-600 [&.is-selected]:text-white [&.is-selected]:ring-teal-600"
+                data-compare-id="{{ $clinic->id }}"
+                data-compare-name="{{ $clinic->name }}"
+                aria-pressed="false"
+                aria-label="@lang('site.compare_add')"
+                title="@lang('site.compare_add')">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>
+            </svg>
+        </button>
+    @endif
+
     @if($clinic->logo)
         <div class="h-40 overflow-hidden bg-gray-100">
-            <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}"
+            <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
     @else
@@ -63,6 +78,13 @@
                     </span>
                 @endforeach
             </div>
+        @endif
+
+        {{-- Starting price — shown whenever the list query loaded min_price --}}
+        @if(! is_null($clinic->min_price ?? null))
+            <p class="mt-3 text-sm font-semibold text-teal-700">
+                {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
+            </p>
         @endif
     </div>
 </a>

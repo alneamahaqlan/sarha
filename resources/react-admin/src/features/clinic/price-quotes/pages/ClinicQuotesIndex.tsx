@@ -76,8 +76,11 @@ function ReplyDialog({ quote, onClose }: { quote: PriceQuote; onClose: () => voi
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="clinic_reply">{t('clinic_quotes.reply')}</Label>
-            <Textarea id="clinic_reply" rows={4} value={reply} onChange={(e) => { setReply(e.target.value); setErr(null); }} />
-            {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
+            <Textarea id="clinic_reply" rows={4} maxLength={1000} value={reply} onChange={(e) => { setReply(e.target.value); setErr(null); }} />
+            <div className="flex items-center justify-between">
+              {err ? <p className="text-xs text-[var(--color-destructive)]">{err}</p> : <span />}
+              <span className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_quotes.chars_count', { count: reply.length, max: 1000 })}</span>
+            </div>
           </div>
         </div>
         <DialogFooter>

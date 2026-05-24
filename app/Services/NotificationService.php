@@ -10,7 +10,10 @@ use App\Models\Complaint;
 use App\Models\PlatformNotification;
 use App\Models\PriceQuoteRequest;
 use App\Models\SalesLead;
+use App\Mail\CriticalAlertMail;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * Single source of truth for creating in-app notifications.
@@ -33,6 +36,19 @@ class NotificationService
                 'customer' => $booking->customer_name,
             ]),
             data: ['booking_id' => $booking->id],
+        );
+    }
+
+    public function newSalesLead(SalesLead $lead): void
+    {
+        $this->broadcastToAdmins(
+            type: 'new_sales_lead',
+            title: __('admin.notif.new_lead_title'),
+            body:  __('admin.notif.new_lead_body', ['clinic' => $lead->clinic_name]),
+            icon: 'heroicon-o-user-plus',
+            url: '/app/admin/sales-leads',
+            priority: 'normal',
+            data: ['lead_id' => $lead->id],
         );
     }
 
@@ -258,7 +274,7 @@ class NotificationService
         string $priority = 'normal',
         ?array $data = null,
     ): PlatformNotification {
-        return PlatformNotification::create([
+        $notification = PlatformNotification::create([
             'notifiable_type' => $recipient::class,
             'notifiable_id'   => $recipient->getKey(),
             'type'            => $type,
@@ -269,6 +285,18 @@ class NotificationService
             'body'            => $body,
             'data'            => $data,
         ]);
+
+        // Critical events also go out by email (in addition to the in-app bell).
+        // Honoured for high/urgent only and when the recipient has an email.
+        if (in_array($priority, ['high', 'urgent'], true) && filled($recipient->email ?? null)) {
+            try {
+                Mail::to($recipient->email)->send(new CriticalAlertMail($title, $body, $url));
+            } catch (\Throwable $e) {
+                Log::warning('Critical alert email failed: '.$e->getMessage());
+            }
+        }
+
+        return $notification;
     }
 
     public function broadcastToAdmins(

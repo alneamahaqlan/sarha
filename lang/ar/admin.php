@@ -382,6 +382,9 @@ return [
         'new_complaint_title' => 'شكوى جديدة',
         'new_complaint_body'  => ':subject',
 
+        'new_lead_title' => 'طلب تسجيل مجمع جديد',
+        'new_lead_body'  => ':clinic طلب الانضمام — راجعه في قائمة المبيعات',
+
         'new_quote_title' => 'طلب عرض سعر جديد',
         'new_quote_body'  => 'خدمة: :service',
 

@@ -12,8 +12,30 @@ class SearchController extends Controller
 {
     public const SORT_OPTIONS = ['featured', 'top_rated', 'cheapest', 'most_booked', 'nearest'];
 
+    /** Filter inputs remembered across visits so "Back" returns to the same results (#8). */
+    private const FILTER_KEYS = ['q', 'city', 'category', 'featured', 'sort', 'lat', 'lng'];
+
     public function index(Request $request)
     {
+        // Persist/restore filters in the session: a bare /search visit (e.g. via
+        // browser Back from a clinic page) is redirected to the last filter set.
+        // ?clear=1 wipes the memory (used by the "clear filters" link).
+        if ($request->boolean('clear')) {
+            $request->session()->forget('search_filters');
+        } elseif (! $request->hasAny(self::FILTER_KEYS)) {
+            $saved = $request->session()->get('search_filters', []);
+            if (! empty($saved)) {
+                return redirect()->route('search', $saved);
+            }
+        }
+
+        if ($request->hasAny(self::FILTER_KEYS)) {
+            $active = collect($request->only(self::FILTER_KEYS))
+                ->filter(fn ($v) => $v !== null && $v !== '')
+                ->all();
+            $request->session()->put('search_filters', $active);
+        }
+
         $query = Clinic::publiclyVisible()
             ->with(['city', 'categories'])
             ->withAvg('googleReviews', 'rating')

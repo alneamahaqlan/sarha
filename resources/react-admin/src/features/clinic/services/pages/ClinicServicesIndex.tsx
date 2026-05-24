@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Check, List, LayoutGrid, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ExternalLink, List, LayoutGrid, Pencil, Plus, Trash2, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import type { Service } from '@/features/services/types';
 import { useClinicCategories } from '@/features/clinic/categories/hooks';
+import { useClinicProfile } from '@/features/clinic/profile/hooks';
 
 import {
   useClinicServices, useCreateClinicService, useDeleteClinicService, useSubClinicLookup, useUpdateClinicService,
@@ -171,7 +172,9 @@ export function ClinicServicesIndex() {
   const { locale } = useLocale();
   const { data, isLoading } = useClinicServices({ per_page: 50, sort: 'sort_order' });
   const { data: cats } = useClinicCategories();
+  const { data: profile } = useClinicProfile();
   const del = useDeleteClinicService();
+  const clinicSlug = profile?.slug;
   const [editing, setEditing] = useState<Service | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Service | null>(null);
@@ -211,9 +214,14 @@ export function ClinicServicesIndex() {
     return ordered;
   }, [data, cats, catName, t]);
 
-  const renderRow = (s: Service) => (
+  const renderRow = (s: Service, showCategory: boolean) => (
     <TableRow key={s.id}>
       <TableCell className="font-medium">{s.name}</TableCell>
+      {showCategory && (
+        <TableCell className="text-sm text-[var(--color-muted-foreground)]">
+          {s.custom_category_id ? catName.get(s.custom_category_id) ?? '—' : '—'}
+        </TableCell>
+      )}
       <TableCell>
         <div className="flex items-baseline gap-2">
           <span className="font-medium">{fmtCurrency(s.price)}</span>
@@ -226,6 +234,17 @@ export function ClinicServicesIndex() {
       <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
       <TableCell className="text-end">
         <div className="flex justify-end gap-1">
+          {clinicSlug && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => window.open(`/clinic/${clinicSlug}`, '_blank', 'noopener,noreferrer')}
+              aria-label={t('clinic_services.preview_public')}
+              title={t('clinic_services.preview_public')}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          )}
           <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
           <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
         </div>
@@ -233,10 +252,11 @@ export function ClinicServicesIndex() {
     </TableRow>
   );
 
-  const header = (
+  const header = (showCategory: boolean) => (
     <TableHeader>
       <TableRow>
         <TableHead>{t('clinic_services.name')}</TableHead>
+        {showCategory && <TableHead>{t('clinic_services.category')}</TableHead>}
         <TableHead>{t('clinic_services.price')}</TableHead>
         <TableHead>{t('clinic_services.offer')}</TableHead>
         <TableHead>{t('clinic_services.is_active')}</TableHead>
@@ -281,8 +301,8 @@ export function ClinicServicesIndex() {
         <div className="py-8 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
       ) : view === 'list' ? (
         <Table>
-          {header}
-          <TableBody>{data!.data.map(renderRow)}</TableBody>
+          {header(true)}
+          <TableBody>{data!.data.map((s) => renderRow(s, true))}</TableBody>
         </Table>
       ) : (
         <div className="space-y-6">
@@ -293,8 +313,8 @@ export function ClinicServicesIndex() {
                 <span className="rounded-full bg-[var(--color-muted)] px-2 py-0.5 text-xs text-[var(--color-muted-foreground)]">{g.items.length}</span>
               </div>
               <Table>
-                {header}
-                <TableBody>{g.items.map(renderRow)}</TableBody>
+                {header(false)}
+                <TableBody>{g.items.map((s) => renderRow(s, false))}</TableBody>
               </Table>
             </div>
           ))}

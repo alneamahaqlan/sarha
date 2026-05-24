@@ -13,7 +13,7 @@ import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
-import { useClinicProfile, useExtractCoords, useSyncReviews, useUpdateClinicProfile } from '../hooks';
+import { useClinicProfile, useClinicReviews, useExtractCoords, useSyncReviews, useUpdateClinicProfile } from '../hooks';
 import { WorkingHoursSection } from '../components/WorkingHoursSection';
 
 const schema = z.object({
@@ -21,6 +21,7 @@ const schema = z.object({
   phone: z.string().min(1).max(20),
   email: z.string().email().nullish().or(z.literal('')),
   address: z.string().nullish(),
+  district: z.string().max(255).nullish(),
   description: z.string().nullish(),
   website: z.string().url().nullish().or(z.literal('')),
   instagram: z.string().max(255).nullish(),
@@ -51,7 +52,7 @@ export function ClinicProfilePage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '', phone: '', email: '', address: '', description: '',
+      name: '', phone: '', email: '', address: '', district: '', description: '',
       website: '', instagram: '', twitter: '', snapchat: '', logo: '',
       latitude: null, longitude: null, google_place_id: '', password: '',
     },
@@ -64,6 +65,7 @@ export function ClinicProfilePage() {
         phone: clinic.phone ?? '',
         email: clinic.email ?? '',
         address: clinic.address ?? '',
+        district: clinic.district ?? '',
         description: clinic.description ?? '',
         website: clinic.website ?? '',
         instagram: clinic.instagram ?? '',
@@ -142,6 +144,11 @@ export function ClinicProfilePage() {
           <div className="space-y-1.5">
             <Label htmlFor="email">{t('clinic_profile.email')}</Label>
             <Input id="email" type="email" dir="ltr" {...form.register('email')} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="district">{t('clinic_profile.district')}</Label>
+            <Input id="district" {...form.register('district')} />
+            {form.formState.errors.district && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.district.message}</p>}
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="address">{t('clinic_profile.address')}</Label>
@@ -241,6 +248,59 @@ export function ClinicProfilePage() {
       </form>
 
       <WorkingHoursSection />
+
+      <ClinicReviewsSection />
+    </div>
+  );
+}
+
+function ClinicReviewsSection() {
+  const { t } = useTranslation();
+  const { data, isLoading } = useClinicReviews();
+
+  const fmtDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString('ar-SA') : '';
+
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{t('clinic_profile.reviews_title')}</h2>
+        {data && data.count > 0 && (
+          <div className="flex items-center gap-1.5 text-sm">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+            <span className="font-semibold">{data.average?.toFixed(1)}</span>
+            <span className="text-[var(--color-muted-foreground)]">
+              ({t('clinic_profile.reviews_count', { count: data.count })})
+            </span>
+          </div>
+        )}
+      </div>
+
+      {isLoading ? (
+        <p className="py-6 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</p>
+      ) : !data || data.reviews.length === 0 ? (
+        <p className="py-6 text-center text-sm text-[var(--color-muted-foreground)]">{t('clinic_profile.reviews_empty')}</p>
+      ) : (
+        <ul className="mt-4 space-y-4">
+          {data.reviews.map((r) => (
+            <li key={r.id} className="border-b border-[var(--color-border)] pb-4 last:border-0 last:pb-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">{r.reviewer_name ?? '—'}</span>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${i < r.rating ? 'fill-amber-400 text-amber-500' : 'text-[var(--color-border)]'}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              {r.review_text && <p className="mt-1 text-sm text-[var(--color-muted-foreground)]">{r.review_text}</p>}
+              {r.reviewed_at && <p className="mt-1 text-xs text-[var(--color-muted-foreground)]">{fmtDate(r.reviewed_at)}</p>}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

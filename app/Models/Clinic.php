@@ -15,7 +15,7 @@ class Clinic extends Authenticatable
 
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'license_number', 'password', 'city_id',
-        'address', 'latitude', 'longitude', 'google_place_id',
+        'address', 'district', 'latitude', 'longitude', 'google_place_id',
         'description', 'logo', 'gallery', 'website', 'instagram',
         'twitter', 'snapchat', 'status', 'subscription_type',
         'subscription_starts_at', 'subscription_ends_at',

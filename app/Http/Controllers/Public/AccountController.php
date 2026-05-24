@@ -30,13 +30,17 @@ class AccountController extends Controller
 
     public function bookings()
     {
-        $bookings = auth('web')->user()
+        $user = auth('web')->user();
+        $bookings = $user
             ->bookings()
             ->with(['clinic.city', 'service'])
             ->latest()
             ->paginate(10);
 
-        return view('public.account.bookings', compact('bookings'));
+        $bookingsCount = $user->bookings()->count();
+        $favoritesCount = $user->favorites()->count();
+
+        return view('public.account.bookings', compact('bookings', 'user', 'bookingsCount', 'favoritesCount'));
     }
 
     public function favorites()

@@ -2,6 +2,10 @@
 
 @section('title', $clinic->name)
 @section('description', Str::limit($clinic->description ?? '', 160))
+@section('og_type', 'business.business')
+@section('og_title', $clinic->name)
+@section('og_description', Str::limit($clinic->description ?? '', 160))
+@section('og_image', $clinic->logo ? Storage::url($clinic->logo) : asset('images/og-default.png'))
 
 @php
     $schemaPayload = collect([
@@ -48,7 +52,7 @@
     <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
         @if($clinic->logo)
             <div class="h-56 bg-gray-100">
-                <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" class="w-full h-full object-cover">
+                <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy" class="w-full h-full object-cover">
             </div>
         @endif
         <div class="p-6">
@@ -204,10 +208,12 @@
                         @else
                             <div class="space-y-3">
                                 @foreach($clinic->articles as $article)
-                                    <div class="border border-gray-100 rounded-lg p-4 hover:border-teal-200 transition-colors">
-                                        <h3 class="font-semibold text-gray-800 mb-1">{{ $article->title }}</h3>
-                                        <p class="text-sm text-gray-500">{{ Str::limit($article->excerpt ?? strip_tags($article->body ?? ''), 160) }}</p>
-                                    </div>
+                                    <a href="{{ route('article.show', $article->slug) }}"
+                                       class="block border border-gray-100 rounded-lg p-4 hover:border-teal-200 hover:shadow-sm transition-all group">
+                                        <h3 class="font-semibold text-gray-800 mb-1 group-hover:text-teal-600 transition-colors">{{ $article->title }}</h3>
+                                        <p class="text-sm text-gray-500">{{ Str::limit($article->meta_description ?? strip_tags($article->body ?? ''), 160) }}</p>
+                                        <span class="inline-block mt-2 text-xs text-teal-600 font-medium">@lang('site.read_more') →</span>
+                                    </a>
                                 @endforeach
                             </div>
                         @endif

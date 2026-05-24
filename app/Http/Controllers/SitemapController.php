@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Clinic;
 use Illuminate\Http\Response;
 
@@ -33,6 +34,23 @@ class SitemapController extends Controller
                 'priority'   => '0.8',
                 'changefreq' => 'weekly',
                 'lastmod'    => $clinic->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+            ]);
+        }
+
+        // Published articles of publicly-visible clinics
+        $articles = Article::where('is_published', true)
+            ->whereHas('clinic', fn ($q) => $q->publiclyVisible())
+            ->select(['slug', 'updated_at'])
+            ->latest('updated_at')
+            ->limit(5000)
+            ->get();
+
+        foreach ($articles as $article) {
+            $urls->push([
+                'loc'        => route('article.show', $article->slug),
+                'priority'   => '0.6',
+                'changefreq' => 'monthly',
+                'lastmod'    => $article->updated_at?->toIso8601String() ?? now()->toIso8601String(),
             ]);
         }
 

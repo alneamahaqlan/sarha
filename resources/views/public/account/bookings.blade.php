@@ -4,7 +4,20 @@
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-gray-800 mb-6">@lang('site.account_my_bookings')</h1>
+
+    {{-- Header — mirrors the profile page for a consistent account experience --}}
+    <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-2xl p-6 mb-6">
+        <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: __('site.account_my_bookings') }}</h1>
+        <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
+        <div class="flex flex-wrap gap-4 mt-4 text-sm">
+            <span class="bg-white/20 px-3 py-1 rounded-full">
+                📅 {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
+            </span>
+            <span class="bg-white/20 px-3 py-1 rounded-full">
+                ⭐ {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
+            </span>
+        </div>
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div class="lg:col-span-1">@include('public.account._nav')</div>
@@ -31,8 +44,16 @@
                             <span class="text-gray-700">{{ $booking->service->name }}</span>
                         @endif
                         <span class="ms-auto bg-{{ ['new' => 'blue', 'contacted' => 'amber', 'appointment_set' => 'teal', 'completed' => 'green', 'cancelled' => 'red', 'no_show' => 'red'][$booking->status] ?? 'gray' }}-100 text-{{ ['new' => 'blue', 'contacted' => 'amber', 'appointment_set' => 'teal', 'completed' => 'green', 'cancelled' => 'red', 'no_show' => 'red'][$booking->status] ?? 'gray' }}-700 text-xs px-2 py-1 rounded-full">
-                            {{ __('admin.status.' . $booking->status) }}
+                            {{ __('site.booking_status.' . $booking->status) }}
                         </span>
+                    </div>
+
+                    {{-- Re-book: reopens the booking form for the same clinic with the service pre-selected --}}
+                    <div class="mt-3 pt-3 border-t border-gray-100">
+                        <a href="{{ route('clinic.book.form', ['slug' => $booking->clinic->slug] + ($booking->service_id ? ['service' => $booking->service_id] : [])) }}"
+                           class="inline-flex items-center gap-1.5 text-sm text-teal-600 hover:text-teal-700 font-medium">
+                            🔄 @lang('site.rebook')
+                        </a>
                     </div>
                 </div>
             @empty

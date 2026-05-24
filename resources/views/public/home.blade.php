@@ -7,6 +7,9 @@
 {{-- Hero Section --}}
 <section class="bg-gradient-to-br from-teal-700 to-teal-900 text-white py-20 px-4">
     <div class="max-w-4xl mx-auto text-center">
+        @if($user)
+            <p class="text-teal-100 text-base md:text-lg mb-3">{{ __('site.greeting_welcome', ['name' => $user->name ?: '']) }} 👋</p>
+        @endif
         <h1 class="text-4xl md:text-5xl font-bold mb-4">@lang('site.hero_title')</h1>
         <p class="text-teal-200 text-lg mb-10">@lang('site.hero_subtitle')</p>
 
@@ -29,6 +32,18 @@
                 </button>
             </div>
         </form>
+
+        {{-- Progressive enhancement: jump straight to "nearest" results via geolocation --}}
+        <div class="mt-4">
+            <button type="button" id="nearest-btn" onclick="saerhaFindNearest()"
+                    class="inline-flex items-center gap-1.5 text-teal-100 hover:text-white text-sm font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span id="nearest-btn-label">@lang('site.use_my_location')</span>
+            </button>
+        </div>
     </div>
 </section>
 
@@ -83,7 +98,7 @@
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach($featuredClinics as $clinic)
-                @include('public.partials.clinic-card', ['clinic' => $clinic])
+                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $featuredClinics])
             @endforeach
         </div>
     </div>
@@ -101,7 +116,7 @@
         <p class="text-gray-500 text-sm mb-6">@lang('site.top_rated_subtitle')</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($topRatedClinics as $clinic)
-                @include('public.partials.clinic-card', ['clinic' => $clinic])
+                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $topRatedClinics])
             @endforeach
         </div>
     </div>
@@ -119,14 +134,7 @@
         <p class="text-gray-500 text-sm mb-6">@lang('site.best_priced_subtitle')</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($bestPricedClinics as $clinic)
-                <div class="relative">
-                    @include('public.partials.clinic-card', ['clinic' => $clinic])
-                    @if($clinic->min_price)
-                        <span class="absolute top-3 end-3 bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-bold">
-                            {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
-                        </span>
-                    @endif
-                </div>
+                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $bestPricedClinics])
             @endforeach
         </div>
     </div>
@@ -135,7 +143,7 @@
 
 {{-- Map of clinics --}}
 @if(($mapClinics ?? collect())->isNotEmpty())
-<section class="py-12 px-4 bg-gray-50">
+<section class="py-12 px-4 bg-white">
     <div class="max-w-7xl mx-auto">
         <div class="text-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">@lang('site.map_title')</h2>
@@ -151,10 +159,38 @@
     <div class="max-w-2xl mx-auto">
         <h2 class="text-3xl font-bold mb-4">@lang('site.cta_title')</h2>
         <p class="text-teal-100 mb-8">@lang('site.cta_subtitle')</p>
-        <a href="#" class="bg-white text-teal-600 px-8 py-3 rounded-xl font-bold hover:bg-teal-50 transition-colors">
+        <a href="{{ route('clinic.register') }}" class="bg-white text-teal-600 px-8 py-3 rounded-xl font-bold hover:bg-teal-50 transition-colors">
             @lang('site.cta_button')
         </a>
     </div>
 </section>
+
+@push('scripts')
+<script>
+    function saerhaFindNearest() {
+        var btn = document.getElementById('nearest-btn');
+        var label = document.getElementById('nearest-btn-label');
+        if (!navigator.geolocation) { window.location.href = @json(route('search', ['sort' => 'nearest'])); return; }
+        var original = label.textContent;
+        label.textContent = @json(__('site.locating'));
+        btn.disabled = true;
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                var url = new URL(@json(route('search')));
+                url.searchParams.set('sort', 'nearest');
+                url.searchParams.set('lat', pos.coords.latitude);
+                url.searchParams.set('lng', pos.coords.longitude);
+                window.location.href = url.toString();
+            },
+            function () {
+                label.textContent = original;
+                btn.disabled = false;
+                alert(@json(__('site.location_denied')));
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+</script>
+@endpush
 
 @endsection

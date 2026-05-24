@@ -61,7 +61,7 @@
             @foreach($clinic->googleReviews as $review)
                 <div class="flex gap-3">
                     @if($review->reviewer_photo)
-                        <img src="{{ $review->reviewer_photo }}" alt="{{ $review->reviewer_name }}"
+                        <img src="{{ $review->reviewer_photo }}" alt="{{ $review->reviewer_name }}" loading="lazy"
                              class="w-10 h-10 rounded-full object-cover">
                     @else
                         <div class="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">

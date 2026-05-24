@@ -17,6 +17,7 @@ class ClinicResource extends JsonResource
             'license_number'         => $this->license_number,
             'city_id'                => $this->city_id,
             'address'                => $this->address,
+            'district'               => $this->district,
             'latitude'               => $this->latitude,
             'longitude'              => $this->longitude,
             'google_place_id'        => $this->google_place_id,

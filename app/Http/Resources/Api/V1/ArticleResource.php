@@ -19,6 +19,7 @@ class ArticleResource extends JsonResource
             'slug'             => $this->slug,
             'meta_description' => $this->meta_description,
             'body'             => $this->body,
+            'word_count'       => $this->wordCount(),
             'cover_image'      => $this->cover_image,
             'tags'          => $this->tags,
             'is_published'  => (bool) $this->is_published,
@@ -28,5 +29,20 @@ class ArticleResource extends JsonResource
             'created_at'    => $this->created_at?->toIso8601String(),
             'updated_at'    => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    /**
+     * Word count of the article body. Strips HTML tags first so RichEditor
+     * markup doesn't inflate the count, then counts whitespace-separated tokens.
+     */
+    private function wordCount(): int
+    {
+        $text = trim(preg_replace('/\s+/u', ' ', strip_tags((string) $this->body)));
+
+        if ($text === '') {
+            return 0;
+        }
+
+        return count(preg_split('/\s+/u', $text));
     }
 }

@@ -11,6 +11,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('site.brand')) — @lang('site.tagline')</title>
     <meta name="description" content="@yield('description', __('site.meta_description'))">
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    {{-- Open Graph (pages override via @section('og_*'); image falls back to the platform default) --}}
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('og_title', __('site.brand'))">
+    <meta property="og:description" content="@yield('og_description', __('site.meta_description'))">
+    <meta property="og:image" content="@yield('og_image', asset('images/og-default.png'))">
+    <meta property="og:url" content="{{ url()->current() }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     @if($isRtl)
@@ -31,12 +39,25 @@
 <body class="bg-gray-50 antialiased">
 
 {{-- Navigation --}}
-<nav class="bg-white shadow-sm sticky top-0 z-50">
+<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ open: false }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-            <a href="{{ route('home') }}" class="flex items-center gap-2">
-                <span class="text-2xl font-bold text-teal-600">@lang('site.brand')</span>
-            </a>
+            <div class="flex items-center gap-2">
+                {{-- Mobile hamburger --}}
+                <button type="button" @click="open = !open"
+                        class="md:hidden p-2 -ms-2 text-gray-600 hover:text-teal-600"
+                        :aria-expanded="open.toString()" aria-label="@lang('site.menu')">
+                    <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <svg x-show="open" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+                <a href="{{ route('home') }}" class="flex items-center gap-2">
+                    <span class="text-2xl font-bold text-teal-600">@lang('site.brand')</span>
+                </a>
+            </div>
 
             <div class="hidden md:flex items-center gap-6">
                 <a href="{{ route('search') }}" class="text-gray-600 hover:text-teal-600 transition-colors">@lang('site.nav_search')</a>
@@ -68,6 +89,19 @@
                     </a>
                 @endauth
             </div>
+        </div>
+
+        {{-- Mobile menu panel --}}
+        <div x-show="open" x-cloak @click.outside="open = false"
+             class="md:hidden border-t border-gray-100 py-2">
+            <a href="{{ route('search') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_search')</a>
+            @auth('web')
+                <a href="{{ route('account.show') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_profile')</a>
+                <a href="{{ route('account.bookings') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_my_bookings')</a>
+                <a href="{{ route('account.favorites') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.account_my_favorites')</a>
+            @else
+                <a href="{{ route('login') }}" class="block px-2 py-2.5 text-gray-700 hover:text-teal-600">@lang('site.nav_login')</a>
+            @endauth
         </div>
     </div>
 </nav>
@@ -111,7 +145,7 @@
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_for_clinics')</h4>
                 <p class="text-sm mb-3">@lang('site.footer_for_clinics_desc')</p>
-                <a href="#" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors inline-block">
+                <a href="{{ route('clinic.register') }}" class="bg-teal-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition-colors inline-block">
                     @lang('site.nav_register_clinic')
                 </a>
             </div>
@@ -124,6 +158,83 @@
 
 {{-- Global AI chat widget --}}
 @livewire('ai-chat')
+
+{{-- Compare tray (populated client-side from localStorage) --}}
+<div id="compare-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden w-[calc(100%-2rem)] max-w-md">
+    <div class="flex items-center gap-3 rounded-xl bg-gray-900 px-4 py-3 text-white shadow-lg">
+        <span class="text-sm">
+            <span id="compare-count">0</span> {{ __('site.compare_selected') }}
+        </span>
+        <a id="compare-go" href="#" class="ms-auto rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold hover:bg-teal-600">
+            @lang('site.compare_now')
+        </a>
+        <button id="compare-clear" type="button" class="text-sm text-gray-300 hover:text-white">
+            @lang('site.compare_clear')
+        </button>
+    </div>
+</div>
+
+<script>
+(function () {
+    var KEY = 'saerha_compare';
+    var MAX = 3;
+    var COMPARE_URL = @json(route('compare'));
+    var MAX_MSG = @json(__('site.compare_max', ['max' => 3]));
+
+    function read() {
+        try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+    }
+    function write(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+
+    function render() {
+        var list = read();
+        document.querySelectorAll('[data-compare-id]').forEach(function (btn) {
+            var on = list.some(function (i) { return String(i.id) === btn.dataset.compareId; });
+            btn.classList.toggle('is-selected', on);
+            btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        var bar = document.getElementById('compare-bar');
+        if (!bar) return;
+        document.getElementById('compare-count').textContent = list.length;
+        bar.classList.toggle('hidden', list.length === 0);
+        var go = document.getElementById('compare-go');
+        var ids = list.map(function (i) { return i.id; }).join(',');
+        go.href = COMPARE_URL + '?ids=' + encodeURIComponent(ids);
+        var disabled = list.length < 2;
+        go.classList.toggle('opacity-50', disabled);
+        go.classList.toggle('pointer-events-none', disabled);
+    }
+
+    document.addEventListener('click', function (e) {
+        var toggle = e.target.closest('[data-compare-id]');
+        if (toggle) {
+            e.preventDefault();
+            e.stopPropagation();
+            var list = read();
+            var id = toggle.dataset.compareId;
+            var idx = list.findIndex(function (i) { return String(i.id) === id; });
+            if (idx >= 0) {
+                list.splice(idx, 1);
+            } else {
+                if (list.length >= MAX) { alert(MAX_MSG); return; }
+                list.push({ id: id, name: toggle.dataset.compareName || '' });
+            }
+            write(list);
+            render();
+            return;
+        }
+        if (e.target.closest('#compare-clear')) {
+            write([]);
+            render();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', render);
+    render();
+})();
+</script>
+
+@stack('scripts')
 
 </body>
 </html>

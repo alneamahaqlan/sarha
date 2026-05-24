@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Check, Pencil, Plus, Sparkles, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,7 @@ import {
   useClinicArticles, useCreateClinicArticle, useDeleteClinicArticle,
   useGenerateArticleAi, useUpdateClinicArticle,
 } from '../hooks';
-import type { ClinicArticle } from '../api';
+import type { ClinicArticle, ClinicArticleUsage } from '../api';
 
 const schema = z.object({
   title: z.string().min(1).max(255),
@@ -175,6 +175,91 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
   );
 }
 
+function UsageMeter({ usage }: { usage: ClinicArticleUsage }) {
+  const { t } = useTranslation();
+
+  if (usage.is_premium || usage.monthly_limit === null) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        <Sparkles className="h-4 w-4 shrink-0" />
+        <span>{t('clinic_articles.usage_unlimited')}</span>
+      </div>
+    );
+  }
+
+  const used = usage.published_this_month;
+  const limit = usage.monthly_limit;
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  const atLimit = used >= limit;
+  const bar = atLimit ? 'bg-red-500' : pct >= 60 ? 'bg-amber-500' : 'bg-emerald-500';
+
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium">{t('clinic_articles.usage_title')}</span>
+        <span className={atLimit ? 'font-semibold text-[var(--color-destructive)]' : 'text-[var(--color-muted-foreground)]'}>
+          {t('clinic_articles.usage_count', { used, limit })}
+        </span>
+      </div>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[var(--color-muted)]">
+        <div className={`h-full rounded-full transition-all ${bar}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-2 text-xs text-[var(--color-muted-foreground)]">
+        {atLimit ? t('clinic_articles.usage_at_limit') : t('clinic_articles.usage_hint')}
+      </p>
+    </div>
+  );
+}
+
+function ArticleRow({
+  article, onEdit, onDelete, fmtDate,
+}: {
+  article: ClinicArticle;
+  onEdit: () => void;
+  onDelete: () => void;
+  fmtDate: (iso: string | null) => string;
+}) {
+  const { t } = useTranslation();
+  const update = useUpdateClinicArticle(article.id);
+
+  const onToggle = async (next: boolean) => {
+    try {
+      const saved = await update.mutateAsync({ is_published: next });
+      if (next && !saved.is_published) toast.warning(t('clinic_articles.limit_hit'));
+      else toast.success(t('clinic_articles.updated'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">
+        {article.title}
+        {article.ai_generated && <Badge variant="muted" className="ms-2 text-xs">AI</Badge>}
+      </TableCell>
+      <TableCell className="text-sm text-[var(--color-muted-foreground)]">
+        {t('clinic_articles.words_count', { count: article.word_count })}
+      </TableCell>
+      <TableCell>
+        <Switch
+          checked={article.is_published}
+          disabled={update.isPending}
+          onCheckedChange={onToggle}
+          aria-label={t('clinic_articles.is_published')}
+        />
+      </TableCell>
+      <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(article.created_at)}</TableCell>
+      <TableCell className="text-end">
+        <div className="flex justify-end gap-1">
+          <Button variant="ghost" size="icon" onClick={onEdit} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={onDelete} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function ClinicArticlesIndex() {
   const { t } = useTranslation();
   const { locale } = useLocale();
@@ -202,10 +287,13 @@ export function ClinicArticlesIndex() {
         <Button onClick={() => setCreating(true)}><Plus className="h-4 w-4" />{t('clinic_articles.create')}</Button>
       </div>
 
+      {data?.usage && <UsageMeter usage={data.usage} />}
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t('clinic_articles.title_field')}</TableHead>
+            <TableHead>{t('clinic_articles.words')}</TableHead>
             <TableHead>{t('clinic_articles.is_published')}</TableHead>
             <TableHead>{t('clinic_articles.created_at')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
@@ -213,25 +301,18 @@ export function ClinicArticlesIndex() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow><TableCell colSpan={4} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
           ) : !data || data.data.length === 0 ? (
-            <TableRow><TableCell colSpan={4} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
           ) : (
             data.data.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium">
-                  {a.title}
-                  {a.ai_generated && <Badge variant="muted" className="ms-2 text-xs">AI</Badge>}
-                </TableCell>
-                <TableCell>{a.is_published ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
-                <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(a.created_at)}</TableCell>
-                <TableCell className="text-end">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(a)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleting(a)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
+              <ArticleRow
+                key={a.id}
+                article={a}
+                onEdit={() => setEditing(a)}
+                onDelete={() => setDeleting(a)}
+                fmtDate={fmtDate}
+              />
             ))
           )}
         </TableBody>

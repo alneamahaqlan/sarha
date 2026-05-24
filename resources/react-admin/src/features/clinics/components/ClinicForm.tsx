@@ -31,6 +31,7 @@ const schema = z.object({
   password: z.string().min(8).optional().or(z.literal('')),
   city_id: z.coerce.number().int().positive(),
   address: z.string().nullish(),
+  district: z.string().max(255).nullish(),
   description: z.string().nullish(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected']),
   subscription_type: z.enum(['basic', 'premium']).nullish().or(z.literal('')),
@@ -74,7 +75,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '', slug: '', phone: '', email: '', license_number: '', password: '',
-      city_id: 0, address: '', description: '',
+      city_id: 0, address: '', district: '', description: '',
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
       is_featured: false, rejection_reason: '',
@@ -94,6 +95,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         password: '',
         city_id: clinic.city_id ?? 0,
         address: clinic.address ?? '',
+        district: clinic.district ?? '',
         description: clinic.description ?? '',
         status: clinic.status,
         subscription_type: clinic.subscription_type ?? '',
@@ -220,6 +222,10 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
                 {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </Select>
               {form.formState.errors.city_id && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.city_id.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="district">{t('clinics.form.district')}</Label>
+              <Input id="district" {...form.register('district')} />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="address">{t('clinics.form.address')}</Label>
