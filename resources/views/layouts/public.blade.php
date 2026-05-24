@@ -234,6 +234,23 @@
 })();
 </script>
 
+{{-- Clinic action-button click tracking (fire-and-forget via sendBeacon) --}}
+<script>
+(function () {
+    var TRACK_URL = @json(route('track.click'));
+    document.addEventListener('click', function (e) {
+        var el = e.target.closest('[data-track][data-clinic]');
+        if (!el || !navigator.sendBeacon) return;
+        try {
+            var fd = new FormData();
+            fd.append('type', el.dataset.track);
+            fd.append('clinic', el.dataset.clinic);
+            navigator.sendBeacon(TRACK_URL, fd);
+        } catch (err) {}
+    }, true);
+})();
+</script>
+
 @stack('scripts')
 
 </body>

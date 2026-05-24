@@ -9,6 +9,7 @@ use App\Http\Controllers\Public\ClinicRegistrationController;
 use App\Http\Controllers\Public\CompareController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\TrackingController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,11 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/compare', [CompareController::class, 'index'])->name('compare');
+
+// Fire-and-forget click tracking for clinic action buttons (sendBeacon, CSRF-excluded).
+Route::post('/track/click', [TrackingController::class, 'click'])
+    ->middleware('throttle:120,1')
+    ->name('track.click');
 Route::get('/clinic/{slug}', [ClinicController::class, 'show'])->name('clinic.show');
 Route::get('/clinic/{slug}/book', [ClinicController::class, 'bookingForm'])->name('clinic.book.form');
 Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->name('clinic.book');

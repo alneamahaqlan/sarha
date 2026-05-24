@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -19,6 +19,7 @@ import { MobileNav } from './MobileNav';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
+  { to: '/clinic/stats', label: 'clinic_nav.stats', icon: BarChart3 },
   {
     group: 'clinic_nav.group.my_services',
     items: [

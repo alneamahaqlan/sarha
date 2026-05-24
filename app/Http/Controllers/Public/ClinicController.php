@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Clinic;
+use App\Models\ClinicStat;
 use App\Models\PriceQuoteRequest;
 use Illuminate\Http\Request;
 
@@ -34,6 +35,13 @@ class ClinicController extends Controller
             ->rankedForListing()
             ->take(3)
             ->get();
+
+        // Record a page view (never let stats break the page).
+        try {
+            ClinicStat::bump($clinic->id, 'page_views');
+        } catch (\Throwable $e) {
+            // swallow — analytics must not affect the visitor experience
+        }
 
         return view('public.clinic', compact('clinic', 'similarClinics'));
     }
@@ -82,6 +90,8 @@ class ClinicController extends Controller
             'source'         => 'website',
         ]);
 
+        ClinicStat::bump($clinic->id, 'bookings_count');
+
         return redirect()->route('booking.confirmation', $booking->reference_code);
     }
 
@@ -122,6 +132,8 @@ class ClinicController extends Controller
             'description'    => $validated['description'],
             'status'         => 'new',
         ]);
+
+        ClinicStat::bump($clinic->id, 'quote_requests_count');
 
         return back()->with('success', __('site.price_quote_sent'));
     }

@@ -13,6 +13,7 @@
         <a href="{{ $whatsappUrl }}"
            target="_blank"
            rel="noopener"
+           data-track="whatsapp" data-clinic="{{ $clinic->id }}"
            title="@lang('site.whatsapp_label')"
            class="group flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
             <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -24,6 +25,7 @@
 
     {{-- Book now --}}
     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
+       data-track="booking" data-clinic="{{ $clinic->id }}"
        title="@lang('site.book_now_label')"
        class="group flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
         <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportS
 use App\Http\Controllers\Api\V1\Clinic\PriceQuoteRequestController as ClinicPriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ProfileController as ClinicProfileController;
 use App\Http\Controllers\Api\V1\Clinic\ServiceController as ClinicServiceController;
+use App\Http\Controllers\Api\V1\Clinic\StatsController as ClinicStatsController;
 use App\Http\Controllers\Api\V1\Clinic\SubClinicLookupController as ClinicSubClinicLookupController;
 use App\Http\Controllers\Api\V1\Clinic\WorkingHoursController as ClinicWorkingHoursController;
 use App\Http\Controllers\Api\V1\Shared\AiChatController;
@@ -173,6 +174,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Dashboard widget — clinic-scoped stats (mirrors ClinicStatsWidget).
         Route::get('dashboard/stats', [ClinicDashboardController::class, 'stats'])->name('clinic.dashboard.stats');
         Route::get('dashboard/nav-badges', [ClinicDashboardController::class, 'navBadges'])->name('clinic.dashboard.nav-badges');
+
+        // Full "My stats" analytics page (custom from/to range + quick periods).
+        Route::get('stats', [ClinicStatsController::class, 'index'])->name('clinic.stats');
 
         // Lookup for sub-clinics (clinic-owned, used in the service form).
         Route::get('lookups/sub-clinics', [ClinicSubClinicLookupController::class, 'index'])->name('clinic.lookups.sub-clinics');

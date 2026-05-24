@@ -115,6 +115,7 @@
                         @include('public.partials.share-buttons')
                     </div>
                     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
+                       data-track="booking" data-clinic="{{ $clinic->id }}"
                        class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
                         @lang('site.book_appointment')
                     </a>
@@ -180,6 +181,7 @@
                                                     <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                                                 </span>
                                                 <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
+                                                   data-track="booking" data-clinic="{{ $clinic->id }}"
                                                    class="block mt-1 text-xs text-teal-600 hover:underline">
                                                     @lang('site.book_appointment')
                                                 </a>
@@ -255,7 +257,7 @@
                     <h3 class="font-bold text-gray-800 mb-4">@lang('site.contact_info')</h3>
                     <div class="space-y-3">
                         @if($clinic->phone)
-                            <a href="tel:{{ $clinic->phone }}" class="flex items-center gap-3 text-gray-700 hover:text-teal-600">
+                            <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-teal-600">
                                 <span class="bg-teal-50 p-2 rounded-lg">📞</span>
                                 <span dir="ltr">{{ $clinic->phone }}</span>
                             </a>
