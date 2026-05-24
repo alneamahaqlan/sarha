@@ -15,9 +15,9 @@ class Clinic extends Authenticatable
 
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'license_number', 'password', 'city_id',
-        'address', 'district', 'latitude', 'longitude', 'google_place_id',
+        'address', 'district', 'latitude', 'longitude', 'google_place_id', 'maps_url',
         'description', 'logo', 'gallery', 'website', 'instagram',
-        'twitter', 'snapchat', 'status', 'subscription_type',
+        'twitter', 'snapchat', 'tiktok', 'status', 'subscription_type',
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
     ];
@@ -197,5 +197,100 @@ class Clinic extends Authenticatable
             $url .= '?text=' . urlencode($message);
         }
         return $url;
+    }
+
+    /**
+     * Best-available "Directions" URL, in order of reliability:
+     * 1. The Maps link the admin pasted (used verbatim).
+     * 2. Google place_id (most accurate programmatic destination).
+     * 3. lat/lng coordinates.
+     * 4. Free-text address + city as a search query.
+     * Returns null only when none of the above exist.
+     */
+    public function directionsUrl(): ?string
+    {
+        if (! empty($this->maps_url)) {
+            return $this->maps_url;
+        }
+
+        if (! empty($this->google_place_id)) {
+            return 'https://www.google.com/maps/dir/?api=1&destination='
+                . urlencode($this->name)
+                . '&destination_place_id=' . urlencode($this->google_place_id);
+        }
+
+        if ($this->latitude && $this->longitude) {
+            return 'https://www.google.com/maps/dir/?api=1&destination='
+                . $this->latitude . ',' . $this->longitude;
+        }
+
+        $query = trim(implode(' ', array_filter([
+            $this->name,
+            $this->address,
+            $this->city?->display_name,
+        ])));
+
+        return $query !== ''
+            ? 'https://www.google.com/maps/search/?api=1&query=' . urlencode($query)
+            : null;
+    }
+
+    /** Whether the complex exposes any location (for showing the Directions button). */
+    public function hasDirections(): bool
+    {
+        return $this->directionsUrl() !== null;
+    }
+
+    /** Whether the complex is currently open, based on today's working hours. */
+    public function isOpenNow(): bool
+    {
+        $today = $this->workingHours
+            ->firstWhere('day_of_week', (int) now()->dayOfWeek);
+
+        if (! $today || ! $today->is_open || ! $today->opens_at || ! $today->closes_at) {
+            return false;
+        }
+
+        $now = now();
+        $opens = now()->setTimeFromTimeString($today->opens_at);
+        $closes = now()->setTimeFromTimeString($today->closes_at);
+        if ($closes->lessThanOrEqualTo($opens)) {
+            $closes->addDay();
+        }
+
+        return $now->between($opens, $closes);
+    }
+
+    /**
+     * Public social/contact links keyed by platform, with display label and
+     * resolved URL — drives the social bar and schema.org sameAs.
+     * Only non-empty platforms are returned.
+     */
+    public function socialLinks(): array
+    {
+        $handle = fn (?string $v) => ltrim(trim((string) $v), '@');
+        $links = [];
+
+        if (! empty($this->website)) {
+            $links['website'] = $this->website;
+        }
+        if (! empty($this->instagram)) {
+            $h = $handle($this->instagram);
+            $links['instagram'] = str_starts_with($h, 'http') ? $h : 'https://instagram.com/' . $h;
+        }
+        if (! empty($this->twitter)) {
+            $h = $handle($this->twitter);
+            $links['twitter'] = str_starts_with($h, 'http') ? $h : 'https://x.com/' . $h;
+        }
+        if (! empty($this->snapchat)) {
+            $h = $handle($this->snapchat);
+            $links['snapchat'] = str_starts_with($h, 'http') ? $h : 'https://snapchat.com/add/' . $h;
+        }
+        if (! empty($this->tiktok)) {
+            $h = $handle($this->tiktok);
+            $links['tiktok'] = str_starts_with($h, 'http') ? $h : 'https://tiktok.com/@' . $h;
+        }
+
+        return $links;
     }
 }

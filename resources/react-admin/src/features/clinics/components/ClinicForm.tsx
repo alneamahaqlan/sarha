@@ -44,7 +44,9 @@ const schema = z.object({
   instagram: z.string().max(255).nullish(),
   twitter: z.string().max(255).nullish(),
   snapchat: z.string().max(255).nullish(),
+  tiktok: z.string().max(255).nullish(),
   google_place_id: z.string().max(255).nullish(),
+  maps_url: z.string().url().nullish().or(z.literal('')),
   logo: z.string().nullish(),
   gallery: z.array(z.string()).default([]),
   categories: z.array(z.coerce.number()).default([]),
@@ -80,7 +82,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
       is_featured: false, rejection_reason: '',
-      website: '', instagram: '', twitter: '', snapchat: '', google_place_id: '',
+      website: '', instagram: '', twitter: '', snapchat: '', tiktok: '',
+      google_place_id: '', maps_url: '',
       logo: '', gallery: [], categories: [],
     },
   });
@@ -108,7 +111,9 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         instagram: clinic.instagram ?? '',
         twitter: clinic.twitter ?? '',
         snapchat: clinic.snapchat ?? '',
+        tiktok: clinic.tiktok ?? '',
         google_place_id: clinic.google_place_id ?? '',
+        maps_url: clinic.maps_url ?? '',
         logo: clinic.logo ?? '',
         gallery: clinic.gallery ?? [],
         categories: clinic.category_ids ?? clinic.categories?.map((c) => c.id) ?? [],
@@ -317,6 +322,15 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="snapchat">{t('clinics.form.snapchat')}</Label>
               <Input id="snapchat" {...form.register('snapchat')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tiktok">{t('clinics.form.tiktok')}</Label>
+              <Input id="tiktok" {...form.register('tiktok')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="maps_url">{t('clinics.form.maps_url')}</Label>
+              <Input id="maps_url" type="url" dir="ltr" placeholder="https://maps.app.goo.gl/…" {...form.register('maps_url')} />
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.maps_url_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="google_place_id">{t('clinics.form.google_place_id')}</Label>

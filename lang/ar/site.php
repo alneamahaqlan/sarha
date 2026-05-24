@@ -146,6 +146,18 @@ return [
     'copy_link' => 'نسخ الرابط',
     'link_copied' => 'تم نسخ الرابط',
 
+    // Action bar + social (landing page)
+    'action_call' => 'اتصال',
+    'action_whatsapp' => 'واتساب',
+    'action_directions' => 'الاتجاهات',
+    'follow_us' => 'تابعنا',
+    'social_website' => 'الموقع الإلكتروني',
+    'social_instagram' => 'إنستغرام',
+    'social_twitter' => 'X (تويتر)',
+    'social_snapchat' => 'سناب شات',
+    'social_tiktok' => 'تيك توك',
+    'social_whatsapp' => 'واتساب',
+
     // Clinic page tabs
     'tab_services' => 'الخدمات والأسعار',
     'tab_clinics' => 'العيادات',

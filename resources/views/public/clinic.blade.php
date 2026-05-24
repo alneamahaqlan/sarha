@@ -30,6 +30,8 @@
             'ratingValue' => number_format($clinic->google_reviews_avg_rating, 1),
             'reviewCount' => $clinic->google_reviews_count,
         ] : null,
+        'hasMap'  => $clinic->directionsUrl(),
+        'sameAs'  => array_values($clinic->socialLinks()) ?: null,
     ])->filter(fn($v) => $v !== null)->toArray();
 @endphp
 @push('head')
@@ -66,6 +68,13 @@
                         @if($clinic->isPremium())
                             <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">@lang('site.premium_badge')</span>
                         @endif
+                        @if($clinic->workingHours->isNotEmpty())
+                            @if($clinic->isOpenNow())
+                                <span class="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">● @lang('site.working_hours_open_now')</span>
+                            @else
+                                <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs font-semibold">○ @lang('site.working_hours_closed')</span>
+                            @endif
+                        @endif
                     </div>
 
                     {{-- Rating + Location --}}
@@ -77,14 +86,16 @@
                                 <span>({{ __('site.reviews_count_label', ['count' => $clinic->google_reviews_count]) }})</span>
                             </span>
                         @endif
-                        <span class="flex items-center gap-1">
+                        @php $heroDirections = $clinic->directionsUrl(); @endphp
+                        <a @if($heroDirections) href="{{ $heroDirections }}" target="_blank" rel="noopener" data-track="directions" data-clinic="{{ $clinic->id }}" @endif
+                           class="flex items-center gap-1 {{ $heroDirections ? 'hover:text-teal-600 transition-colors' : 'pointer-events-none' }}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                             </svg>
                             {{ $clinic->city->display_name ?? '' }}
                             @if($clinic->address) — {{ $clinic->address }} @endif
-                        </span>
+                        </a>
                     </div>
 
                     @if($clinic->categories->isNotEmpty())
@@ -120,6 +131,11 @@
                         @lang('site.book_appointment')
                     </a>
                 </div>
+            </div>
+
+            {{-- Unified action bar: Call · WhatsApp · Directions --}}
+            <div class="mt-5 pt-5 border-t border-gray-100">
+                @include('public.partials.action-bar')
             </div>
         </div>
     </div>
@@ -249,20 +265,17 @@
                                 <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
                             </div>
                         @endif
-                        @if($clinic->instagram)
-                            <a href="https://instagram.com/{{ $clinic->instagram }}" target="_blank" rel="noopener" class="flex items-center gap-3 text-gray-700 hover:text-pink-600">
-                                <span class="bg-pink-50 text-pink-600 p-2 rounded-lg"><x-icon name="camera" class="w-4 h-4" /></span>
-                                <span class="text-sm" dir="ltr">@{{ $clinic->instagram }}</span>
-                            </a>
-                        @endif
-                        @if($clinic->twitter)
-                            <div class="flex items-center gap-3 text-gray-700">
-                                <span class="bg-blue-50 text-blue-500 p-2 rounded-lg"><x-icon name="twitter" class="w-4 h-4" /></span>
-                                <span class="text-sm" dir="ltr">{{ $clinic->twitter }}</span>
+                        @if($address = $clinic->address)
+                            <div class="flex items-start gap-3 text-gray-700">
+                                <span class="bg-teal-50 text-teal-600 p-2 rounded-lg"><x-icon name="map-pin" class="w-4 h-4" /></span>
+                                <span class="text-sm">{{ $clinic->city->display_name ?? '' }}@if($clinic->city) — @endif{{ $address }}</span>
                             </div>
                         @endif
                     </div>
                 </div>
+
+                {{-- Social media bar --}}
+                @include('public.partials.social-bar')
 
                 {{-- Custom price quote — broadcast to all complexes in the chosen cities --}}
                 <div class="bg-white rounded-xl shadow-sm p-6">
@@ -281,6 +294,7 @@
     @include('public.partials.similar-clinics')
 </div>
 
-{{-- Floating buttons --}}
+{{-- Floating buttons (desktop) + sticky action bar (mobile) --}}
 @include('public.partials.floating-actions')
+@include('public.partials.mobile-action-bar')
 @endsection

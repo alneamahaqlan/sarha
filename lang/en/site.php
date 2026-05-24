@@ -146,6 +146,18 @@ return [
     'copy_link' => 'Copy link',
     'link_copied' => 'Link copied',
 
+    // Action bar + social (landing page)
+    'action_call' => 'Call',
+    'action_whatsapp' => 'WhatsApp',
+    'action_directions' => 'Directions',
+    'follow_us' => 'Follow us',
+    'social_website' => 'Website',
+    'social_instagram' => 'Instagram',
+    'social_twitter' => 'X (Twitter)',
+    'social_snapchat' => 'Snapchat',
+    'social_tiktok' => 'TikTok',
+    'social_whatsapp' => 'WhatsApp',
+
     // Clinic page tabs
     'tab_services' => 'Services & prices',
     'tab_clinics' => 'Clinics',

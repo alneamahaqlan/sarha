@@ -16,9 +16,10 @@ use Illuminate\Http\Response;
 class TrackingController extends Controller
 {
     private const MAP = [
-        'whatsapp' => 'whatsapp_clicks',
-        'call'     => 'call_clicks',
-        'booking'  => 'booking_clicks',
+        'whatsapp'   => 'whatsapp_clicks',
+        'call'       => 'call_clicks',
+        'booking'    => 'booking_clicks',
+        'directions' => 'directions_clicks',
     ];
 
     public function click(Request $request): Response
