@@ -19,10 +19,21 @@ class AiChat extends Component
         $query = trim($this->input);
         if ($query === '') return;
 
+        // Capture the conversation history BEFORE appending the new user turn,
+        // so the service sees "what was said before this question" — that's how
+        // follow-ups like "really?" or "explain that" get the right context.
+        // Map only role+content (drop the clinics blob — it's a UI concern and
+        // would blow the token budget). Last 6 turns is plenty of context
+        // without burning tokens on stale exchanges.
+        $history = array_map(
+            fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')],
+            array_slice($this->messages, -6),
+        );
+
         $this->messages[] = ['role' => 'user', 'content' => $query];
         $this->input = '';
 
-        $result = app(AiAssistantService::class)->ask($query);
+        $result = app(AiAssistantService::class)->ask($query, null, $history);
 
         $this->messages[] = [
             'role'    => 'assistant',

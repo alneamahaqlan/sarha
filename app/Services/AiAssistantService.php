@@ -71,6 +71,40 @@ class AiAssistantService
         'heavy bleeding', 'bleeding wont stop', "bleeding won't stop",
     ];
 
+    /**
+     * Conversational follow-up markers. When a query carries one of these AND
+     * is short (≤ 6 tokens) AND has no obvious search intent ("مجمع"، "أبحث"،
+     * "find"), we treat it as a turn ABOUT the previous answer — not a new
+     * clinic search — and skip matchByKeyword so the bot stops dumping a fresh
+     * list of unrelated clinics under every "thanks" / "really?" / "explain".
+     */
+    private const CONVERSATIONAL_MARKERS = [
+        // Doubt / challenge ("from real or are you lying?", "are you sure?")
+        'من جد', 'والا تكذب', 'والله تكذب', 'تكذب', 'صحيح', 'متأكد', 'متأكدة',
+        'really', 'are you sure', 'sure?', 'lying', 'kidding',
+        // Reference pronouns — almost always about a previous answer
+        'هذا', 'هذي', 'هذه', 'هذول', 'ذا', 'ذي', 'الأول', 'الثاني', 'الثالث',
+        'اللي قبل', 'الذي قبل', 'ايّهم', 'أيهم', 'أيها', 'ايّها',
+        'this', 'that', 'them', 'these', 'those', 'the first', 'the second',
+        // Acknowledgments / confirmations
+        'تمام', 'زين', 'حسناً', 'حسنا', 'جيد', 'ممتاز', 'يا سلام', 'ok', 'okay', 'good', 'great', 'cool', 'nice',
+        // Meta / explanation requests
+        'كيف عرفت', 'وش معنى', 'وضّح', 'وضح', 'اشرح', 'فسر', 'ليش', 'لماذا',
+        'why', 'explain', 'how do you know', 'what do you mean',
+    ];
+
+    /**
+     * Words that, when present, almost always signal a NEW search intent —
+     * they override the conversational-followup detection so "مجمع أسنان" stays
+     * a search even when short.
+     */
+    private const SEARCH_INTENT_WORDS = [
+        'مجمع', 'مجمعات', 'عيادة', 'عيادات', 'مركز', 'مراكز', 'مستوصف', 'مستشفى',
+        'طبيب', 'دكتور', 'دكتورة', 'أبحث', 'ابحث', 'أبي', 'ابي', 'أبغى', 'ابغى',
+        'أريد', 'اريد', 'ودي', 'بدي', 'احجز', 'أحجز', 'حجز',
+        'clinic', 'doctor', 'find', 'search', 'looking', 'show me', 'book',
+    ];
+
     private const EMERGENCY_MENTAL_KEYWORDS = [
         // Arabic — self-harm / suicide
         'أبي أنتحر', 'ابي انتحر', 'أفكر بالانتحار', 'افكر بالانتحار',
@@ -141,9 +175,16 @@ class AiAssistantService
     /**
      * Main entry. Returns array { kind, reply, clinics, provider, assistant_name }.
      *
-     *   kind = 'empty' | 'rejected' | 'matched' | 'freeform' | 'no_match'
+     *   kind = 'empty' | 'rejected' | 'emergency' | 'greeting' | 'follow_up'
+     *        | 'matched' | 'freeform' | 'no_match'
+     *
+     * @param array<int, array{role: string, content: string}> $history
+     *        Prior turns of the conversation, oldest-first. The service uses
+     *        history both to detect follow-ups ("really?" only makes sense
+     *        when something was said) and to feed the LLM enough context to
+     *        answer them coherently.
      */
-    public function ask(string $query, ?int $cityId = null): array
+    public function ask(string $query, ?int $cityId = null, array $history = []): array
     {
         $query = trim($query);
         if ($query === '') {
@@ -174,32 +215,42 @@ class AiAssistantService
 
         // 2) Greeting / social chit-chat shortcut. A bare "السلام عليكم"
         //    must reply with "وعليكم السلام" before anything else — and
-        //    must NOT trigger a clinic search (a "سلام" LIKE %…% would
-        //    randomly match "عيادات السلامة" and show a clinic card under
-        //    the hello). Run the LLM with no context so it greets cleanly.
+        //    must NOT trigger a clinic search.
         $isSocial = $this->isSocialChitchat($query);
 
-        // 3) Local clinic search — only when the query isn't a pure greeting.
-        $clinics = $isSocial ? collect() : $this->matchByKeyword($query, $cityId);
+        // 3) Conversational follow-up — "والا تكذب", "explain", "ok thanks",
+        //    references to the previous answer. These must NOT trigger a fresh
+        //    clinic search (a "تكذب" tokenized would surface random clinics).
+        //    They flow into the LLM with history attached, no clinic context.
+        $isFollowUp = ! $isSocial && $this->isFollowUp($query, $history);
 
-        // 4) Free-form conversational reply via the active LLM.
+        // 4) Local clinic search — only when the query is a real new search.
+        $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId);
+
+        // 5) Free-form conversational reply via the active LLM.
         if ($this->providers->isConfigured() && $this->freeformEnabled()) {
-            $reply = $this->llmReply($query, $clinics, $isSocial);
+            $reply = $this->llmReply($query, $clinics, $isSocial, $isFollowUp, $history);
             if ($reply !== null) {
-                $kind = $isSocial
-                    ? 'greeting'
-                    : ($clinics->isNotEmpty() ? 'matched' : 'freeform');
+                $kind = match (true) {
+                    $isSocial             => 'greeting',
+                    $isFollowUp           => 'follow_up',
+                    $clinics->isNotEmpty()=> 'matched',
+                    default               => 'freeform',
+                };
                 return $this->wrap($kind, $reply, $clinics);
             }
         }
 
-        // 5) Legacy template fallback (LLM disabled or unreachable).
-        //    Greetings get their own reciprocation template so an LLM
-        //    rate-limit or outage never drops the user into a generic
-        //    "no clinics found" — a "السلام عليكم" must still come back
-        //    with "وعليكم السلام", even offline.
+        // 6) Legacy template fallback (LLM disabled or unreachable).
+        //    Each branch picks a fallback that won't surprise the user —
+        //    greetings get reciprocation, follow-ups get a polite redirect
+        //    (NOT a dump of unrelated clinics), and only real searches get
+        //    the "found N" or "no match" template.
         if ($isSocial) {
             return $this->wrap('greeting', $this->greetingTemplate($query), collect());
+        }
+        if ($isFollowUp) {
+            return $this->wrap('follow_up', __('site.ai_follow_up_offline'), collect());
         }
         if ($clinics->isEmpty()) {
             return $this->wrap('no_match', __('site.ai_no_match'), collect());
@@ -259,11 +310,16 @@ class AiAssistantService
      * null on any failure. The chat must never go down because the LLM is
      * down — the caller falls back to templates.
      */
-    private function llmReply(string $query, Collection $clinics, bool $isSocial = false): ?string
-    {
+    private function llmReply(
+        string $query,
+        Collection $clinics,
+        bool $isSocial = false,
+        bool $isFollowUp = false,
+        array $history = [],
+    ): ?string {
         try {
             $systemPrompt = $this->buildSystemPrompt();
-            $userPrompt   = $this->buildUserPrompt($query, $clinics, $isSocial);
+            $userPrompt   = $this->buildUserPrompt($query, $clinics, $isSocial, $isFollowUp, $history);
 
             $maxTokens   = (int)   ($this->setting('ai_max_tokens', 800));
             $temperature = (float) ($this->setting('ai_temperature', 0.5));
@@ -323,8 +379,47 @@ SAFETY;
      * "وعليكم السلام", "صباح الخير" gets "صباح النور", "hi" gets "hi back",
      * and so on — *before* asking how it can help.
      */
-    private function buildUserPrompt(string $query, Collection $clinics, bool $isSocial = false): string
-    {
+    private function buildUserPrompt(
+        string $query,
+        Collection $clinics,
+        bool $isSocial = false,
+        bool $isFollowUp = false,
+        array $history = [],
+    ): string {
+        // Render the last few turns of the conversation so the LLM can answer
+        // follow-ups coherently ("which one is closest?", "really?"). Capped at
+        // 6 turns so a long chat doesn't bust the token budget — the most
+        // recent context is usually all that matters.
+        $historyBlock = '';
+        if (! empty($history)) {
+            $recent = array_slice($history, -6);
+            $lines = array_map(
+                fn ($m) => ($m['role'] === 'user' ? 'العميل' : 'المساعد') . ': ' . trim((string) $m['content']),
+                $recent,
+            );
+            $historyBlock = "=== سجل المحادثة السابق (للسياق فقط، لا تكرّره) ===\n" . implode("\n", $lines) . "\n\n";
+        }
+
+        if ($isFollowUp) {
+            return $historyBlock . <<<PROMPT
+=== الرسالة الجديدة من العميل ===
+"{$query}"
+
+=== تعليمات الرد ===
+هذه متابعة محادثاتيّة لما سبق — وليست بحثاً جديداً عن عيادة.
+- اعتمد على سجل المحادثة أعلاه لفهم ما يقصده العميل.
+- إذا كان يشكّك أو يستفسر عن سابق ("من جد؟"، "متأكدة؟"، "really?")، طمئنه بثقة وبدون دفاع: نتائج البحث جاءت من قاعدة بيانات حقيقية للمجمعات المسجّلة على المنصّة، ويمكنه التحقّق بالضغط على أي مجمع لمشاهدة التقييمات والصور.
+- إذا كان يشير لشيء سابق ("الأول"، "هذا"، "اللي قبل")، أجب عنه مباشرةً من السجل.
+- إذا كان يشكر أو يؤكّد ("تمام"، "ok"، "thanks")، أجب بدفء قصير واعرض مساعدة إضافيّة.
+- إذا كان يطلب توضيحاً، اشرح الفكرة بإيجاز.
+
+قواعد صارمة:
+- لا تقترح عيادات جديدة في هذا الرد (لا توجد قائمة سياق).
+- لا تكرّر القائمة السابقة كما هي.
+- ردّ بنفس لغة الرسالة، 2-4 جمل، نبرة دافئة محترمة.
+PROMPT;
+        }
+
         if ($isSocial) {
             return <<<PROMPT
 === رسالة المستخدم (User turn) — تحيّة / محادثة اجتماعية ===
@@ -370,7 +465,7 @@ PROMPT;
                 return $line;
             })->implode("\n");
 
-        return <<<PROMPT
+        return $historyBlock . <<<PROMPT
 === السياق (Context) — عيادات وجدتها قاعدة البيانات ===
 {$context}
 
@@ -535,6 +630,48 @@ RULES;
             if (str_contains($phrase, ' ') && str_contains($normalized, $phrase)) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /**
+     * Is this query a conversational follow-up to a previous turn (not a new
+     * clinic search)? Catches things like "من جد والا تكذب", "ليش هذا؟",
+     * "تمام شكراً", "really?" — none of which should reset to a fresh
+     * matchByKeyword that returns unrelated clinics.
+     *
+     * Heuristics:
+     *   1. Empty conversation history → can't be a follow-up.
+     *   2. Query contains a clear SEARCH_INTENT_WORDS token → it's a search, not a follow-up.
+     *   3. Query carries a CONVERSATIONAL_MARKERS phrase → follow-up.
+     *   4. Query is very short (1-2 meaningful tokens) and history exists → likely follow-up.
+     */
+    private function isFollowUp(string $query, array $history): bool
+    {
+        if (empty($history)) return false;
+
+        $lower = mb_strtolower(trim($query));
+
+        // Search-intent override wins — "ابي مجمع أسنان" stays a search.
+        foreach (self::SEARCH_INTENT_WORDS as $word) {
+            if (str_contains($query, $word) || str_contains($lower, $word)) {
+                return false;
+            }
+        }
+
+        // Explicit conversational markers — "والا تكذب", "تمام", "explain" …
+        foreach (self::CONVERSATIONAL_MARKERS as $marker) {
+            if (str_contains($query, $marker) || str_contains($lower, $marker)) {
+                return true;
+            }
+        }
+
+        // Very short queries after stop-word stripping are almost always
+        // follow-ups when there's already a conversation in progress.
+        $tokens = $this->tokenize($query);
+        if (count($tokens) <= 2) {
+            return true;
         }
 
         return false;
