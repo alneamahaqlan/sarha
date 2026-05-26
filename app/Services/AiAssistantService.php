@@ -72,6 +72,25 @@ class AiAssistantService
     ];
 
     /**
+     * Tone-detection inputs for the offline (LLM-down) fallback. We don't try
+     * to imitate the LLM — we just keep the chat from feeling broken when
+     * OpenAI is unreachable, by giving the user a response that ACKNOWLEDGES
+     * what they actually said instead of repeating the same template four
+     * times in a row.
+     */
+    private const ABUSE_MARKERS = [
+        // Insults / frustration the receptionist should de-escalate, not ignore.
+        'زفت', 'كذاب', 'كذابة', 'غبي', 'غبية', 'سيء', 'سيئة', 'فاشل', 'فاشلة',
+        'عديم', 'لا فايدة', 'ما تنفع', 'تافه', 'مزعج',
+        'fuck', 'stupid', 'idiot', 'useless', 'shit', 'garbage', 'dumb', 'sucks',
+    ];
+
+    private const CONFIRMATION_MARKERS = [
+        'تمام', 'حسنا', 'حسناً', 'زين', 'طيب', 'يب', 'موافق', 'اوكي', 'أوكي',
+        'ok', 'okay', 'fine', 'sure', 'alright', 'got it',
+    ];
+
+    /**
      * Conversational follow-up markers. When a query carries one of these AND
      * is short (≤ 6 tokens) AND has no obvious search intent ("مجمع"، "أبحث"،
      * "find"), we treat it as a turn ABOUT the previous answer — not a new
@@ -250,7 +269,7 @@ class AiAssistantService
             return $this->wrap('greeting', $this->greetingTemplate($query), collect());
         }
         if ($isFollowUp) {
-            return $this->wrap('follow_up', __('site.ai_follow_up_offline'), collect());
+            return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect());
         }
         if ($clinics->isEmpty()) {
             return $this->wrap('no_match', __('site.ai_no_match'), collect());
@@ -299,6 +318,86 @@ class AiAssistantService
             default
                 => 'مرحباً بك في دليل المجمعات الطبية! كيف يمكنني مساعدتك في إيجاد المجمع المناسب؟',
         };
+    }
+
+    /**
+     * Context-aware reply for follow-up turns when the LLM is unreachable.
+     * Picks one of four tones based on what the user actually said, so the
+     * chat doesn't dump the same generic template under every short message:
+     *
+     *   - abuse / insult            → calm de-escalation + offer to help
+     *   - confirmation ("تمام")     → friendly handoff asking for city/specialty
+     *   - city name on its own      → "in <city>? what specialty?"
+     *   - everything else           → polite generic clarification
+     *
+     * The assistant's name + the platform name come from settings so an
+     * operator change at /app/system-settings is reflected immediately.
+     */
+    private function smartFollowUpFallback(string $query, array $history): string
+    {
+        $name = $this->assistantName();
+        $lower = mb_strtolower(trim($query));
+        $isEnglish = preg_match('/^[a-z]/u', $lower) === 1;
+
+        // 1) Abuse / frustration — acknowledge first, never argue.
+        foreach (self::ABUSE_MARKERS as $w) {
+            if (str_contains($lower, $w) || str_contains($query, $w)) {
+                return $isEnglish
+                    ? "I'm really sorry the experience disappointed you — that's on me, not you. I'd like to help if you give me one more chance: which city are you in, and what kind of clinic are you looking for? \n— {$name}"
+                    : "آسفة جداً إذا تجربتك معي ما كانت على المستوى المتوقع — هذا تقصير منّي، وأتفهّم انزعاجك. لو سمحت أعطني فرصة أخرى: في أي مدينة أنت، وأي تخصص أو خدمة تبحث عنها؟ سأبذل ما أستطيع. \n— {$name}";
+            }
+        }
+
+        // 2) Plain confirmation ("تمام ايش تريدني اعملك") — invite a clear next step.
+        foreach (self::CONFIRMATION_MARKERS as $w) {
+            if (str_starts_with($lower, $w) || str_contains($lower, " {$w} ")) {
+                return $isEnglish
+                    ? "Great! Tell me a city (Riyadh, Jeddah, Khobar…) and what you're looking for — a specialty (dental, dermatology, pediatrics…), a doctor's name, or a service — and I'll pull the best matches for you."
+                    : "تمام! خبّرني بالمدينة (الرياض، جدة، الخبر…) والتخصص أو الخدمة اللي تبيها (أسنان، جلدية، أطفال…) أو حتى اسم طبيب — وأرشّح لك أنسب المجمعات فوراً.";
+            }
+        }
+
+        // 3) Just a place / city name — promote it into a useful prompt.
+        try {
+            $tokens  = $this->tokenize($query);
+            $matched = null;
+            foreach ($tokens as $t) {
+                $row = City::query()
+                    ->where(fn ($q) => $q->where('name', 'like', "%{$t}%")->orWhere('name_en', 'like', "%{$t}%"))
+                    ->first(['name', 'name_en']);
+                if ($row) { $matched = $row; break; }
+            }
+            // Also match free-text country/city words not in the cities table
+            // (e.g. "اليمن") so we still acknowledge them rather than ignore.
+            $placeFromText = null;
+            if (! $matched && preg_match('/(اليمن|السعودية|مصر|الإمارات|البحرين|الكويت|قطر|عُمان|عمان|الأردن|العراق|سوريا|لبنان|فلسطين|المغرب|تونس|الجزائر|ليبيا|السودان)/u', $query, $m)) {
+                $placeFromText = $m[1];
+            }
+            if ($matched || $placeFromText) {
+                $place = $matched ? ($matched->name ?? $matched->name_en) : $placeFromText;
+                return $isEnglish
+                    ? "Got it — looking for clinics in {$place}? Tell me the specialty (dental, pediatrics, dermatology…) and I'll narrow it down for you."
+                    : "تمام، تبحث عن مجمعات في {$place}؟ أخبرني بالتخصص (أسنان، أطفال، جلدية، عظام…) وسأرشّح لك أنسب الخيارات.";
+            }
+        } catch (Throwable) {
+            // City lookup failure should never break the fallback — fall through.
+        }
+
+        // 4) Generic clarification — varied phrasing so a 3rd retry doesn't
+        //    feel like the same message a 2nd time.
+        $variants = $isEnglish
+            ? [
+                "I hear you — could you tell me a city and the kind of clinic you need (dental, pediatrics, dermatology, etc.)? With those two I'll find a strong match.",
+                "Happy to help — what city are you in, and what's the visit for? A specialty or service name is enough.",
+                "Tell me a bit more — which city, and which kind of care? I'll take it from there.",
+            ]
+            : [
+                "أنا معك — لو سمحت أخبرني بالمدينة والتخصص أو الخدمة اللي تبيها، وسأرشّح لك مباشرة. مثال: «أبحث عن أسنان في الرياض».",
+                "كلّي آذان صاغية. أعطني المدينة ونوع المجمع اللي تحتاجه (أسنان، أطفال، جلدية، نساء وولادة…) وأرشّح لك أفضل الخيارات.",
+                "وضّح لي قليلاً: في أي مدينة، ولأي تخصص؟ مجرد كلمتين تكفي لأبحث لك بدقة.",
+            ];
+        // Pick a variant based on history length so repeat asks rotate through.
+        return $variants[count($history) % count($variants)];
     }
 
     // ============================================================
