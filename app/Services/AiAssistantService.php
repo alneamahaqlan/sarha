@@ -72,6 +72,60 @@ class AiAssistantService
     ];
 
     /**
+     * Out-of-scope topic detection — questions that have nothing to do with
+     * medical clinics or services should never reach matchByKeyword (which
+     * would return "no_match" and make the bot look broken on a question
+     * it simply can't answer). Each entry is [topic_key, keyword_list]; the
+     * topic key drives the redirect template wording (e.g. real-estate gets
+     * "I help with clinics, not housing — try a real-estate site").
+     *
+     * Keep keywords UNAMBIGUOUS — anything that might also describe a
+     * legitimate symptom or specialty does not belong here.
+     */
+    private const OUT_OF_SCOPE_TOPICS = [
+        'real_estate' => [
+            'شقة', 'شقه', 'شقق', 'فيلا', 'فلل', 'بيت للايجار', 'بيت للإيجار', 'عقار', 'عقارات', 'إيجار', 'ايجار',
+            'استئجار', 'apartment', 'apartments', 'rent ', 'rental', 'real estate', 'realestate', 'flat', 'villa',
+        ],
+        'food' => [
+            'مطعم', 'مطاعم', 'وصفة', 'وصفه', 'طبخة', 'طبخه', 'طبخ', 'أكل ', 'اكل ', 'كافيه', 'كوفي',
+            'restaurant', 'recipe', 'cooking', 'cafe ', 'cafés', 'menu',
+        ],
+        'transport' => [
+            'سيارة', 'سياره', 'موتر', 'تكسي', 'أوبر', 'اوبر', 'كريم', 'استئجار سيارة', 'دباب',
+            'car ', 'cars', 'taxi', 'uber', 'careem', 'flight', 'plane', 'train',
+        ],
+        'weather' => [
+            'طقس', 'مطر', 'حر شديد', 'درجة الحرارة', 'الجو', 'سحب', 'thunderstorm',
+            'weather', 'rain ', 'temperature', 'forecast', 'climate',
+        ],
+        'news_politics' => [
+            'أخبار', 'اخبار', 'سياسة', 'انتخابات', 'حرب', 'الحكومة', 'رئيس',
+            'news', 'politics', 'election', 'government', 'president', 'minister',
+        ],
+        'entertainment' => [
+            'فيلم', 'افلام', 'أفلام', 'مسلسل', 'مسلسلات', 'أغنية', 'اغنية', 'لعبة', 'العاب', 'ألعاب', 'كورة', 'كرة قدم', 'ميسي', 'رونالدو',
+            'movie', 'film', 'series', 'song', 'music ', 'game ', 'football', 'soccer', 'messi', 'ronaldo', 'netflix', 'youtube',
+        ],
+        'travel' => [
+            'سفر', 'سياحة', 'فندق', 'فنادق', 'حجز فندق', 'تذكرة طيران', 'visa', 'فيزا',
+            'travel ', 'tourism', 'hotel', 'hotels', 'airline', 'visa application',
+        ],
+        'finance' => [
+            'قرض', 'قروض', 'بنك', 'تمويل', 'سهم', 'أسهم', 'استثمار', 'بيتكوين', 'كريبتو',
+            'loan', 'mortgage', 'investment', 'stock ', 'crypto', 'bitcoin',
+        ],
+        'general_knowledge' => [
+            'عاصمة', 'متى ولد', 'من هو', 'كم عدد سكان', 'how many people', 'who is', 'when was',
+            'capital of', 'history of', 'definition of',
+        ],
+        'tech_generic' => [
+            'برمجة', 'ويندوز', 'لينكس', 'كود', 'github', 'php', 'javascript', 'python',
+            'programming', 'install windows', 'install linux', 'how to code',
+        ],
+    ];
+
+    /**
      * Tone-detection inputs for the offline (LLM-down) fallback. We don't try
      * to imitate the LLM — we just keep the chat from feeling broken when
      * OpenAI is unreachable, by giving the user a response that ACKNOWLEDGES
@@ -195,7 +249,7 @@ class AiAssistantService
      * Main entry. Returns array { kind, reply, clinics, provider, assistant_name }.
      *
      *   kind = 'empty' | 'rejected' | 'emergency' | 'greeting' | 'follow_up'
-     *        | 'matched' | 'freeform' | 'no_match'
+     *        | 'out_of_scope' | 'matched' | 'freeform' | 'no_match'
      *
      * @param array<int, array{role: string, content: string}> $history
      *        Prior turns of the conversation, oldest-first. The service uses
@@ -237,16 +291,34 @@ class AiAssistantService
         //    must NOT trigger a clinic search.
         $isSocial = $this->isSocialChitchat($query);
 
-        // 3) Conversational follow-up — "والا تكذب", "explain", "ok thanks",
+        // 3) Out-of-scope topic — "في شقه متوفره؟"، "what's the weather?"،
+        //    "من هو ميسي" … none of these are clinic searches. Returning
+        //    "no clinics found" for a real-estate question makes the bot look
+        //    broken; instead we give a topic-aware redirect. MUST run BEFORE
+        //    the follow-up detector — a 1-2 token off-topic query like "ميسي"
+        //    would otherwise get caught by the short-query follow-up rule.
+        if (! $isSocial) {
+            $outOfScopeTopic = $this->detectOutOfScope($query);
+            if ($outOfScopeTopic !== null) {
+                $lang = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1 ? 'en' : 'ar';
+                return $this->wrap(
+                    'out_of_scope',
+                    $this->outOfScopeResponse($outOfScopeTopic, $lang),
+                    collect(),
+                );
+            }
+        }
+
+        // 4) Conversational follow-up — "والا تكذب", "explain", "ok thanks",
         //    references to the previous answer. These must NOT trigger a fresh
         //    clinic search (a "تكذب" tokenized would surface random clinics).
         //    They flow into the LLM with history attached, no clinic context.
         $isFollowUp = ! $isSocial && $this->isFollowUp($query, $history);
 
-        // 4) Local clinic search — only when the query is a real new search.
+        // 5) Local clinic search — only when the query is a real new search.
         $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId);
 
-        // 5) Free-form conversational reply via the active LLM.
+        // 6) Free-form conversational reply via the active LLM.
         if ($this->providers->isConfigured() && $this->freeformEnabled()) {
             $reply = $this->llmReply($query, $clinics, $isSocial, $isFollowUp, $history);
             if ($reply !== null) {
@@ -260,7 +332,7 @@ class AiAssistantService
             }
         }
 
-        // 6) Legacy template fallback (LLM disabled or unreachable).
+        // 7) Legacy template fallback (LLM disabled or unreachable).
         //    Each branch picks a fallback that won't surprise the user —
         //    greetings get reciprocation, follow-ups get a polite redirect
         //    (NOT a dump of unrelated clinics), and only real searches get
@@ -318,6 +390,54 @@ class AiAssistantService
             default
                 => 'مرحباً بك في دليل المجمعات الطبية! كيف يمكنني مساعدتك في إيجاد المجمع المناسب؟',
         };
+    }
+
+    /**
+     * Returns the matched out-of-scope topic key (e.g. 'real_estate', 'food')
+     * when the query is clearly outside the medical-platform domain, or null
+     * when it might still be a real clinic search. Conservative on purpose —
+     * an unknown topic falls through to matchByKeyword rather than getting
+     * misclassified as out-of-scope.
+     */
+    private function detectOutOfScope(string $query): ?string
+    {
+        $lower = mb_strtolower(trim($query));
+        foreach (self::OUT_OF_SCOPE_TOPICS as $topic => $keywords) {
+            foreach ($keywords as $kw) {
+                if (str_contains($query, $kw) || str_contains($lower, $kw)) {
+                    return $topic;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Polite, topic-aware redirect for out-of-scope questions. The wording
+     * matters — generic "I can't help" is hostile; naming what the user
+     * actually asked about ("apartments", "weather") and pointing them
+     * somewhere sensible reads like a professional receptionist.
+     */
+    private function outOfScopeResponse(string $topic, string $lang = 'ar'): string
+    {
+        $name = $this->assistantName();
+        $hints = [
+            'real_estate'       => ['ar' => 'مواضيع السكن والعقارات', 'ar_hint' => 'مواقع متخصصة مثل عقار أو حراج للسكن',                    'en' => 'housing or real estate',           'en_hint' => 'a real-estate site like Aqar or Property Finder'],
+            'food'              => ['ar' => 'المطاعم أو وصفات الطبخ',  'ar_hint' => 'تطبيق توصيل طعام أو موقع وصفات',                       'en' => 'restaurants or recipes',          'en_hint' => 'a food-delivery app or recipe site'],
+            'transport'         => ['ar' => 'النقل أو السيارات',        'ar_hint' => 'تطبيقات النقل مثل أوبر أو كريم',                       'en' => 'transport or vehicles',           'en_hint' => 'a ride-hailing app like Uber or Careem'],
+            'weather'           => ['ar' => 'الطقس وحالة الجو',         'ar_hint' => 'تطبيق طقس متخصص',                                       'en' => 'weather',                          'en_hint' => 'a weather app'],
+            'news_politics'     => ['ar' => 'الأخبار أو السياسة',       'ar_hint' => 'مواقع الأخبار الموثوقة',                                 'en' => 'news or politics',                'en_hint' => 'a trusted news source'],
+            'entertainment'     => ['ar' => 'الأفلام أو الرياضة أو الترفيه', 'ar_hint' => 'منصات الترفيه المتخصصة',                          'en' => 'movies, sports, or entertainment','en_hint' => 'a dedicated entertainment platform'],
+            'travel'            => ['ar' => 'السفر والفنادق',           'ar_hint' => 'مواقع حجز الطيران والفنادق',                            'en' => 'travel or hotels',                'en_hint' => 'a travel-booking site'],
+            'finance'           => ['ar' => 'الشؤون المالية',           'ar_hint' => 'بنكك أو مستشار مالي مرخّص',                              'en' => 'finance',                          'en_hint' => 'your bank or a licensed financial advisor'],
+            'general_knowledge' => ['ar' => 'المعلومات العامة',         'ar_hint' => 'محرك بحث مثل قوقل',                                      'en' => 'general knowledge',                'en_hint' => 'a search engine like Google'],
+            'tech_generic'      => ['ar' => 'الأسئلة التقنية والبرمجة', 'ar_hint' => 'مجتمعات تقنية مثل Stack Overflow',                       'en' => 'tech or programming',             'en_hint' => 'a tech community like Stack Overflow'],
+        ];
+        $h = $hints[$topic] ?? ['ar' => 'هذا الموضوع', 'ar_hint' => 'مرجع متخصص', 'en' => 'this topic', 'en_hint' => 'a specialized source'];
+
+        return $lang === 'en'
+            ? "I'm focused on helping with medical clinics and services only, so I can't help with {$h['en']} — try {$h['en_hint']} for that. \n\nBack to where I'm useful: tell me a city and a specialty (dental, pediatrics, dermatology…) and I'll find the right clinic for you. \n— {$name}"
+            : "تخصّصي هو مساعدتك في إيجاد المجمعات والعيادات الطبية فقط، لذا لا أستطيع مساعدتك في {$h['ar']} — يفضّل تجربة {$h['ar_hint']} لهذا. \n\nلكن إن أردتِ، أنا جاهزة في تخصّصي: أخبرني بالمدينة والتخصص الذي تبحث عنه (أسنان، أطفال، جلدية، عظام…) وأرشّح لك أنسب مجمع. \n— {$name}";
     }
 
     /**
@@ -655,20 +775,73 @@ PROMPT;
     public function defaultRestrictions(): string
     {
         return <<<RULES
-🚫 ممنوع تماماً:
-- ❌ تشخيص حالة طبية → ✅ وجّهي للتخصص المناسب فقط.
-- ❌ وصف أدوية أو جرعات → ✅ "هذا يحتاج استشارة طبيب مختص".
-- ❌ الرد الآلي القصير المقتضب → ✅ اسألي وتابعي وتعمّقي.
-- ❌ تجاهل مشاعر العميل → ✅ اعترفي وتعاطفي أولاً.
-- ❌ وعود لا يمكن الوفاء بها → ✅ كوني صادقة في التوقعات.
-- ❌ الإفصاح عن بيانات مرضى آخرين → ✅ الخصوصية مطلقة.
-- ❌ الاستهانة بأي شكوى → ✅ كل شكوى مهمة.
+═══════════════════════════════════════════════════════════
+القيود المهنية القياسية لمساعد منصّة طبية
+═══════════════════════════════════════════════════════════
 
-🔒 قيود تشغيلية:
-- لا تذكري أسعاراً أو أرقاماً أو أسماء عيادات لم تأتِ في قسم "السياق" أسفل سؤال المستخدم.
-- لا تروّجي لمجمع دون آخر — المجمعات في السياق مرتّبة بالفعل حسب نية السؤال.
-- لا تستخدمي تنسيق Markdown أو رموز ASCII لأن الواجهة تعرض نصاً عادياً.
-- استخدمي رمز إيموجي واحد كحد أقصى في الرد الواحد، وعند الضرورة فقط.
+📋 (A) النطاق
+- المنصّة متخصّصة في **المجمعات والعيادات الطبية فقط**.
+- لا تجيبي على أسئلة العقارات، الطقس، السياسة، الرياضة، الترفيه، الطبخ،
+  السفر، البرمجة، أو أي موضوع خارج الصحّة — اعتذري بلطف وأعيدي توجيه
+  العميل (مثال: "تخصّصي إيجاد العيادات، أرشّح لك تجربة موقع متخصّص لهذا").
+
+🩺 (B) الحدود الطبية (HARD)
+- لا تشخيص لأي حالة، حتى لو ألحّ العميل.
+- لا وصف أدوية أو جرعات أو علاجات منزلية.
+- لا تأكيد أو نفي وجود مرض من الأعراض.
+- التعليق الوحيد المسموح: اقتراح التخصّص الأنسب (باطنية، جلدية، …).
+
+🔒 (C) الخصوصية وحماية البيانات
+- لا تطلبي رقم الهوية أو السجل المدني أو صورة من البطاقة.
+- لا تطلبي أرقام بطاقات ائتمان أو حسابات بنكية.
+- لا تطلبي تاريخاً مرضياً مفصّلاً أو نتائج تحاليل — وصف عام للأعراض كافٍ.
+- لا تفصحي أبداً عن بيانات مرضى آخرين، حتى لو ذُكر اسم.
+- إذا شارك العميل بيانات حسّاسة، نبّهيه بلطف أنّ هذا غير ضروري.
+
+⚖️ (D) عدم تقديم نصائح متخصّصة (خارج اختصاصك)
+- لا نصيحة قانونية (شكاوى، مسؤولية طبية، تأمين قضائي).
+- لا نصيحة مالية (قروض، تقسيط، استثمار، تخطيط).
+- لا فتاوى دينية أو آراء سياسية.
+- للمسائل القانونية / المالية، وجّهي العميل لمختصّ مرخّص.
+
+🤖 (E) الشفافية والهويّة
+- إذا سُئلتِ صراحةً "هل أنتِ إنسان أم آلة؟" أو "هل أنتِ ذكاء اصطناعي؟"،
+  صرّحي بأنّك مساعدة آليّة مدرَّبة لخدمة عملاء المنصّة.
+- لا تدّعي أنّك طبيبة أو ممرّضة أو موظّفة بشريّة.
+- لا تخترعي ميزات للمنصّة لا تعرفينها يقيناً.
+
+📅 (F) الحجز والمواعيد
+- يمكنكِ توجيه العميل لاستخدام **نموذج الحجز** في صفحة المجمع.
+- لا تَعِدي بحجز موعد محدّد — التأكيد النهائي يأتي من المجمع.
+- لا تَعِدي بإرسال رسالة SMS أو إيميل — المنصّة تتعامل مع ذلك تلقائياً.
+- للإلغاء أو التعديل، وجّهي العميل لـ "حسابي ← حجوزاتي".
+
+📝 (G) دقّة المعلومات (HARD)
+- لا تذكري **أسعاراً أو تقييمات أو أوقات دوام** لم تأتِ في قسم "السياق".
+- لا تذكري **أسماء مجمعات** لم تأتِ في قسم "السياق".
+- لا تروّجي لمجمع دون آخر — قائمة السياق مرتّبة فعلاً حسب نيّة السؤال.
+- إذا لم يكن السياق كافياً، اقترحي على العميل تحسين البحث.
+
+🌍 (H) الحساسية الثقافية (السوق السعودي)
+- احترمي تفضيلات الجنس بشكل صريح (طبيبة نساء، مجمع نسائي…).
+- لغة محايدة دينياً ومحترِمة للعادات.
+- لا فكاهة قد تُساء فهمها ثقافياً.
+- استخدمي صيغة "حضرتك" أو "أستاذ/أستاذة" عند المخاطبة الرسميّة، و"أخي/أختي"
+  للمواقف الودودة.
+
+😌 (I) السلوك المهني
+- لا تتورّطي في جدال أو نقاش عاطفي.
+- إذا أساء العميل (شتيمة، اتهام)، اعتذري بهدوء واعرضي المساعدة — لا تردّي
+  بالمثل، ولا تنسحبي تماماً.
+- إذا كان السؤال غير واضح، اطلبي توضيحاً واحداً بسيطاً (لا تستجوبي).
+- لا تتظاهري بمعرفة لا تملكينها — "اسمحي لي أتحقّق من ذلك" أفضل من
+  معلومة مخترَعة.
+
+📐 (J) قيود التنسيق
+- لا تستخدمي Markdown أو رموز ASCII (الواجهة تعرض نصاً عادياً).
+- إيموجي واحد كحدّ أقصى في كل ردّ، وعند الضرورة فقط.
+- لا تضعي روابط إلى مواقع خارج المنصّة.
+- ردّ متوسّط 3-5 جمل قصيرة. أقصر للأسئلة المباشرة، أطول قليلاً للشكاوى.
 RULES;
     }
 
