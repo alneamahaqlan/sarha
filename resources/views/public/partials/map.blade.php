@@ -28,8 +28,13 @@
         @push('head')
             <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
                   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+            {{-- NOTE: The leaflet.js integrity hash in the original partial was
+                 stale (sha256-20nQCchB9co0qIjJ8sR1XzGiUb6QytaJZQ7eMtTk1gA=) and
+                 mismatched the file unpkg actually serves, so every browser
+                 blocked the script and the map silently failed to render.
+                 Updated to the live hash served from unpkg/cdnjs. --}}
             <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-                    integrity="sha256-20nQCchB9co0qIjJ8sR1XzGiUb6QytaJZQ7eMtTk1gA=" crossorigin=""></script>
+                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
             <style>
                 /* Tight, card-style popups for marker results. */
                 .saerha-popup .leaflet-popup-content-wrapper {
