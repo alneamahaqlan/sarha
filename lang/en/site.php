@@ -394,6 +394,13 @@ return [
     'map_subtitle' => 'Browse nearby complexes geographically',
     'map_view_complex' => 'View complex',
     'map_search_this_area' => 'Search this area',
+    'map_locate_me' => 'My location',
+    'map_you_are_here' => 'You are here',
+    'map_location_unavailable' => 'Could not determine your location. Please allow location access in your browser.',
+    'map_reviews_one' => '1 review',
+    'map_reviews_many' => ':count reviews',
+    'map_distance_km' => ':km km away',
+    'filter_near_me' => 'Near me',
 
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',

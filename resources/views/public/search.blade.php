@@ -120,6 +120,17 @@
                 <input type="checkbox" name="featured" value="1" @checked(request('featured')) onchange="this.form.submit()" class="accent-gold-primary">
                 <span class="inline-flex items-center gap-1.5"><x-icon name="star-solid" class="w-4 h-4" /> @lang('site.featured')</span>
             </label>
+
+            {{-- "Near me" — one-tap geolocation that sorts by distance from the user.
+                 Sits next to the existing filter pills so first-time visitors discover
+                 the location-based search without changing the sort dropdown. --}}
+            <button type="button" id="btn-near-me"
+                    class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-colors {{ (($sort ?? '') === 'nearest') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                    <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.07a6.002 6.002 0 014.93 4.93H17a1 1 0 110 2h-1.07a6.002 6.002 0 01-4.93 4.93V17a1 1 0 11-2 0v-1.07A6.002 6.002 0 014.07 11H3a1 1 0 110-2h1.07A6.002 6.002 0 019 4.07V3a1 1 0 011-1zm0 4a4 4 0 100 8 4 4 0 000-8zm0 2a2 2 0 110 4 2 2 0 010-4z" clip-rule="evenodd" />
+                </svg>
+                @lang('site.filter_near_me')
+            </button>
         </div>
     </form>
 
@@ -157,10 +168,18 @@
         </div>
     @endif
 
-    {{-- Map of current results (#60, #61, #62) --}}
+    {{-- Map of current results (#60, #61, #62) — rich popup cards with snippet,
+         Google rating + reviews count, distance and direct actions. --}}
     @if(($mapClinics ?? collect())->isNotEmpty())
         <div class="mb-8">
-            @include('public.partials.map', ['mapClinics' => $mapClinics, 'mapId' => 'search-map', 'showAreaSearch' => true])
+            @include('public.partials.map', [
+                'mapClinics'     => $mapClinics,
+                'mapId'          => 'search-map',
+                'showAreaSearch' => true,
+                'tall'           => true,
+                'userLat'        => $userLat ?? null,
+                'userLng'        => $userLng ?? null,
+            ])
         </div>
     @endif
 
@@ -197,40 +216,47 @@
     @endif
 </div>
 
-{{-- Progressive geolocation for the "nearest" sort. Falls back silently if denied/unsupported. --}}
+{{-- Progressive geolocation for the "nearest" sort and the "Near me" pill.
+     Falls back silently if denied/unsupported. --}}
 <script>
 (function () {
     var sortEl = document.getElementById('search-sort');
-    if (!sortEl) return;
+    var latEl  = document.getElementById('search-lat');
+    var lngEl  = document.getElementById('search-lng');
+    var nearMeBtn = document.getElementById('btn-near-me');
+    var form = sortEl ? sortEl.form : (nearMeBtn ? nearMeBtn.closest('form') : null);
+    if (!form) return;
 
-    sortEl.addEventListener('change', function () {
-        if (sortEl.value !== 'nearest') return;
+    function submitWithLocation() {
+        if (sortEl) sortEl.value = 'nearest';
 
-        var latEl = document.getElementById('search-lat');
-        var lngEl = document.getElementById('search-lng');
-
-        // Already have coordinates — let the normal form submit handle it.
-        if (latEl.value && lngEl.value) {
-            sortEl.form.submit();
+        if (latEl && lngEl && latEl.value && lngEl.value) {
+            form.submit();
             return;
         }
-
         if (!navigator.geolocation) {
-            sortEl.form.submit(); // server falls back to featured without coords.
+            form.submit(); // server falls back to default order without coords.
             return;
         }
-
         navigator.geolocation.getCurrentPosition(
             function (pos) {
-                latEl.value = pos.coords.latitude;
-                lngEl.value = pos.coords.longitude;
-                sortEl.form.submit();
+                if (latEl) latEl.value = pos.coords.latitude;
+                if (lngEl) lngEl.value = pos.coords.longitude;
+                form.submit();
             },
-            function () {
-                sortEl.form.submit(); // denied — server falls back to default order.
-            }
+            function () { form.submit(); }, // denied — server falls back gracefully.
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
         );
-    });
+    }
+
+    if (sortEl) {
+        sortEl.addEventListener('change', function () {
+            if (sortEl.value === 'nearest') submitWithLocation();
+        });
+    }
+    if (nearMeBtn) {
+        nearMeBtn.addEventListener('click', submitWithLocation);
+    }
 })();
 </script>
 

@@ -392,6 +392,13 @@ return [
     'map_subtitle' => 'تصفّح المجمعات القريبة جغرافياً',
     'map_view_complex' => 'عرض المجمع',
     'map_search_this_area' => 'ابحث في هذه المنطقة',
+    'map_locate_me' => 'موقعي',
+    'map_you_are_here' => 'أنت هنا',
+    'map_location_unavailable' => 'تعذّر تحديد موقعك. تأكد من السماح للموقع باستخدام موقعك الجغرافي.',
+    'map_reviews_one' => 'تقييم واحد',
+    'map_reviews_many' => ':count تقييم',
+    'map_distance_km' => 'يبعد :km كم',
+    'filter_near_me' => 'بالقرب مني',
 
     // Footer
     'footer_about' => 'منصة متخصصة للبحث والمقارنة وحجز الخدمات الطبية في المملكة العربية السعودية.',
