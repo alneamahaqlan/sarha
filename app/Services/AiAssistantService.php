@@ -9,6 +9,7 @@ use App\Models\SystemSetting;
 use App\Services\Ai\AiProviderFactory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -277,23 +278,36 @@ class AiAssistantService
     }
 
     /**
-     * Main entry. Returns array { kind, reply, clinics, provider, assistant_name }.
+     * Main entry. Returns array { kind, reply, clinics, context, provider, assistant_name }.
      *
      *   kind = 'empty' | 'rejected' | 'emergency' | 'inappropriate'
      *        | 'greeting' | 'follow_up' | 'out_of_scope'
-     *        | 'matched' | 'freeform' | 'no_match'
+     *        | 'matched' | 'details' | 'freeform' | 'no_match'
      *
      * @param array<int, array{role: string, content: string}> $history
-     *        Prior turns of the conversation, oldest-first. The service uses
-     *        history both to detect follow-ups ("really?" only makes sense
-     *        when something was said) and to feed the LLM enough context to
-     *        answer them coherently.
+     *        Prior turns of the conversation, oldest-first.
+     * @param array{city_id?:int|null, category_id?:int|null, last_clinic_ids?:array, doctor_name?:string|null} $context
+     *        Persistent conversation state carried turn-to-turn. The service
+     *        merges in whatever it learns this turn and returns the updated
+     *        context in the result, so the caller (Livewire) can store it
+     *        and pass it back next turn — this is what gives the bot real
+     *        memory across messages instead of "answers the last line only".
      */
-    public function ask(string $query, ?int $cityId = null, array $history = []): array
+    public function ask(string $query, ?int $cityId = null, array $history = [], array $context = []): array
     {
         $query = trim($query);
+
+        // Seed the working context with prior turn defaults; we'll mutate
+        // this as we learn new things this turn.
+        $ctx = array_merge([
+            'city_id'         => null,
+            'category_id'     => null,
+            'last_clinic_ids' => [],
+            'doctor_name'     => null,
+        ], $context);
+
         if ($query === '') {
-            return $this->wrap('empty', __('site.ai_empty'), collect());
+            return $this->wrap('empty', __('site.ai_empty'), collect(), $ctx);
         }
 
         // 0) RED LINE — emergency phrases must never wait on a slow LLM. Return
@@ -302,107 +316,104 @@ class AiAssistantService
         $emergencyKind = $this->detectEmergency($query);
         if ($emergencyKind !== null) {
             $lang = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1 ? 'en' : 'ar';
-            return $this->wrap(
-                'emergency',
-                $this->emergencyResponse($emergencyKind, $lang),
-                collect(),
-            );
+            return $this->wrap('emergency', $this->emergencyResponse($emergencyKind, $lang), collect(), $ctx);
         }
 
         // 1) Hard safety filter — never delegate medical questions to the LLM.
         if ($this->looksMedical($query)) {
-            return $this->wrap(
-                'rejected',
-                __('site.ai_medical_disclaimer'),
-                $this->matchByKeyword($query, $cityId),
-            );
+            $hits = $this->matchByKeyword($query, $cityId, $history, $ctx);
+            $ctx['last_clinic_ids'] = $hits->pluck('id')->all();
+            return $this->wrap('rejected', __('site.ai_medical_disclaimer'), $hits, $ctx);
         }
 
-        // 2) Greeting / social chit-chat shortcut. A bare "السلام عليكم"
-        //    must reply with "وعليكم السلام" before anything else — and
-        //    must NOT trigger a clinic search.
+        // 2) Greeting / social chit-chat shortcut.
         $isSocial = $this->isSocialChitchat($query);
 
-        // 3) Out-of-scope topic — "في شقه متوفره؟"، "what's the weather?"،
-        //    "من هو ميسي" … none of these are clinic searches. Returning
-        //    "no clinics found" for a real-estate question makes the bot look
-        //    broken; instead we give a topic-aware redirect. MUST run BEFORE
-        //    the follow-up detector — a 1-2 token off-topic query like "ميسي"
-        //    would otherwise get caught by the short-query follow-up rule.
+        // 3) Out-of-scope topic + inappropriate content — bypass everything.
         if (! $isSocial) {
             $outOfScopeTopic = $this->detectOutOfScope($query);
             if ($outOfScopeTopic !== null) {
                 $lang = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1 ? 'en' : 'ar';
-                return $this->wrap(
-                    'out_of_scope',
-                    $this->outOfScopeResponse($outOfScopeTopic, $lang),
-                    collect(),
-                );
+                return $this->wrap('out_of_scope', $this->outOfScopeResponse($outOfScopeTopic, $lang), collect(), $ctx);
             }
-
-            // 3b) Inappropriate / harassing language — de-escalate politely,
-            //     never argue, never play along. Bypass LLM so this is
-            //     deterministic even when the provider is down.
             if ($this->detectInappropriate($query)) {
                 $lang = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1 ? 'en' : 'ar';
-                return $this->wrap(
-                    'inappropriate',
-                    $this->inappropriateResponse($lang),
-                    collect(),
-                );
+                return $this->wrap('inappropriate', $this->inappropriateResponse($lang), collect(), $ctx);
             }
         }
 
-        // 4) Conversational follow-up — "والا تكذب", "explain", "ok thanks",
-        //    references to the previous answer. These must NOT trigger a fresh
-        //    clinic search (a "تكذب" tokenized would surface random clinics).
-        //    They flow into the LLM with history attached, no clinic context.
-        //    A doctor mention ("د. أحمد") overrides the follow-up rule — even
-        //    if short, it's a real search and must reach matchByKeyword.
+        // 4) Conversational follow-up detector.
         $isFollowUp = ! $isSocial
             && $this->extractDoctorName($query) === null
             && $this->isFollowUp($query, $history);
 
-        // 5) Local clinic search — only when the query is a real new search.
-        //    matchByKeyword takes $history so context (city/category mentioned
-        //    earlier in the chat) carries over: a bare "اسنان" after the user
-        //    said they're in Khobar must search Khobar+dental, not ask for the
-        //    city again.
-        $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId, $history);
-
-        // 6) Free-form conversational reply via the active LLM.
-        if ($this->providers->isConfigured() && $this->freeformEnabled()) {
-            $reply = $this->llmReply($query, $clinics, $isSocial, $isFollowUp, $history);
-            if ($reply !== null) {
-                $kind = match (true) {
-                    $isSocial             => 'greeting',
-                    $isFollowUp           => 'follow_up',
-                    $clinics->isNotEmpty()=> 'matched',
-                    default               => 'freeform',
-                };
-                return $this->wrap($kind, $reply, $clinics);
+        // 4a) DETAILS REQUEST about previously shown clinics ("نبذة عنهم"،
+        //     "اخبرني عن الأول"، "tell me about them"). Answer concretely from
+        //     the DB — services, doctors, ratings, working hours — instead of
+        //     a generic "I don't know". Bypasses the LLM on purpose so the
+        //     answer is grounded in real DB rows and works even offline.
+        if ($isFollowUp && $this->isDetailsRequest($query) && ! empty($ctx['last_clinic_ids'])) {
+            $deep = Clinic::publiclyVisible()
+                ->whereIn('id', $ctx['last_clinic_ids'])
+                ->get();
+            if ($deep->isNotEmpty()) {
+                $this->loadDeepDetails($deep);
+                $blocks = $deep->map(fn ($c) => $this->richClinicDetails($c))->implode("\n\n");
+                $intro  = $deep->count() === 1 ? 'إليك نبذة عن المجمع الذي أشرت إليه:' : 'إليك نبذة عن المجمعات التي ذكرناها:';
+                return $this->wrap('details', $intro . "\n\n" . $blocks, $deep, $ctx);
             }
         }
 
-        // 7) Legacy template fallback (LLM disabled or unreachable).
-        //    Each branch picks a fallback that won't surprise the user —
-        //    greetings get reciprocation, follow-ups get a polite redirect
-        //    (NOT a dump of unrelated clinics), and only real searches get
-        //    the "found N" or "no match" template.
+        // 5) Local clinic search — only when the query is a real new search.
+        //    Carries the conversation context (city/category mentioned earlier)
+        //    so a bare "اسنان" after "في الخبر" still searches Khobar+dental.
+        $clinics = ($isSocial || $isFollowUp)
+            ? collect()
+            : $this->matchByKeyword($query, $cityId, $history, $ctx);
+
+        // After a search, update the working context for the next turn. We
+        // re-derive city/category here from the resolved values so they
+        // persist even across queries that only mention ONE side.
+        if ($clinics->isNotEmpty()) {
+            $ctx['last_clinic_ids'] = $clinics->pluck('id')->all();
+            $first = $clinics->first();
+            if ($first && $first->city_id) $ctx['city_id'] = $first->city_id;
+            $firstCat = $first?->categories?->first();
+            if ($firstCat) $ctx['category_id'] = $firstCat->id;
+        }
+        // Also remember any doctor name mentioned this turn.
+        $maybeDoctor = $this->extractDoctorName($query);
+        if ($maybeDoctor !== null) $ctx['doctor_name'] = $maybeDoctor;
+
+        // 6) Free-form conversational reply via the active LLM.
+        if ($this->providers->isConfigured() && $this->freeformEnabled()) {
+            // If we have clinics, load deep details so the LLM can answer
+            // specific questions about services/prices/doctors accurately.
+            if ($clinics->isNotEmpty()) $this->loadDeepDetails($clinics);
+
+            $reply = $this->llmReply($query, $clinics, $isSocial, $isFollowUp, $history);
+            if ($reply !== null) {
+                $kind = match (true) {
+                    $isSocial              => 'greeting',
+                    $isFollowUp            => 'follow_up',
+                    $clinics->isNotEmpty() => 'matched',
+                    default                => 'freeform',
+                };
+                return $this->wrap($kind, $reply, $clinics, $ctx);
+            }
+        }
+
+        // 7) Template fallback (LLM disabled or unreachable).
         if ($isSocial) {
-            return $this->wrap('greeting', $this->greetingTemplate($query), collect());
+            return $this->wrap('greeting', $this->greetingTemplate($query), collect(), $ctx);
         }
         if ($isFollowUp) {
-            return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect());
+            return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect(), $ctx);
         }
         if ($clinics->isEmpty()) {
-            return $this->wrap('no_match', $this->smartNoMatchFallback($query, $history), collect());
+            return $this->wrap('no_match', $this->smartNoMatchFallback($query, $history, $ctx), collect(), $ctx);
         }
-        return $this->wrap(
-            'matched',
-            __('site.ai_found_matches', ['count' => $clinics->count()]),
-            $clinics,
-        );
+        return $this->wrap('matched', __('site.ai_found_matches', ['count' => $clinics->count()]), $clinics, $ctx);
     }
 
     /**
@@ -558,7 +569,7 @@ class AiAssistantService
      * city, a specialty hint — and asks a useful follow-up instead of just
      * dismissing the user.
      */
-    private function smartNoMatchFallback(string $query, array $history = []): string
+    private function smartNoMatchFallback(string $query, array $history = [], array $liveContext = []): string
     {
         $name = $this->assistantName();
         $isEnglish = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1;
@@ -572,11 +583,22 @@ class AiAssistantService
                 : "بحثت عن د. {$doctor} ولم أجدها مسجّلة عندنا بهذا الاسم تحديداً — قد تكون مسجّلة بصيغة قريبة. هل تعرف اسم المجمع أو المدينة التي تعمل بها؟ بأيٍّ منهما أقدر أصل لها بسرعة. \n— {$name}";
         }
 
-        // (b) Use what we already know from earlier turns. If the user said
-        //     they're in Khobar two messages ago and now types "أسنان" with
-        //     no Dental match in Khobar, we acknowledge BOTH facts instead of
-        //     asking for the city like a goldfish.
-        $ctx = $this->inferContextFromHistory($history);
+        // (b) Use what we already know from earlier turns. The LIVE context
+        //     (mutated by previous turns + the current query's intent) wins
+        //     over history scanning, so a fresh "اسنان" in this turn doesn't
+        //     get drowned out by a stale category from three turns back.
+        //     The current-query category takes priority over the persisted one.
+        $currentTokens   = $this->tokenize($query);
+        $currentCategory = $this->firstMatchingCategory($currentTokens)
+            ?? $this->firstMatchingCategory([$query]);
+        $historyCtx = $this->inferContextFromHistory($history);
+        $ctx = [
+            'city_id'     => $liveContext['city_id']
+                ?? $historyCtx['city_id'],
+            'category_id' => $currentCategory?->id
+                ?? $liveContext['category_id']
+                ?? $historyCtx['category_id'],
+        ];
         $knownCity = null;
         $knownCategory = null;
         if ($ctx['city_id']) {
@@ -915,6 +937,97 @@ PROMPT;
         return (string) $this->setting('ai_assistant_name', 'سلمى');
     }
 
+    /**
+     * Deep-loads a collection of clinics with the relations needed for a rich
+     * "tell me about them" reply: services with prices, doctors, working
+     * hours, Google rating + count, city, and categories. Single round-trip
+     * via Eloquent eager loading — never N+1 even for 3-5 clinics.
+     */
+    private function loadDeepDetails(Collection $clinics): Collection
+    {
+        if ($clinics->isEmpty()) return $clinics;
+
+        $clinics->load([
+            'services' => fn ($q) => $q->where('is_active', true)
+                ->orderByRaw('price IS NULL, price ASC')
+                ->limit(6),
+            'doctors' => fn ($q) => $q->limit(5),
+            'workingHours',
+            'city',
+            'categories',
+        ]);
+        $clinics->loadAvg('googleReviews', 'rating');
+        $clinics->loadCount('googleReviews');
+
+        return $clinics;
+    }
+
+    /**
+     * Multi-line, human-readable summary of one clinic — used when the user
+     * asks "نبذة عنهم" or "تفاصيل أكثر" so we can answer concretely from the
+     * DB instead of a generic "I don't know". Plain-text only (no Markdown)
+     * because the Livewire chat renders text 1:1.
+     */
+    private function richClinicDetails(Clinic $clinic): string
+    {
+        $lines = [];
+
+        // Header — name, city, rating
+        $rating  = $clinic->google_reviews_avg_rating
+            ? round((float) $clinic->google_reviews_avg_rating, 1) : null;
+        $reviews = (int) ($clinic->google_reviews_count ?? 0);
+        $header  = '🏥 ' . $clinic->name;
+        if ($clinic->city) $header .= ' — ' . $clinic->city->display_name;
+        $lines[] = $header;
+        if ($rating) {
+            $lines[] = "⭐ {$rating}/5 من {$reviews} تقييم Google";
+        }
+
+        // Short description
+        if (! empty($clinic->description)) {
+            $lines[] = '📝 ' . Str::limit(trim(strip_tags((string) $clinic->description)), 160);
+        }
+
+        // Categories
+        if ($clinic->categories?->isNotEmpty()) {
+            $cats = $clinic->categories->take(4)->map(fn ($c) => $c->display_name)->implode('، ');
+            $lines[] = '🩺 التخصّصات: ' . $cats;
+        }
+
+        // Top doctors
+        if (isset($clinic->doctors) && $clinic->doctors->isNotEmpty()) {
+            $docs = $clinic->doctors->take(4)->pluck('name')->implode('، ');
+            $lines[] = '👨‍⚕️ من الأطباء: ' . $docs;
+        }
+
+        // Services with prices (the part the user usually really wants)
+        if (isset($clinic->services) && $clinic->services->isNotEmpty()) {
+            $svcLines = $clinic->services->take(5)->map(function ($s) {
+                $line = '  • ' . $s->name;
+                if ($s->price !== null) $line .= ' — ' . (int) $s->price . ' ر.س';
+                return $line;
+            })->implode("\n");
+            $lines[] = "💊 الخدمات الأبرز:\n" . $svcLines;
+        }
+
+        // Today's working hours
+        if (isset($clinic->workingHours)) {
+            $today = $clinic->workingHours->firstWhere('day_of_week', (int) now()->dayOfWeek);
+            if ($today && $today->is_open && $today->opens_at && $today->closes_at) {
+                $opens  = substr((string) $today->opens_at, 0, 5);
+                $closes = substr((string) $today->closes_at, 0, 5);
+                $lines[] = "🕐 اليوم: {$opens} – {$closes}";
+            }
+        }
+
+        // Address (if not already given via city)
+        if (! empty($clinic->address)) {
+            $lines[] = '📍 ' . Str::limit($clinic->address, 90);
+        }
+
+        return implode("\n", $lines);
+    }
+
     public function defaultSystemPrompt(): string
     {
         $name     = $this->assistantName();
@@ -1035,12 +1148,13 @@ RULES;
     //   Response wrapping + safety
     // ============================================================
 
-    private function wrap(string $kind, string $reply, Collection $clinics): array
+    private function wrap(string $kind, string $reply, Collection $clinics, array $context = []): array
     {
         return [
             'kind'           => $kind,
             'reply'          => $reply,
             'clinics'        => $clinics,
+            'context'        => $context,
             'provider'       => $this->providers->isConfigured() ? $this->providers->activeProviderName() : null,
             'assistant_name' => $this->assistantName(),
         ];
@@ -1118,6 +1232,19 @@ RULES;
             }
         }
 
+        // Single-token city or specialty ("الخبر"، "اسنان") is a search input,
+        // NOT a generic follow-up — it pairs with whatever piece is missing
+        // from context. Block here so the clinic search path can combine it
+        // with the history-inferred half (e.g. "اسنان" + history Khobar
+        // → search dental in Khobar). Without this check, the short-query
+        // rule below would label every one-word answer as follow-up and
+        // ask the user for the city all over again.
+        $tokens = $this->tokenize($query);
+        if (count($tokens) >= 1 && count($tokens) <= 2) {
+            if ($this->firstMatchingCityId($tokens) !== null) return false;
+            if ($this->firstMatchingCategory($tokens) !== null) return false;
+        }
+
         // Explicit conversational markers — "والا تكذب", "تمام", "explain" …
         foreach (self::CONVERSATIONAL_MARKERS as $marker) {
             if (str_contains($query, $marker) || str_contains($lower, $marker)) {
@@ -1127,11 +1254,33 @@ RULES;
 
         // Very short queries after stop-word stripping are almost always
         // follow-ups when there's already a conversation in progress.
-        $tokens = $this->tokenize($query);
         if (count($tokens) <= 2) {
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * "Tell me more about them" type requests — distinct from a generic
+     * follow-up because we can answer them deterministically from the DB if we
+     * know which clinics are being referenced (context.last_clinic_ids).
+     */
+    private const DETAILS_REQUEST_PATTERNS = [
+        'نبذة', 'نبذه', 'تفاصيل', 'فاصيل', 'تفصيل', 'مزيد', 'المزيد',
+        'اخبرني', 'أخبرني', 'خبرني', 'خبّرني', 'حدثني', 'حدّثني', 'كلمني', 'كلّمني',
+        'عنهم', 'عنها', 'عنه', 'وضّح اكثر', 'وضح اكثر', 'وضّح أكثر',
+        'معلومات اكثر', 'معلومات أكثر', 'تعرف على', 'اعطني تفاصيل',
+        'tell me about', 'more about', 'details about', 'about them',
+        'tell me more', 'expand on',
+    ];
+
+    private function isDetailsRequest(string $query): bool
+    {
+        $lower = mb_strtolower(trim($query));
+        foreach (self::DETAILS_REQUEST_PATTERNS as $p) {
+            if (str_contains($query, $p) || str_contains($lower, $p)) return true;
+        }
         return false;
     }
 
@@ -1237,37 +1386,41 @@ MSG;
      * the purpose of *picking* clinics — that stays here so hallucinated
      * clinic names are structurally impossible.
      */
-    private function matchByKeyword(string $query, ?int $cityId, array $history = []): Collection
+    private function matchByKeyword(string $query, ?int $cityId, array $history = [], array $context = []): Collection
     {
         $base = Clinic::publiclyVisible()->with(['city', 'categories']);
 
         $tokens = $this->tokenize($query);
 
-        // Resolve city / category in three falls: explicit arg → current query
-        // → recent history. The history fall is what makes a bare "اسنان"
-        // after the user said "في الخبر" two turns ago still search Khobar+dental
-        // (instead of asking for the city again and looking like a goldfish).
+        // Resolve city / category in four falls: explicit arg → current query
+        // → live conversation context → recent history scan. The context fall
+        // is what gives the bot real memory — a bare "اسنان" after the user
+        // said "في الخبر" two turns ago still searches Khobar+dental instead
+        // of asking for the city again like a goldfish.
         // BUT: if the user mentions a fresh city in this turn, treat it as a
-        // topic shift and do NOT carry over the previous category — otherwise
+        // topic shift and DON'T carry over the previous category — otherwise
         // "زراعة في الخبر" after "مجمعات العيون" would search Khobar+Ophthalmology
-        // and miss the actual dental/hair-transplant clinics they want.
+        // and miss the dental/hair-transplant clinics they actually want.
         $historyCtx        = $this->inferContextFromHistory($history);
         $currentCityId     = $this->firstMatchingCityId($tokens);
         $currentCategory   = $this->firstMatchingCategory($tokens)
             ?? $this->firstMatchingCategory([$query]);
+        $contextCityId     = $context['city_id']     ?? null;
+        $contextCategoryId = $context['category_id'] ?? null;
         $cityIsTopicShift  = $currentCityId !== null
-            && $historyCtx['city_id'] !== null
-            && $currentCityId !== $historyCtx['city_id'];
+            && ($contextCityId !== null || $historyCtx['city_id'] !== null)
+            && $currentCityId !== ($contextCityId ?? $historyCtx['city_id']);
 
         $resolvedCityId = $cityId
             ?? $currentCityId
+            ?? $contextCityId
             ?? $historyCtx['city_id'];
         if ($resolvedCityId) {
             $base->where('city_id', $resolvedCityId);
         }
 
         $categoryId = $currentCategory?->id
-            ?? ($cityIsTopicShift ? null : $historyCtx['category_id']);
+            ?? ($cityIsTopicShift ? null : ($contextCategoryId ?? $historyCtx['category_id']));
         if ($categoryId) {
             $base->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId));
         }

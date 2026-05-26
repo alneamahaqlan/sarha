@@ -14,17 +14,25 @@ class AiChat extends Component
     /** @var array<int, array{role: string, content: string, clinics?: array}> */
     public array $messages = [];
 
+    /**
+     * Persistent conversation state that travels with the user across turns —
+     * this is what gives the assistant real memory instead of "answers the
+     * last line only". Mutated server-side by AiAssistantService::ask() and
+     * stored back here so the next message picks up where this one left off.
+     *
+     * Shape: { city_id, category_id, last_clinic_ids[], doctor_name }
+     */
+    public array $context = [];
+
     public function send(): void
     {
         $query = trim($this->input);
         if ($query === '') return;
 
         // Capture the conversation history BEFORE appending the new user turn,
-        // so the service sees "what was said before this question" — that's how
-        // follow-ups like "really?" or "explain that" get the right context.
-        // Map only role+content (drop the clinics blob — it's a UI concern and
-        // would blow the token budget). Last 6 turns is plenty of context
-        // without burning tokens on stale exchanges.
+        // so the service sees "what was said before this question". Map only
+        // role+content (drop the clinics blob — UI concern, would blow the
+        // token budget). Last 6 turns is plenty of context.
         $history = array_map(
             fn ($m) => ['role' => $m['role'], 'content' => (string) ($m['content'] ?? '')],
             array_slice($this->messages, -6),
@@ -33,7 +41,12 @@ class AiChat extends Component
         $this->messages[] = ['role' => 'user', 'content' => $query];
         $this->input = '';
 
-        $result = app(AiAssistantService::class)->ask($query, null, $history);
+        $result = app(AiAssistantService::class)->ask($query, null, $history, $this->context);
+
+        // Persist the updated context — the service writes back the city,
+        // category, doctor and last_clinic_ids it learned this turn, and we
+        // hand them back on the next ask() so the bot remembers them.
+        $this->context = $result['context'] ?? $this->context;
 
         $this->messages[] = [
             'role'    => 'assistant',
@@ -63,6 +76,7 @@ class AiChat extends Component
     {
         $this->messages = [];
         $this->input = '';
+        $this->context = [];
     }
 
     #[Computed]
