@@ -7,6 +7,7 @@ use App\Models\Article;
 use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\Complaint;
+use App\Models\PriceQuoteReply;
 use App\Models\PriceQuoteRequest;
 use App\Models\SalesLead;
 use App\Models\Subscription;
@@ -15,6 +16,7 @@ use App\Observers\ArticleObserver;
 use App\Observers\AuditObserver;
 use App\Observers\BookingObserver;
 use App\Observers\ComplaintObserver;
+use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -47,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         Booking::observe(BookingObserver::class);
         Complaint::observe(ComplaintObserver::class);
         PriceQuoteRequest::observe(PriceQuoteRequestObserver::class);
+        PriceQuoteReply::observe(PriceQuoteReplyObserver::class);
 
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);

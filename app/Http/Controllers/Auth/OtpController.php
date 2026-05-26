@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\OtpCode;
 use App\Models\User;
+use App\Services\SmsService;
 use Illuminate\Http\Request;
 
 class OtpController extends Controller
@@ -14,7 +15,7 @@ class OtpController extends Controller
         return view('auth.login');
     }
 
-    public function sendOtp(Request $request)
+    public function sendOtp(Request $request, SmsService $sms)
     {
         $request->validate([
             'phone' => 'required|string|regex:/^05\d{8}$/',
@@ -31,10 +32,10 @@ class OtpController extends Controller
 
         $otp = OtpCode::generate($phone);
 
-        // TODO: Send via Unifonic SMS
-        // $this->sendSms($phone, "رمز التحقق: {$otp->code}");
+        // Send via Unifonic (logs instead of sending in local / when unconfigured).
+        $sms->send($phone, __('site.otp_sms', ['code' => $otp->code]));
 
-        // In development, flash the code to session
+        // In development, also flash the code so testers can log in without SMS.
         if (app()->isLocal()) {
             return back()->with('otp_sent', true)->with('dev_code', $otp->code)->withInput();
         }

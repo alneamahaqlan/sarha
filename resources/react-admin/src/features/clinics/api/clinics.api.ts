@@ -155,4 +155,36 @@ export const clinicsApi = {
     });
     return res.data.data;
   },
+  structure: async (id: number) => {
+    const res = await apiClient.get<{ data: ClinicStructureData }>(`/admin/clinics/${id}/structure`);
+    return res.data.data;
+  },
 };
+
+// ----- Complex → clinic → services tree (admin view) -----
+export interface StructureService {
+  id: number;
+  name: string;
+  price: number | null;
+  old_price: number | null;
+  is_active: boolean;
+}
+
+export interface StructureSubClinic {
+  id: number;
+  name: string;
+  name_en: string | null;
+  description: string | null;
+  is_active: boolean;
+  sort_order: number;
+  category: { id: number; name: string; emoji: string | null } | null;
+  services_count: number;
+  services: StructureService[];
+}
+
+export interface ClinicStructureData {
+  clinic: { id: number; name: string };
+  sub_clinics: StructureSubClinic[];
+  general_services: StructureService[];
+  totals: { sub_clinics: number; services: number };
+}

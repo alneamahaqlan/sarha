@@ -6,15 +6,15 @@
 <div class="max-w-6xl mx-auto px-4 py-8">
 
     {{-- Header --}}
-    <div class="bg-gradient-to-r from-teal-600 to-teal-800 text-white rounded-2xl p-6 mb-6">
+    <div class="bg-gradient-to-r from-sage-600 to-sage-800 text-white rounded-2xl p-6 mb-6">
         <h1 class="text-2xl font-bold mb-2">{{ $user->name ?: '—' }}</h1>
-        <p class="text-teal-100" dir="ltr">{{ $user->phone }}</p>
+        <p class="text-sage-100" dir="ltr">{{ $user->phone }}</p>
         <div class="flex flex-wrap gap-4 mt-4 text-sm">
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                📅 {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="calendar" class="w-4 h-4" /> {{ __('site.bookings_count', ['count' => $bookingsCount]) }}
             </span>
-            <span class="bg-white/20 px-3 py-1 rounded-full">
-                ⭐ {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
+            <span class="inline-flex items-center gap-1.5 bg-white/20 px-3 py-1 rounded-full">
+                <x-icon name="star" class="w-4 h-4" /> {{ __('site.favorites_count', ['count' => $favoritesCount]) }}
             </span>
         </div>
     </div>
@@ -46,7 +46,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.full_name')</label>
                         <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400">
+                               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
                     </div>
 
                     <div>
@@ -59,10 +59,10 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.contact_info')</label>
                         <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
+                               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400" dir="ltr">
                     </div>
 
-                    <button type="submit" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+                    <button type="submit" class="bg-sage-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors">
                         @lang('site.account_save')
                     </button>
                 </form>

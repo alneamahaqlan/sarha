@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useCategoryLookup, useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
@@ -31,6 +32,9 @@ const schema = z.object({
   password: z.string().min(8).optional().or(z.literal('')),
   city_id: z.coerce.number().int().positive(),
   address: z.string().nullish(),
+  district: z.string().max(255).nullish(),
+  latitude: z.string().nullish().or(z.literal('')),
+  longitude: z.string().nullish().or(z.literal('')),
   description: z.string().nullish(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected']),
   subscription_type: z.enum(['basic', 'premium']).nullish().or(z.literal('')),
@@ -42,7 +46,9 @@ const schema = z.object({
   instagram: z.string().max(255).nullish(),
   twitter: z.string().max(255).nullish(),
   snapchat: z.string().max(255).nullish(),
+  tiktok: z.string().max(255).nullish(),
   google_place_id: z.string().max(255).nullish(),
+  maps_url: z.string().url().nullish().or(z.literal('')),
   logo: z.string().nullish(),
   gallery: z.array(z.string()).default([]),
   categories: z.array(z.coerce.number()).default([]),
@@ -74,11 +80,12 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       name: '', slug: '', phone: '', email: '', license_number: '', password: '',
-      city_id: 0, address: '', description: '',
+      city_id: 0, address: '', district: '', latitude: '', longitude: '', description: '',
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
       is_featured: false, rejection_reason: '',
-      website: '', instagram: '', twitter: '', snapchat: '', google_place_id: '',
+      website: '', instagram: '', twitter: '', snapchat: '', tiktok: '',
+      google_place_id: '', maps_url: '',
       logo: '', gallery: [], categories: [],
     },
   });
@@ -94,6 +101,9 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         password: '',
         city_id: clinic.city_id ?? 0,
         address: clinic.address ?? '',
+        district: clinic.district ?? '',
+        latitude: clinic.latitude != null ? String(clinic.latitude) : '',
+        longitude: clinic.longitude != null ? String(clinic.longitude) : '',
         description: clinic.description ?? '',
         status: clinic.status,
         subscription_type: clinic.subscription_type ?? '',
@@ -105,7 +115,9 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         instagram: clinic.instagram ?? '',
         twitter: clinic.twitter ?? '',
         snapchat: clinic.snapchat ?? '',
+        tiktok: clinic.tiktok ?? '',
         google_place_id: clinic.google_place_id ?? '',
+        maps_url: clinic.maps_url ?? '',
         logo: clinic.logo ?? '',
         gallery: clinic.gallery ?? [],
         categories: clinic.category_ids ?? clinic.categories?.map((c) => c.id) ?? [],
@@ -221,9 +233,26 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
               </Select>
               {form.formState.errors.city_id && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.city_id.message}</p>}
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="district">{t('clinics.form.district')}</Label>
+              <Input id="district" {...form.register('district')} />
+            </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="address">{t('clinics.form.address')}</Label>
               <Textarea id="address" rows={2} {...form.register('address')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="latitude">{t('clinics.form.latitude')}</Label>
+              <Input id="latitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="24.7136" {...form.register('latitude')} />
+              {form.formState.errors.latitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.latitude.message}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="longitude">{t('clinics.form.longitude')}</Label>
+              <Input id="longitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="46.6753" {...form.register('longitude')} />
+              {form.formState.errors.longitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.longitude.message}</p>}
+            </div>
+            <div className="md:col-span-2 -mt-1">
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.coords_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinics.form.description')}</Label>
@@ -286,7 +315,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
                   onChange={() => toggleCategory(c.id)}
                   className="h-4 w-4"
                 />
-                <span className="text-sm">{c.emoji ? `${c.emoji} ` : ''}{c.name}</span>
+                <CategoryIcon emoji={c.emoji} className="h-4 w-4 shrink-0 text-[var(--color-muted-foreground)]" />
+                <span className="text-sm">{c.name}</span>
               </label>
             ))}
           </div>
@@ -309,6 +339,15 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="snapchat">{t('clinics.form.snapchat')}</Label>
               <Input id="snapchat" {...form.register('snapchat')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tiktok">{t('clinics.form.tiktok')}</Label>
+              <Input id="tiktok" {...form.register('tiktok')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="maps_url">{t('clinics.form.maps_url')}</Label>
+              <Input id="maps_url" type="url" dir="ltr" placeholder="https://maps.app.goo.gl/…" {...form.register('maps_url')} />
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.maps_url_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="google_place_id">{t('clinics.form.google_place_id')}</Label>

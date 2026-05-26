@@ -112,7 +112,7 @@ class DatabaseSeeder extends Seeder
             ['key' => 'subscription_reminder_days', 'value' => '10', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'أيام التذكير قبل انتهاء الاشتراك'],
             ['key' => 'basic_articles_limit', 'value' => '5', 'type' => 'integer', 'group' => 'limits', 'label' => 'حد المقالات (أساسي/شهر)'],
             ['key' => 'otp_expiry_minutes', 'value' => '5', 'type' => 'integer', 'group' => 'auth', 'label' => 'مدة صلاحية OTP (دقائق)'],
-            ['key' => 'platform_name', 'value' => 'سعرها', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],
+            ['key' => 'platform_name', 'value' => 'دليل المجمعات الطبية', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],
             ['key' => 'platform_email', 'value' => 'info@saerha.sa', 'type' => 'string', 'group' => 'general', 'label' => 'البريد الرسمي'],
             ['key' => 'platform_phone', 'value' => '+966XXXXXXXXX', 'type' => 'string', 'group' => 'general', 'label' => 'رقم الهاتف الرسمي'],
 
@@ -133,7 +133,7 @@ class DatabaseSeeder extends Seeder
             // The hard safety footer (no medical advice, no inventing clinics) lives
             // in AiAssistantService and is NOT configurable here on purpose.
             ['key' => 'ai_freeform_enabled', 'value' => '1', 'type' => 'boolean', 'group' => 'ai', 'label' => 'تفعيل المحادثة الذكيّة',  'description' => 'عند التفعيل، يجيب المساعد على أي سؤال (وليس فقط البحث عن العيادات) عبر LLM المختار. عند التعطيل، يرجع لردود قوالب جامدة.'],
-            ['key' => 'ai_assistant_name',   'value' => 'مساعد سعرها', 'type' => 'string', 'group' => 'ai', 'label' => 'اسم المساعد',            'description' => 'الاسم الذي يعرّف به المساعد نفسه ويظهر في الواجهة.'],
+            ['key' => 'ai_assistant_name',   'value' => 'مساعد دليل المجمعات الطبية', 'type' => 'string', 'group' => 'ai', 'label' => 'اسم المساعد',            'description' => 'الاسم الذي يعرّف به المساعد نفسه ويظهر في الواجهة.'],
             ['key' => 'ai_max_tokens',       'value' => '800', 'type' => 'integer',         'group' => 'ai', 'label' => 'الحدّ الأقصى للرموز (output tokens)', 'description' => 'كم رمزاً يُسمح للمساعد بإنتاجه في كل رد. 200=قصير جداً، 800=مناسب لمحادثة، 1500=ردود مفصّلة.'],
             ['key' => 'ai_temperature',      'value' => '0.5', 'type' => 'decimal',         'group' => 'ai', 'label' => 'درجة الحرارة (0–1)', 'description' => 'مدى الإبداع: 0.0 ردود ثابتة ودقيقة، 0.7 إبداع متوازن، 1.0 ردود متنوّعة قد تكون غير متّسقة. الموصى به 0.4–0.6.'],
             ['key' => 'ai_system_prompt',    'value' => null,  'type' => 'text',            'group' => 'ai', 'label' => 'برومت النظام (Persona)', 'description' => 'الشخصيّة الكاملة التي يتقمّصها المساعد. اتركه فارغاً لاستخدام الافتراضي المهنيّ المُضمَّن. غيِّر هنا لتعديل الأسلوب أو إضافة معلومات عن المنصّة.'],

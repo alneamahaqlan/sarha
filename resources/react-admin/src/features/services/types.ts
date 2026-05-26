@@ -1,13 +1,14 @@
 export interface Service {
   id: number;
   clinic_id: number;
-  custom_category_id: number | null;
   sub_clinic_id: number | null;
+  sub_clinic?: { id: number; name: string } | null;
   name: string;
   description: string | null;
   price: number;
   old_price: number | null;
   offer_expires_at: string | null;
+  is_featured_offer: boolean;
   has_active_offer: boolean;
   discount_percentage: number;
   image: string | null;

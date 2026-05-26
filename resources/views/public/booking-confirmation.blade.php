@@ -13,9 +13,9 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-2">@lang('site.booking_confirmed_title')</h1>
         <p class="text-gray-500 mb-8">@lang('site.booking_confirmed_subtitle')</p>
 
-        <div class="bg-teal-50 border-2 border-teal-200 rounded-xl p-5 mb-8">
-            <p class="text-xs text-teal-700 uppercase tracking-wider mb-1">@lang('site.booking_reference_label')</p>
-            <p class="text-2xl font-bold text-teal-900 font-mono tracking-wider" dir="ltr">
+        <div class="bg-sage-50 border-2 border-sage-200 rounded-xl p-5 mb-8">
+            <p class="text-xs text-sage-700 uppercase tracking-wider mb-1">@lang('site.booking_reference_label')</p>
+            <p class="text-2xl font-bold text-sage-900 font-mono tracking-wider" dir="ltr">
                 {{ $booking->reference_code }}
             </p>
         </div>
@@ -38,7 +38,7 @@
         </div>
 
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <a href="{{ route('home') }}" class="bg-teal-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-colors">
+            <a href="{{ route('home') }}" class="bg-sage-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sage-700 transition-colors">
                 @lang('site.booking_back_home')
             </a>
             <a href="{{ route('search') }}" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">

@@ -5,14 +5,17 @@
 @php
     $whatsappMessage = __('site.whatsapp_message', ['clinic' => $clinic->name]);
     $whatsappUrl = $clinic->whatsappLink($whatsappMessage);
+    $directionsUrl = $clinic->directionsUrl();
 @endphp
 
-<div class="fixed bottom-6 end-6 z-40 flex flex-col gap-3" x-data x-cloak>
+{{-- Desktop floating buttons (mobile uses the sticky bottom bar instead) --}}
+<div class="fixed bottom-6 end-6 z-40 hidden sm:flex flex-col gap-3" x-data x-cloak>
     {{-- WhatsApp --}}
     @if($clinic->phone)
         <a href="{{ $whatsappUrl }}"
            target="_blank"
            rel="noopener"
+           data-track="whatsapp" data-clinic="{{ $clinic->id }}"
            title="@lang('site.whatsapp_label')"
            class="group flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
             <svg class="w-6 h-6 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
@@ -22,10 +25,26 @@
         </a>
     @endif
 
+    {{-- Directions --}}
+    @if($directionsUrl)
+        <a href="{{ $directionsUrl }}"
+           target="_blank"
+           rel="noopener"
+           data-track="directions" data-clinic="{{ $clinic->id }}"
+           title="@lang('site.action_directions')"
+           class="group flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
+            <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z"/>
+            </svg>
+            <span class="hidden md:inline text-sm font-semibold whitespace-nowrap">@lang('site.action_directions')</span>
+        </a>
+    @endif
+
     {{-- Book now --}}
     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
+       data-track="booking" data-clinic="{{ $clinic->id }}"
        title="@lang('site.book_now_label')"
-       class="group flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
+       class="group flex items-center gap-2 bg-sage-600 hover:bg-sage-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-all">
         <svg class="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>

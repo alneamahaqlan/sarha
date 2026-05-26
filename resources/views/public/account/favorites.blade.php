@@ -18,9 +18,9 @@
 
             @if($favorites->isEmpty())
                 <div class="bg-white rounded-xl shadow-sm p-10 text-center">
-                    <div class="text-6xl mb-3">⭐</div>
+                    <x-icon name="star" class="w-16 h-16 mx-auto mb-3 text-gray-300" />
                     <p class="text-gray-500 mb-4">@lang('site.account_no_favorites')</p>
-                    <a href="{{ route('search') }}" class="bg-teal-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors inline-block">
+                    <a href="{{ route('search') }}" class="bg-sage-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors inline-block">
                         @lang('site.account_start_browsing')
                     </a>
                 </div>
@@ -35,7 +35,7 @@
                                 <button type="submit"
                                         title="{{ __('site.favorite_remove') }}"
                                         class="bg-white/95 hover:bg-red-50 text-red-500 w-9 h-9 rounded-full flex items-center justify-center shadow transition-colors">
-                                    ❤️
+                                    <x-icon name="heart-solid" class="w-4 h-4" />
                                 </button>
                             </form>
                         </div>

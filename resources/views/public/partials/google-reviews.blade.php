@@ -15,7 +15,7 @@
 
     @if($reviewsCount === 0)
         <div class="text-center py-8 text-gray-400">
-            <div class="text-4xl mb-2">⭐</div>
+            <x-icon name="star" class="w-10 h-10 mx-auto mb-2 text-gray-300" />
             <p class="text-sm">@lang('site.reviews_unlinked')</p>
         </div>
     @else
@@ -61,10 +61,10 @@
             @foreach($clinic->googleReviews as $review)
                 <div class="flex gap-3">
                     @if($review->reviewer_photo)
-                        <img src="{{ $review->reviewer_photo }}" alt="{{ $review->reviewer_name }}"
+                        <img src="{{ $review->reviewer_photo }}" alt="{{ $review->reviewer_name }}" loading="lazy"
                              class="w-10 h-10 rounded-full object-cover">
                     @else
-                        <div class="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">
+                        <div class="w-10 h-10 bg-sage-100 text-sage-700 rounded-full flex items-center justify-center font-bold flex-shrink-0">
                             {{ mb_substr($review->reviewer_name ?? 'G', 0, 1) }}
                         </div>
                     @endif

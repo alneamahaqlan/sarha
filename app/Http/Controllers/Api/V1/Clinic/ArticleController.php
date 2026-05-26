@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Clinic\StoreArticleRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateArticleRequest;
 use App\Http\Resources\Api\V1\ArticleResource as ArticleApiResource;
 use App\Models\Article;
+use App\Observers\ArticleObserver;
 use App\Services\AiContentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,7 +35,30 @@ class ArticleController extends Controller
 
         $perPage = min(max((int) $request->input('per_page', 15), 1), 100);
 
-        return ArticleApiResource::collection($query->paginate($perPage)->withQueryString());
+        return ArticleApiResource::collection($query->paginate($perPage)->withQueryString())
+            ->additional(['usage' => $this->monthlyUsage()]);
+    }
+
+    /**
+     * Monthly publish-quota usage for the article counter widget. Mirrors
+     * ArticleObserver's basic-plan limit (premium is unlimited → limit null).
+     */
+    private function monthlyUsage(): array
+    {
+        $clinic = auth('clinic')->user();
+        $isPremium = $clinic->subscription_type === 'premium';
+
+        $publishedThisMonth = Article::where('clinic_id', $this->clinicId())
+            ->where('is_published', true)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        return [
+            'published_this_month' => $publishedThisMonth,
+            'monthly_limit'        => $isPremium ? null : ArticleObserver::BASIC_MONTHLY_LIMIT,
+            'is_premium'           => $isPremium,
+        ];
     }
 
     public function show(Article $article): ArticleApiResource

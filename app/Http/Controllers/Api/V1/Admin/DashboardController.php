@@ -11,6 +11,7 @@ use App\Models\Complaint;
 use App\Models\PriceQuoteRequest;
 use App\Models\Subscription;
 use App\Models\User;
+use App\Services\ClinicStatsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -163,64 +164,19 @@ class DashboardController extends Controller
     }
 
     /**
-     * Per-clinic stats — sourced from ClinicStat rows for the given clinic over
-     * the selected period. Null-safe: clinics with no rows return zeros.
+     * Per-clinic stats — the full ClinicStatsService payload (same data the
+     * clinic sees in its own panel). Accepts a custom from/to range or a quick
+     * period; still includes the cards/trend/kpis keys the React page reads.
      */
-    public function clinicStats(Clinic $clinic, Request $request): JsonResponse
+    public function clinicStats(Clinic $clinic, Request $request, ClinicStatsService $stats): JsonResponse
     {
-        $period = (int) $request->query('period', 30);
-        if (! in_array($period, [7, 14, 30], true)) {
-            $period = 30;
-        }
-        $since = now()->subDays($period)->startOfDay();
+        [$from, $to] = ClinicStatsService::resolveRange(
+            $request->query('from'),
+            $request->query('to'),
+            (int) $request->query('period', 0),
+        );
 
-        $scoped = ClinicStat::query()
-            ->where('clinic_id', $clinic->id)
-            ->where('date', '>=', $since->toDateString());
-
-        $cards = [
-            'page_views'         => (int) (clone $scoped)->sum('page_views'),
-            'bookings'           => (int) (clone $scoped)->sum('bookings_count'),
-            'quote_requests'     => (int) (clone $scoped)->sum('quote_requests_count'),
-            'search_appearances' => (int) (clone $scoped)->sum('search_appearances'),
-        ];
-
-        $trend = (clone $scoped)
-            ->orderBy('date')
-            ->get(['date', 'page_views', 'bookings_count', 'quote_requests_count'])
-            ->map(fn (ClinicStat $s) => [
-                'date'           => $s->date?->toDateString(),
-                'page_views'     => (int) $s->page_views,
-                'bookings'       => (int) $s->bookings_count,
-                'quote_requests' => (int) $s->quote_requests_count,
-            ]);
-
-        // 30-day bookings: this clinic vs the average across all active clinics.
-        $bookingsSince = now()->subDays(30)->startOfDay()->toDateString();
-        $thisClinicBookings = (int) ClinicStat::query()
-            ->where('clinic_id', $clinic->id)
-            ->where('date', '>=', $bookingsSince)
-            ->sum('bookings_count');
-
-        $activeClinicCount = Clinic::where('status', 'active')->count();
-        $platformBookings = (int) ClinicStat::query()
-            ->whereIn('clinic_id', Clinic::where('status', 'active')->select('id'))
-            ->where('date', '>=', $bookingsSince)
-            ->sum('bookings_count');
-        $avgBookingsPlatform = $activeClinicCount > 0
-            ? round($platformBookings / $activeClinicCount, 1)
-            : 0.0;
-
-        return response()->json([
-            'data' => [
-                'cards' => $cards,
-                'trend' => $trend,
-                'kpis'  => [
-                    'avg_bookings_platform' => (float) $avgBookingsPlatform,
-                    'this_clinic_bookings'  => $thisClinicBookings,
-                ],
-            ],
-        ]);
+        return response()->json(['data' => $stats->compute($clinic, $from, $to)]);
     }
 
     /**

@@ -1,7 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, Sparkles, Tag, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { apiClient } from '@/lib/api-client';
@@ -12,14 +16,19 @@ import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanne
 import { AiChatWidget } from '@/features/ai-chat/AiChatWidget';
 import { useClinicNavBadges, type ClinicNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
+import { Logo } from '@/components/ui/Logo';
 
 const clinicNav = [
   { to: '/clinic/dashboard', label: 'clinic_nav.dashboard', icon: LayoutDashboard },
+  { to: '/clinic/stats', label: 'clinic_nav.stats', icon: BarChart3 },
   {
     group: 'clinic_nav.group.my_services',
     items: [
+      { to: '/clinic/sub-clinics', label: 'clinic_nav.sub_clinics', icon: Stethoscope },
+      { to: '/clinic/doctors', label: 'clinic_nav.doctors', icon: UserRound },
       { to: '/clinic/services', label: 'clinic_nav.services', icon: Sparkles, badge: 'offer_expiring' as keyof ClinicNavBadges },
-      { to: '/clinic/categories', label: 'clinic_nav.categories', icon: Tag },
+      { to: '/clinic/packages', label: 'clinic_nav.packages', icon: Package },
+      { to: '/clinic/before-after', label: 'clinic_nav.before_after', icon: Images },
       { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine },
     ],
   },
@@ -28,6 +37,7 @@ const clinicNav = [
     items: [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
       { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
+      { to: '/clinic/complaints', label: 'clinic_nav.complaints', icon: AlertTriangle },
     ],
   },
   {
@@ -60,12 +70,13 @@ export function ClinicLayout() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+    <div className="flex min-h-screen flex-col bg-[var(--color-background)]">
       <ImpersonationBanner />
       <div className="flex flex-1">
       <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
-        <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
-          {user?.user.name ?? t('clinic_brand')}
+        <div className="flex items-center gap-2.5 border-b border-[var(--color-border)] px-5 py-4">
+          <Logo withText={false} size={32} />
+          <span className="text-sm font-semibold leading-tight">{user?.user.name ?? t('clinic_brand')}</span>
         </div>
         <nav className="flex-1 space-y-2 overflow-y-auto p-2">
           {clinicNav.map((entry, idx) => {
@@ -142,15 +153,30 @@ export function ClinicLayout() {
               <Languages className="h-3 w-3" />
               {locale === 'ar' ? 'English' : 'العربية'}
             </button>
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
-            >
-              <LogOut className="h-3 w-3" />
-              {t('common.logout')}
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  type="button"
+                  disabled={logout.isPending}
+                  className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
+                >
+                  <LogOut className="h-3 w-3" />
+                  {t('common.logout')}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('common.logout_confirm_title')}</AlertDialogTitle>
+                  <AlertDialogDescription>{t('common.logout_confirm_body')}</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => logout.mutate()} disabled={logout.isPending}>
+                    {t('common.logout')}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </header>
         <main className="flex-1 p-6">

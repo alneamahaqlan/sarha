@@ -6,11 +6,186 @@
 @source '../**/*.js';
 @source '../../app/**/*.php';
 
+/*
+ |--------------------------------------------------------------------------
+ | Brand identity — دليل المجمعات الطبية (Daleel) · v1.3
+ |--------------------------------------------------------------------------
+ | Single source of truth for the public site. The full reference lives in
+ | resources/css/brand-tokens.css. Sage green is the primary, gold the
+ | premium accent, plum is reserved exclusively for AI features.
+ |
+ | NOTE: the legacy `teal-*` Tailwind scale is intentionally re-mapped onto
+ | the sage scale below so existing markup renders in-brand. New markup
+ | should prefer the named `sage-* / gold-* / plum-*` utilities.
+ */
 @theme {
-    --font-sans: 'Cairo', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Fonts */
+    --font-sans: 'IBM Plex Sans Arabic', 'Inter', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji';
+    --font-display: 'Readex Pro', 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* Sage · primary green (named + numeric scale) */
+    --color-sage-deep: #1F4A3F;
+    --color-sage-primary: #2D6A5C;
+    --color-sage-medium: #4A8A7A;
+    --color-sage-soft: #A8C8BD;
+    --color-sage-mist: #E8F0EC;
+    --color-sage-50: #E8F0EC;
+    --color-sage-100: #D6E6DF;
+    --color-sage-200: #A8C8BD;
+    --color-sage-300: #7FB0A1;
+    --color-sage-400: #4A8A7A;
+    --color-sage-500: #3A7868;
+    --color-sage-600: #2D6A5C;
+    --color-sage-700: #245549;
+    --color-sage-800: #1F4A3F;
+    --color-sage-900: #163A31;
+    --color-sage-950: #0C1A17;
+
+    /* Gold · premium accent (use gold-deep for text on light — WCAG AA 5.1:1) */
+    --color-gold-deep: #8A6A28;
+    --color-gold-display: #A88845;
+    --color-gold-primary: #C9A961;
+    --color-gold-soft: #E5D4A8;
+    --color-gold-whisper: #F5EFD9;
+
+    /* Plum · AI features only */
+    --color-plum-deep: #3E2654;
+    --color-plum-primary: #6B4985;
+    --color-plum-medium: #8B6FA8;
+    --color-plum-soft: #C5B0D6;
+    --color-plum-whisper: #EDE5F2;
+
+    /* Neutrals */
+    --color-cream: #FAF7F2;
+    --color-cream-dark: #F2EDE3;
+    --color-charcoal: #1A2B26;
+    --color-slate-warm: #4A5854;
+
+    /* Status */
+    --color-success: #5C9F7F;
+    --color-warning: #D9A547;
+    --color-danger: #C76B57;
+    --color-info: #5B85A8;
+
+    /* Legacy teal scale → sage (safety net for existing markup) */
+    --color-teal-50: #E8F0EC;
+    --color-teal-100: #D6E6DF;
+    --color-teal-200: #A8C8BD;
+    --color-teal-300: #7FB0A1;
+    --color-teal-400: #4A8A7A;
+    --color-teal-500: #3A7868;
+    --color-teal-600: #2D6A5C;
+    --color-teal-700: #245549;
+    --color-teal-800: #1F4A3F;
+    --color-teal-900: #163A31;
+    --color-teal-950: #0C1A17;
+}
+
+/* Readex Pro for headings + brand wordmark; IBM Plex Sans Arabic for body. */
+@layer base {
+    h1, h2, h3, h4, .font-display {
+        font-family: var(--font-display);
+    }
+    body {
+        background-color: var(--color-cream);
+        color: var(--color-charcoal);
+    }
 }
 
 .pagination {
     direction: rtl;
+}
+
+/* AI logo · pulsing neural network (used in AI contexts only) */
+@keyframes ai-pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.7); }
+}
+@keyframes ai-pulse-line {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.2; }
+}
+.ai-dot { transform-origin: center; transform-box: fill-box; animation: ai-pulse-dot 2.4s ease-in-out infinite; }
+.ai-dot-2 { animation-delay: 0.4s; }
+.ai-dot-3 { animation-delay: 0.8s; }
+.ai-line { animation: ai-pulse-line 2.4s ease-in-out infinite; }
+.ai-line-2 { animation-delay: 0.6s; }
+.ai-line-3 { animation-delay: 1s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .ai-dot, .ai-line { animation: none !important; }
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Motion system — landing page (reveal, float, gradient, shimmer)
+   ────────────────────────────────────────────────────────────── */
+@keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-16px); }
+}
+@keyframes float-y-sm {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-9px); }
+}
+@keyframes gradient-pan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes blob-morph {
+    0%, 100% { border-radius: 42% 58% 63% 37% / 42% 38% 62% 58%; }
+    50% { border-radius: 58% 42% 37% 63% / 58% 62% 38% 42%; }
+}
+@keyframes shine {
+    0% { transform: translateX(-120%) skewX(-18deg); }
+    60%, 100% { transform: translateX(220%) skewX(-18deg); }
+}
+@keyframes pulse-ring {
+    0% { transform: scale(0.85); opacity: 0.6; }
+    70% { transform: scale(1.6); opacity: 0; }
+    100% { opacity: 0; }
+}
+
+.float { animation: float-y 6s ease-in-out infinite; }
+.float-sm { animation: float-y-sm 5s ease-in-out infinite; }
+.float-delay { animation-delay: 1.2s; }
+.float-delay-2 { animation-delay: 2.4s; }
+
+.animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-pan 12s ease infinite;
+}
+.blob { animation: blob-morph 14s ease-in-out infinite; }
+
+/* Scroll-reveal: elements get .reveal, JS adds .in when they enter the viewport */
+.reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.7s var(--reveal-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+                transform 0.7s var(--reveal-ease, cubic-bezier(0.16, 1, 0.3, 1));
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+}
+.reveal.in { opacity: 1; transform: none; }
+.reveal-zoom { transform: scale(0.94); }
+.reveal-zoom.in { transform: none; }
+
+/* Shine sweep on hover (cards / CTA) */
+.shine-host { position: relative; overflow: hidden; }
+.shine-host::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.35), transparent);
+    transform: translateX(-120%) skewX(-18deg);
+    pointer-events: none;
+}
+.shine-host:hover::after { animation: shine 0.9s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+    .float, .float-sm, .animate-gradient, .blob { animation: none !important; }
+    .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    .shine-host:hover::after { animation: none !important; }
 }

@@ -11,13 +11,17 @@ class ServiceResource extends JsonResource
         return [
             'id'                 => $this->id,
             'clinic_id'          => $this->clinic_id,
-            'custom_category_id' => $this->custom_category_id,
             'sub_clinic_id'      => $this->sub_clinic_id,
+            'sub_clinic'         => $this->whenLoaded('subClinic', fn () => $this->subClinic ? [
+                'id'   => $this->subClinic->id,
+                'name' => $this->subClinic->name,
+            ] : null),
             'name'               => $this->name,
             'description'        => $this->description,
             'price'              => (float) $this->price,
             'old_price'          => $this->old_price !== null ? (float) $this->old_price : null,
             'offer_expires_at'   => $this->offer_expires_at?->toIso8601String(),
+            'is_featured_offer'  => (bool) $this->is_featured_offer,
             'has_active_offer'   => $this->hasActiveOffer(),
             'discount_percentage'=> $this->discountPercentage(),
             'image'              => $this->image,

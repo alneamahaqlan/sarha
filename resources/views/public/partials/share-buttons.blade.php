@@ -25,7 +25,7 @@
     {{-- Copy link --}}
     <button type="button"
             @click="navigator.clipboard.writeText('{{ $shareUrl }}'); copied = true; setTimeout(() => copied = false, 2000)"
-            class="w-9 h-9 rounded-full bg-teal-50 text-teal-600 hover:bg-teal-100 flex items-center justify-center transition-colors"
+            class="w-9 h-9 rounded-full bg-sage-50 text-sage-600 hover:bg-sage-100 flex items-center justify-center transition-colors"
             :title="copied ? '@lang('site.link_copied')' : '@lang('site.copy_link')'">
         <svg x-show="!copied" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

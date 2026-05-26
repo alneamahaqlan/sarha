@@ -4,8 +4,8 @@ return [
     // ============================================
     // Brand
     // ============================================
-    'admin_brand' => 'سعرها — لوحة التحكم',
-    'clinic_brand' => 'سعرها — لوحة المجمع',
+    'admin_brand' => 'دليل المجمعات الطبية — لوحة التحكم',
+    'clinic_brand' => 'دليل المجمعات الطبية — لوحة المجمع',
 
     // ============================================
     // Navigation groups (admin)
@@ -59,8 +59,6 @@ return [
     'res_system_settings' => 'إعدادات النظام',
     'res_system_setting' => 'إعداد',
     'res_system_settings_plural' => 'الإعدادات',
-    'res_custom_category' => 'تصنيف خاص',
-    'res_custom_categorys' => 'تصنيفاتي الخاصة',
 
     // ============================================
     // Form/Table field labels
@@ -264,7 +262,7 @@ return [
         'premium' => 'مميز',
         'basic_priced' => 'أساسي (300 ريال)',
         'premium_priced' => 'مميز (400 ريال)',
-        'premium_with_star' => 'مميز ⭐',
+        'premium_with_star' => 'مميز',
     ],
 
     // ============================================
@@ -382,8 +380,13 @@ return [
         'new_complaint_title' => 'شكوى جديدة',
         'new_complaint_body'  => ':subject',
 
+        'new_lead_title' => 'طلب تسجيل مجمع جديد',
+        'new_lead_body'  => ':clinic طلب الانضمام — راجعه في قائمة المبيعات',
+
         'new_quote_title' => 'طلب عرض سعر جديد',
         'new_quote_body'  => 'خدمة: :service',
+        'broadcast_quote_title' => 'طلب عرض سعر جديد في مدينتك',
+        'broadcast_quote_body'  => 'خدمة: :service — سارع بالرد لتكسب العميل',
 
         'lead_converted_title' => 'تم تحويل عميل محتمل',
         'lead_converted_body'  => ':clinic أصبح مجمعاً نشطاً',
@@ -420,7 +423,7 @@ return [
     'ai' => [
         'title_first' => 'أدخل عنوان المقال أولاً',
         'not_configured' => 'مفتاح Claude API غير مفعّل. أضف ANTHROPIC_API_KEY في .env',
-        'generated' => 'تم التوليد بنجاح ✨',
+        'generated' => 'تم التوليد بنجاح',
         'failed' => 'تعذّر التوليد',
         'excel_analyzing' => 'يجري تحليل الملف…',
         'excel_done' => 'تم التحليل',
@@ -449,8 +452,17 @@ return [
         'old_price_helper' => 'عند تعبئته يجب أن يكون أكبر من السعر الحالي، ويصبح تاريخ انتهاء العرض إلزامياً',
         'offer_expires_helper' => 'مطلوب عند وجود سعر قديم (لإظهار شارة العرض)',
         'profile_saved' => 'تم حفظ التغييرات بنجاح',
-        'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بعيادات',
-        'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بعيادات',
+        'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بمجمعات',
+        'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بمجمعات',
+        'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
+    ],
+
+    // Specialty (category) requests submitted by complexes
+    'category_requests' => [
+        'submitted' => 'تم إرسال طلب التخصص للإدارة للمراجعة',
+        'approved' => 'تم اعتماد التخصص وإضافته',
+        'rejected' => 'تم رفض طلب التخصص',
+        'already_reviewed' => 'تمت مراجعة هذا الطلب مسبقاً',
     ],
 
     // ============================================

@@ -4,12 +4,12 @@ import type { Service } from '@/features/services/types';
 
 export interface ClinicServiceFormValues {
   name: string;
-  custom_category_id?: number | null;
   sub_clinic_id?: number | null;
   description?: string | null;
   price: number;
   old_price?: number | null;
   offer_expires_at?: string | null;
+  is_featured_offer?: boolean;
   is_active: boolean;
   sort_order?: number;
 }

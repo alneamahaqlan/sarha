@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3 } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -12,6 +12,7 @@ import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
 import { useAdminNavBadges, type AdminNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
+import { Logo } from '@/components/ui/Logo';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
@@ -45,6 +46,7 @@ const adminNav = [
     items: [
       { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
       { to: '/admin/categories', label: 'nav.categories', icon: Tag },
+      { to: '/admin/category-requests', label: 'nav.category_requests', icon: Tags },
       { to: '/admin/admins', label: 'nav.admins', icon: Shield },
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
       { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
@@ -68,12 +70,12 @@ export function AdminLayout() {
   });
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+    <div className="flex min-h-screen flex-col bg-[var(--color-background)]">
       <ImpersonationBanner />
       <div className="flex flex-1">
       <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
-        <div className="border-b border-[var(--color-border)] px-5 py-4 text-lg font-semibold">
-          {t('brand')}
+        <div className="border-b border-[var(--color-border)] px-5 py-4">
+          <Logo size={36} />
         </div>
         <nav className="flex-1 space-y-2 overflow-y-auto p-2">
           {adminNav.map((entry, idx) => {

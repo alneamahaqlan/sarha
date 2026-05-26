@@ -21,6 +21,7 @@ const ComplaintsIndex     = lazy(() => import('@/features/complaints/pages/Compl
 const SalesLeadsIndex     = lazy(() => import('@/features/sales-leads/pages/SalesLeadsIndex').then(m => ({ default: m.SalesLeadsIndex })));
 const ClinicsIndex        = lazy(() => import('@/features/clinics/pages/ClinicsIndex').then(m => ({ default: m.ClinicsIndex })));
 const ClinicStatsPage     = lazy(() => import('@/features/clinics/pages/ClinicStatsPage').then(m => ({ default: m.ClinicStatsPage })));
+const ClinicStructurePage = lazy(() => import('@/features/clinics/pages/ClinicStructurePage').then(m => ({ default: m.ClinicStructurePage })));
 const AnalyticsPage       = lazy(() => import('@/features/analytics/pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const SubscriptionsIndex  = lazy(() => import('@/features/subscriptions/pages/SubscriptionsIndex').then(m => ({ default: m.SubscriptionsIndex })));
 const PriceQuotesIndex    = lazy(() => import('@/features/price-quotes/pages/PriceQuotesIndex').then(m => ({ default: m.PriceQuotesIndex })));
@@ -28,10 +29,16 @@ const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/Audit
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
 const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
+const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
 
 const ClinicDashboardPage = lazy(() => import('@/features/clinic/dashboard/pages/ClinicDashboardPage').then(m => ({ default: m.ClinicDashboardPage })));
+const ClinicMyStatsPage   = lazy(() => import('@/features/clinic/stats/pages/ClinicMyStatsPage').then(m => ({ default: m.ClinicMyStatsPage })));
 const ClinicServicesIndex = lazy(() => import('@/features/clinic/services/pages/ClinicServicesIndex').then(m => ({ default: m.ClinicServicesIndex })));
-const ClinicCategoriesIndex = lazy(() => import('@/features/clinic/categories/pages/ClinicCategoriesIndex').then(m => ({ default: m.ClinicCategoriesIndex })));
+const ClinicSubClinicsIndex = lazy(() => import('@/features/clinic/sub-clinics/pages/ClinicSubClinicsIndex').then(m => ({ default: m.ClinicSubClinicsIndex })));
+const ClinicDoctorsIndex  = lazy(() => import('@/features/clinic/doctors/pages/ClinicDoctorsIndex').then(m => ({ default: m.ClinicDoctorsIndex })));
+const ClinicPackagesIndex = lazy(() => import('@/features/clinic/packages/pages/ClinicPackagesIndex').then(m => ({ default: m.ClinicPackagesIndex })));
+const ClinicComplaintsIndex = lazy(() => import('@/features/clinic/complaints/pages/ClinicComplaintsIndex').then(m => ({ default: m.ClinicComplaintsIndex })));
+const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
 const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/ClinicArticlesIndex').then(m => ({ default: m.ClinicArticlesIndex })));
@@ -81,6 +88,7 @@ export function AppRoutes() {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="clinics" element={<ClinicsIndex />} />
               <Route path="clinics/:id/stats" element={<ClinicStatsPage />} />
+              <Route path="clinics/:id/structure" element={<ClinicStructurePage />} />
               <Route path="bookings" element={<BookingsIndex />} />
               <Route path="complaints" element={<ComplaintsIndex />} />
               <Route path="sales-leads" element={<SalesLeadsIndex />} />
@@ -95,6 +103,7 @@ export function AppRoutes() {
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
+              <Route path="category-requests" element={<CategoryRequestsIndex />} />
             </Route>
           </Route>
           <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />
@@ -113,10 +122,15 @@ export function AppRoutes() {
             <Route path="clinic">
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<ClinicDashboardPage />} />
+              <Route path="stats" element={<ClinicMyStatsPage />} />
               <Route path="services" element={<ClinicServicesIndex />} />
-              <Route path="categories" element={<ClinicCategoriesIndex />} />
+              <Route path="sub-clinics" element={<ClinicSubClinicsIndex />} />
+              <Route path="doctors" element={<ClinicDoctorsIndex />} />
+              <Route path="packages" element={<ClinicPackagesIndex />} />
+              <Route path="before-after" element={<ClinicBeforeAfterIndex />} />
               <Route path="bookings" element={<ClinicBookingsIndex />} />
               <Route path="price-quotes" element={<ClinicQuotesIndex />} />
+              <Route path="complaints" element={<ClinicComplaintsIndex />} />
               <Route path="articles" element={<ClinicArticlesIndex />} />
               <Route path="import-services" element={<ImportServicesPage />} />
               <Route path="subscription" element={<ClinicSubscriptionPage />} />
@@ -146,9 +160,9 @@ export function AppRoutes() {
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-4 p-8 text-center">
       <p className="text-sm text-[var(--color-muted-foreground)]">
-        هذا الحساب لا يملك لوحة تحكم. سجّل الدخول بحساب مدير أو عيادة.
+        هذا الحساب لا يملك لوحة تحكم. سجّل الدخول بحساب مدير أو مجمع.
         <br />
-        This account has no panel. Please sign in as an admin or clinic.
+        This account has no panel. Please sign in as an admin or complex.
       </p>
       <button
         type="button"

@@ -31,6 +31,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->statefulApi();
 
+        // sendBeacon click tracker can't carry a CSRF token.
+        $middleware->validateCsrfTokens(except: ['track/click']);
+
         $middleware->alias([
             'api.guard'   => \App\Http\Middleware\EnsureApiGuard::class,
             'api.locale'  => \App\Http\Middleware\SetLocale::class,

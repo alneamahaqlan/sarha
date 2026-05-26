@@ -10,6 +10,8 @@ class UploadFileRequest extends FormRequest
         'clinics/logos',
         'clinics/gallery',
         'articles',
+        'doctors',
+        'before-after',
     ];
 
     public function authorize(): bool

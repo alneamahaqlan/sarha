@@ -34,8 +34,11 @@ class DemoSeeder extends Seeder
         $this->seedAdmins();
         $this->seedUsers();
         $this->seedClinics();
-        $this->seedClinicChildren();   // working hours, custom categories, sub-clinics, pivot
+        $this->seedClinicChildren();   // working hours, sub-clinics, category pivot
         $this->seedServices();
+        $this->seedFeaturedOffers();
+        $this->seedDoctors();
+        $this->seedPackages();
         $this->seedArticles();
         $this->seedBookings();
         $this->seedPriceQuotes();
@@ -233,17 +236,6 @@ class DemoSeeder extends Seeder
                 }
             }
 
-            // custom categories (2 per clinic)
-            if (! DB::table('custom_categories')->where('clinic_id', $cid)->exists()) {
-                foreach (['الباقات', 'العروض'] as $idx => $cc) {
-                    DB::table('custom_categories')->insert([
-                        'clinic_id' => $cid, 'name' => $cc, 'emoji' => $idx === 0 ? '📦' : '🏷️',
-                        'is_active' => true, 'sort_order' => $idx,
-                        'created_at' => $this->now, 'updated_at' => $this->now,
-                    ]);
-                }
-            }
-
             // sub-clinics (2 per clinic)
             if (! DB::table('sub_clinics')->where('clinic_id', $cid)->exists()) {
                 foreach (['القسم الرئيسي', 'الفرع النسائي'] as $idx => $sc) {
@@ -261,29 +253,145 @@ class DemoSeeder extends Seeder
     {
         if (DB::table('services')->count() >= 40) return;
         $clinicIds = $this->ids('clinics');
-        $catByClinic = DB::table('custom_categories')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+        // Sub-clinics grouped by clinic — services are distributed among them.
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
         $names = ['تنظيف الأسنان', 'تبييض الأسنان', 'حشوة تجميلية', 'كشف عام', 'تقشير البشرة', 'فيلر', 'بوتكس', 'فحص نظر', 'عدسات لاصقة', 'جلسة ليزر', 'تحليل دم شامل', 'أشعة سينية', 'استشارة تغذية', 'جلسة علاج طبيعي', 'تركيب تقويم'];
 
         foreach ($clinicIds as $cid) {
             $count = DB::table('services')->where('clinic_id', $cid)->count();
             if ($count >= 3) continue;
-            $ccs = $catByClinic[$cid] ?? collect();
+            $subs = $subsByClinic[$cid] ?? collect();
             for ($j = $count; $j < 3; $j++) {
+                // First two services go to the two sub-clinics; the third stays
+                // "general" (no sub-clinic) so we exercise that UI bucket too.
+                $sub = ($j < 2 && $subs->isNotEmpty()) ? $subs[$j % $subs->count()] : null;
                 $price = rand(100, 2000);
                 $hasOffer = rand(0, 2) === 0;
                 DB::table('services')->insert([
-                    'clinic_id'          => $cid,
-                    'sub_clinic_id'      => null,
-                    'custom_category_id' => $ccs->isNotEmpty() ? $ccs->random()->id : null,
-                    'name'               => $this->pick($names),
-                    'description'        => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
-                    'price'              => $price,
-                    'old_price'          => $hasOffer ? $price + rand(50, 500) : null,
-                    'offer_expires_at'   => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
-                    'is_active'          => true,
-                    'sort_order'         => $j,
-                    'created_at'         => $this->ts(rand(1, 120)),
-                    'updated_at'         => $this->now,
+                    'clinic_id'        => $cid,
+                    'sub_clinic_id'    => $sub?->id,
+                    'name'             => $this->pick($names),
+                    'description'      => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
+                    'price'            => $price,
+                    'old_price'         => $hasOffer ? $price + rand(50, 500) : null,
+                    'offer_expires_at'  => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
+                    'is_featured_offer' => $hasOffer,
+                    'is_active'         => true,
+                    'sort_order'        => $j,
+                    'created_at'        => $this->ts(rand(1, 120)),
+                    'updated_at'        => $this->now,
+                ]);
+            }
+        }
+    }
+
+    /** Flag discounted services as "featured offers" so the offers tab has demo data. */
+    private function seedFeaturedOffers(): void
+    {
+        DB::table('services')
+            ->whereNotNull('old_price')
+            ->where('is_featured_offer', false)
+            ->update(['is_featured_offer' => true]);
+    }
+
+    private function seedDoctors(): void
+    {
+        $this->backfillDoctorDetails();
+        if (DB::table('doctors')->count() >= 24) return;
+        $specialties = ['استشاري جراحة عامة', 'أخصائي أسنان', 'استشاري جلدية', 'أخصائي عيون', 'استشاري نساء وولادة', 'أخصائي أطفال', 'استشاري عظام', 'أخصائي باطنية'];
+        $first = ['د. أحمد', 'د. سارة', 'د. خالد', 'د. نورة', 'د. محمد', 'د. ريم', 'د. عبدالله', 'د. منى'];
+        $last  = ['العتيبي', 'الزهراني', 'القحطاني', 'الشمري', 'الدوسري', 'الحربي', 'الغامدي', 'المالكي'];
+        $female = ['د. سارة', 'د. نورة', 'د. ريم', 'د. منى'];
+        $universities = ['جامعة الملك سعود', 'جامعة الملك عبدالعزيز', 'جامعة الملك فيصل', 'جامعة القاهرة', 'جامعة الأردن'];
+        $langs = ['العربية، الإنجليزية', 'العربية', 'العربية، الإنجليزية، الأردية'];
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+
+        foreach ($this->ids('clinics') as $cid) {
+            if (DB::table('doctors')->where('clinic_id', $cid)->exists()) continue;
+            $subs = $subsByClinic[$cid] ?? collect();
+            $n = rand(2, 4);
+            for ($j = 0; $j < $n; $j++) {
+                $fn = $this->pick($first);
+                DB::table('doctors')->insert([
+                    'clinic_id'        => $cid,
+                    'sub_clinic_id'    => $subs->isNotEmpty() ? $subs->random()->id : null,
+                    'name'             => $fn . ' ' . $this->pick($last),
+                    'specialty'        => $this->pick($specialties),
+                    'gender'           => in_array($fn, $female, true) ? 'female' : 'male',
+                    'photo'            => null,
+                    'bio'              => 'خبرة واسعة في تشخيص وعلاج الحالات بأحدث التقنيات الطبية.',
+                    'qualifications'   => 'بورد سعودي، زمالة في التخصص الدقيق.',
+                    'years_experience' => rand(3, 25),
+                    'university'       => $this->pick($universities),
+                    'languages'        => $this->pick($langs),
+                    'is_active'        => true,
+                    'sort_order'       => $j,
+                    'created_at'       => $this->now,
+                    'updated_at'       => $this->now,
+                ]);
+            }
+        }
+    }
+
+    /** Fill the new doctor-detail columns for existing demo doctors (idempotent). */
+    private function backfillDoctorDetails(): void
+    {
+        if (DB::table('doctors')->whereNotNull('gender')->exists()) {
+            return;
+        }
+
+        foreach (['سارة', 'نورة', 'ريم', 'منى'] as $fn) {
+            DB::table('doctors')->where('name', 'like', '%' . $fn . '%')->update(['gender' => 'female']);
+        }
+        DB::table('doctors')->whereNull('gender')->update(['gender' => 'male']);
+
+        DB::table('doctors')->update([
+            'qualifications' => 'بورد سعودي، زمالة في التخصص الدقيق.',
+            'university'     => 'جامعة الملك سعود',
+            'languages'     => 'العربية، الإنجليزية',
+        ]);
+
+        // Link each doctor to a department of its own complex.
+        $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+        DB::table('doctors')->orderBy('id')->select('id', 'clinic_id')->each(function ($d) use ($subsByClinic) {
+            $subs = $subsByClinic[$d->clinic_id] ?? collect();
+            if ($subs->isNotEmpty()) {
+                DB::table('doctors')->where('id', $d->id)->update(['sub_clinic_id' => $subs->random()->id]);
+            }
+        });
+    }
+
+    private function seedPackages(): void
+    {
+        if (DB::table('packages')->count() >= 12) return;
+        $names = ['باقة العناية المتكاملة', 'باقة الابتسامة', 'باقة الفحص الشامل', 'باقة التجميل', 'باقة الأمومة'];
+        $svcByClinic = DB::table('services')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+
+        foreach ($this->ids('clinics') as $cid) {
+            if (DB::table('packages')->where('clinic_id', $cid)->exists()) continue;
+            $svc = $svcByClinic[$cid] ?? collect();
+            if ($svc->count() < 2) continue;
+
+            $price = rand(300, 1500);
+            $packageId = DB::table('packages')->insertGetId([
+                'clinic_id'   => $cid,
+                'name'        => $this->pick($names),
+                'description' => 'باقة مميزة تجمع عدة خدمات بسعر موفّر.',
+                'price'       => $price,
+                'old_price'   => $price + rand(100, 600),
+                'expires_at'  => $this->now->copy()->addDays(rand(10, 60))->toDateString(),
+                'is_active'   => true,
+                'sort_order'  => 0,
+                'created_at'  => $this->now,
+                'updated_at'  => $this->now,
+            ]);
+
+            foreach ($svc->take(rand(2, min(3, $svc->count()))) as $s) {
+                DB::table('package_service')->insert([
+                    'package_id' => $packageId,
+                    'service_id' => $s->id,
+                    'created_at' => $this->now,
+                    'updated_at' => $this->now,
                 ]);
             }
         }
@@ -364,6 +472,61 @@ class DemoSeeder extends Seeder
                 'updated_at'     => $this->now,
             ]);
         }
+
+        $this->seedBroadcastQuotes();
+    }
+
+    /** Broadcast quote requests (no clinic) targeting cities, with public/private replies. */
+    private function seedBroadcastQuotes(): void
+    {
+        if (DB::table('price_quote_requests')->whereNull('clinic_id')->count() >= 10) {
+            return;
+        }
+
+        $cityIds = collect($this->ids('cities'));
+        $userIds = $this->ids('users');
+        $services = ['زراعة أسنان', 'عملية ليزك', 'جلسات تنحيف', 'تقويم شفاف', 'باقة عناية شاملة'];
+        $clinicsByCity = DB::table('clinics')->where('status', 'active')->get(['id', 'city_id'])->groupBy('city_id');
+
+        for ($i = 0; $i < 10; $i++) {
+            $cities = $cityIds->shuffle()->take(rand(1, 2))->values();
+
+            $reqId = DB::table('price_quote_requests')->insertGetId([
+                'clinic_id'      => null,
+                'user_id'        => $this->pick($userIds),
+                'customer_name'  => 'طالب عرض ' . ($i + 1),
+                'customer_phone' => $this->phone(600000 + $i),
+                'service_name'   => $this->pick($services),
+                'description'    => 'أرغب بمعرفة السعر التقريبي والمدة وأقرب موعد متاح، مع تفاصيل الباقة إن وُجدت.',
+                'status'         => 'replied',
+                'created_at'     => $this->ts(rand(0, 20)),
+                'updated_at'     => $this->now,
+            ]);
+
+            foreach ($cities as $cid) {
+                DB::table('price_quote_request_city')->insertOrIgnore([
+                    'price_quote_request_id' => $reqId,
+                    'city_id'                => $cid,
+                ]);
+            }
+
+            $clinics = collect();
+            foreach ($cities as $cid) {
+                $clinics = $clinics->merge($clinicsByCity[$cid] ?? collect());
+            }
+
+            foreach ($clinics->take(rand(1, 3))->values() as $idx => $clinic) {
+                DB::table('price_quote_replies')->insertOrIgnore([
+                    'price_quote_request_id' => $reqId,
+                    'clinic_id'              => $clinic->id,
+                    'body'                   => 'يسعدنا خدمتك. السعر يبدأ من ' . rand(500, 5000) . ' ريال حسب الحالة، ويمكن تحديد موعد خلال 48 ساعة.',
+                    'price'                  => rand(500, 5000),
+                    'is_public'              => $idx === 0, // first reply is public (feeds the board)
+                    'created_at'             => $this->now,
+                    'updated_at'             => $this->now,
+                ]);
+            }
+        }
     }
 
     private function seedGoogleReviews(): void
@@ -416,20 +579,50 @@ class DemoSeeder extends Seeder
     private function seedClinicStats(): void
     {
         $clinicIds = $this->ids('clinics');
+        $days = 90; // ~3 months of history so trends/charts look alive
+
         foreach ($clinicIds as $cid) {
-            if (DB::table('clinic_stats')->where('clinic_id', $cid)->count() >= 5) continue;
-            for ($d = 0; $d < 5; $d++) {
-                DB::table('clinic_stats')->insertOrIgnore([
+            // Idempotent: skip clinics already enriched with engagement clicks
+            // (older runs seeded 5 click-less days; this fills/extends them once).
+            if (DB::table('clinic_stats')->where('clinic_id', $cid)->where('directions_clicks', '>', 0)->exists()) {
+                continue;
+            }
+
+            $rows = [];
+            for ($d = 0; $d < $days; $d++) {
+                $date = $this->now->copy()->subDays($d);
+                // Thu/Fri are the busy days in KSA — give them a gentle boost.
+                $boost = in_array((int) $date->dayOfWeek, [4, 5], true) ? 1.3 : 1.0;
+
+                $views       = max(1, (int) round(rand(20, 220) * $boost));
+                $appearances = $views + rand(40, 400);                 // impressions > visits
+                $bookings    = intdiv($views, rand(15, 30)) + rand(0, 2);
+                $quotes      = intdiv($views, rand(25, 60)) + rand(0, 1);
+
+                $rows[] = [
                     'clinic_id'            => $cid,
-                    'date'                 => $this->now->copy()->subDays($d)->toDateString(),
-                    'search_appearances'   => rand(10, 300),
-                    'page_views'           => rand(5, 200),
-                    'bookings_count'       => rand(0, 15),
-                    'quote_requests_count' => rand(0, 8),
+                    'date'                 => $date->toDateString(),
+                    'search_appearances'   => $appearances,
+                    'page_views'           => $views,
+                    'bookings_count'       => $bookings,
+                    'quote_requests_count' => $quotes,
+                    // Engagement clicks correlate with page views.
+                    'whatsapp_clicks'      => (int) round($views * (rand(6, 16) / 100)),
+                    'call_clicks'          => (int) round($views * (rand(3, 10) / 100)),
+                    'directions_clicks'    => (int) round($views * (rand(4, 12) / 100)),
+                    'booking_clicks'       => $bookings + rand(0, 6),  // clicks ≥ submissions
                     'created_at'           => $this->now,
                     'updated_at'           => $this->now,
-                ]);
+                ];
             }
+
+            // upsert so the previously-seeded click-less days get backfilled too.
+            DB::table('clinic_stats')->upsert(
+                $rows,
+                ['clinic_id', 'date'],
+                ['search_appearances', 'page_views', 'bookings_count', 'quote_requests_count',
+                 'whatsapp_clicks', 'call_clicks', 'directions_clicks', 'booking_clicks', 'updated_at']
+            );
         }
     }
 
@@ -511,14 +704,17 @@ class DemoSeeder extends Seeder
         $types = ['quality', 'pricing', 'misleading_info', 'other'];
         $statuses = ['new', 'in_review', 'resolved', 'rejected'];
         $priorities = ['low', 'medium', 'high'];
+        $sources = ['customer', 'customer', 'clinic', 'admin'];
         for ($i = $existing; $i < $target; $i++) {
             $st = $this->pick($statuses);
+            $source = $this->pick($sources);
             DB::table('complaints')->insert([
                 'reference_code'    => 'CMP-' . strtoupper(Str::random(8)),
                 'clinic_id'         => $this->pick($clinicIds),
-                'user_id'           => rand(0, 1) ? $this->pick($userIds) : null,
+                'user_id'           => $source === 'customer' ? $this->pick($userIds) : null,
                 'booking_id'        => null,
-                'customer_name'     => 'مشتكٍ ' . ($i + 1),
+                'source'            => $source,
+                'customer_name'     => $source === 'clinic' ? ('مجمع ' . ($i + 1)) : ('مشتكٍ ' . ($i + 1)),
                 'customer_phone'    => $this->phone(800000 + $i),
                 'customer_email'    => rand(0, 1) ? 'c' . $i . '@mail.sa' : null,
                 'type'              => $this->pick($types),
@@ -534,6 +730,16 @@ class DemoSeeder extends Seeder
                 'created_at'        => $this->ts(rand(0, 50)),
                 'updated_at'        => $this->now,
             ]);
+        }
+
+        // Give the demo complaints a realistic source mix so the admin panel
+        // shows customer + complex + admin complaints (idempotent — runs once).
+        if (DB::table('complaints')->whereIn('source', ['customer', 'clinic'])->doesntExist()) {
+            $ids = DB::table('complaints')->pluck('id')->shuffle();
+            DB::table('complaints')->whereIn('id', $ids->take(8)->all())
+                ->update(['source' => 'clinic', 'user_id' => null]);
+            DB::table('complaints')->whereIn('id', $ids->slice(8, 10)->all())
+                ->update(['source' => 'customer', 'user_id' => $this->pick($userIds)]);
         }
     }
 
@@ -562,7 +768,7 @@ class DemoSeeder extends Seeder
         $target = 25;
         $existing = DB::table('audit_logs')->count();
         $admins = DB::table('admins')->get(['id', 'name']);
-        $actions = ['approved_Clinic', 'rejected_Clinic', 'suspended_Clinic', 'updated_Clinic', 'lead_converted', 'created_Subscription', 'updated_City'];
+        $actions = ['clinic.approved', 'clinic.rejected', 'clinic.suspended', 'clinic.updated', 'sales_lead.converted', 'subscription.created', 'city.updated'];
         for ($i = $existing; $i < $target; $i++) {
             $admin = $admins->random();
             DB::table('audit_logs')->insert([

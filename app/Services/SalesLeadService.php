@@ -42,6 +42,7 @@ class SalesLeadService
                 'license_number'         => $lead->license_number,
                 'password'               => bcrypt(Str::random(12)),
                 'city_id'                => $lead->city_id,
+                'district'               => $lead->district,
                 'address'                => $lead->address,
                 'status'                 => 'active',
                 'subscription_type'      => $plan,

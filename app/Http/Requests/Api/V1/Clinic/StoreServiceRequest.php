@@ -19,13 +19,13 @@ class StoreServiceRequest extends FormRequest
 
         return [
             'name'               => ['required', 'string', 'max:255'],
-            // Category / sub-clinic must belong to the authenticated clinic (Filament scopes options to clinic_id).
-            'custom_category_id' => ['nullable', 'integer', Rule::exists('custom_categories', 'id')->where('clinic_id', $clinicId)],
+            // The clinic (sub-clinic) a service belongs to must be owned by the authenticated complex.
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],
             'price'              => ['required', 'numeric', 'min:0'],
             'old_price'          => ['nullable', 'numeric', 'min:0'],
             'offer_expires_at'   => ['nullable', 'date', 'after:today'],
+            'is_featured_offer'  => ['nullable', 'boolean'],
             'is_active'          => ['nullable', 'boolean'],
             'sort_order'         => ['nullable', 'integer'],
         ];

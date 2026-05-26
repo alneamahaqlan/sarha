@@ -32,7 +32,7 @@ class ComplaintController extends Controller
             });
         }
 
-        foreach (['status', 'type', 'priority', 'clinic_id'] as $f) {
+        foreach (['status', 'type', 'priority', 'clinic_id', 'source'] as $f) {
             if ($val = $request->input("filter.{$f}")) {
                 $query->where($f, $val);
             }

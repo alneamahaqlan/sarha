@@ -7,9 +7,9 @@
 
     {{-- Breadcrumb --}}
     <nav class="text-sm text-gray-500 mb-6">
-        <a href="{{ route('home') }}" class="hover:text-teal-600">@lang('site.breadcrumb_home')</a>
+        <a href="{{ route('home') }}" class="hover:text-sage-600">@lang('site.breadcrumb_home')</a>
         <span class="mx-2">/</span>
-        <a href="{{ route('clinic.show', $clinic->slug) }}" class="hover:text-teal-600">{{ $clinic->name }}</a>
+        <a href="{{ route('clinic.show', $clinic->slug) }}" class="hover:text-sage-600">{{ $clinic->name }}</a>
         <span class="mx-2">/</span>
         <span class="text-gray-800">@lang('site.book_appointment')</span>
     </nav>
@@ -36,26 +36,50 @@
                     </div>
                 @endif
 
+                @if(session('otp_required'))
+                    {{-- One-time verification step (first booking → registers the customer). --}}
+                    <div class="bg-sage-50 border border-sage-200 text-sage-900 rounded-lg p-4 text-sm mb-5 space-y-1">
+                        <p class="font-semibold">@lang('site.otp_step_title')</p>
+                        <p>@lang('site.otp_step_intro')</p>
+                        <p class="text-xs text-sage-700">{{ __('site.otp_sent_to', ['phone' => session('otp_phone')]) }}</p>
+                        @if(session('dev_code'))
+                            <p class="text-xs font-mono bg-white inline-block px-2 py-1 rounded border border-sage-200">DEV: {{ session('dev_code') }}</p>
+                        @endif
+                    </div>
+
+                    <form method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
+                        @csrf
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
+                            <input type="text" name="code" inputmode="numeric" maxlength="6" required autofocus
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 text-center tracking-[0.5em] text-lg focus:outline-none focus:ring-2 focus:ring-sage-400" dir="ltr">
+                        </div>
+                        <p class="text-xs text-gray-500">@lang('site.otp_step_terms')</p>
+                        <button type="submit" class="w-full bg-sage-600 text-white py-3.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors text-lg">
+                            @lang('site.otp_verify_submit')
+                        </button>
+                    </form>
+                @else
                 <form method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5">
                     @csrf
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.full_name') <span class="text-red-500">*</span></label>
-                        <input type="text" name="customer_name" value="{{ old('customer_name', auth('web')->user()?->name) }}"
-                               required class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                        <input type="text" name="customer_name" value="{{ old('customer_name', auth('web')->user()?->name ?? ($identity['name'] ?? '')) }}"
+                               required class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.phone_number') <span class="text-red-500">*</span></label>
-                        <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth('web')->user()?->phone) }}"
+                        <input type="tel" name="customer_phone" value="{{ old('customer_phone', auth('web')->user()?->phone ?? ($identity['phone'] ?? '')) }}"
                                required pattern="05[0-9]{8}" placeholder="05XXXXXXXX"
-                               class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400" dir="ltr">
+                               class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400" dir="ltr">
                     </div>
 
                     @if($clinic->services->isNotEmpty())
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.requested_service')</label>
-                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400">
+                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
                                 <option value="">@lang('site.not_specified')</option>
                                 @foreach($clinic->services as $svc)
                                     <option value="{{ $svc->id }}" @selected(old('service_id', $service?->id) == $svc->id)>{{ $svc->name }}</option>
@@ -67,13 +91,18 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.notes_optional')</label>
                         <textarea name="notes" rows="4" maxlength="1000"
-                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-400">{{ old('notes') }}</textarea>
+                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes') }}</textarea>
                     </div>
 
-                    <button type="submit" class="w-full bg-teal-600 text-white py-3.5 rounded-lg font-semibold hover:bg-teal-700 transition-colors text-lg">
+                    @guest('web')
+                        <p class="text-xs text-gray-500">@lang('site.otp_step_terms')</p>
+                    @endguest
+
+                    <button type="submit" class="w-full bg-sage-600 text-white py-3.5 rounded-lg font-semibold hover:bg-sage-700 transition-colors text-lg">
                         @lang('site.submit_booking')
                     </button>
                 </form>
+                @endif
             </div>
         </div>
 
@@ -100,7 +129,7 @@
                             <p class="text-gray-500 mb-0.5">@lang('site.booking_target_service')</p>
                             <p class="font-medium text-gray-800">{{ $service->name }}</p>
                             @if($service->price)
-                                <p class="text-teal-700 font-bold mt-1">
+                                <p class="text-sage-700 font-bold mt-1">
                                     {{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                                 </p>
                             @endif

@@ -3,9 +3,14 @@
 use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\Public\AccountController;
+use App\Http\Controllers\Public\ArticleController;
 use App\Http\Controllers\Public\ClinicController;
+use App\Http\Controllers\Public\ClinicRegistrationController;
+use App\Http\Controllers\Public\CompareController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\TrackingController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
@@ -32,13 +37,37 @@ Route::get('/lang/{locale}', [LanguageController::class, 'switch'])
 // Public website
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/search/suggest', [SearchController::class, 'suggest'])->middleware('throttle:60,1')->name('search.suggest');
+Route::get('/compare', [CompareController::class, 'index'])->name('compare');
+
+// Fire-and-forget click tracking for clinic action buttons (sendBeacon, CSRF-excluded).
+Route::post('/track/click', [TrackingController::class, 'click'])
+    ->middleware('throttle:120,1')
+    ->name('track.click');
 Route::get('/clinic/{slug}', [ClinicController::class, 'show'])->name('clinic.show');
 Route::get('/clinic/{slug}/book', [ClinicController::class, 'bookingForm'])->name('clinic.book.form');
 Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->name('clinic.book');
+Route::post('/clinic/{slug}/book/verify', [ClinicController::class, 'bookVerify'])->name('clinic.book.verify');
 Route::post('/clinic/{slug}/quote', [ClinicController::class, 'priceQuote'])->name('clinic.quote');
 Route::get('/booking/{reference}', [ClinicController::class, 'bookingConfirmation'])
     ->where('reference', '[A-Z0-9-]+')
     ->name('booking.confirmation');
+
+// Broadcast price-quote requests (not tied to a single clinic).
+Route::get('/quotes', [QuoteController::class, 'board'])->name('quotes.board');
+Route::get('/quotes/new', [QuoteController::class, 'requestForm'])->name('quotes.request');
+Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
+Route::post('/quotes/verify', [QuoteController::class, 'storeVerify'])->name('quotes.verify');
+Route::get('/quotes/{quoteRequest}', [QuoteController::class, 'show'])->whereNumber('quoteRequest')->name('quotes.show');
+
+// Standalone article page (SEO) — published articles of publicly-visible clinics.
+Route::get('/article/{slug}', [ArticleController::class, 'show'])->name('article.show');
+
+// Public "List your complex" — creates a SalesLead for the admin pipeline.
+Route::get('/register-clinic', [ClinicRegistrationController::class, 'show'])->name('clinic.register');
+Route::post('/register-clinic', [ClinicRegistrationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('clinic.register.submit');
 
 // Customer OTP auth
 Route::middleware('guest:web')->group(function () {
@@ -54,5 +83,8 @@ Route::middleware('auth:web')->group(function () {
     Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
     Route::get('/account/bookings', [AccountController::class, 'bookings'])->name('account.bookings');
     Route::get('/account/favorites', [AccountController::class, 'favorites'])->name('account.favorites');
+    Route::get('/account/quotes', [AccountController::class, 'quotes'])->name('account.quotes');
+    Route::get('/account/complaints', [AccountController::class, 'complaints'])->name('account.complaints');
+    Route::post('/account/complaints', [AccountController::class, 'storeComplaint'])->name('account.complaints.store');
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
 });

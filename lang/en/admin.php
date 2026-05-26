@@ -4,8 +4,8 @@ return [
     // ============================================
     // Brand
     // ============================================
-    'admin_brand' => 'Saerha — Admin Panel',
-    'clinic_brand' => 'Saerha — Complex Panel',
+    'admin_brand' => 'Medical Complexes Directory — Admin Panel',
+    'clinic_brand' => 'Medical Complexes Directory — Complex Panel',
 
     // ============================================
     // Navigation groups (admin)
@@ -59,8 +59,6 @@ return [
     'res_system_settings' => 'System Settings',
     'res_system_setting' => 'Setting',
     'res_system_settings_plural' => 'Settings',
-    'res_custom_category' => 'Custom category',
-    'res_custom_categorys' => 'My custom categories',
 
     // ============================================
     // Form/Table field labels
@@ -264,7 +262,7 @@ return [
         'premium' => 'Premium',
         'basic_priced' => 'Basic (300 SAR)',
         'premium_priced' => 'Premium (400 SAR)',
-        'premium_with_star' => 'Premium ⭐',
+        'premium_with_star' => 'Premium',
     ],
 
     // ============================================
@@ -382,8 +380,13 @@ return [
         'new_complaint_title' => 'New complaint',
         'new_complaint_body'  => ':subject',
 
+        'new_lead_title' => 'New complex registration',
+        'new_lead_body'  => ':clinic requested to join — review in the sales pipeline',
+
         'new_quote_title' => 'New price quote request',
         'new_quote_body'  => 'Service: :service',
+        'broadcast_quote_title' => 'New price quote request in your city',
+        'broadcast_quote_body'  => 'Service: :service — reply quickly to win the customer',
 
         'lead_converted_title' => 'Lead converted',
         'lead_converted_body'  => ':clinic is now an active complex',
@@ -420,7 +423,7 @@ return [
     'ai' => [
         'title_first' => 'Please enter the article title first',
         'not_configured' => 'Claude API key is not configured. Add ANTHROPIC_API_KEY to .env',
-        'generated' => 'Generated successfully ✨',
+        'generated' => 'Generated successfully',
         'failed' => 'Generation failed',
         'excel_analyzing' => 'Analyzing file…',
         'excel_done' => 'Analysis complete',
@@ -449,8 +452,17 @@ return [
         'old_price_helper' => 'When filled, must be greater than current price and the offer expiry becomes required',
         'offer_expires_helper' => 'Required when an old price is set (so the offer badge can be displayed)',
         'profile_saved' => 'Changes saved successfully',
-        'city_has_clinics' => 'Cannot delete a city that has clinics',
-        'category_has_clinics' => 'Cannot delete a category that has clinics',
+        'city_has_clinics' => 'Cannot delete a city that has complexes',
+        'category_has_clinics' => 'Cannot delete a category that has complexes',
+        'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
+    ],
+
+    // Specialty (category) requests submitted by complexes
+    'category_requests' => [
+        'submitted' => 'Your specialty request was sent to the admins for review',
+        'approved' => 'Specialty approved and added',
+        'rejected' => 'Specialty request rejected',
+        'already_reviewed' => 'This request has already been reviewed',
     ],
 
     // ============================================

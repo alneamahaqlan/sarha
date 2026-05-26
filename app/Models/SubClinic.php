@@ -40,4 +40,10 @@ class SubClinic extends Model
     {
         return $this->hasMany(Service::class)->where('is_active', true)->orderBy('sort_order');
     }
+
+    /** All services (active + inactive) — used for counts and the delete guard. */
+    public function allServices()
+    {
+        return $this->hasMany(Service::class);
+    }
 }

@@ -20,6 +20,7 @@ class UpdateProfileRequest extends FormRequest
             'phone'       => ['sometimes', 'required', 'string', 'max:20'],
             'email'       => ['nullable', 'email', 'max:255'],
             'address'     => ['nullable', 'string'],
+            'district'    => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'website'     => ['nullable', 'url'],
             'instagram'   => ['nullable', 'string', 'max:255'],

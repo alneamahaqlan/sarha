@@ -59,7 +59,7 @@ export function AiChatWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 end-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-white shadow-lg hover:opacity-90"
+          className="fixed bottom-5 end-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-plum-primary text-white shadow-lg hover:opacity-90"
           aria-label={t('ai_chat.open')}
         >
           <Sparkles className="h-5 w-5" />
@@ -70,7 +70,7 @@ export function AiChatWidget() {
         <div className="fixed bottom-5 end-5 z-40 flex h-[28rem] w-80 flex-col rounded-lg border border-[var(--color-border)] bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-[var(--color-border)] px-3 py-2">
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Sparkles className="h-4 w-4 text-[var(--color-primary)]" />
+              <Sparkles className="h-4 w-4 text-plum-primary" />
               {t('ai_chat.title')}
             </div>
             <button type="button" onClick={() => setOpen(false)} aria-label={t('common.cancel')} className="text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">

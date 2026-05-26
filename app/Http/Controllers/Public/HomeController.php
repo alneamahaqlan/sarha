@@ -6,16 +6,26 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Service;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends Controller
 {
     public function index()
     {
+        // Aggregates needed by clinic-card (min_price) + SmartBadges
+        // (google_reviews_avg_rating, bookings_count, min_price). Loaded on every
+        // homepage list so badges and the "starting from" price render correctly.
+        $minPrice = fn ($q) => $q->where('is_active', true)->whereNotNull('price');
+
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
         $cities = City::where('is_active', true)->orderBy('sort_order')->get();
         $featuredClinics = Clinic::publiclyVisible()
             ->where('is_featured', true)
             ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
             ->rankedForListing()
             ->take(8)
             ->get();
@@ -24,7 +34,8 @@ class HomeController extends Controller
             ->with(['city', 'categories'])
             ->whereHas('googleReviews')
             ->withAvg('googleReviews', 'rating')
-            ->withCount('googleReviews')
+            ->withCount(['googleReviews', 'bookings'])
+            ->withMin(['services as min_price' => $minPrice], 'price')
             ->orderByDesc('google_reviews_avg_rating')
             ->take(3)
             ->get();
@@ -32,7 +43,9 @@ class HomeController extends Controller
         $bestPricedClinics = Clinic::publiclyVisible()
             ->with(['city', 'categories'])
             ->whereHas('services', fn($q) => $q->where('is_active', true)->whereNotNull('price'))
-            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
             ->orderBy('min_price')
             ->take(3)
             ->get();
@@ -53,6 +66,17 @@ class HomeController extends Controller
             ])
             ->values();
 
-        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics', 'mapClinics'));
+        // Personalised greeting for signed-in customers (null for guests).
+        $user = auth('web')->user();
+
+        // Headline counters (cached 1h — cheap COUNTs that drive the animated stats band).
+        $stats = Cache::remember('home:stats:v1', now()->addHour(), fn () => [
+            'clinics'     => Clinic::publiclyVisible()->count(),
+            'cities'      => City::where('is_active', true)->count(),
+            'specialties' => Category::where('is_active', true)->count(),
+            'services'    => Service::where('is_active', true)->count(),
+        ]);
+
+        return view('public.home', compact('categories', 'cities', 'featuredClinics', 'topRatedClinics', 'bestPricedClinics', 'mapClinics', 'user', 'stats'));
     }
 }

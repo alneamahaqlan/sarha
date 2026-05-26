@@ -81,6 +81,38 @@ class ProfileController extends Controller
     }
 
     /**
+     * Synced Google reviews for the authenticated clinic (read-only display in
+     * the clinic panel). Data is populated by GooglePlacesService::syncReviews.
+     */
+    public function reviews(): JsonResponse
+    {
+        $clinic = auth('clinic')->user();
+        $base = $clinic->googleReviews()->where('is_visible', true);
+
+        $count = (clone $base)->count();
+        $average = $count > 0 ? round((clone $base)->avg('rating'), 1) : null;
+
+        $reviews = (clone $base)
+            ->latest('reviewed_at')
+            ->limit(20)
+            ->get(['id', 'reviewer_name', 'reviewer_photo', 'rating', 'review_text', 'reviewed_at'])
+            ->map(fn ($r) => [
+                'id'             => $r->id,
+                'reviewer_name'  => $r->reviewer_name,
+                'reviewer_photo' => $r->reviewer_photo,
+                'rating'         => (int) $r->rating,
+                'review_text'    => $r->review_text,
+                'reviewed_at'    => $r->reviewed_at?->toIso8601String(),
+            ]);
+
+        return response()->json(['data' => [
+            'average' => $average,
+            'count'   => $count,
+            'reviews' => $reviews,
+        ]]);
+    }
+
+    /**
      * Current subscription state + platform plan prices.
      */
     public function subscription(): JsonResponse
@@ -92,6 +124,11 @@ class ProfileController extends Controller
             ? now()->startOfDay()->diffInDays($endsAt->startOfDay())
             : 0;
 
+        // Platform contact — lets the clinic reach admin to renew/upgrade.
+        $phone = (string) SystemSetting::get('platform_phone', '');
+        $email = (string) SystemSetting::get('platform_email', '');
+        $whatsapp = preg_replace('/\D/', '', $phone);
+
         return response()->json([
             'data' => [
                 'subscription_type'      => $clinic->subscription_type,
@@ -102,6 +139,11 @@ class ProfileController extends Controller
                 'plans'                  => [
                     'basic'   => (float) SystemSetting::get('basic_subscription_price', 0),
                     'premium' => (float) SystemSetting::get('premium_subscription_price', 0),
+                ],
+                'contact'                => [
+                    'phone'    => $phone ?: null,
+                    'email'    => $email ?: null,
+                    'whatsapp' => $whatsapp ?: null,
                 ],
             ],
         ]);

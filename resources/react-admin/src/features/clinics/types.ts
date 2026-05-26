@@ -13,6 +13,7 @@ export interface Clinic {
   license_number: string | null;
   city_id: number;
   address: string | null;
+  district: string | null;
   description: string | null;
   logo: string | null;
   gallery: string[] | null;
@@ -20,9 +21,11 @@ export interface Clinic {
   instagram: string | null;
   twitter: string | null;
   snapchat: string | null;
+  tiktok: string | null;
   latitude: number | string | null;
   longitude: number | string | null;
   google_place_id: string | null;
+  maps_url: string | null;
   status: ClinicStatus;
   subscription_type: ClinicPlan | null;
   subscription_starts_at: string | null;
