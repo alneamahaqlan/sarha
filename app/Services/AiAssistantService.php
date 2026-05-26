@@ -175,6 +175,19 @@ class AiAssistantService
         'هذا', 'هذي', 'هذه', 'هذول', 'ذا', 'ذي', 'الأول', 'الثاني', 'الثالث',
         'اللي قبل', 'الذي قبل', 'ايّهم', 'أيهم', 'أيها', 'ايّها',
         'this', 'that', 'them', 'these', 'those', 'the first', 'the second',
+        // Detail / "tell me more about" requests — these refer to a previous list
+        'نبذة', 'نبذه', 'تفاصيل', 'فاصيل', 'اكثر معلومات', 'أكثر معلومات', 'مزيد', 'المزيد',
+        'حدثني', 'حدّثني', 'اخبرني', 'أخبرني', 'خبّرني', 'خبرني', 'كلمني',
+        'عنهم', 'عنها', 'عنه', 'عنّي', 'عني', 'عنّا', 'عنكم',
+        'tell me about', 'more about', 'about them', 'about it', 'details about',
+        // Meta — "I already told you" / "I gave you" — never a new search
+        'جبت لك', 'جبتلك', 'أعطيتك', 'اعطيتك', 'قلت لك', 'قلتلك', 'كلمتك',
+        'سبق وكلمتك', 'سبق وقلت', 'سبق وذكرت', 'ذكرت لك', 'ذكرتلك', 'اخبرتك', 'أخبرتك',
+        'قلتها', 'قلت لها', 'سبق قلت',
+        'i told you', 'i said', 'i already said', 'as i said',
+        // Negation / correction at the start of a turn
+        'لا ', 'لأ ', 'لا.', 'لأ.', 'مو ', 'مو هذا', 'مو ذا', 'مو كذا',
+        'no ', 'no.', 'not ', 'nope',
         // Acknowledgments / confirmations
         'تمام', 'زين', 'حسناً', 'حسنا', 'جيد', 'ممتاز', 'يا سلام', 'ok', 'okay', 'good', 'great', 'cool', 'nice',
         // Meta / explanation requests
@@ -351,7 +364,11 @@ class AiAssistantService
             && $this->isFollowUp($query, $history);
 
         // 5) Local clinic search — only when the query is a real new search.
-        $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId);
+        //    matchByKeyword takes $history so context (city/category mentioned
+        //    earlier in the chat) carries over: a bare "اسنان" after the user
+        //    said they're in Khobar must search Khobar+dental, not ask for the
+        //    city again.
+        $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId, $history);
 
         // 6) Free-form conversational reply via the active LLM.
         if ($this->providers->isConfigured() && $this->freeformEnabled()) {
@@ -379,7 +396,7 @@ class AiAssistantService
             return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect());
         }
         if ($clinics->isEmpty()) {
-            return $this->wrap('no_match', $this->smartNoMatchFallback($query), collect());
+            return $this->wrap('no_match', $this->smartNoMatchFallback($query, $history), collect());
         }
         return $this->wrap(
             'matched',
@@ -541,7 +558,7 @@ class AiAssistantService
      * city, a specialty hint — and asks a useful follow-up instead of just
      * dismissing the user.
      */
-    private function smartNoMatchFallback(string $query): string
+    private function smartNoMatchFallback(string $query, array $history = []): string
     {
         $name = $this->assistantName();
         $isEnglish = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1;
@@ -555,7 +572,36 @@ class AiAssistantService
                 : "بحثت عن د. {$doctor} ولم أجدها مسجّلة عندنا بهذا الاسم تحديداً — قد تكون مسجّلة بصيغة قريبة. هل تعرف اسم المجمع أو المدينة التي تعمل بها؟ بأيٍّ منهما أقدر أصل لها بسرعة. \n— {$name}";
         }
 
-        // (b) Just a single name / short phrase that could be anything — invite
+        // (b) Use what we already know from earlier turns. If the user said
+        //     they're in Khobar two messages ago and now types "أسنان" with
+        //     no Dental match in Khobar, we acknowledge BOTH facts instead of
+        //     asking for the city like a goldfish.
+        $ctx = $this->inferContextFromHistory($history);
+        $knownCity = null;
+        $knownCategory = null;
+        if ($ctx['city_id']) {
+            $knownCity = City::find($ctx['city_id'])?->display_name;
+        }
+        if ($ctx['category_id']) {
+            $knownCategory = Category::find($ctx['category_id'])?->display_name;
+        }
+        if ($knownCity || $knownCategory) {
+            if ($knownCity && $knownCategory) {
+                return $isEnglish
+                    ? "I remember you mentioned {$knownCity} and {$knownCategory} — but the combined search didn't return a clear match on our platform yet. Would you like me to widen the search (drop one of them), try a nearby city, or look for a specific doctor or service name instead? \n— {$name}"
+                    : "تذكّرت أنّك ذكرت {$knownCity} و{$knownCategory} — لكن البحث المشترك لم يُعطِ نتيجة واضحة عندنا حتى الآن. هل تحبّ أوسّع البحث (أرفع أحد الشرطين)، أو أجرّب مدينة قريبة، أو تذكر لي اسم طبيب أو خدمة محدّدة؟ \n— {$name}";
+            }
+            if ($knownCity) {
+                return $isEnglish
+                    ? "Got you — searching in {$knownCity}. To narrow it down, what kind of clinic (specialty) or service are you looking for? \n— {$name}"
+                    : "تمام — أبحث لك في {$knownCity}. لتضييق البحث، ما التخصص أو الخدمة اللي تحتاجها؟ (أسنان، أطفال، جلدية، عيون، عظام…) \n— {$name}";
+            }
+            return $isEnglish
+                ? "Got the specialty ({$knownCategory}). Which city should I look in? \n— {$name}"
+                : "ممتاز، فهمت التخصص ({$knownCategory}). في أي مدينة أبحث لك؟ \n— {$name}";
+        }
+
+        // (c) Just a single name / short phrase that could be anything — invite
         //     the user to add one more detail rather than dismissing them.
         $tokens = $this->tokenize($query);
         if (count($tokens) <= 2) {
@@ -1191,21 +1237,39 @@ MSG;
      * the purpose of *picking* clinics — that stays here so hallucinated
      * clinic names are structurally impossible.
      */
-    private function matchByKeyword(string $query, ?int $cityId): Collection
+    private function matchByKeyword(string $query, ?int $cityId, array $history = []): Collection
     {
         $base = Clinic::publiclyVisible()->with(['city', 'categories']);
 
         $tokens = $this->tokenize($query);
 
-        $resolvedCityId = $cityId ?? $this->firstMatchingCityId($tokens);
+        // Resolve city / category in three falls: explicit arg → current query
+        // → recent history. The history fall is what makes a bare "اسنان"
+        // after the user said "في الخبر" two turns ago still search Khobar+dental
+        // (instead of asking for the city again and looking like a goldfish).
+        // BUT: if the user mentions a fresh city in this turn, treat it as a
+        // topic shift and do NOT carry over the previous category — otherwise
+        // "زراعة في الخبر" after "مجمعات العيون" would search Khobar+Ophthalmology
+        // and miss the actual dental/hair-transplant clinics they want.
+        $historyCtx        = $this->inferContextFromHistory($history);
+        $currentCityId     = $this->firstMatchingCityId($tokens);
+        $currentCategory   = $this->firstMatchingCategory($tokens)
+            ?? $this->firstMatchingCategory([$query]);
+        $cityIsTopicShift  = $currentCityId !== null
+            && $historyCtx['city_id'] !== null
+            && $currentCityId !== $historyCtx['city_id'];
+
+        $resolvedCityId = $cityId
+            ?? $currentCityId
+            ?? $historyCtx['city_id'];
         if ($resolvedCityId) {
             $base->where('city_id', $resolvedCityId);
         }
 
-        $category = $this->firstMatchingCategory($tokens)
-            ?? $this->firstMatchingCategory([$query]);
-        if ($category) {
-            $base->whereHas('categories', fn($q) => $q->where('categories.id', $category->id));
+        $categoryId = $currentCategory?->id
+            ?? ($cityIsTopicShift ? null : $historyCtx['category_id']);
+        if ($categoryId) {
+            $base->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId));
         }
 
         $cheap = preg_match('/(رخيص|أرخص|أوفر|أقل سعر|cheap|cheapest|affordable)/iu', $query);
@@ -1221,14 +1285,29 @@ MSG;
             $base->rankedForListing();
         }
 
-        if (! $category && ! $resolvedCityId && ! empty($tokens)) {
+        // Direct doctor mention ("تعرف د. سحر؟") — surface their clinic.
+        // Done independently of the category-less keyword fallback below so
+        // the doctor lookup happens even when a city or category is set.
+        $doctorName = $this->extractDoctorName($query);
+        if ($doctorName !== null) {
+            $base->where(function ($q) use ($doctorName, $tokens) {
+                $q->orWhereHas('doctors', fn ($d) => $d->where('name', 'like', "%{$doctorName}%"));
+                // Also let the per-token fallback find them, since admins
+                // sometimes store "د. سحر العتيبي" as the full doctor name.
+                foreach ($tokens as $t) {
+                    if (mb_strlen($t) < 3) continue;
+                    $q->orWhereHas('doctors', fn ($d) => $d->where('name', 'like', "%{$t}%"));
+                }
+            });
+        } elseif (! $categoryId && ! $resolvedCityId && ! empty($tokens)) {
             $base->where(function ($q) use ($tokens) {
                 foreach ($tokens as $t) {
                     $q->orWhere('name', 'like', "%{$t}%")
                       ->orWhere('description', 'like', "%{$t}%")
                       ->orWhereHas('categories', fn ($c) => $c
                           ->where('name', 'like', "%{$t}%")
-                          ->orWhere('name_en', 'like', "%{$t}%"));
+                          ->orWhere('name_en', 'like', "%{$t}%"))
+                      ->orWhereHas('doctors', fn ($d) => $d->where('name', 'like', "%{$t}%"));
                 }
             });
         }
@@ -1252,9 +1331,14 @@ MSG;
     private function firstMatchingCityId(array $tokens): ?int
     {
         foreach ($tokens as $t) {
+            $variants = $this->withAlPrefixVariants($t);
             $city = City::query()
-                ->where(fn ($q) => $q->where('name', 'like', "%{$t}%")
-                    ->orWhere('name_en', 'like', "%{$t}%"))
+                ->where(function ($q) use ($variants) {
+                    foreach ($variants as $v) {
+                        $q->orWhere('name', 'like', "%{$v}%")
+                          ->orWhere('name_en', 'like', "%{$v}%");
+                    }
+                })
                 ->first(['id']);
             if ($city) return $city->id;
         }
@@ -1264,12 +1348,87 @@ MSG;
     private function firstMatchingCategory(array $tokens): ?Category
     {
         foreach ($tokens as $t) {
+            $variants = $this->withAlPrefixVariants($t);
             $cat = Category::query()
-                ->where(fn ($q) => $q->where('name', 'like', "%{$t}%")
-                    ->orWhere('name_en', 'like', "%{$t}%"))
+                ->where(function ($q) use ($variants) {
+                    foreach ($variants as $v) {
+                        $q->orWhere('name', 'like', "%{$v}%")
+                          ->orWhere('name_en', 'like', "%{$v}%");
+                    }
+                })
                 ->first();
             if ($cat) return $cat;
         }
         return null;
+    }
+
+    /**
+     * Generates the LIKE-search variants we need to defeat two common Arabic
+     * search misses:
+     *   1. "ال" prefix mismatch — "العيون" (query) vs "عيون" (stored category).
+     *   2. Alif-form mismatch  — "اسنان" (query) vs "أسنان" (stored category).
+     *      Arabic alif comes in four code points (ا أ إ آ) plus alif maqsura
+     *      (ى) that often gets typed as plain ya (ي). A LIKE %اسنان% on the
+     *      column "أسنان" will NOT match because the first byte differs, so
+     *      we explicitly include the normalized + de-normalized variants.
+     */
+    private function withAlPrefixVariants(string $token): array
+    {
+        $token = trim($token);
+        if ($token === '') return [];
+
+        $variants = [$token];
+
+        // (a) Alif-normalization — try the bare-alif form.
+        $bare = strtr($token, ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي']);
+        if ($bare !== $token) $variants[] = $bare;
+        // And, if the token starts with bare alif, also try the hamza forms.
+        if (mb_substr($token, 0, 1) === 'ا') {
+            $rest = mb_substr($token, 1);
+            $variants[] = 'أ' . $rest;
+            $variants[] = 'إ' . $rest;
+        }
+
+        // (b) "ال" prefix toggle — strip if present, add if absent.
+        foreach ([$token, $bare] as $v) {
+            if (mb_strlen($v) > 3 && mb_substr($v, 0, 2) === 'ال') {
+                $variants[] = mb_substr($v, 2);
+            } elseif (mb_strlen($v) >= 3 && preg_match('/^[\p{Arabic}]/u', $v)) {
+                $variants[] = 'ال' . $v;
+            }
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    /**
+     * Extracts city/category context from the most-recent user turns when the
+     * current query is missing one. This is what makes "اسنان" (after the
+     * user just said they're in Khobar) actually search Khobar+dental
+     * instead of asking the user for their city all over again.
+     */
+    private function inferContextFromHistory(array $history): array
+    {
+        $cityId = null;
+        $categoryId = null;
+
+        // Walk newest → oldest so the most recent mention wins (the user may
+        // have changed cities mid-chat).
+        foreach (array_reverse($history) as $msg) {
+            if (($msg['role'] ?? '') !== 'user') continue;
+            $tokens = $this->tokenize((string) ($msg['content'] ?? ''));
+            if (empty($tokens)) continue;
+
+            if ($cityId === null) {
+                $cityId = $this->firstMatchingCityId($tokens);
+            }
+            if ($categoryId === null) {
+                $cat = $this->firstMatchingCategory($tokens);
+                if ($cat) $categoryId = $cat->id;
+            }
+            if ($cityId !== null && $categoryId !== null) break;
+        }
+
+        return ['city_id' => $cityId, 'category_id' => $categoryId];
     }
 }
