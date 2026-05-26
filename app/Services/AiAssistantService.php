@@ -126,6 +126,22 @@ class AiAssistantService
     ];
 
     /**
+     * Clearly inappropriate / flirty / harassing phrases. Kept narrow so a
+     * legitimate query like "أبحث عن طبيبة نساء" (looking for a female OB-GYN
+     * — entirely valid in this market) never trips it. Catches the obvious
+     * slang only — anything ambiguous is left to the LLM or the normal flow.
+     */
+    private const INAPPROPRIATE_MARKERS = [
+        // Arabic Gulf slang for flirting / propositioning
+        'مزه', 'مزة', 'مزز', 'مزات', 'أبي مزه', 'ابي مزه',
+        'حبيبتي تعالي', 'حبيبي تعالي', 'تعالي معي', 'تعالي معاي',
+        'بنت حلوه', 'بنت حلوة', 'بنوته حلوه',
+        // Explicit propositioning in English
+        'sexy ', 'hot girl', 'hot chick', 'hot babe', 'date me', 'fuck me',
+        'send nudes', 'be my girlfriend', 'i love you bot',
+    ];
+
+    /**
      * Tone-detection inputs for the offline (LLM-down) fallback. We don't try
      * to imitate the LLM — we just keep the chat from feeling broken when
      * OpenAI is unreachable, by giving the user a response that ACKNOWLEDGES
@@ -210,7 +226,9 @@ class AiAssistantService
         'صباح الخير', 'مساء الخير', 'صباح النور', 'مساء النور', 'صباحو', 'مسائو',
         'شكرا', 'شكراً', 'مشكور', 'مشكورة', 'تسلم', 'تسلمي', 'يعطيك العافية', 'الله يعطيك العافية',
         'مع السلامة', 'باي', 'الى اللقاء', 'إلى اللقاء', 'تصبح على خير',
-        'كيف حالك', 'كيفك', 'شخبارك', 'شو الأخبار',
+        'كيف حالك', 'كيف الحال', 'كيف حالكم', 'كيفك', 'كيفكم', 'شخبارك', 'شو الأخبار',
+        'الحمدلله', 'الحمد لله', 'بخير', 'تمام والحمدلله', 'الله يعافيك', 'الله يبارك فيك',
+        'كل عام وأنت بخير', 'كل عام وانت بخير', 'كل سنة وانت طيب',
         // English greetings & social
         'hi', 'hello', 'hey', 'yo', 'hi there', 'hello there', 'good morning',
         'good afternoon', 'good evening', 'thanks', 'thank you', 'thx', 'ty',
@@ -248,8 +266,9 @@ class AiAssistantService
     /**
      * Main entry. Returns array { kind, reply, clinics, provider, assistant_name }.
      *
-     *   kind = 'empty' | 'rejected' | 'emergency' | 'greeting' | 'follow_up'
-     *        | 'out_of_scope' | 'matched' | 'freeform' | 'no_match'
+     *   kind = 'empty' | 'rejected' | 'emergency' | 'inappropriate'
+     *        | 'greeting' | 'follow_up' | 'out_of_scope'
+     *        | 'matched' | 'freeform' | 'no_match'
      *
      * @param array<int, array{role: string, content: string}> $history
      *        Prior turns of the conversation, oldest-first. The service uses
@@ -307,13 +326,29 @@ class AiAssistantService
                     collect(),
                 );
             }
+
+            // 3b) Inappropriate / harassing language — de-escalate politely,
+            //     never argue, never play along. Bypass LLM so this is
+            //     deterministic even when the provider is down.
+            if ($this->detectInappropriate($query)) {
+                $lang = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1 ? 'en' : 'ar';
+                return $this->wrap(
+                    'inappropriate',
+                    $this->inappropriateResponse($lang),
+                    collect(),
+                );
+            }
         }
 
         // 4) Conversational follow-up — "والا تكذب", "explain", "ok thanks",
         //    references to the previous answer. These must NOT trigger a fresh
         //    clinic search (a "تكذب" tokenized would surface random clinics).
         //    They flow into the LLM with history attached, no clinic context.
-        $isFollowUp = ! $isSocial && $this->isFollowUp($query, $history);
+        //    A doctor mention ("د. أحمد") overrides the follow-up rule — even
+        //    if short, it's a real search and must reach matchByKeyword.
+        $isFollowUp = ! $isSocial
+            && $this->extractDoctorName($query) === null
+            && $this->isFollowUp($query, $history);
 
         // 5) Local clinic search — only when the query is a real new search.
         $clinics = ($isSocial || $isFollowUp) ? collect() : $this->matchByKeyword($query, $cityId);
@@ -344,7 +379,7 @@ class AiAssistantService
             return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect());
         }
         if ($clinics->isEmpty()) {
-            return $this->wrap('no_match', __('site.ai_no_match'), collect());
+            return $this->wrap('no_match', $this->smartNoMatchFallback($query), collect());
         }
         return $this->wrap(
             'matched',
@@ -438,6 +473,111 @@ class AiAssistantService
         return $lang === 'en'
             ? "I'm focused on helping with medical clinics and services only, so I can't help with {$h['en']} — try {$h['en_hint']} for that. \n\nBack to where I'm useful: tell me a city and a specialty (dental, pediatrics, dermatology…) and I'll find the right clinic for you. \n— {$name}"
             : "تخصّصي هو مساعدتك في إيجاد المجمعات والعيادات الطبية فقط، لذا لا أستطيع مساعدتك في {$h['ar']} — يفضّل تجربة {$h['ar_hint']} لهذا. \n\nلكن إن أردتِ، أنا جاهزة في تخصّصي: أخبرني بالمدينة والتخصص الذي تبحث عنه (أسنان، أطفال، جلدية، عظام…) وأرشّح لك أنسب مجمع. \n— {$name}";
+    }
+
+    /**
+     * Catches obvious flirty / harassing slang. Narrow on purpose — anything
+     * that could also be a legitimate query ("طبيبة نساء") is left alone.
+     */
+    private function detectInappropriate(string $query): bool
+    {
+        $lower = mb_strtolower(trim($query));
+        foreach (self::INAPPROPRIATE_MARKERS as $needle) {
+            if (str_contains($query, $needle) || str_contains($lower, $needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Calm professional reply for inappropriate messages. Does not lecture,
+     * does not joke back, does not pretend it didn't notice — acknowledges
+     * the boundary and offers the legitimate service in one breath.
+     */
+    private function inappropriateResponse(string $lang = 'ar'): string
+    {
+        $name = $this->assistantName();
+        return $lang === 'en'
+            ? "I'm a medical-clinic assistant — those kinds of messages aren't something I can engage with, but I do want to help if you have a real question. \n\nIs there a clinic, doctor, or specialty I can look up for you? \n— {$name}"
+            : "أنا مساعدة خدمة عملاء لمنصّة طبيّة فقط، ومثل هذه الرسائل ليست شيئاً أستطيع أن أتفاعل معه — لكنّي بكل سرور أساعدك إن كان لديك سؤال حقيقي. \n\nهل هناك مجمع أو طبيب أو تخصّص أبحث لك عنه؟ \n— {$name}";
+    }
+
+    /**
+     * Pulls a doctor name out of phrases like "تعرف الدكتورة سحر؟"، "هل عندكم
+     * د. سحر؟"، "doctor sahar?" — returns the candidate name or null.
+     * Used by both the search path (try to surface their clinic) and the
+     * smart no-match fallback (so a missed lookup at least names the doctor:
+     * "لم أجد د. سحر مسجّلة، هل تعرف المجمع؟").
+     */
+    private function extractDoctorName(string $query): ?string
+    {
+        // The lookbehind `(?<![\p{Arabic}A-Za-z])` blocks the "د.?" pattern
+        // from matching the *inside* of "الدكتورة" (which would otherwise
+        // grab "كتوره" as the "name") — only a standalone "د." abbreviation
+        // counts. The full forms ("الدكتور[ةه]?", "دكتور[ةه]?") require the
+        // same anti-prefix-match to avoid swallowing "المدكتور" or similar.
+        $patterns = [
+            '/(?<![\p{Arabic}A-Za-z])د\.\s*([\p{Arabic}A-Za-z][\p{Arabic}A-Za-z]+)/u',
+            '/(?<![\p{Arabic}A-Za-z])الدكتور[ةه]?\s+([\p{Arabic}A-Za-z][\p{Arabic}A-Za-z]+)/u',
+            '/(?<![\p{Arabic}A-Za-z])دكتور[ةه]?\s+([\p{Arabic}A-Za-z][\p{Arabic}A-Za-z]+)/u',
+            '/\b(?:doctor|dr\.?)\s+([A-Za-z][A-Za-z]+)/i',
+        ];
+        foreach ($patterns as $re) {
+            if (preg_match($re, $query, $m)) {
+                $name = trim($m[1]);
+                // Filter common false positives (titles caught as the "name").
+                if (in_array(mb_strtolower($name), ['ة', 'ه', 'في', 'من', 'و', 'the', 'a'], true)) continue;
+                return $name;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Reply when matchByKeyword found nothing AND the LLM is offline. Replaces
+     * the dead "لم أجد مجمعات مطابقة" template with a contextual, human-sounding
+     * answer that uses what we CAN extract from the query — a doctor name, a
+     * city, a specialty hint — and asks a useful follow-up instead of just
+     * dismissing the user.
+     */
+    private function smartNoMatchFallback(string $query): string
+    {
+        $name = $this->assistantName();
+        $isEnglish = preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1;
+
+        // (a) Doctor name mentioned? Acknowledge it by name and pivot to what
+        //     we need to find them.
+        $doctor = $this->extractDoctorName($query);
+        if ($doctor !== null) {
+            return $isEnglish
+                ? "I looked for Dr. {$doctor} in our directory and didn't find a match yet — but that doesn't mean they aren't on the platform under a slightly different spelling. Do you happen to know the clinic name or the city? With either of those I can narrow it down quickly. \n— {$name}"
+                : "بحثت عن د. {$doctor} ولم أجدها مسجّلة عندنا بهذا الاسم تحديداً — قد تكون مسجّلة بصيغة قريبة. هل تعرف اسم المجمع أو المدينة التي تعمل بها؟ بأيٍّ منهما أقدر أصل لها بسرعة. \n— {$name}";
+        }
+
+        // (b) Just a single name / short phrase that could be anything — invite
+        //     the user to add one more detail rather than dismissing them.
+        $tokens = $this->tokenize($query);
+        if (count($tokens) <= 2) {
+            return $isEnglish
+                ? "I want to help — could you share one more detail? A city (Riyadh, Jeddah, Khobar…), a specialty (dental, dermatology, pediatrics…), or the clinic name itself would be enough. \n— {$name}"
+                : "أحبّ أساعدك — لكن أحتاج تفصيلاً واحداً إضافياً: المدينة (الرياض، جدة، الخبر…)، التخصص (أسنان، جلدية، أطفال…)، أو اسم المجمع نفسه. أيّ واحد من هذه يكفيني. \n— {$name}";
+        }
+
+        // (c) Default — three rotating phrasings keyed by query length so two
+        //     consecutive no-matches don't read identical.
+        $variants = $isEnglish
+            ? [
+                "I couldn't find a clinic that fits exactly — but rephrasing usually helps. What city are you in, and what kind of visit is it for?",
+                "Nothing matched on that, but I'm here. Tell me the city + the specialty (or doctor name) and I'll try a sharper search.",
+                "Hmm, I didn't catch a match. Could you give me the city and what you're looking to treat? I'll dig again.",
+            ]
+            : [
+                "لم أجد نتيجة تطابق بحثك تماماً — لكن إعادة الصياغة عادةً تساعد. في أي مدينة أنت، ولأي تخصّص أو نوع زيارة؟",
+                "ما طلع لي شيء بهذا البحث، بس أنا هنا. أعطني المدينة + التخصّص (أو اسم الطبيب) وسأجرّب من جديد بدقّة أكبر.",
+                "للأسف ما لقيت تطابق. ممكن تذكر لي المدينة ونوع المشكلة أو التخصّص اللي تحتاجه؟ سأبحث مرّة ثانية.",
+            ];
+        return $variants[mb_strlen($query) % count($variants)] . " \n— {$name}";
     }
 
     /**
