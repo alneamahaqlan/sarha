@@ -1347,17 +1347,29 @@ RULES;
             }
         }
 
-        // Single-token city or specialty ("الخبر"، "اسنان") is a search input,
-        // NOT a generic follow-up — it pairs with whatever piece is missing
-        // from context. Block here so the clinic search path can combine it
-        // with the history-inferred half (e.g. "اسنان" + history Khobar
-        // → search dental in Khobar). Without this check, the short-query
-        // rule below would label every one-word answer as follow-up and
-        // ask the user for the city all over again.
+        // Single-token city/category/service ("الخبر"، "اسنان"، "سونار") is a
+        // search input, NOT a generic follow-up — it pairs with whatever piece
+        // is missing from context. Block here so the clinic search path can
+        // combine it with the history-inferred half (e.g. "اسنان" + history
+        // Khobar → search dental in Khobar). Without this check, the short-
+        // query rule below would label every one-word answer as follow-up
+        // and ask the user for the city all over again.
         $tokens = $this->tokenize($query);
         if (count($tokens) >= 1 && count($tokens) <= 2) {
             if ($this->firstMatchingCityId($tokens) !== null) return false;
             if ($this->firstMatchingCategory($tokens) !== null) return false;
+            // Service-name short-circuit — "سونار", "ليزر", "تبييض" should
+            // each launch a real service search, not a goldfish follow-up.
+            foreach ($tokens as $t) {
+                if (mb_strlen($t) >= 3
+                    && \App\Models\Service::query()
+                        ->where('is_active', true)
+                        ->where('name', 'like', "%{$t}%")
+                        ->exists()
+                ) {
+                    return false;
+                }
+            }
         }
 
         // Explicit conversational markers — "والا تكذب", "تمام", "explain" …
@@ -1567,24 +1579,35 @@ MSG;
         }
 
         // SERVICE-SEARCH BRANCH ("ليزر", "زراعة شعر", "تبييض أسنان")
-        // When the query carries a leftover service phrase, filter clinics to
-        // only those that ACTUALLY offer the service, and eager-load the
-        // matched services (cheapest first) so they reach both the LLM prompt
-        // and the rich-details renderer. This is what makes "ليزر" return all
-        // clinics with laser services across the platform — not just clinics
-        // whose category name happens to contain "ليزر".
+        // Token-by-token AND matching (each word must appear somewhere in the
+        // service name) so a query like "ليزر إزالة شعر" still matches the
+        // stored name "ليزر إزالة الشعر (جلسة)" — substring match on the
+        // whole phrase would fail there because "شعر" ≠ "الشعر" as a literal
+        // substring start. Tokenizing handles the "ال" prefix variance for
+        // free.
         if ($serviceQuery !== null) {
-            $serviceLike = '%' . $serviceQuery . '%';
-            $base->whereHas('services', fn ($q) => $q
-                ->where('is_active', true)
-                ->where('name', 'like', $serviceLike));
-            $base->with([
-                'services' => fn ($q) => $q
-                    ->where('is_active', true)
-                    ->where('name', 'like', $serviceLike)
-                    ->orderByRaw('price IS NULL, price ASC')
-                    ->limit(3),
-            ]);
+            $serviceTokens = preg_split('/\s+/u', $serviceQuery) ?: [$serviceQuery];
+            $serviceTokens = array_values(array_filter(array_map('trim', $serviceTokens),
+                fn ($t) => mb_strlen($t) >= 3));
+
+            if (! empty($serviceTokens)) {
+                $applyTokensAnd = function ($q) use ($serviceTokens) {
+                    foreach ($serviceTokens as $t) {
+                        $q->where('name', 'like', "%{$t}%");
+                    }
+                };
+                $base->whereHas('services', function ($q) use ($applyTokensAnd) {
+                    $q->where('is_active', true);
+                    $applyTokensAnd($q);
+                });
+                $base->with([
+                    'services' => function ($q) use ($applyTokensAnd) {
+                        $q->where('is_active', true);
+                        $applyTokensAnd($q);
+                        $q->orderByRaw('price IS NULL, price ASC')->limit(3);
+                    },
+                ]);
+            }
         }
 
         $cheap = preg_match('/(رخيص|أرخص|أوفر|أقل سعر|cheap|cheapest|affordable)/iu', $query);
@@ -1596,13 +1619,16 @@ MSG;
         } elseif ($best) {
             $base->withAvg('googleReviews', 'rating')
                 ->orderByDesc('google_reviews_avg_rating');
-        } elseif ($serviceQuery !== null) {
+        } elseif ($serviceQuery !== null && ! empty($serviceTokens ?? [])) {
             // For service searches: rank by the cheapest matching service so
             // the customer sees the best price options first across clinics.
-            $base->withMin(['services as min_price' => fn ($q) => $q
-                ->where('is_active', true)
-                ->where('name', 'like', $serviceLike)
-                ->whereNotNull('price')], 'price')
+            $tokensForOrder = $serviceTokens;
+            $base->withMin(['services as min_price' => function ($q) use ($tokensForOrder) {
+                $q->where('is_active', true)->whereNotNull('price');
+                foreach ($tokensForOrder as $t) {
+                    $q->where('name', 'like', "%{$t}%");
+                }
+            }], 'price')
                 ->orderByRaw('min_price IS NULL, min_price ASC');
         } else {
             $base->rankedForListing();
