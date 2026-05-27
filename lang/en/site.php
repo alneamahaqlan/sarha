@@ -403,6 +403,19 @@ return [
     'map_distance_km' => ':km km away',
     'filter_near_me' => 'Near me',
 
+    // Homepage CMS — new sections
+    'home_offers_title'           => 'Latest offers',
+    'home_offers_subtitle'        => 'Real discounts on services across all complexes',
+    'home_articles_title'         => 'Medical articles & tips',
+    'home_articles_subtitle'      => 'Trusted content from complexes',
+    'home_category_offers_title'  => ':name offers',
+    'home_no_offers'              => 'No active offers — check back soon.',
+    'home_no_articles'            => 'No articles published yet.',
+    'home_discount_off'           => ':pct% off',
+    'home_starting_from'          => 'Starting from',
+    'home_read_article'           => 'Read article',
+    'home_view_offer'             => 'View details',
+
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',
     'footer_quick_links' => 'Quick links',
