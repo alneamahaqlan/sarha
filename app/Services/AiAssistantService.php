@@ -920,6 +920,20 @@ PROMPT;
                     $rating = round($c->google_reviews_avg_rating, 1);
                     $line .= ' — ' . ($promptIsEnglish ? "rated {$rating}/5" : "تقييم {$rating}/5");
                 }
+                // Matched services (when the query was service-centric like
+                // "ليزر" — eager-loaded with prices, cheapest first). Listed
+                // on indented sub-bullets so the LLM can reference the exact
+                // service + price for each clinic, not just the clinic name.
+                if (isset($c->services) && $c->services->isNotEmpty()) {
+                    $svcLines = $c->services->take(3)->map(function ($s) use ($promptIsEnglish) {
+                        $sl = '    – ' . $s->name;
+                        if ($s->price !== null) {
+                            $sl .= ' (' . (int) $s->price . ' ' . ($promptIsEnglish ? 'SAR' : 'ر.س') . ')';
+                        }
+                        return $sl;
+                    })->implode("\n");
+                    $line .= "\n" . $svcLines;
+                }
                 return $line;
             })->implode("\n");
 
@@ -1487,11 +1501,37 @@ MSG;
      * the purpose of *picking* clinics — that stays here so hallucinated
      * clinic names are structurally impossible.
      */
+    /**
+     * Pulls a service-name phrase out of the query — the leftover meaningful
+     * tokens after stripping anything that already matched a city or category.
+     * Returns the joined phrase (e.g. "ليزر إزالة شعر") or null when the
+     * user is searching by city/category alone.
+     */
+    private function extractServiceQuery(string $query): ?string
+    {
+        $tokens = $this->tokenize($query);
+        if (empty($tokens)) return null;
+
+        $leftovers = [];
+        foreach ($tokens as $t) {
+            if (mb_strlen($t) < 3) continue;
+            if ($this->firstMatchingCityId([$t]) !== null) continue;
+            if ($this->firstMatchingCategory([$t]) !== null) continue;
+            $leftovers[] = $t;
+        }
+        return empty($leftovers) ? null : implode(' ', $leftovers);
+    }
+
     private function matchByKeyword(string $query, ?int $cityId, array $history = [], array $context = []): Collection
     {
         $base = Clinic::publiclyVisible()->with(['city', 'categories']);
 
         $tokens = $this->tokenize($query);
+        // Service-name phrase: whatever's left after we've claimed the
+        // city/category tokens. When present, we treat the query as a
+        // service-centric search ("ليزر", "زراعة شعر", "تبييض أسنان") and
+        // pull clinics that offer that specific service, ordered by price.
+        $serviceQuery = $this->extractServiceQuery($query);
 
         // Resolve city / category in four falls: explicit arg → current query
         // → live conversation context → recent history scan. The context fall
@@ -1526,6 +1566,27 @@ MSG;
             $base->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId));
         }
 
+        // SERVICE-SEARCH BRANCH ("ليزر", "زراعة شعر", "تبييض أسنان")
+        // When the query carries a leftover service phrase, filter clinics to
+        // only those that ACTUALLY offer the service, and eager-load the
+        // matched services (cheapest first) so they reach both the LLM prompt
+        // and the rich-details renderer. This is what makes "ليزر" return all
+        // clinics with laser services across the platform — not just clinics
+        // whose category name happens to contain "ليزر".
+        if ($serviceQuery !== null) {
+            $serviceLike = '%' . $serviceQuery . '%';
+            $base->whereHas('services', fn ($q) => $q
+                ->where('is_active', true)
+                ->where('name', 'like', $serviceLike));
+            $base->with([
+                'services' => fn ($q) => $q
+                    ->where('is_active', true)
+                    ->where('name', 'like', $serviceLike)
+                    ->orderByRaw('price IS NULL, price ASC')
+                    ->limit(3),
+            ]);
+        }
+
         $cheap = preg_match('/(رخيص|أرخص|أوفر|أقل سعر|cheap|cheapest|affordable)/iu', $query);
         $best  = preg_match('/(أفضل|الأحسن|أعلى تقييم|best|top)/iu', $query);
 
@@ -1535,6 +1596,14 @@ MSG;
         } elseif ($best) {
             $base->withAvg('googleReviews', 'rating')
                 ->orderByDesc('google_reviews_avg_rating');
+        } elseif ($serviceQuery !== null) {
+            // For service searches: rank by the cheapest matching service so
+            // the customer sees the best price options first across clinics.
+            $base->withMin(['services as min_price' => fn ($q) => $q
+                ->where('is_active', true)
+                ->where('name', 'like', $serviceLike)
+                ->whereNotNull('price')], 'price')
+                ->orderByRaw('min_price IS NULL, min_price ASC');
         } else {
             $base->rankedForListing();
         }
@@ -1553,7 +1622,13 @@ MSG;
                     $q->orWhereHas('doctors', fn ($d) => $d->where('name', 'like', "%{$t}%"));
                 }
             });
-        } elseif (! $categoryId && ! $resolvedCityId && ! empty($tokens)) {
+        } elseif ($serviceQuery === null && ! $categoryId && ! $resolvedCityId && ! empty($tokens)) {
+            // Last-resort keyword fallback — ONLY when we have no other
+            // constraint to apply. If $serviceQuery is set we've already
+            // filtered by `whereHas('services', …)`, and ANDing this
+            // orWhere block on top requires the same tokens to ALSO appear
+            // in a clinic name/description (which they almost never do),
+            // wiping out otherwise valid service results.
             $base->where(function ($q) use ($tokens) {
                 foreach ($tokens as $t) {
                     $q->orWhere('name', 'like', "%{$t}%")
@@ -1566,7 +1641,10 @@ MSG;
             });
         }
 
-        return $base->take(3)->get();
+        // Service-search returns more clinics (5) since the whole point is
+        // letting the customer compare prices across the platform. Normal
+        // searches keep the tighter 3-clinic cap.
+        return $base->take($serviceQuery !== null ? 5 : 3)->get();
     }
 
     private function tokenize(string $query): array
