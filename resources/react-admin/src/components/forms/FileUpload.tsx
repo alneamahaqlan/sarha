@@ -9,7 +9,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 interface Props {
   value: string | null | undefined;
   onChange: (path: string | null) => void;
-  directory: 'clinics/logos' | 'clinics/gallery' | 'articles' | 'doctors' | 'before-after';
+  directory: 'clinics/logos' | 'clinics/gallery' | 'articles' | 'doctors' | 'before-after' | 'homepage/banners';
   disabled?: boolean;
   label?: string;
 }
