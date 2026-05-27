@@ -358,8 +358,11 @@ class AiAssistantService
                 ->get();
             if ($deep->isNotEmpty()) {
                 $this->loadDeepDetails($deep);
-                $blocks = $deep->map(fn ($c) => $this->richClinicDetails($c))->implode("\n\n");
-                $intro  = $deep->count() === 1 ? 'إليك نبذة عن المجمع الذي أشرت إليه:' : 'إليك نبذة عن المجمعات التي ذكرناها:';
+                $detailsIsEnglish = $this->isEnglishQuery($query);
+                $blocks = $deep->map(fn ($c) => $this->richClinicDetails($c, $detailsIsEnglish))->implode("\n\n");
+                $intro  = $detailsIsEnglish
+                    ? ($deep->count() === 1 ? "Here's a quick rundown of the complex you asked about:" : "Here's a quick rundown of the complexes we looked at:")
+                    : ($deep->count() === 1 ? 'تفضّل، هذه نبذة سريعة عن المجمع اللي سألت عنه:' : 'تفضّل، هذه نبذة سريعة عن المجمعات اللي ذكرناها:');
                 return $this->wrap('details', $intro . "\n\n" . $blocks, $deep, $ctx);
             }
         }
@@ -509,8 +512,8 @@ class AiAssistantService
         $h = $hints[$topic] ?? ['ar' => 'هذا الموضوع', 'ar_hint' => 'مرجع متخصص', 'en' => 'this topic', 'en_hint' => 'a specialized source'];
 
         return $lang === 'en'
-            ? "I'm focused on helping with medical clinics and services only, so I can't help with {$h['en']} — try {$h['en_hint']} for that. \n\nBack to where I'm useful: tell me a city and a specialty (dental, pediatrics, dermatology…) and I'll find the right clinic for you. \n— {$name}"
-            : "تخصّصي هو مساعدتك في إيجاد المجمعات والعيادات الطبية فقط، لذا لا أستطيع مساعدتك في {$h['ar']} — يفضّل تجربة {$h['ar_hint']} لهذا. \n\nلكن إن أردتِ، أنا جاهزة في تخصّصي: أخبرني بالمدينة والتخصص الذي تبحث عنه (أسنان، أطفال، جلدية، عظام…) وأرشّح لك أنسب مجمع. \n— {$name}";
+            ? "Honestly, {$h['en']} isn't really my area — I'm only set up to help with medical clinics and services on this platform. For that, {$h['en_hint']} would serve you much better. \n\nIf there's anything on the medical side I can do, I'm right here — just tell me a city and a specialty or service. \n— {$name}"
+            : "بصراحة، {$h['ar']} مش تخصّصي — أنا متخصّصة فقط في المجمعات والعيادات الطبية على هذه المنصّة، و{$h['ar_hint']} هيكون أنسب لك بكثير لهذا الموضوع. \n\nبس لو فيه أي شيء على الجانب الطبي تحب أساعدك فيه، أنا تحت أمرك — اعطني بس المدينة ونوع التخصّص أو الخدمة. \n— {$name}";
     }
 
     /**
@@ -537,8 +540,8 @@ class AiAssistantService
     {
         $name = $this->assistantName();
         return $lang === 'en'
-            ? "I'm a medical-clinic assistant — those kinds of messages aren't something I can engage with, but I do want to help if you have a real question. \n\nIs there a clinic, doctor, or specialty I can look up for you? \n— {$name}"
-            : "أنا مساعدة خدمة عملاء لمنصّة طبيّة فقط، ومثل هذه الرسائل ليست شيئاً أستطيع أن أتفاعل معه — لكنّي بكل سرور أساعدك إن كان لديك سؤال حقيقي. \n\nهل هناك مجمع أو طبيب أو تخصّص أبحث لك عنه؟ \n— {$name}";
+            ? "Let's keep this respectful — I'm here as a medical-clinic assistant and that's the only thing I can really help with. \n\nIf there's a clinic, doctor, or specialty you'd like me to look up, I'm happy to. \n— {$name}"
+            : "أرجو أن نبقي حديثنا محترماً — أنا مساعدة خدمة عملاء لمنصّة طبيّة، وهذا الشيء الوحيد اللي أقدر أفيدك فيه. \n\nلو فيه مجمع أو طبيب أو تخصّص تحب أبحث لك عنه، أنا تحت أمرك. \n— {$name}";
     }
 
     /**
@@ -609,28 +612,25 @@ class AiAssistantService
                 ?? $liveContext['category_id']
                 ?? $historyCtx['category_id'],
         ];
-        $knownCity = null;
-        $knownCategory = null;
-        if ($ctx['city_id']) {
-            $knownCity = City::find($ctx['city_id'])?->display_name;
-        }
-        if ($ctx['category_id']) {
-            $knownCategory = Category::find($ctx['category_id'])?->display_name;
-        }
+        // CRITICAL: names must come back in the user's language, not the app's
+        // locale — so an Arabic chat never reads "Khobar" or "Dentistry".
+        $knownCity     = $this->localizeCityName($ctx['city_id'], $isEnglish);
+        $knownCategory = $this->localizeCategoryName($ctx['category_id'], $isEnglish);
+
         if ($knownCity || $knownCategory) {
             if ($knownCity && $knownCategory) {
                 return $isEnglish
-                    ? "I remember you mentioned {$knownCity} and {$knownCategory} — but the combined search didn't return a clear match on our platform yet. Would you like me to widen the search (drop one of them), try a nearby city, or look for a specific doctor or service name instead? \n— {$name}"
-                    : "تذكّرت أنّك ذكرت {$knownCity} و{$knownCategory} — لكن البحث المشترك لم يُعطِ نتيجة واضحة عندنا حتى الآن. هل تحبّ أوسّع البحث (أرفع أحد الشرطين)، أو أجرّب مدينة قريبة، أو تذكر لي اسم طبيب أو خدمة محدّدة؟ \n— {$name}";
+                    ? "Got it — I was looking for a {$knownCategory} clinic in {$knownCity}, but I couldn't find one that fits both right now. Want me to widen the search to nearby cities, drop the specialty for a moment to see what's available in {$knownCity}, or do you know the clinic's name or a doctor I can look up? \n— {$name}"
+                    : "تمام، كنت أبحث لك عن مجمع {$knownCategory} في {$knownCity}، بس للأسف ما لقيت شيء يطابق الاثنين بالضبط. تحب أوسّع البحث لمدن قريبة، أو أشيل التخصّص لحظة وأشوف لك الموجود في {$knownCity}، أو عندك اسم مجمع أو طبيب أبحث عنه مباشرة؟ \n— {$name}";
             }
             if ($knownCity) {
                 return $isEnglish
-                    ? "Got you — searching in {$knownCity}. To narrow it down, what kind of clinic (specialty) or service are you looking for? \n— {$name}"
-                    : "تمام — أبحث لك في {$knownCity}. لتضييق البحث، ما التخصص أو الخدمة اللي تحتاجها؟ (أسنان، أطفال، جلدية، عيون، عظام…) \n— {$name}";
+                    ? "Got it — looking in {$knownCity}. What kind of visit is it for? A specialty (dental, dermatology, pediatrics…) or a service name is enough and I'll find the right complex. \n— {$name}"
+                    : "تمام، حابب أبحث لك في {$knownCity}. أيش نوع الزيارة بالضبط؟ تخصّص (أسنان، جلدية، أطفال، عيون…) أو اسم الخدمة يكفيني وأرشّح لك أنسب مجمع. \n— {$name}";
             }
             return $isEnglish
-                ? "Got the specialty ({$knownCategory}). Which city should I look in? \n— {$name}"
-                : "ممتاز، فهمت التخصص ({$knownCategory}). في أي مدينة أبحث لك؟ \n— {$name}";
+                ? "Got it — {$knownCategory}. Which city would you like me to look in? \n— {$name}"
+                : "تمام، نوع التخصّص واضح ({$knownCategory}). تحب أبحث لك في أي مدينة بالضبط؟ \n— {$name}";
         }
 
         // (c) Just a single name / short phrase that could be anything — invite
@@ -681,8 +681,8 @@ class AiAssistantService
         foreach (self::ABUSE_MARKERS as $w) {
             if (str_contains($lower, $w) || str_contains($query, $w)) {
                 return $isEnglish
-                    ? "I'm really sorry the experience disappointed you — that's on me, not you. I'd like to help if you give me one more chance: which city are you in, and what kind of clinic are you looking for? \n— {$name}"
-                    : "آسفة جداً إذا تجربتك معي ما كانت على المستوى المتوقع — هذا تقصير منّي، وأتفهّم انزعاجك. لو سمحت أعطني فرصة أخرى: في أي مدينة أنت، وأي تخصص أو خدمة تبحث عنها؟ سأبذل ما أستطيع. \n— {$name}";
+                    ? "I'm really sorry — that's a fair reaction if I'm not being useful. Help me make it right: which city are you in, and what kind of clinic are you looking for? \n— {$name}"
+                    : "أعتذر بصدق — ردّة فعلك مفهومة لو ما كنت مفيدة لك. ساعدني أعوّض الموقف: في أي مدينة أنت، وأي تخصّص أو خدمة تحتاجها؟ \n— {$name}";
             }
         }
 
@@ -690,12 +690,15 @@ class AiAssistantService
         foreach (self::CONFIRMATION_MARKERS as $w) {
             if (str_starts_with($lower, $w) || str_contains($lower, " {$w} ")) {
                 return $isEnglish
-                    ? "Great! Tell me a city (Riyadh, Jeddah, Khobar…) and what you're looking for — a specialty (dental, dermatology, pediatrics…), a doctor's name, or a service — and I'll pull the best matches for you."
-                    : "تمام! خبّرني بالمدينة (الرياض، جدة، الخبر…) والتخصص أو الخدمة اللي تبيها (أسنان، جلدية، أطفال…) أو حتى اسم طبيب — وأرشّح لك أنسب المجمعات فوراً.";
+                    ? "Great — just tell me a city (Riyadh, Jeddah, Khobar…) and what you need (a specialty like dental or dermatology, a service, or even a doctor's name) and I'll line up the best fit for you."
+                    : "ممتاز، أنا جاهزة. اعطني المدينة (الرياض، جدة، الخبر…) ونوع الخدمة أو التخصّص (أسنان، جلدية، أطفال…) أو حتى اسم طبيب معيّن وأنا أرشّح لك المناسب.";
             }
         }
 
         // 3) Just a place / city name — promote it into a useful prompt.
+        //    Names come back in the user's language (Arabic name for Arabic
+        //    queries, English for English), even when the page itself is
+        //    rendered in the other locale.
         try {
             $tokens  = $this->tokenize($query);
             $matched = null;
@@ -712,10 +715,12 @@ class AiAssistantService
                 $placeFromText = $m[1];
             }
             if ($matched || $placeFromText) {
-                $place = $matched ? ($matched->name ?? $matched->name_en) : $placeFromText;
+                $place = $matched
+                    ? ($isEnglish ? ($matched->name_en ?: $matched->name) : ($matched->name ?: $matched->name_en))
+                    : $placeFromText;
                 return $isEnglish
-                    ? "Got it — looking for clinics in {$place}? Tell me the specialty (dental, pediatrics, dermatology…) and I'll narrow it down for you."
-                    : "تمام، تبحث عن مجمعات في {$place}؟ أخبرني بالتخصص (أسنان، أطفال، جلدية، عظام…) وسأرشّح لك أنسب الخيارات.";
+                    ? "Great — {$place} it is. What kind of visit is it for? A specialty (dental, dermatology, pediatrics…), a service, or a doctor's name — any of those and I'll narrow it down."
+                    : "تمام، اتفقنا على {$place}. أيش نوع الزيارة؟ تخصّص (أسنان، جلدية، أطفال…)، اسم خدمة، أو حتى اسم طبيب — وأنا أضيّق البحث وأعطيك الأنسب.";
             }
         } catch (Throwable) {
             // City lookup failure should never break the fallback — fall through.
@@ -725,17 +730,17 @@ class AiAssistantService
         //    feel like the same message a 2nd time.
         $variants = $isEnglish
             ? [
-                "I hear you — could you tell me a city and the kind of clinic you need (dental, pediatrics, dermatology, etc.)? With those two I'll find a strong match.",
-                "Happy to help — what city are you in, and what's the visit for? A specialty or service name is enough.",
-                "Tell me a bit more — which city, and which kind of care? I'll take it from there.",
+                "I'm with you. Just need two quick things from you: which city, and what kind of clinic? With those I'll find the right complex.",
+                "Happy to help — what city are you in, and what's the visit for? A specialty (dental, ortho, derm) or even a doctor's name is enough.",
+                "Walk me through it a bit. Which city, and what kind of care are you looking for? I'll take it from there.",
             ]
             : [
-                "أنا معك — لو سمحت أخبرني بالمدينة والتخصص أو الخدمة اللي تبيها، وسأرشّح لك مباشرة. مثال: «أبحث عن أسنان في الرياض».",
-                "كلّي آذان صاغية. أعطني المدينة ونوع المجمع اللي تحتاجه (أسنان، أطفال، جلدية، نساء وولادة…) وأرشّح لك أفضل الخيارات.",
-                "وضّح لي قليلاً: في أي مدينة، ولأي تخصص؟ مجرد كلمتين تكفي لأبحث لك بدقة.",
+                "أنا معك. أحتاج منك بس تفصيلين: المدينة، ونوع التخصّص أو الخدمة. مثال: «أبي أسنان في الرياض» — وأرشّح لك على طول.",
+                "تحت أمرك. وين موقعك، وأيش الزيارة لها بالضبط؟ تخصّص (أسنان، عظام، جلدية…) أو اسم طبيب يكفي وأشتغل عليه.",
+                "خذني خطوة بخطوة — في أي مدينة، وأيش نوع الرعاية اللي تدور عليها؟ ومن هناك أكمل لك.",
             ];
         // Pick a variant based on history length so repeat asks rotate through.
-        return $variants[count($history) % count($variants)];
+        return $variants[count($history) % count($variants)] . "\n— {$name}";
     }
 
     // ============================================================
@@ -885,19 +890,35 @@ PROMPT;
 PROMPT;
         }
 
+        // Build the clinic context block in the user's language so the LLM
+        // doesn't echo back English names ("Khobar / Dentistry") to an Arabic
+        // customer (or vice-versa). Falls back to the other locale's field
+        // only if the primary one is unset.
+        $promptIsEnglish = $this->isEnglishQuery($query);
         $context = $clinics->isEmpty()
             ? '— لم يجد البحث المحلّي أي عيادة مطابقة. أجب على السؤال مباشرةً بدون ذكر أسماء عيادات.'
-            : $clinics->map(function (Clinic $c) {
+            : $clinics->map(function (Clinic $c) use ($promptIsEnglish) {
                 $line = '• ' . $c->name;
-                if ($c->city)   $line .= ' — ' . $c->city->name;
+                if ($c->city) {
+                    $cityName = $promptIsEnglish
+                        ? ($c->city->name_en ?: $c->city->name)
+                        : ($c->city->name    ?: $c->city->name_en);
+                    $line .= ' — ' . $cityName;
+                }
                 if ($c->categories?->isNotEmpty()) {
-                    $line .= ' — ' . $c->categories->pluck('name')->join('، ');
+                    $cats = $c->categories
+                        ->map(fn ($cat) => $promptIsEnglish ? ($cat->name_en ?: $cat->name) : ($cat->name ?: $cat->name_en))
+                        ->join('، ');
+                    $line .= ' — ' . $cats;
                 }
                 if (isset($c->min_price) && $c->min_price !== null) {
-                    $line .= ' — يبدأ من ' . (int) $c->min_price . ' ر.س';
+                    $line .= ' — ' . ($promptIsEnglish
+                        ? 'from ' . (int) $c->min_price . ' SAR'
+                        : 'يبدأ من ' . (int) $c->min_price . ' ر.س');
                 }
                 if (isset($c->google_reviews_avg_rating) && $c->google_reviews_avg_rating) {
-                    $line .= ' — تقييم ' . round($c->google_reviews_avg_rating, 1) . '/5';
+                    $rating = round($c->google_reviews_avg_rating, 1);
+                    $line .= ' — ' . ($promptIsEnglish ? "rated {$rating}/5" : "تقييم {$rating}/5");
                 }
                 return $line;
             })->implode("\n");
@@ -948,6 +969,46 @@ PROMPT;
     }
 
     /**
+     * Returns true when the query starts with a Latin letter — used as a
+     * quick "what language is the user speaking?" signal so EVERY reply
+     * (including city/category names interpolated into fallbacks) comes
+     * back in the same language the user wrote in, regardless of the
+     * page's app locale.
+     */
+    private function isEnglishQuery(string $query): bool
+    {
+        return preg_match('/^[a-z]/u', mb_strtolower(trim($query))) === 1;
+    }
+
+    /**
+     * Picks the city/category name in the same language as the user's query.
+     * On Arabic queries returns the Arabic name (falls back to name_en if
+     * unset); on English queries returns name_en (falls back to name).
+     * Avoids the bug where the chat replied with "Khobar" while the user
+     * wrote "الخبر" — both because the model's display_name follows the app
+     * locale rather than the conversation language.
+     */
+    private function localizeCityName(?int $cityId, bool $isEnglish): ?string
+    {
+        if (! $cityId) return null;
+        $row = City::find($cityId);
+        if (! $row) return null;
+        return $isEnglish
+            ? ($row->name_en ?: $row->name)
+            : ($row->name    ?: $row->name_en);
+    }
+
+    private function localizeCategoryName(?int $categoryId, bool $isEnglish): ?string
+    {
+        if (! $categoryId) return null;
+        $row = Category::find($categoryId);
+        if (! $row) return null;
+        return $isEnglish
+            ? ($row->name_en ?: $row->name)
+            : ($row->name    ?: $row->name_en);
+    }
+
+    /**
      * Deep-loads a collection of clinics with the relations needed for a rich
      * "tell me about them" reply: services with prices, doctors, working
      * hours, Google rating + count, city, and categories. Single round-trip
@@ -978,19 +1039,40 @@ PROMPT;
      * DB instead of a generic "I don't know". Plain-text only (no Markdown)
      * because the Livewire chat renders text 1:1.
      */
-    private function richClinicDetails(Clinic $clinic): string
+    private function richClinicDetails(Clinic $clinic, bool $isEnglish = false): string
     {
         $lines = [];
+        // i18n labels — matched to the user's query language, not the page.
+        $L = $isEnglish ? [
+            'reviews'   => 'Google reviews',
+            'specialty' => 'Specialties',
+            'doctors'   => 'Doctors',
+            'services'  => 'Top services',
+            'currency'  => 'SAR',
+            'today'     => 'Today',
+        ] : [
+            'reviews'   => 'تقييم على Google',
+            'specialty' => 'التخصّصات',
+            'doctors'   => 'من الأطباء',
+            'services'  => 'أبرز الخدمات',
+            'currency'  => 'ر.س',
+            'today'     => 'اليوم',
+        ];
 
         // Header — name, city, rating
         $rating  = $clinic->google_reviews_avg_rating
             ? round((float) $clinic->google_reviews_avg_rating, 1) : null;
         $reviews = (int) ($clinic->google_reviews_count ?? 0);
         $header  = '🏥 ' . $clinic->name;
-        if ($clinic->city) $header .= ' — ' . $clinic->city->display_name;
+        if ($clinic->city) {
+            $cityName = $isEnglish
+                ? ($clinic->city->name_en ?: $clinic->city->name)
+                : ($clinic->city->name    ?: $clinic->city->name_en);
+            $header  .= ' — ' . $cityName;
+        }
         $lines[] = $header;
         if ($rating) {
-            $lines[] = "⭐ {$rating}/5 من {$reviews} تقييم Google";
+            $lines[] = "⭐ {$rating}/5 — {$reviews} {$L['reviews']}";
         }
 
         // Short description
@@ -998,26 +1080,28 @@ PROMPT;
             $lines[] = '📝 ' . Str::limit(trim(strip_tags((string) $clinic->description)), 160);
         }
 
-        // Categories
+        // Categories — localized per query language
         if ($clinic->categories?->isNotEmpty()) {
-            $cats = $clinic->categories->take(4)->map(fn ($c) => $c->display_name)->implode('، ');
-            $lines[] = '🩺 التخصّصات: ' . $cats;
+            $cats = $clinic->categories->take(4)
+                ->map(fn ($c) => $isEnglish ? ($c->name_en ?: $c->name) : ($c->name ?: $c->name_en))
+                ->implode('، ');
+            $lines[] = '🩺 ' . $L['specialty'] . ': ' . $cats;
         }
 
         // Top doctors
         if (isset($clinic->doctors) && $clinic->doctors->isNotEmpty()) {
             $docs = $clinic->doctors->take(4)->pluck('name')->implode('، ');
-            $lines[] = '👨‍⚕️ من الأطباء: ' . $docs;
+            $lines[] = '👨‍⚕️ ' . $L['doctors'] . ': ' . $docs;
         }
 
         // Services with prices (the part the user usually really wants)
         if (isset($clinic->services) && $clinic->services->isNotEmpty()) {
-            $svcLines = $clinic->services->take(5)->map(function ($s) {
+            $svcLines = $clinic->services->take(5)->map(function ($s) use ($L) {
                 $line = '  • ' . $s->name;
-                if ($s->price !== null) $line .= ' — ' . (int) $s->price . ' ر.س';
+                if ($s->price !== null) $line .= ' — ' . (int) $s->price . ' ' . $L['currency'];
                 return $line;
             })->implode("\n");
-            $lines[] = "💊 الخدمات الأبرز:\n" . $svcLines;
+            $lines[] = '💊 ' . $L['services'] . ":\n" . $svcLines;
         }
 
         // Today's working hours
@@ -1026,7 +1110,7 @@ PROMPT;
             if ($today && $today->is_open && $today->opens_at && $today->closes_at) {
                 $opens  = substr((string) $today->opens_at, 0, 5);
                 $closes = substr((string) $today->closes_at, 0, 5);
-                $lines[] = "🕐 اليوم: {$opens} – {$closes}";
+                $lines[] = "🕐 {$L['today']}: {$opens} – {$closes}";
             }
         }
 
@@ -1484,7 +1568,11 @@ MSG;
         $clean = [];
         foreach ($parts as $p) {
             $p = trim($p);
-            if ($p === '' || mb_strlen($p) < 2) continue;
+            // Drop tokens shorter than 3 characters — anything 1–2 chars is
+            // either a stop-word ("في", "is", "am") or matches as a substring
+            // inside legitimate names ("am" inside "Dammam" / "Family") and
+            // turns a clear English query into the wrong city or specialty.
+            if ($p === '' || mb_strlen($p) < 3) continue;
             if (in_array($p, self::STOPWORDS, true)) continue;
             $clean[] = $p;
         }
