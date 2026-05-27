@@ -8,6 +8,7 @@ use App\Models\City;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SearchController extends Controller
 {
@@ -127,8 +128,12 @@ class SearchController extends Controller
                 ->orderByDesc('bookings_count'),
             'nearest' => $query
                 // Haversine distance (km); clinics with null coords sort last.
+                // NOTE: must NOT prefix with "*," — the base query already selects
+                // all clinic columns, and withAvg/withCount/withMin have appended
+                // scalar-subquery columns. A second "*" would produce invalid SQL
+                // ("clinics.*, (sub), *, CASE …"), so we only ADD the distance col.
                 ->selectRaw(
-                    '*, CASE WHEN latitude IS NULL OR longitude IS NULL THEN NULL ELSE '
+                    'CASE WHEN latitude IS NULL OR longitude IS NULL THEN NULL ELSE '
                     . '(6371 * acos(LEAST(1, GREATEST(-1, '
                     . 'cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) '
                     . '+ sin(radians(?)) * sin(radians(latitude)))))) END AS distance_km',
@@ -140,19 +145,54 @@ class SearchController extends Controller
         };
 
         // Geocoded coords for the map — reflects the *full* filtered set (not just
-        // the current page) so markers stay in sync with active filters (#62).
+        // the current page) so markers stay in sync with active filters (#62). The
+        // payload is intentionally rich enough to render a self-contained "card" inside
+        // each marker popup (name, snippet, Google rating + count, top categories,
+        // starting price, directions URL) without any extra round-trip per marker.
         $mapClinics = $mapQuery
+            ->with(['city:id,name,name_en', 'categories:id,name,name_en'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('googleReviews')
+            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->take(200)
-            ->get(['id', 'name', 'slug', 'latitude', 'longitude'])
-            ->map(fn (Clinic $c) => [
-                'id'   => $c->id,
-                'name' => $c->name,
-                'slug' => $c->slug,
-                'lat'  => (float) $c->latitude,
-                'lng'  => (float) $c->longitude,
-            ])
+            ->get()
+            ->map(function (Clinic $c) use ($lat, $lng) {
+                $distanceKm = null;
+                if ($lat !== null && $lng !== null && $c->latitude !== null && $c->longitude !== null) {
+                    // Inline Haversine so cards built from the map query (which doesn't
+                    // SELECT distance_km) still get a "X km away" badge.
+                    $earth = 6371.0;
+                    $dLat = deg2rad((float) $c->latitude - $lat);
+                    $dLng = deg2rad((float) $c->longitude - $lng);
+                    $a = sin($dLat / 2) ** 2
+                        + cos(deg2rad($lat)) * cos(deg2rad((float) $c->latitude))
+                        * sin($dLng / 2) ** 2;
+                    $distanceKm = round($earth * 2 * asin(min(1, sqrt($a))), 1);
+                }
+
+                return [
+                    'id'            => $c->id,
+                    'name'          => $c->name,
+                    'slug'          => $c->slug,
+                    'lat'           => (float) $c->latitude,
+                    'lng'           => (float) $c->longitude,
+                    'url'           => route('clinic.show', $c->slug),
+                    'logo'          => $c->logo ? asset('storage/' . $c->logo) : null,
+                    'city'          => $c->city?->display_name,
+                    'snippet'       => Str::limit(trim(strip_tags((string) $c->description)), 110),
+                    'rating'        => $c->google_reviews_avg_rating
+                        ? round((float) $c->google_reviews_avg_rating, 1)
+                        : null,
+                    'reviews_count' => (int) ($c->google_reviews_count ?? 0),
+                    'categories'    => $c->categories->take(2)->map(fn ($cat) => $cat->display_name)->values(),
+                    'min_price'     => $c->min_price !== null ? (float) $c->min_price : null,
+                    'directions'    => $c->directionsUrl(),
+                    'featured'      => (bool) $c->is_featured,
+                    'distance_km'   => $distanceKm,
+                ];
+            })
             ->values();
 
         $clinics = $query->paginate(12)->withQueryString();
@@ -175,7 +215,15 @@ class SearchController extends Controller
             ->when($request->filled('city'), fn ($q) => $q->where('city_id', $request->city))
             ->distinct()->orderBy('district')->pluck('district');
 
-        return view('public.search', compact('clinics', 'categories', 'cities', 'districts', 'sort', 'mapClinics'));
+        // Pass the user's coordinates (if any) through so the map can render a
+        // "you are here" marker and centre itself on the user when present.
+        $userLat = $lat;
+        $userLng = $lng;
+
+        return view('public.search', compact(
+            'clinics', 'categories', 'cities', 'districts',
+            'sort', 'mapClinics', 'userLat', 'userLng'
+        ));
     }
 
     /**

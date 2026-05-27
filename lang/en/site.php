@@ -297,6 +297,7 @@ return [
     'ai_no_match' => 'I could not find matching complexes. Try different words or browse the search page.',
     'ai_found_matches' => 'I found :count complexes that may match:',
     'ai_medical_disclaimer' => '⚠️ I do not provide medical diagnosis or prescriptions. Please consult a qualified doctor. However, if you are looking for a complex to visit, here are some suggestions:',
+    'ai_follow_up_offline' => "I understand your question, but the smart conversation system is unavailable right now. Please rephrase your question mentioning a city or specialty (e.g. \"I'm looking for a dental complex in Riyadh\") and I'll suggest options directly.",
     'ai_medical_warning' => 'Do not rely on the assistant for diagnosis — see a doctor.',
     'ai_qp_cheap_dental' => 'I am looking for an affordable dental complex in Riyadh',
     'ai_qp_best_dermatology' => 'Best top-rated dermatology complex',
@@ -394,6 +395,13 @@ return [
     'map_subtitle' => 'Browse nearby complexes geographically',
     'map_view_complex' => 'View complex',
     'map_search_this_area' => 'Search this area',
+    'map_locate_me' => 'My location',
+    'map_you_are_here' => 'You are here',
+    'map_location_unavailable' => 'Could not determine your location. Please allow location access in your browser.',
+    'map_reviews_one' => '1 review',
+    'map_reviews_many' => ':count reviews',
+    'map_distance_km' => ':km km away',
+    'filter_near_me' => 'Near me',
 
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',
