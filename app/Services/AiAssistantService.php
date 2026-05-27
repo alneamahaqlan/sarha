@@ -364,6 +364,22 @@ class AiAssistantService
             }
         }
 
+        // Pre-extract city + category from THIS turn's query and merge into ctx
+        // before searching. Two reasons:
+        //   1. The search itself uses ctx as a fallback, so this gives it the
+        //      best signal we have for THIS turn.
+        //   2. If the search returns 0 clinics, the smart fallback still knows
+        //      "you said Khobar + Dental" instead of asking "what city?" again.
+        if (! $isSocial && ! $isFollowUp) {
+            $queryTokens = $this->tokenize($query);
+            $queryCity   = $this->firstMatchingCityId($queryTokens);
+            $queryCat    = $this->firstMatchingCategory($queryTokens)
+                ?? $this->firstMatchingCategory([$query]);
+            // A fresh city in THIS turn replaces the old one (topic shift).
+            if ($queryCity)              $ctx['city_id']     = $queryCity;
+            if ($queryCat)               $ctx['category_id'] = $queryCat->id;
+        }
+
         // 5) Local clinic search — only when the query is a real new search.
         //    Carries the conversation context (city/category mentioned earlier)
         //    so a bare "اسنان" after "في الخبر" still searches Khobar+dental.
@@ -371,15 +387,9 @@ class AiAssistantService
             ? collect()
             : $this->matchByKeyword($query, $cityId, $history, $ctx);
 
-        // After a search, update the working context for the next turn. We
-        // re-derive city/category here from the resolved values so they
-        // persist even across queries that only mention ONE side.
+        // After a search, refresh last_clinic_ids for the next "نبذة عنهم".
         if ($clinics->isNotEmpty()) {
             $ctx['last_clinic_ids'] = $clinics->pluck('id')->all();
-            $first = $clinics->first();
-            if ($first && $first->city_id) $ctx['city_id'] = $first->city_id;
-            $firstCat = $first?->categories?->first();
-            if ($firstCat) $ctx['category_id'] = $firstCat->id;
         }
         // Also remember any doctor name mentioned this turn.
         $maybeDoctor = $this->extractDoctorName($query);
