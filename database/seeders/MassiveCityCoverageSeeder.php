@@ -37,6 +37,9 @@ class MassiveCityCoverageSeeder extends Seeder
     private Carbon $now;
     private string $pw;
 
+    /** Resolved at runtime: service_categories.slug => id. */
+    private array $serviceCategoryMap = [];
+
     public function run(): void
     {
         $this->now = now();
@@ -44,6 +47,21 @@ class MassiveCityCoverageSeeder extends Seeder
 
         if (DB::table('cities')->count() === 0 || DB::table('categories')->count() === 0) {
             $this->command?->warn('MassiveCityCoverageSeeder: needs cities + categories first (run DemoSeeder).');
+            return;
+        }
+
+        if (DB::table('service_categories')->doesntExist()) {
+            $this->command?->warn('MassiveCityCoverageSeeder: needs service_categories first (run ServiceCategoriesSeeder).');
+            return;
+        }
+
+        // Cache the slug → id map once for the whole seeder run so each
+        // service insert is a hash lookup, not a query.
+        $this->serviceCategoryMap = DB::table('service_categories')->pluck('id', 'slug')->all();
+        $fallbackCategoryId = $this->serviceCategoryMap['general-consultations']
+            ?? array_values($this->serviceCategoryMap)[0] ?? null;
+        if ($fallbackCategoryId === null) {
+            $this->command?->error('MassiveCityCoverageSeeder: service_categories table is empty.');
             return;
         }
 
@@ -202,26 +220,34 @@ class MassiveCityCoverageSeeder extends Seeder
             ->take(rand(self::SERVICES_PER_CLINIC_MIN, self::SERVICES_PER_CLINIC_MAX))
             ->values();
 
+        // Resolve the service-category slug attached to each pool entry into
+        // a real id once per row — falls back to general-consultations if a
+        // pool entry doesn't carry an explicit slug (shouldn't happen).
+        $fallback = $this->serviceCategoryMap['general-consultations']
+            ?? array_values($this->serviceCategoryMap)[0];
+
         $rows = [];
         foreach ($picked as $j => $svc) {
             $price    = (int) (round(rand($svc[1], $svc[2]) / 10) * 10);
             $hasOffer = rand(0, 3) === 0;
+            $slug     = $svc[3] ?? null;
+            $catId    = ($slug && isset($this->serviceCategoryMap[$slug])) ? $this->serviceCategoryMap[$slug] : $fallback;
             $rows[]   = [
-                'clinic_id'         => $clinicId,
-                'sub_clinic_id'     => $subIds && rand(0, 4) > 0 ? $this->pick($subIds) : null,
-                'name'              => $svc[0],
-                'description'       => 'خدمة طبية احترافية على يد نخبة من الأطباء وبأحدث الأجهزة.',
-                'price'             => $price,
-                'old_price'         => $hasOffer ? $price + rand(50, 800) : null,
-                'offer_expires_at'  => $hasOffer ? $this->now->copy()->addDays(rand(3, 45))->toDateTimeString() : null,
-                'is_featured_offer' => $hasOffer,
-                'is_active'         => rand(0, 14) > 0, // ~7% inactive
-                'sort_order'        => $j,
-                'created_at'        => $this->now->copy()->subDays(min($createdDays, rand(0, $createdDays + 1)))->toDateTimeString(),
-                'updated_at'        => $this->now,
+                'clinic_id'           => $clinicId,
+                'sub_clinic_id'       => $subIds && rand(0, 4) > 0 ? $this->pick($subIds) : null,
+                'service_category_id' => $catId,
+                'name'                => $svc[0],
+                'description'         => 'خدمة طبية احترافية على يد نخبة من الأطباء وبأحدث الأجهزة.',
+                'price'               => $price,
+                'old_price'           => $hasOffer ? $price + rand(50, 800) : null,
+                'offer_expires_at'    => $hasOffer ? $this->now->copy()->addDays(rand(3, 45))->toDateTimeString() : null,
+                'is_featured_offer'   => $hasOffer,
+                'is_active'           => rand(0, 14) > 0, // ~7% inactive
+                'sort_order'          => $j,
+                'created_at'          => $this->now->copy()->subDays(min($createdDays, rand(0, $createdDays + 1)))->toDateTimeString(),
+                'updated_at'          => $this->now,
             ];
         }
-        // Chunked insert for large batches.
         foreach (array_chunk($rows, 200) as $chunk) {
             DB::table('services')->insert($chunk);
         }
@@ -365,102 +391,168 @@ class MassiveCityCoverageSeeder extends Seeder
      * laser, dental, dermatology service. Drives coverage for the most-
      * searched terms.
      */
+    /**
+     * Popular services — sampled MORE often so every clinic has at least
+     * one laser, dental, dermatology service. Each entry now carries its
+     * canonical service-category slug as a 4th element so the row's
+     * service_category_id is set correctly at insert time.
+     */
     private const POPULAR_SERVICES = [
-        ['تنظيف الأسنان', 150, 400],
-        ['ليزر إزالة الشعر (جلسة)', 200, 900],
-        ['كشف جلدية', 150, 400],
-        ['كشف عام', 100, 300],
-        ['تحليل دم شامل', 150, 600],
-        ['كشف أطفال', 150, 400],
+        ['تنظيف الأسنان',           150, 400,  'cleaning-polishing'],
+        ['ليزر إزالة الشعر (جلسة)', 200, 900,  'laser-hair-removal'],
+        ['كشف جلدية',                150, 400,  'dermatology-consults'],
+        ['كشف عام',                  100, 300,  'general-consultations'],
+        ['تحليل دم شامل',            150, 600,  'lab-tests'],
+        ['كشف أطفال',                150, 400,  'pediatrics-vaccinations'],
     ];
 
     /**
-     * The "wide" pool — ~140 service variants across every specialty so the
-     * search returns realistic, varied results across clinics + cities.
-     * Each entry: [name, min_price, max_price]
+     * The "wide" pool — service variants across every specialty so the search
+     * returns realistic, varied results across clinics + cities.
+     * Each entry: [name, min_price, max_price, service_category_slug]
      */
     private const SERVICE_POOL = [
         // ───── DENTISTRY ─────
-        ['تنظيف الأسنان', 150, 400], ['تبييض الأسنان', 600, 1500], ['تبييض زوم', 1500, 3500],
-        ['حشوة تجميلية', 200, 500], ['حشوة عصب', 600, 1500], ['زراعة سن', 2500, 6000],
-        ['زراعة فوريّة', 4000, 9000], ['تقويم معدني', 5000, 12000], ['تقويم شفاف (دامون)', 9000, 20000],
-        ['تقويم انفزلاين', 15000, 30000], ['علاج عصب', 600, 1500], ['خلع ضرس العقل', 500, 1500],
-        ['ابتسامة هوليوود (فينير)', 6000, 18000], ['عدسات الأسنان (لومينير)', 8000, 22000],
-        ['كشف أسنان', 80, 250], ['تركيب طقم متحرك', 1500, 4000], ['تركيب طقم ثابت', 4500, 12000],
+        ['تنظيف الأسنان',         150, 400,   'cleaning-polishing'],
+        ['تبييض الأسنان',         600, 1500,  'teeth-whitening'],
+        ['تبييض زوم',             1500, 3500, 'teeth-whitening'],
+        ['حشوة تجميلية',          200, 500,   'dental-fillings'],
+        ['حشوة عصب',              600, 1500,  'dental-fillings'],
+        ['زراعة سن',              2500, 6000, 'dental-implants'],
+        ['زراعة فوريّة',          4000, 9000, 'dental-implants'],
+        ['تقويم معدني',           5000, 12000, 'orthodontics'],
+        ['تقويم شفاف (دامون)',    9000, 20000, 'orthodontics'],
+        ['تقويم انفزلاين',        15000, 30000, 'orthodontics'],
+        ['علاج عصب',              600, 1500,  'root-canal'],
+        ['خلع ضرس العقل',         500, 1500,  'extraction-oral-surgery'],
+        ['ابتسامة هوليوود (فينير)', 6000, 18000, 'hollywood-smile-veneers'],
+        ['عدسات الأسنان (لومينير)', 8000, 22000, 'hollywood-smile-veneers'],
+        ['كشف أسنان',             80, 250,    'general-consultations'],
+        ['تركيب طقم متحرك',       1500, 4000, 'dental-prosthetics'],
+        ['تركيب طقم ثابت',        4500, 12000, 'dental-prosthetics'],
 
         // ───── DERMATOLOGY + COSMETIC + LASER ─────
-        ['كشف جلدية', 150, 400], ['تقشير كيميائي', 400, 1200], ['تقشير الكريستال', 350, 1000],
-        ['حقن بوتكس', 800, 2500], ['حقن فيلر شفايف', 1200, 3000], ['حقن فيلر خدود', 1500, 4000],
-        ['ميزوثيرابي للوجه', 500, 1500], ['ميزوثيرابي للشعر', 400, 1200], ['نضارة وتفتيح', 500, 1800],
-        ['تنظيف بشرة عميق', 250, 800], ['علاج حب الشباب (جلسة)', 300, 900],
-        ['ليزر إزالة الشعر (جلسة)', 200, 900], ['ليزر إزالة الشعر — وجه', 150, 500],
-        ['ليزر إزالة الشعر — ساقين', 300, 900], ['ليزر إزالة الشعر — جسم كامل', 800, 2200],
-        ['ليزر فراكشنال', 600, 1800], ['ليزر كاربون (هوليوود فيشل)', 500, 1500],
-        ['ليزر الندبات', 600, 1700], ['نحت الجسم بالتبريد (كولتك)', 1000, 4000],
-        ['شد الوجه بالخيوط', 1500, 5000], ['شد الجسم بالراديو فريكونسي', 800, 2500],
+        ['كشف جلدية',                  150, 400,  'dermatology-consults'],
+        ['تقشير كيميائي',              400, 1200, 'peeling-brightening'],
+        ['تقشير الكريستال',            350, 1000, 'peeling-brightening'],
+        ['حقن بوتكس',                  800, 2500, 'botox-filler-injections'],
+        ['حقن فيلر شفايف',             1200, 3000, 'botox-filler-injections'],
+        ['حقن فيلر خدود',              1500, 4000, 'botox-filler-injections'],
+        ['ميزوثيرابي للوجه',           500, 1500, 'mesotherapy'],
+        ['ميزوثيرابي للشعر',           400, 1200, 'mesotherapy'],
+        ['نضارة وتفتيح',               500, 1800, 'peeling-brightening'],
+        ['تنظيف بشرة عميق',            250, 800,  'facials-skincare'],
+        ['علاج حب الشباب (جلسة)',      300, 900,  'dermatology-consults'],
+        ['ليزر إزالة الشعر (جلسة)',    200, 900,  'laser-hair-removal'],
+        ['ليزر إزالة الشعر — وجه',     150, 500,  'laser-hair-removal'],
+        ['ليزر إزالة الشعر — ساقين',   300, 900,  'laser-hair-removal'],
+        ['ليزر إزالة الشعر — جسم كامل', 800, 2200, 'laser-hair-removal'],
+        ['ليزر فراكشنال',              600, 1800, 'skin-resurfacing-laser'],
+        ['ليزر كاربون (هوليوود فيشل)', 500, 1500, 'skin-resurfacing-laser'],
+        ['ليزر الندبات',               600, 1700, 'skin-resurfacing-laser'],
+        ['نحت الجسم بالتبريد (كولتك)', 1000, 4000, 'body-contouring'],
+        ['شد الوجه بالخيوط',           1500, 5000, 'body-contouring'],
+        ['شد الجسم بالراديو فريكونسي', 800, 2500, 'body-contouring'],
 
         // ───── OPHTHALMOLOGY ─────
-        ['فحص نظر شامل', 150, 400], ['عملية ليزك', 4000, 9000], ['عملية فيمتوليزك', 6000, 12000],
-        ['عدسات لاصقة طبية', 300, 900], ['كشف عيون', 100, 300], ['علاج جفاف العين', 250, 800],
-        ['فحص قاع العين', 200, 600], ['عملية المياه البيضاء', 5000, 14000],
+        ['فحص نظر شامل',         150, 400,   'eye-exams'],
+        ['عملية ليزك',           4000, 9000, 'vision-correction-lasik'],
+        ['عملية فيمتوليزك',      6000, 12000, 'vision-correction-lasik'],
+        ['عدسات لاصقة طبية',     300, 900,   'eye-exams'],
+        ['كشف عيون',             100, 300,   'eye-exams'],
+        ['علاج جفاف العين',      250, 800,   'eye-surgeries-diseases'],
+        ['فحص قاع العين',        200, 600,   'eye-exams'],
+        ['عملية المياه البيضاء', 5000, 14000, 'eye-surgeries-diseases'],
 
         // ───── PEDIATRICS ─────
-        ['كشف أطفال', 150, 400], ['تطعيمات', 100, 600], ['متابعة حديثي الولادة', 200, 600],
-        ['استشارة رضاعة', 200, 500], ['تقييم نمو طفل', 250, 700],
+        ['كشف أطفال',            150, 400, 'pediatrics-vaccinations'],
+        ['تطعيمات',              100, 600, 'pediatrics-vaccinations'],
+        ['متابعة حديثي الولادة', 200, 600, 'pediatrics-vaccinations'],
+        ['استشارة رضاعة',        200, 500, 'pediatrics-vaccinations'],
+        ['تقييم نمو طفل',        250, 700, 'pediatrics-vaccinations'],
 
         // ───── GYN + WOMEN ─────
-        ['كشف نساء وولادة', 200, 600], ['متابعة حمل', 250, 700], ['سونار رباعي الأبعاد', 500, 1500],
-        ['فحص هرمونات', 300, 900], ['تنظيف رحم', 1000, 3000], ['تركيب لولب', 500, 1500],
-        ['استشارة عقم', 400, 1200],
+        ['كشف نساء وولادة',  200, 600,   'gynecology-obstetrics'],
+        ['متابعة حمل',       250, 700,   'gynecology-obstetrics'],
+        ['سونار رباعي الأبعاد', 500, 1500, 'gynecology-obstetrics'],
+        ['فحص هرمونات',      300, 900,   'gynecology-obstetrics'],
+        ['تنظيف رحم',        1000, 3000, 'gynecology-obstetrics'],
+        ['تركيب لولب',       500, 1500,  'gynecology-obstetrics'],
+        ['استشارة عقم',      400, 1200,  'gynecology-obstetrics'],
 
         // ───── ORTHO ─────
-        ['كشف عظام', 200, 500], ['حقن مفصل بالكورتيزون', 400, 1500],
-        ['حقن بلازما PRP للركبة', 1000, 2800], ['أشعة عظام', 200, 600],
-        ['جبس / تجبير', 300, 1000],
+        ['كشف عظام',                200, 500,   'orthopedics-joints'],
+        ['حقن مفصل بالكورتيزون',    400, 1500,  'orthopedics-joints'],
+        ['حقن بلازما PRP للركبة',   1000, 2800, 'orthopedics-joints'],
+        ['أشعة عظام',               200, 600,   'orthopedics-joints'],
+        ['جبس / تجبير',             300, 1000,  'orthopedics-joints'],
 
         // ───── CARDIO ─────
-        ['كشف قلب', 200, 500], ['تخطيط قلب', 150, 500], ['إيكو القلب', 400, 1200],
-        ['اختبار جهد قلبي', 500, 1500], ['هولتر قلب 24 ساعة', 600, 1800],
+        ['كشف قلب',              200, 500,  'cardiology'],
+        ['تخطيط قلب',            150, 500,  'cardiology'],
+        ['إيكو القلب',           400, 1200, 'cardiology'],
+        ['اختبار جهد قلبي',      500, 1500, 'cardiology'],
+        ['هولتر قلب 24 ساعة',    600, 1800, 'cardiology'],
 
         // ───── INTERNAL MED ─────
-        ['كشف عام', 100, 300], ['كشف باطنية', 150, 500], ['متابعة سكري', 200, 600],
-        ['متابعة ضغط', 200, 600], ['فحص شامل سنوي', 600, 1800],
+        ['كشف عام',              100, 300,  'general-consultations'],
+        ['كشف باطنية',           150, 500,  'internal-medicine'],
+        ['متابعة سكري',          200, 600,  'internal-medicine'],
+        ['متابعة ضغط',           200, 600,  'internal-medicine'],
+        ['فحص شامل سنوي',        600, 1800, 'internal-medicine'],
 
         // ───── ENT ─────
-        ['كشف أنف وأذن وحنجرة', 150, 400], ['غسيل أذن', 100, 300],
-        ['اختبار سمع', 200, 600], ['جلسة بخار', 50, 200],
+        ['كشف أنف وأذن وحنجرة',  150, 400, 'ent'],
+        ['غسيل أذن',             100, 300, 'ent'],
+        ['اختبار سمع',           200, 600, 'ent'],
+        ['جلسة بخار',            50, 200,  'ent'],
 
         // ───── PSYCHIATRY ─────
-        ['كشف نفسي', 300, 800], ['جلسة علاج نفسي', 400, 1200],
-        ['متابعة دوائية نفسية', 250, 700],
+        ['كشف نفسي',                300, 800,  'mental-health'],
+        ['جلسة علاج نفسي',          400, 1200, 'mental-health'],
+        ['متابعة دوائية نفسية',     250, 700,  'mental-health'],
 
         // ───── NUTRITION ─────
-        ['استشارة تغذية', 200, 600], ['برنامج تنحيف شهري', 800, 3000],
-        ['برنامج اكتساب وزن', 600, 2000], ['تحليل دقيق للجسم (InBody)', 100, 300],
+        ['استشارة تغذية',            200, 600,  'nutrition-weight-loss'],
+        ['برنامج تنحيف شهري',        800, 3000, 'nutrition-weight-loss'],
+        ['برنامج اكتساب وزن',        600, 2000, 'nutrition-weight-loss'],
+        ['تحليل دقيق للجسم (InBody)', 100, 300,  'nutrition-weight-loss'],
 
         // ───── PHYSICAL THERAPY ─────
-        ['جلسة علاج طبيعي', 150, 500], ['علاج طبيعي للظهر', 200, 600],
-        ['جلسة كهرباء (TENS)', 100, 350], ['تأهيل ما بعد العمليات', 300, 800],
-        ['تدليك علاجي', 200, 600],
+        ['جلسة علاج طبيعي',       150, 500, 'physical-therapy-rehab'],
+        ['علاج طبيعي للظهر',      200, 600, 'physical-therapy-rehab'],
+        ['جلسة كهرباء (TENS)',    100, 350, 'physical-therapy-rehab'],
+        ['تأهيل ما بعد العمليات', 300, 800, 'physical-therapy-rehab'],
+        ['تدليك علاجي',           200, 600, 'physical-therapy-rehab'],
 
         // ───── LABS ─────
-        ['تحليل دم شامل', 150, 600], ['تحليل بول كامل', 50, 200], ['تحليل وظائف كبد', 100, 400],
-        ['تحليل وظائف كلى', 100, 400], ['تحليل سكر تراكمي HbA1c', 80, 300],
-        ['تحليل فيتامين د', 100, 350], ['تحليل غدة درقية TSH', 100, 350],
-        ['تحليل هرمونات أنثوية', 300, 900], ['تحليل حساسية شامل', 600, 2000],
+        ['تحليل دم شامل',           150, 600,  'lab-tests'],
+        ['تحليل بول كامل',          50, 200,   'lab-tests'],
+        ['تحليل وظائف كبد',         100, 400,  'lab-tests'],
+        ['تحليل وظائف كلى',         100, 400,  'lab-tests'],
+        ['تحليل سكر تراكمي HbA1c',  80, 300,   'lab-tests'],
+        ['تحليل فيتامين د',         100, 350,  'lab-tests'],
+        ['تحليل غدة درقية TSH',     100, 350,  'lab-tests'],
+        ['تحليل هرمونات أنثوية',    300, 900,  'lab-tests'],
+        ['تحليل حساسية شامل',       600, 2000, 'lab-tests'],
 
         // ───── RADIOLOGY ─────
-        ['أشعة سينية', 150, 500], ['أشعة مقطعية (CT)', 700, 2200],
-        ['رنين مغناطيسي (MRI)', 800, 2500], ['ماموجرام', 400, 1200],
-        ['سونار بطن', 300, 900], ['دوبلر شرايين', 500, 1500],
+        ['أشعة سينية',           150, 500,  'radiology-imaging'],
+        ['أشعة مقطعية (CT)',     700, 2200, 'radiology-imaging'],
+        ['رنين مغناطيسي (MRI)',  800, 2500, 'radiology-imaging'],
+        ['ماموجرام',             400, 1200, 'radiology-imaging'],
+        ['سونار بطن',            300, 900,  'radiology-imaging'],
+        ['دوبلر شرايين',         500, 1500, 'radiology-imaging'],
 
         // ───── UROLOGY ─────
-        ['كشف مسالك', 200, 600], ['تحليل سائل منوي', 200, 600],
-        ['تفتيت حصوة بالليزر', 3000, 8000],
+        ['كشف مسالك',            200, 600,  'urology'],
+        ['تحليل سائل منوي',      200, 600,  'urology'],
+        ['تفتيت حصوة بالليزر',   3000, 8000, 'urology'],
 
         // ───── GENERAL SURGERY ─────
-        ['كشف جراحة عامة', 200, 500], ['إزالة كيس دهني', 800, 2500],
-        ['ختان أطفال', 600, 1800],
+        ['كشف جراحة عامة', 200, 500,  'general-surgery'],
+        ['إزالة كيس دهني', 800, 2500, 'general-surgery'],
+        ['ختان أطفال',     600, 1800, 'general-surgery'],
     ];
 
     private const DOC_MALE = [

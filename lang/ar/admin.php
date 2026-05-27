@@ -454,6 +454,7 @@ return [
         'profile_saved' => 'تم حفظ التغييرات بنجاح',
         'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بمجمعات',
         'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بمجمعات',
+        'service_category_has_services' => 'لا يمكن حذف فئة خدمة مرتبطة بخدمات حالية',
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
     ],
 

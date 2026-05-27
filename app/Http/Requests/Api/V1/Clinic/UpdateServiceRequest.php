@@ -20,6 +20,10 @@ class UpdateServiceRequest extends FormRequest
 
         return [
             'name'               => ['sometimes', 'required', 'string', 'max:255'],
+            // Service category remains required on every edit — preserves the
+            // invariant that every service is classified, while only enforcing
+            // 'required' when the field is actually present in the payload.
+            'service_category_id' => ['sometimes', 'required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],
             'price'              => ['sometimes', 'required', 'numeric', 'min:0'],

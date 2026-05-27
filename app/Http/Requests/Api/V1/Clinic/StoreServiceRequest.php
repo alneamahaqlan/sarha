@@ -19,6 +19,10 @@ class StoreServiceRequest extends FormRequest
 
         return [
             'name'               => ['required', 'string', 'max:255'],
+            // Every service must be classified under one of the admin-managed
+            // service categories — no orphan services, and only ACTIVE categories
+            // are valid picks so a deprecated category can't be selected anew.
+            'service_category_id' => ['required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
             // The clinic (sub-clinic) a service belongs to must be owned by the authenticated complex.
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],

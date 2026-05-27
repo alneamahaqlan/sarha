@@ -11,7 +11,7 @@ class Service extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'clinic_id', 'sub_clinic_id',
+        'clinic_id', 'sub_clinic_id', 'service_category_id',
         'name', 'description',
         'price', 'old_price', 'offer_expires_at', 'is_featured_offer', 'image',
         'is_active', 'sort_order',
@@ -49,6 +49,17 @@ class Service extends Model
     public function subClinic()
     {
         return $this->belongsTo(SubClinic::class);
+    }
+
+    /**
+     * The admin-managed service category every service must reference.
+     * Set as nullable in the DB for backwards compat with rows created
+     * before the column existed, but enforced as required by the
+     * StoreServiceRequest / UpdateServiceRequest rules at the API layer.
+     */
+    public function serviceCategory()
+    {
+        return $this->belongsTo(ServiceCategory::class);
     }
 
     public function packages()

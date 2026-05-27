@@ -3,6 +3,8 @@ export interface Service {
   clinic_id: number;
   sub_clinic_id: number | null;
   sub_clinic?: { id: number; name: string } | null;
+  service_category_id: number | null;
+  service_category?: { id: number; name: string; name_en: string | null; emoji: string | null } | null;
   name: string;
   description: string | null;
   price: number;
@@ -21,6 +23,7 @@ export interface Service {
 
 export interface ServiceFormValues {
   clinic_id: number;
+  service_category_id: number;
   name: string;
   description?: string | null;
   price: number;
