@@ -17,25 +17,6 @@ export function useSubClinicLookup() {
   });
 }
 
-export interface ServiceCategoryLookup { id: number; name: string; name_en: string | null; emoji: string | null }
-
-/**
- * Admin-managed service categories — the clinic's "add service" form forces
- * a pick from this list. Shared endpoint (auth: admin,clinic,web) lives at
- * /api/v1/lookups/service-categories so clinics can read it without
- * granting them admin write access.
- */
-export function useServiceCategoryLookup() {
-  return useQuery({
-    queryKey: ['shared', 'lookups', 'service-categories'],
-    queryFn: async () => {
-      const res = await apiClient.get<{ data: ServiceCategoryLookup[] }>('/lookups/service-categories');
-      return res.data.data;
-    },
-    staleTime: 10 * 60_000,
-  });
-}
-
 export function useClinicServices(params: ListParams = {}) {
   return useQuery({ queryKey: [...KEY, 'list', params], queryFn: () => clinicServicesApi.list(params) });
 }

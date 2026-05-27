@@ -37,8 +37,55 @@ class MassiveCityCoverageSeeder extends Seeder
     private Carbon $now;
     private string $pw;
 
-    /** Resolved at runtime: service_categories.slug => id. */
-    private array $serviceCategoryMap = [];
+    /**
+     * Resolved at runtime: categories.slug => id. The SERVICE_POOL entries
+     * still carry their original (granular) slugs as the 4th element —
+     * POOL_SLUG_MAP collapses those to one of the parent specialty slugs
+     * that actually exists in the categories table.
+     */
+    private array $categoryMap = [];
+
+    /**
+     * Mirror of the migration's SLUG_MAP — translates a SERVICE_POOL slug
+     * (e.g. "cleaning-polishing") to a real categories.slug ("dentistry").
+     * Keep in sync with 2026_05_28_000001_consolidate_service_category_into_categories.
+     */
+    private const POOL_SLUG_MAP = [
+        'cleaning-polishing'         => 'dentistry',
+        'teeth-whitening'            => 'dentistry',
+        'dental-fillings'            => 'dentistry',
+        'dental-implants'            => 'dentistry',
+        'orthodontics'               => 'dentistry',
+        'root-canal'                 => 'dentistry',
+        'extraction-oral-surgery'    => 'dentistry',
+        'hollywood-smile-veneers'    => 'dentistry',
+        'dental-prosthetics'         => 'dentistry',
+        'dermatology-consults'       => 'dermatology',
+        'laser-hair-removal'         => 'dermatology',
+        'skin-resurfacing-laser'     => 'dermatology',
+        'peeling-brightening'        => 'dermatology',
+        'facials-skincare'           => 'dermatology',
+        'botox-filler-injections'    => 'cosmetics',
+        'mesotherapy'                => 'cosmetics',
+        'body-contouring'            => 'cosmetics',
+        'eye-exams'                  => 'ophthalmology',
+        'vision-correction-lasik'    => 'ophthalmology',
+        'eye-surgeries-diseases'     => 'ophthalmology',
+        'pediatrics-vaccinations'    => 'pediatrics',
+        'gynecology-obstetrics'      => 'gynecology',
+        'orthopedics-joints'         => 'orthopedics',
+        'physical-therapy-rehab'     => 'physical-therapy',
+        'cardiology'                 => 'cardiology',
+        'internal-medicine'          => 'internal-medicine',
+        'ent'                        => 'ent',
+        'mental-health'              => 'psychiatry',
+        'nutrition-weight-loss'      => 'nutrition',
+        'lab-tests'                  => 'labs',
+        'radiology-imaging'          => 'radiology',
+        'urology'                    => 'urology',
+        'general-surgery'            => 'general-surgery',
+        'general-consultations'      => 'family-medicine',
+    ];
 
     public function run(): void
     {
@@ -50,18 +97,13 @@ class MassiveCityCoverageSeeder extends Seeder
             return;
         }
 
-        if (DB::table('service_categories')->doesntExist()) {
-            $this->command?->warn('MassiveCityCoverageSeeder: needs service_categories first (run ServiceCategoriesSeeder).');
-            return;
-        }
-
         // Cache the slug → id map once for the whole seeder run so each
         // service insert is a hash lookup, not a query.
-        $this->serviceCategoryMap = DB::table('service_categories')->pluck('id', 'slug')->all();
-        $fallbackCategoryId = $this->serviceCategoryMap['general-consultations']
-            ?? array_values($this->serviceCategoryMap)[0] ?? null;
+        $this->categoryMap = DB::table('categories')->pluck('id', 'slug')->all();
+        $fallbackCategoryId = $this->categoryMap['family-medicine']
+            ?? array_values($this->categoryMap)[0] ?? null;
         if ($fallbackCategoryId === null) {
-            $this->command?->error('MassiveCityCoverageSeeder: service_categories table is empty.');
+            $this->command?->error('MassiveCityCoverageSeeder: categories table is empty.');
             return;
         }
 
@@ -220,22 +262,24 @@ class MassiveCityCoverageSeeder extends Seeder
             ->take(rand(self::SERVICES_PER_CLINIC_MIN, self::SERVICES_PER_CLINIC_MAX))
             ->values();
 
-        // Resolve the service-category slug attached to each pool entry into
-        // a real id once per row — falls back to general-consultations if a
-        // pool entry doesn't carry an explicit slug (shouldn't happen).
-        $fallback = $this->serviceCategoryMap['general-consultations']
-            ?? array_values($this->serviceCategoryMap)[0];
+        // Resolve the SERVICE_POOL slug attached to each entry into a real
+        // categories.id — via POOL_SLUG_MAP (granular pool slug → parent
+        // category slug) → categoryMap (slug → id). Falls back to
+        // family-medicine if the slug is missing or unmapped.
+        $fallback = $this->categoryMap['family-medicine']
+            ?? array_values($this->categoryMap)[0];
 
         $rows = [];
         foreach ($picked as $j => $svc) {
             $price    = (int) (round(rand($svc[1], $svc[2]) / 10) * 10);
             $hasOffer = rand(0, 3) === 0;
-            $slug     = $svc[3] ?? null;
-            $catId    = ($slug && isset($this->serviceCategoryMap[$slug])) ? $this->serviceCategoryMap[$slug] : $fallback;
+            $poolSlug = $svc[3] ?? null;
+            $catSlug  = $poolSlug ? (self::POOL_SLUG_MAP[$poolSlug] ?? 'family-medicine') : null;
+            $catId    = ($catSlug && isset($this->categoryMap[$catSlug])) ? $this->categoryMap[$catSlug] : $fallback;
             $rows[]   = [
                 'clinic_id'           => $clinicId,
                 'sub_clinic_id'       => $subIds && rand(0, 4) > 0 ? $this->pick($subIds) : null,
-                'service_category_id' => $catId,
+                'category_id'         => $catId,
                 'name'                => $svc[0],
                 'description'         => 'خدمة طبية احترافية على يد نخبة من الأطباء وبأحدث الأجهزة.',
                 'price'               => $price,
@@ -387,15 +431,10 @@ class MassiveCityCoverageSeeder extends Seeder
     ];
 
     /**
-     * Popular services — sampled MORE often so every clinic has at least one
-     * laser, dental, dermatology service. Drives coverage for the most-
-     * searched terms.
-     */
-    /**
      * Popular services — sampled MORE often so every clinic has at least
-     * one laser, dental, dermatology service. Each entry now carries its
-     * canonical service-category slug as a 4th element so the row's
-     * service_category_id is set correctly at insert time.
+     * one laser, dental, dermatology service. Each entry's 4th element is
+     * the granular pool slug; POOL_SLUG_MAP collapses it to the parent
+     * categories.slug at insert time.
      */
     private const POPULAR_SERVICES = [
         ['تنظيف الأسنان',           150, 400,  'cleaning-polishing'],
@@ -409,7 +448,8 @@ class MassiveCityCoverageSeeder extends Seeder
     /**
      * The "wide" pool — service variants across every specialty so the search
      * returns realistic, varied results across clinics + cities.
-     * Each entry: [name, min_price, max_price, service_category_slug]
+     * Each entry: [name, min_price, max_price, pool_slug] — pool_slug is
+     * translated to a real categories.slug via POOL_SLUG_MAP.
      */
     private const SERVICE_POOL = [
         // ───── DENTISTRY ─────

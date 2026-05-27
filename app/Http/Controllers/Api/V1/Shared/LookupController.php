@@ -7,7 +7,6 @@ use App\Models\Admin;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
-use App\Models\ServiceCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -51,21 +50,6 @@ class LookupController extends Controller
         }
 
         return response()->json(['data' => $q->orderBy('sort_order')->orderBy('name')->limit(100)->get()]);
-    }
-
-    public function serviceCategories(Request $request): JsonResponse
-    {
-        $q = ServiceCategory::query()
-            ->select(['id', 'name', 'name_en', 'slug', 'emoji'])
-            ->where('is_active', true);
-
-        if ($search = $request->string('search')->toString()) {
-            $q->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")->orWhere('name_en', 'like', "%{$search}%");
-            });
-        }
-
-        return response()->json(['data' => $q->orderBy('sort_order')->orderBy('name')->limit(200)->get()]);
     }
 
     public function admins(Request $request): JsonResponse

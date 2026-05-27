@@ -17,9 +17,9 @@ class UpdateServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clinic_id'           => ['sometimes', 'required', 'integer', 'exists:clinics,id'],
-            'service_category_id' => ['sometimes', 'required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
-            'name'                => ['sometimes', 'required', 'string', 'max:255'],
+            'clinic_id'    => ['sometimes', 'required', 'integer', 'exists:clinics,id'],
+            'category_id'  => ['sometimes', 'required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
+            'name'         => ['sometimes', 'required', 'string', 'max:255'],
             'description'      => ['nullable', 'string'],
             'price'            => ['sometimes', 'required', 'numeric', 'min:0'],
             'old_price'        => ['nullable', 'numeric', 'min:0'],

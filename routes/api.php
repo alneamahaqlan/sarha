@@ -72,7 +72,6 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/clinics', [LookupController::class, 'clinics']);
         Route::get('lookups/cities', [LookupController::class, 'cities']);
         Route::get('lookups/categories', [LookupController::class, 'categories']);
-        Route::get('lookups/service-categories', [LookupController::class, 'serviceCategories']);
         Route::get('lookups/admins', [LookupController::class, 'admins']);
 
         // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
@@ -105,11 +104,6 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::apiResource('categories', CategoryController::class);
-
-        Route::post('service-categories/reorder', [\App\Http\Controllers\Api\V1\Admin\ServiceCategoryController::class, 'reorder'])
-            ->name('service-categories.reorder');
-        Route::apiResource('service-categories', \App\Http\Controllers\Api\V1\Admin\ServiceCategoryController::class)
-            ->parameter('service-categories', 'service_category');
 
         // UserResource has no Delete in Filament — restrict to index/show/store/update only.
         Route::apiResource('users', UserController::class)->except(['destroy']);

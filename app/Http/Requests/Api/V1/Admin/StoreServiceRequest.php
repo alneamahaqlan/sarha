@@ -17,11 +17,10 @@ class StoreServiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'clinic_id'           => ['required', 'integer', 'exists:clinics,id'],
-            // Every service must be classified under one of the admin-managed
-            // service categories — only ACTIVE categories are valid picks.
-            'service_category_id' => ['required', 'integer', Rule::exists('service_categories', 'id')->where('is_active', true)],
-            'name'                => ['required', 'string', 'max:255'],
+            'clinic_id'    => ['required', 'integer', 'exists:clinics,id'],
+            // Every service must be tagged with an active admin-managed category.
+            'category_id'  => ['required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
+            'name'         => ['required', 'string', 'max:255'],
             'description'         => ['nullable', 'string'],
             'price'               => ['required', 'numeric', 'min:0'],
             'old_price'           => ['nullable', 'numeric', 'min:0'],

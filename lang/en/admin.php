@@ -454,7 +454,6 @@ return [
         'profile_saved' => 'Changes saved successfully',
         'city_has_clinics' => 'Cannot delete a city that has complexes',
         'category_has_clinics' => 'Cannot delete a category that has complexes',
-        'service_category_has_services' => 'Cannot delete a service category that still has services',
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
     ],
 
