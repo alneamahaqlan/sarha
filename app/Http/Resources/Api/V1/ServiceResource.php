@@ -9,12 +9,20 @@ class ServiceResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'                 => $this->id,
-            'clinic_id'          => $this->clinic_id,
-            'sub_clinic_id'      => $this->sub_clinic_id,
-            'sub_clinic'         => $this->whenLoaded('subClinic', fn () => $this->subClinic ? [
+            'id'             => $this->id,
+            'clinic_id'      => $this->clinic_id,
+            'sub_clinic_id'  => $this->sub_clinic_id,
+            'category_id'    => $this->category_id,
+            'sub_clinic'     => $this->whenLoaded('subClinic', fn () => $this->subClinic ? [
                 'id'   => $this->subClinic->id,
                 'name' => $this->subClinic->name,
+            ] : null),
+            'category'       => $this->whenLoaded('category', fn () => $this->category ? [
+                'id'      => $this->category->id,
+                'name'    => $this->category->name,
+                'name_en' => $this->category->name_en,
+                'emoji'   => $this->category->emoji,
+                'slug'    => $this->category->slug,
             ] : null),
             'name'               => $this->name,
             'description'        => $this->description,

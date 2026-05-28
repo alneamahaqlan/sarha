@@ -26,14 +26,19 @@ import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import type { Service } from '@/features/services/types';
 import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { useClinicProfile } from '@/features/clinic/profile/hooks';
+import { useCategoryLookup } from '@/features/lookups/hooks';
 
 import {
-  useClinicServices, useCreateClinicService, useDeleteClinicService, useSubClinicLookup, useUpdateClinicService,
+  useClinicServices, useCreateClinicService, useDeleteClinicService,
+  useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
 
 const schema = z
   .object({
     name: z.string().min(1).max(255),
+    // category_id is REQUIRED on every create/edit — mirrors the
+    // server-side rule in StoreServiceRequest / UpdateServiceRequest.
+    category_id: z.number({ invalid_type_error: 'required' }).int().positive(),
     sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
@@ -62,12 +67,14 @@ function toLocal(iso?: string | null) {
 function ServiceDialog({ service, onClose }: { service: Service | null; onClose: () => void }) {
   const { t } = useTranslation();
   const { data: subClinics } = useSubClinicLookup();
+  const { data: categories } = useCategoryLookup();
   const create = useCreateClinicService();
   const update = useUpdateClinicService(service?.id ?? 0);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: service?.name ?? '',
+      category_id: (service?.category_id ?? undefined) as unknown as number,
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
@@ -108,6 +115,33 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               <Label htmlFor="name">{t('clinic_services.name')}</Label>
               <Input id="name" {...form.register('name')} />
               {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="category_id">
+                {t('clinic_services.category', 'التصنيف')} *
+              </Label>
+              <Select
+                id="category_id"
+                {...form.register('category_id', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
+              >
+                <option value="">— {t('common.select', 'اختر')} —</option>
+                {categories?.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.emoji ? `${c.emoji} ` : ''}{c.name}
+                  </option>
+                ))}
+              </Select>
+              {form.formState.errors.category_id && (
+                <p className="text-xs text-[var(--color-destructive)]">
+                  {t('validation.required', 'هذا الحقل مطلوب')}
+                </p>
+              )}
+              <p className="text-xs text-[var(--color-muted-foreground)]">
+                {t(
+                  'clinic_services.category_hint',
+                  'كل خدمة لازم تنتمي لتصنيف من قائمة التصنيفات اللي يحددها الأدمن.',
+                )}
+              </p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="sub_clinic_id">{t('clinic_services.sub_clinic')}</Label>

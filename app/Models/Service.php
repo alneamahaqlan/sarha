@@ -11,7 +11,7 @@ class Service extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'clinic_id', 'sub_clinic_id',
+        'clinic_id', 'sub_clinic_id', 'category_id',
         'name', 'description',
         'price', 'old_price', 'offer_expires_at', 'is_featured_offer', 'image',
         'is_active', 'sort_order',
@@ -49,6 +49,17 @@ class Service extends Model
     public function subClinic()
     {
         return $this->belongsTo(SubClinic::class);
+    }
+
+    /**
+     * The category this service belongs to. Same table the clinic uses
+     * for its specialty (so a "Dental cleaning" service points to the
+     * same "Dentistry" row a dental complex picks for itself). Nullable
+     * on the column for safety, required at the API layer.
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function packages()

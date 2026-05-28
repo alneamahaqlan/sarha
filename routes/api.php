@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\V1\Admin\CategoryController;
 use App\Http\Controllers\Api\V1\Admin\CategoryRequestController as AdminCategoryRequestController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ClinicController;
+use App\Http\Controllers\Api\V1\Admin\HomepageBannerSlideController;
+use App\Http\Controllers\Api\V1\Admin\HomepageSectionController;
 use App\Http\Controllers\Api\V1\Admin\ComplaintController;
 use App\Http\Controllers\Api\V1\Admin\PriceQuoteRequestController;
 use App\Http\Controllers\Api\V1\Admin\SalesLeadController;
@@ -177,6 +179,22 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Mass notify — delegates to MassNotifyService (same code the Filament page calls).
         Route::post('mass-notify', [MassNotifyController::class, 'send'])->name('mass-notify.send');
+
+        // Homepage CMS — admin-curated sections rendered on the public landing.
+        // Reorder/list lives at /homepage-sections; banner-type rows own a nested
+        // slides resource scoped to their parent section.
+        Route::post('homepage-sections/reorder', [HomepageSectionController::class, 'reorder'])->name('homepage-sections.reorder');
+        Route::apiResource('homepage-sections', HomepageSectionController::class)
+            ->only(['index', 'show', 'update'])
+            ->parameters(['homepage-sections' => 'homepageSection']);
+
+        Route::prefix('homepage-sections/{homepageSection}/banner-slides')->group(function () {
+            Route::post('reorder', [HomepageBannerSlideController::class, 'reorder'])->name('homepage-sections.banner-slides.reorder');
+            Route::get('/', [HomepageBannerSlideController::class, 'index'])->name('homepage-sections.banner-slides.index');
+            Route::post('/', [HomepageBannerSlideController::class, 'store'])->name('homepage-sections.banner-slides.store');
+            Route::patch('{slide}', [HomepageBannerSlideController::class, 'update'])->name('homepage-sections.banner-slides.update');
+            Route::delete('{slide}', [HomepageBannerSlideController::class, 'destroy'])->name('homepage-sections.banner-slides.destroy');
+        });
     });
 
     // -------------------- Clinic guard --------------------

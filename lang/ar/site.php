@@ -401,6 +401,19 @@ return [
     'map_distance_km' => 'يبعد :km كم',
     'filter_near_me' => 'بالقرب مني',
 
+    // Homepage CMS — new sections
+    'home_offers_title'           => 'أحدث العروض',
+    'home_offers_subtitle'        => 'خصومات حقيقية على خدمات من كل المجمعات',
+    'home_articles_title'         => 'مقالات ونصائح طبية',
+    'home_articles_subtitle'      => 'محتوى موثوق من المجمعات',
+    'home_category_offers_title'  => 'عروض :name',
+    'home_no_offers'              => 'لا توجد عروض حالياً، تابعنا قريباً.',
+    'home_no_articles'            => 'لا توجد مقالات منشورة بعد.',
+    'home_discount_off'           => 'خصم :pct%',
+    'home_starting_from'          => 'يبدأ من',
+    'home_read_article'           => 'اقرأ المقال',
+    'home_view_offer'             => 'عرض التفاصيل',
+
     // Footer
     'footer_about' => 'منصة متخصصة للبحث والمقارنة وحجز الخدمات الطبية في المملكة العربية السعودية.',
     'footer_quick_links' => 'روابط سريعة',

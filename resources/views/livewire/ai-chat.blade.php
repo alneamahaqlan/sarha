@@ -1,4 +1,28 @@
-<div x-data="{ open: @entangle('open') }" @open-ai-chat.window="open = true" class="fixed bottom-6 start-6 z-40" x-cloak>
+<div x-data="{
+        open: @entangle('open'),
+        // Smooth-stick the messages list to the bottom whenever something
+        // new lands (user turn, assistant reply, the 'Searching…' spinner).
+        // Uses a MutationObserver so we catch DOM additions from Livewire
+        // re-renders without needing to wire a $watch on every message field.
+        scrollChat() {
+            this.$nextTick(() => {
+                const el = this.$refs.messagesScroll;
+                if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+            });
+        },
+    }"
+    x-init="
+        // Initial stick + observe every future mutation inside the list.
+        scrollChat();
+        const el = $refs.messagesScroll;
+        if (el) new MutationObserver(() => scrollChat()).observe(el, { childList: true, subtree: true, characterData: true });
+        // Also stick after every Livewire round-trip so the spinner that
+        // appears mid-request scrolls into view smoothly too.
+        Livewire.hook('commit', ({ succeed }) => succeed(() => scrollChat()));
+        // And stick when the chat is reopened (messages were scrolled before close).
+        $watch('open', v => v && scrollChat());
+    "
+    @open-ai-chat.window="open = true" class="fixed bottom-6 start-6 z-40" x-cloak>
 
     {{-- Floating button --}}
     <button type="button"
@@ -33,7 +57,7 @@
         </div>
 
         {{-- Messages --}}
-        <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+        <div x-ref="messagesScroll" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50 scroll-smooth">
             @if(empty($this->messages))
                 {{-- Welcome + quick prompts --}}
                 <div class="bg-white rounded-lg p-4 shadow-sm">
