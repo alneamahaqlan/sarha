@@ -94,9 +94,11 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {t('homepage_sections.edit_section', 'تعديل سكشن')}: {section.key}
+            {t('homepage_sections.edit_section', 'تعديل سكشن')}:{' '}
+            {t(`homepage_sections.section_name.${section.key}`, section.key)}
           </DialogTitle>
           <DialogDescription>
+            <span className="font-mono text-xs">{section.key}</span> ·{' '}
             {t('homepage_sections.type', 'النوع')}: <code className="text-xs">{section.type}</code>
           </DialogDescription>
         </DialogHeader>

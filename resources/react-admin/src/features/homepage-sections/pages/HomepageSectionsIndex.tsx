@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowDown, ArrowUp, ExternalLink, Image, Pencil, Settings } from 'lucide-react';
+import { ArrowDown, ArrowUp, ExternalLink, Image, Pencil } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation } from '@/app/providers/LocaleProvider';
@@ -55,6 +56,24 @@ export function HomepageSectionsIndex() {
     }
   };
 
+  /** Jump a section to an explicit 1-indexed position by splice-reordering. */
+  const moveTo = async (fromIdx: number, targetPosition: number) => {
+    if (!data) return;
+    const total = data.length;
+    // Clamp to [1, total] — the user can't move outside the list.
+    const toIdx = Math.max(0, Math.min(total - 1, targetPosition - 1));
+    if (toIdx === fromIdx) return;
+    const list = [...data];
+    const [moved] = list.splice(fromIdx, 1);
+    list.splice(toIdx, 0, moved);
+    const payload = list.map((s, i) => ({ id: s.id, sort_order: (i + 1) * 10 }));
+    try {
+      await reorder.mutateAsync({ order: payload });
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-2">
@@ -78,7 +97,7 @@ export function HomepageSectionsIndex() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-20">{t('homepage_sections.order', 'الترتيب')}</TableHead>
+            <TableHead className="w-32">{t('homepage_sections.order', 'الترتيب')}</TableHead>
             <TableHead>{t('homepage_sections.section_key', 'المعرّف')}</TableHead>
             <TableHead>{t('homepage_sections.type_col', 'النوع')}</TableHead>
             <TableHead>{t('homepage_sections.title_col', 'العنوان المخصص')}</TableHead>
@@ -104,13 +123,17 @@ export function HomepageSectionsIndex() {
               <SectionRow
                 key={s.id}
                 section={s}
+                position={idx + 1}
+                total={data.length}
                 isFirst={idx === 0}
                 isLast={idx === data.length - 1}
                 onMoveUp={() => move(idx, -1)}
                 onMoveDown={() => move(idx, 1)}
+                onMoveTo={(pos) => moveTo(idx, pos)}
                 onEdit={() => setEditing(s)}
                 onManageSlides={() => setSlidesFor(s)}
                 typeLabel={t(TYPE_LABEL_KEY[s.type] ?? '', s.type)}
+                friendlyName={t(`homepage_sections.section_name.${s.key}`, s.key)}
               />
             ))
           )}
@@ -136,18 +159,42 @@ export function HomepageSectionsIndex() {
 
 interface RowProps {
   section: HomepageSection;
+  position: number;
+  total: number;
   isFirst: boolean;
   isLast: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onMoveTo: (position: number) => void;
   onEdit: () => void;
   onManageSlides: () => void;
   typeLabel: string;
+  friendlyName: string;
 }
 
-function SectionRow({ section, isFirst, isLast, onMoveUp, onMoveDown, onEdit, onManageSlides, typeLabel }: RowProps) {
+function SectionRow({ section, position, total, isFirst, isLast, onMoveUp, onMoveDown, onMoveTo, onEdit, onManageSlides, typeLabel, friendlyName }: RowProps) {
   const { t } = useTranslation();
   const update = useUpdateHomepageSection(section.id);
+  // Local input value so the user can type freely; commits on blur / Enter.
+  const [draftPos, setDraftPos] = useState<string>(String(position));
+
+  // Sync from props when the reorder API resolves and `position` changes,
+  // but never overwrite a value the user is actively typing.
+  useEffect(() => {
+    if (document.activeElement?.id !== `pos-${section.id}`) {
+      setDraftPos(String(position));
+    }
+  }, [position, section.id]);
+
+  const commitPos = () => {
+    const n = Number(draftPos);
+    if (!Number.isFinite(n) || n < 1) {
+      setDraftPos(String(position));
+      return;
+    }
+    if (n === position) return;
+    onMoveTo(n);
+  };
 
   const onToggle = async (c: boolean) => {
     try {
@@ -162,16 +209,43 @@ function SectionRow({ section, isFirst, isLast, onMoveUp, onMoveDown, onEdit, on
   return (
     <TableRow>
       <TableCell>
-        <div className="flex items-center gap-0.5">
-          <Button variant="ghost" size="icon" onClick={onMoveUp} disabled={isFirst}>
-            <ArrowUp className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast}>
-            <ArrowDown className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-1">
+          <Input
+            id={`pos-${section.id}`}
+            type="number"
+            min={1}
+            max={total}
+            value={draftPos}
+            onChange={(e) => setDraftPos(e.target.value)}
+            onBlur={commitPos}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitPos();
+                (e.target as HTMLInputElement).blur();
+              }
+              if (e.key === 'Escape') {
+                setDraftPos(String(position));
+                (e.target as HTMLInputElement).blur();
+              }
+            }}
+            className="h-8 w-14 text-center font-mono text-sm"
+            title={t('homepage_sections.move_to_hint', 'اكتب رقم الصف واضغط Enter للنقل المباشر')}
+          />
+          <div className="flex flex-col">
+            <Button variant="ghost" size="icon" onClick={onMoveUp} disabled={isFirst} className="h-4 w-5">
+              <ArrowUp className="h-3 w-3" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast} className="h-4 w-5">
+              <ArrowDown className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
       </TableCell>
-      <TableCell className="font-mono text-xs">{section.key}</TableCell>
+      <TableCell>
+        <div className="font-medium text-[var(--color-foreground)]">{friendlyName}</div>
+        <div className="font-mono text-[11px] text-[var(--color-muted-foreground)] mt-0.5">{section.key}</div>
+      </TableCell>
       <TableCell>
         <Badge variant="muted">{typeLabel}</Badge>
         {section.type === 'banner' && section.banner_slides_count !== undefined && (

@@ -1,10 +1,9 @@
 {
   "mcpServers": {
     "playwright": {
-      "command": "C:\\laragon\\bin\\nodejs\\node-v22\\npx.cmd",
+      "command": "C:\\laragon\\bin\\nodejs\\node-v22\\node.exe",
       "args": [
-        "-y",
-        "@playwright/mcp@latest",
+        "C:\\laragon\\bin\\nodejs\\node-v22\\node_modules\\@playwright\\mcp\\cli.js",
         "--browser", "chrome"
       ]
     }
