@@ -12,21 +12,34 @@ use Illuminate\Support\Str;
 
 /**
  * Default seeder — runs on `php artisan db:seed` and on
- * `php artisan migrate:refresh --seed`.
+ * `php artisan migrate:fresh --seed`.
  *
- *   1. Canonical super-admin (admin@saerha.sa / password) for the panel.
- *   2. Cities + categories used everywhere else.
- *   3. System settings (subscriptions, limits, AI provider + encrypted keys).
- *   4. Six named clinics that match the README test credentials.
- *   5. DemoSeeder → tops every other table up to ≥20 demo rows for staging.
+ * Order matters; each seeder below depends on the ones above it:
+ *   1. seedAdmins — super-admin login (admin@saerha.sa / password)
+ *   2. seedCities + seedCategories — required by clinics, sections, lookups
+ *   3. seedSystemSettings — subscriptions, AI provider, encrypted API keys
+ *   4. seedClinics — six named clinics matching the README test credentials
+ *   5. DemoSeeder — tops every other table to ≥20 demo rows
+ *   6. HomepageSectionsSeeder — the 16 CMS rows the public homepage loops over
+ *      (REQUIRED — without these the homepage renders empty)
+ *   7. MassiveCityCoverageSeeder — 30 clinics per active city + 13k+ services
+ *   8. BackfillClinicCoordinatesSeeder — lat/lng for any clinic missing them
+ *   9. YearOfUsageSeeder — a year of bookings/reviews/quotes/stats etc.
+ *  10. EdgeCaseScenarioSeeder — before/after photos, category requests,
+ *      deep-discount offers, future bookings
  *
  * The whole chain is idempotent: re-running converges instead of duplicating
  * or wiping the previously stored (encrypted) API keys.
+ *
+ * Heavy seeders (7, 9, 10) generate tens of thousands of rows and can take
+ * several minutes. Set SEED_HEAVY=0 in .env to skip them (CI, hotfix deploys
+ * where you only want the foundation rows).
  */
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // ── Foundation: required for the app to function ───────────────────
         $this->seedAdmins();
         $this->seedCities();
         $this->seedCategories();
@@ -37,6 +50,18 @@ class DatabaseSeeder extends Seeder
         // quotes, reviews, subscriptions, stats, leads, complaints, audit log,
         // notifications, …) so the platform looks alive on a fresh install.
         $this->call(DemoSeeder::class);
+
+        // The 16 homepage sections + 3 demo banner slides — REQUIRED, the
+        // public landing page renders empty without these rows.
+        $this->call(HomepageSectionsSeeder::class);
+
+        // ── Heavy demo data — opt out via SEED_HEAVY=0 in .env ─────────────
+        if (env('SEED_HEAVY', true)) {
+            $this->call(MassiveCityCoverageSeeder::class);
+            $this->call(BackfillClinicCoordinatesSeeder::class);
+            $this->call(YearOfUsageSeeder::class);
+            $this->call(EdgeCaseScenarioSeeder::class);
+        }
     }
 
     private function seedAdmins(): void
