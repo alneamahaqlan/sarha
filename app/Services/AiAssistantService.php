@@ -381,6 +381,15 @@ class AiAssistantService
             // A fresh city in THIS turn replaces the old one (topic shift).
             if ($queryCity)              $ctx['city_id']     = $queryCity;
             if ($queryCat)               $ctx['category_id'] = $queryCat->id;
+            // Service-name search intent — same topic-shift logic. Persists
+            // across turns so "في الرياض" after "ابي ليزر إزالة الشعر" still
+            // searches laser-in-Riyadh instead of generic Riyadh clinics. A
+            // brand-new service phrase in the next turn overrides the saved
+            // one. matchByKeyword reads ctx['service_query'] as its fallback.
+            $querySvc = $this->extractServiceQuery($query);
+            if ($querySvc !== null) {
+                $ctx['service_query'] = $querySvc;
+            }
         }
 
         // 5) Local clinic search — only when the query is a real new search.
@@ -1659,7 +1668,12 @@ MSG;
         // city/category tokens. When present, we treat the query as a
         // service-centric search ("ليزر", "زراعة شعر", "تبييض أسنان") and
         // pull clinics that offer that specific service, ordered by price.
-        $serviceQuery = $this->extractServiceQuery($query);
+        //
+        // Falls back to the persisted ctx['service_query'] so a follow-up
+        // turn that only adds a city ("في الرياض") inherits the previous
+        // service intent instead of degenerating into a generic city search.
+        $serviceQuery = $this->extractServiceQuery($query)
+            ?? ($context['service_query'] ?? null);
 
         // Resolve city / category in four falls: explicit arg → current query
         // → live conversation context → recent history scan. The context fall
