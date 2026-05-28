@@ -12,8 +12,11 @@ export const clinicCategoryRequestsApi = {
     const res = await apiClient.get<{ data: ClinicCategoryRequest[] }>('/clinic/category-requests');
     return res.data.data;
   },
-  create: async (name: string) => {
-    const res = await apiClient.post<{ data: ClinicCategoryRequest; message: string }>('/clinic/category-requests', { name });
+  create: async (name: string, serviceId?: number | null) => {
+    const res = await apiClient.post<{ data: ClinicCategoryRequest; message: string }>(
+      '/clinic/category-requests',
+      { name, service_id: serviceId ?? null },
+    );
     return res.data;
   },
 };

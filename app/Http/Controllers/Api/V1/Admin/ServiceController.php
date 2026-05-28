@@ -17,7 +17,7 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', Service::class);
 
-        $query = Service::query()->with('clinic:id,name');
+        $query = Service::query()->with(['clinic:id,name', 'categories:id,name,name_en,slug,emoji']);
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function ($q) use ($search) {
@@ -52,23 +52,36 @@ class ServiceController extends Controller
     {
         $this->authorize('view', $service);
 
-        return new ServiceApiResource($service->load('clinic:id,name'));
+        return new ServiceApiResource($service->load(['clinic:id,name', 'categories:id,name,name_en,slug,emoji']));
     }
 
     public function store(StoreServiceRequest $request): JsonResponse
     {
-        $service = Service::create($request->validated());
+        $data = $request->validated();
+        // category_ids belongs to the pivot, not the services row.
+        $categoryIds = $data['category_ids'] ?? [];
+        unset($data['category_ids']);
 
-        return (new ServiceApiResource($service->load('clinic:id,name')))
+        $service = Service::create($data);
+        $service->categories()->sync($categoryIds);
+
+        return (new ServiceApiResource($service->load(['clinic:id,name', 'categories:id,name,name_en,slug,emoji'])))
             ->response()
             ->setStatusCode(201);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): ServiceApiResource
     {
-        $service->update($request->validated());
+        $data = $request->validated();
+        $categoryIds = $data['category_ids'] ?? null;
+        unset($data['category_ids']);
 
-        return new ServiceApiResource($service->fresh()->load('clinic:id,name'));
+        $service->update($data);
+        if ($categoryIds !== null) {
+            $service->categories()->sync($categoryIds);
+        }
+
+        return new ServiceApiResource($service->fresh()->load(['clinic:id,name', 'categories:id,name,name_en,slug,emoji']));
     }
 
     public function destroy(Service $service): JsonResponse

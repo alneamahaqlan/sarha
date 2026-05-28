@@ -4,7 +4,7 @@ import type { Service } from '@/features/services/types';
 
 export interface ClinicServiceFormValues {
   name: string;
-  category_id: number;
+  category_ids: number[];
   sub_clinic_id?: number | null;
   description?: string | null;
   price: number;

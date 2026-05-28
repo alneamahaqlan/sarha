@@ -268,18 +268,22 @@ class MassiveCityCoverageSeeder extends Seeder
         // family-medicine if the slug is missing or unmapped.
         $fallback = $this->categoryMap['family-medicine']
             ?? array_values($this->categoryMap)[0];
+        $allCategoryIds = array_values($this->categoryMap);
 
-        $rows = [];
+        // Insert services row-by-row so we can capture each id for the
+        // category_service pivot. 15–30 per clinic × 630 clinics = ~13k
+        // rows total — well within seeder budget.
+        $pivotRows = [];
         foreach ($picked as $j => $svc) {
             $price    = (int) (round(rand($svc[1], $svc[2]) / 10) * 10);
             $hasOffer = rand(0, 3) === 0;
             $poolSlug = $svc[3] ?? null;
             $catSlug  = $poolSlug ? (self::POOL_SLUG_MAP[$poolSlug] ?? 'family-medicine') : null;
-            $catId    = ($catSlug && isset($this->categoryMap[$catSlug])) ? $this->categoryMap[$catSlug] : $fallback;
-            $rows[]   = [
+            $primaryCatId = ($catSlug && isset($this->categoryMap[$catSlug])) ? $this->categoryMap[$catSlug] : $fallback;
+
+            $serviceId = DB::table('services')->insertGetId([
                 'clinic_id'           => $clinicId,
                 'sub_clinic_id'       => $subIds && rand(0, 4) > 0 ? $this->pick($subIds) : null,
-                'category_id'         => $catId,
                 'name'                => $svc[0],
                 'description'         => 'خدمة طبية احترافية على يد نخبة من الأطباء وبأحدث الأجهزة.',
                 'price'               => $price,
@@ -290,10 +294,22 @@ class MassiveCityCoverageSeeder extends Seeder
                 'sort_order'          => $j,
                 'created_at'          => $this->now->copy()->subDays(min($createdDays, rand(0, $createdDays + 1)))->toDateTimeString(),
                 'updated_at'          => $this->now,
-            ];
+            ]);
+
+            // Always attach the primary specialty; ~35% of services also
+            // get a second related specialty (e.g. laser hair removal =
+            // dermatology + cosmetics) so the QA surface exercises real
+            // many-to-many coverage.
+            $pivotRows[] = ['service_id' => $serviceId, 'category_id' => $primaryCatId, 'created_at' => $this->now, 'updated_at' => $this->now];
+            if (rand(0, 99) < 35) {
+                $secondary = $this->pick($allCategoryIds);
+                if ($secondary !== $primaryCatId) {
+                    $pivotRows[] = ['service_id' => $serviceId, 'category_id' => $secondary, 'created_at' => $this->now, 'updated_at' => $this->now];
+                }
+            }
         }
-        foreach (array_chunk($rows, 200) as $chunk) {
-            DB::table('services')->insert($chunk);
+        foreach (array_chunk($pivotRows, 500) as $chunk) {
+            DB::table('category_service')->insert($chunk);
         }
     }
 

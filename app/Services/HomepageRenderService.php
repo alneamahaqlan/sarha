@@ -84,7 +84,7 @@ class HomepageRenderService
     private function offers(?int $categoryId, int $limit, int $minDiscountPercent = 0): Collection
     {
         $q = Service::query()
-            ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'category:id,name,name_en,slug,emoji'])
+            ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'categories:id,name,name_en,slug,emoji'])
             ->where('is_active', true)
             ->whereNotNull('old_price')
             ->whereNotNull('offer_expires_at')
@@ -92,7 +92,7 @@ class HomepageRenderService
             ->whereHas('clinic', fn ($c) => $c->publiclyVisible());
 
         if ($categoryId !== null) {
-            $q->where('category_id', $categoryId);
+            $q->whereHas('categories', fn ($c) => $c->where('categories.id', $categoryId));
         }
 
         if ($minDiscountPercent > 0) {

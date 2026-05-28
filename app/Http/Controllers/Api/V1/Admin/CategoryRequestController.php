@@ -61,6 +61,16 @@ class CategoryRequestController extends Controller
             'reviewed_by' => (int) auth('admin')->id(),
         ]);
 
+        // Auto-attach the newly approved specialty to the service the
+        // request came from (if any) — saves the complex from having to
+        // re-edit the service after approval.
+        if ($categoryRequest->service_id) {
+            $service = \App\Models\Service::find($categoryRequest->service_id);
+            if ($service) {
+                $service->categories()->syncWithoutDetaching([$category->id]);
+            }
+        }
+
         return response()->json(['message' => __('admin.category_requests.approved')]);
     }
 

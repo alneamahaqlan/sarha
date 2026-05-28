@@ -24,7 +24,9 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', Service::class);
 
-        $query = Service::query()->where('clinic_id', $this->clinicId());
+        $query = Service::query()
+            ->with('categories:id,name,name_en,slug,emoji')
+            ->where('clinic_id', $this->clinicId());
 
         if ($search = $request->string('search')->toString()) {
             $query->where('name', 'like', "%{$search}%");
@@ -48,18 +50,29 @@ class ServiceController extends Controller
     {
         $data = $request->validated();
         $data['clinic_id'] = $this->clinicId();
+        $categoryIds = $data['category_ids'] ?? [];
+        unset($data['category_ids']);
 
         $service = Service::create($data);
+        $service->categories()->sync($categoryIds);
 
-        return (new ServiceApiResource($service))->response()->setStatusCode(201);
+        return (new ServiceApiResource($service->load('categories:id,name,name_en,slug,emoji')))
+            ->response()->setStatusCode(201);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): ServiceApiResource
     {
         // clinic_id never changes; ownership enforced in the request's authorize().
-        $service->update($request->validated());
+        $data = $request->validated();
+        $categoryIds = $data['category_ids'] ?? null;
+        unset($data['category_ids']);
 
-        return new ServiceApiResource($service->fresh());
+        $service->update($data);
+        if ($categoryIds !== null) {
+            $service->categories()->sync($categoryIds);
+        }
+
+        return new ServiceApiResource($service->fresh()->load('categories:id,name,name_en,slug,emoji'));
     }
 
     public function destroy(Service $service): JsonResponse

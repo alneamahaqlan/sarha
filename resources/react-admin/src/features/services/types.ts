@@ -1,10 +1,20 @@
+export interface ServiceCategoryRef {
+  id: number;
+  name: string;
+  name_en: string | null;
+  slug: string | null;
+  emoji: string | null;
+}
+
 export interface Service {
   id: number;
   clinic_id: number;
   sub_clinic_id: number | null;
   sub_clinic?: { id: number; name: string } | null;
-  category_id: number | null;
-  category?: { id: number; name: string; name_en: string | null; slug: string | null; emoji: string | null } | null;
+  /** 1–5 specialties this service belongs to (many-to-many). */
+  categories?: ServiceCategoryRef[];
+  /** Convenience array of just the ids — used to seed edit form defaults. */
+  category_ids?: number[];
   name: string;
   description: string | null;
   price: number;
@@ -23,7 +33,7 @@ export interface Service {
 
 export interface ServiceFormValues {
   clinic_id: number;
-  category_id: number;
+  category_ids: number[];
   name: string;
   description?: string | null;
   price: number;

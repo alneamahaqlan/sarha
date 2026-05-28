@@ -453,7 +453,7 @@ return [
         'offer_expires_helper' => 'Required when an old price is set (so the offer badge can be displayed)',
         'profile_saved' => 'Changes saved successfully',
         'city_has_clinics' => 'Cannot delete a city that has complexes',
-        'category_has_clinics' => 'Cannot delete a category that has complexes',
+        'category_has_clinics' => 'Cannot delete a specialty that has complexes',
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
     ],
 

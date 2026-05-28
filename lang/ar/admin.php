@@ -192,7 +192,7 @@ return [
         'sort_order' => 'ترتيب العرض',
         'sort_order_short' => 'الترتيب',
         'tabs_basic' => 'المعلومات الأساسية',
-        'tabs_categories' => 'التصنيفات',
+        'tabs_categories' => 'التخصصات',
         'tabs_subscription' => 'الاشتراك والحالة',
         'tabs_social' => 'وسائل التواصل',
         'tabs_images' => 'الصور',
@@ -453,7 +453,7 @@ return [
         'offer_expires_helper' => 'مطلوب عند وجود سعر قديم (لإظهار شارة العرض)',
         'profile_saved' => 'تم حفظ التغييرات بنجاح',
         'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بمجمعات',
-        'category_has_clinics' => 'لا يمكن حذف تصنيف مرتبط بمجمعات',
+        'category_has_clinics' => 'لا يمكن حذف تخصص مرتبط بمجمعات',
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
     ],
 

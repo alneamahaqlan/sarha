@@ -193,7 +193,7 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
           {/* ── Type-specific config ───────────────────────────── */}
           {isCategoryOffers && (
             <div className="space-y-1.5">
-              <Label htmlFor="category_slug">{t('homepage_sections.category', 'التصنيف')}</Label>
+              <Label htmlFor="category_slug">{t('homepage_sections.category', 'التخصص')}</Label>
               <Select
                 id="category_slug"
                 value={form.config?.category_slug ?? ''}

@@ -10,7 +10,8 @@ export function useClinicCategoryRequests() {
 export function useCreateClinicCategoryRequest() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => clinicCategoryRequestsApi.create(name),
+    mutationFn: (input: { name: string; service_id?: number | null }) =>
+      clinicCategoryRequestsApi.create(input.name, input.service_id),
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }

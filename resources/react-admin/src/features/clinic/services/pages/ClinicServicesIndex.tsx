@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Check, ExternalLink, List, LayoutGrid, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Check, ExternalLink, List, LayoutGrid, Pencil, Plus, Sparkle, Trash2, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,13 +32,15 @@ import {
   useClinicServices, useCreateClinicService, useDeleteClinicService,
   useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
+import { MultiCategorySelect } from '../components/MultiCategorySelect';
+import { RequestSpecialtyDialog } from '../components/RequestSpecialtyDialog';
 
 const schema = z
   .object({
     name: z.string().min(1).max(255),
-    // category_id is REQUIRED on every create/edit — mirrors the
-    // server-side rule in StoreServiceRequest / UpdateServiceRequest.
-    category_id: z.number({ invalid_type_error: 'required' }).int().positive(),
+    // 1–5 specialties — mirrors StoreServiceRequest / UpdateServiceRequest.
+    // Each service must belong to at least one specialty, up to five.
+    category_ids: z.array(z.number().int().positive()).min(1).max(5),
     sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
@@ -70,11 +72,15 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
   const { data: categories } = useCategoryLookup();
   const create = useCreateClinicService();
   const update = useUpdateClinicService(service?.id ?? 0);
+  const [requestOpen, setRequestOpen] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: service?.name ?? '',
-      category_id: (service?.category_id ?? undefined) as unknown as number,
+      // Edit mode: prefer category_ids (new API); fall back to the legacy
+      // single category_id if the row hasn't been resaved since the
+      // many-to-many migration. Create mode: empty list.
+      category_ids: service?.category_ids ?? [],
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
@@ -117,31 +123,34 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
             </div>
             <div className="space-y-1.5 md:col-span-2">
-              <Label htmlFor="category_id">
-                {t('clinic_services.category', 'التصنيف')} *
+              <Label>
+                {t('clinic_services.categories', 'التخصصات')} *
               </Label>
-              <Select
-                id="category_id"
-                {...form.register('category_id', { setValueAs: (v) => (v === '' ? undefined : Number(v)) })}
-              >
-                <option value="">— {t('common.select', 'اختر')} —</option>
-                {categories?.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.emoji ? `${c.emoji} ` : ''}{c.name}
-                  </option>
-                ))}
-              </Select>
-              {form.formState.errors.category_id && (
+              <MultiCategorySelect
+                value={form.watch('category_ids') ?? []}
+                onChange={(ids) => form.setValue('category_ids', ids, { shouldDirty: true, shouldValidate: true })}
+                categories={categories}
+                max={5}
+              />
+              {form.formState.errors.category_ids && (
                 <p className="text-xs text-[var(--color-destructive)]">
-                  {t('validation.required', 'هذا الحقل مطلوب')}
+                  {t('clinic_services.categories_required', 'اختر تخصصاً واحداً على الأقل (وحتى 5).')}
                 </p>
               )}
               <p className="text-xs text-[var(--color-muted-foreground)]">
                 {t(
-                  'clinic_services.category_hint',
-                  'كل خدمة لازم تنتمي لتصنيف من قائمة التصنيفات اللي يحددها الأدمن.',
+                  'clinic_services.categories_hint',
+                  'كل خدمة لازم تنتمي لتخصص واحد على الأقل (وحتى 5 تخصصات).',
                 )}
               </p>
+              <button
+                type="button"
+                onClick={() => setRequestOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--color-primary)] hover:underline"
+              >
+                <Sparkle className="h-3 w-3" />
+                {t('clinic_services.request_specialty_link', 'تخصصك غير موجود؟ اقترح إضافته')}
+              </button>
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="sub_clinic_id">{t('clinic_services.sub_clinic')}</Label>
@@ -192,6 +201,11 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
           </DialogFooter>
         </form>
       </DialogContent>
+      <RequestSpecialtyDialog
+        open={requestOpen}
+        onClose={() => setRequestOpen(false)}
+        serviceId={service?.id ?? null}
+      />
     </Dialog>
   );
 }

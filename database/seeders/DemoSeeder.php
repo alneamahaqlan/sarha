@@ -255,6 +255,7 @@ class DemoSeeder extends Seeder
         $clinicIds = $this->ids('clinics');
         // Sub-clinics grouped by clinic — services are distributed among them.
         $subsByClinic = DB::table('sub_clinics')->get(['id', 'clinic_id'])->groupBy('clinic_id');
+        $categoryIds = $this->ids('categories');
         $names = ['تنظيف الأسنان', 'تبييض الأسنان', 'حشوة تجميلية', 'كشف عام', 'تقشير البشرة', 'فيلر', 'بوتكس', 'فحص نظر', 'عدسات لاصقة', 'جلسة ليزر', 'تحليل دم شامل', 'أشعة سينية', 'استشارة تغذية', 'جلسة علاج طبيعي', 'تركيب تقويم'];
 
         foreach ($clinicIds as $cid) {
@@ -267,7 +268,7 @@ class DemoSeeder extends Seeder
                 $sub = ($j < 2 && $subs->isNotEmpty()) ? $subs[$j % $subs->count()] : null;
                 $price = rand(100, 2000);
                 $hasOffer = rand(0, 2) === 0;
-                DB::table('services')->insert([
+                $serviceId = DB::table('services')->insertGetId([
                     'clinic_id'        => $cid,
                     'sub_clinic_id'    => $sub?->id,
                     'name'             => $this->pick($names),
@@ -281,6 +282,19 @@ class DemoSeeder extends Seeder
                     'created_at'        => $this->ts(rand(1, 120)),
                     'updated_at'        => $this->now,
                 ]);
+                // Attach 1–2 random specialties so the demo set exercises the
+                // many-to-many UI (chip list, multi-select).
+                if (! empty($categoryIds)) {
+                    $picks = collect($categoryIds)->shuffle()->take(rand(1, 2))->all();
+                    foreach ($picks as $cId) {
+                        DB::table('category_service')->insertOrIgnore([
+                            'service_id'  => $serviceId,
+                            'category_id' => $cId,
+                            'created_at'  => $this->now,
+                            'updated_at'  => $this->now,
+                        ]);
+                    }
+                }
             }
         }
     }
