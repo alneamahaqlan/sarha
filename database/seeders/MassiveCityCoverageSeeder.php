@@ -184,9 +184,14 @@ class MassiveCityCoverageSeeder extends Seeder
         ]);
 
         $this->seedWorkingHours($clinicId);
-        $this->seedCategories($clinicId, $categoryIds);
         $subIds = $this->seedSubClinics($clinicId, $categoryIds);
         $this->seedServices($clinicId, $subIds, $createdDays);
+        // Clinic_categories AFTER services — derives the directory tags from
+        // the categories the clinic's services actually cover, so a search
+        // for "أسنان في الرياض" returns every Riyadh clinic that offers a
+        // dental service (not just the 25 % that randomly drew the dentistry
+        // tag). See BUG-06 in the QA report.
+        $this->seedCategories($clinicId, $categoryIds);
         $this->seedDoctors($clinicId, $subIds);
         $this->seedPackages($clinicId);
         $this->seedReviews($clinicId);
@@ -218,10 +223,35 @@ class MassiveCityCoverageSeeder extends Seeder
 
     private function seedCategories(int $clinicId, array $categoryIds): void
     {
-        // 3–6 categories per clinic so EVERY category gets dense representation
-        // across the platform when this seeder finishes.
-        $count = rand(3, min(6, count($categoryIds)));
-        $picked = collect($categoryIds)->shuffle()->take($count)->all();
+        // Source the clinic's specialty tags from the services it actually
+        // offers (every service row carries its parent category via
+        // category_service). This is what makes "أسنان في الرياض" return
+        // every Riyadh clinic that sells dental services instead of only
+        // the ones that randomly drew the dentistry tag.
+        $derived = DB::table('category_service')
+            ->join('services', 'services.id', '=', 'category_service.service_id')
+            ->where('services.clinic_id', $clinicId)
+            ->distinct()
+            ->pluck('category_service.category_id')
+            ->all();
+
+        // Top up with 0–2 extra random categories so QA still sees clinics
+        // that are tagged for specialties they don't yet sell (a sub-clinic
+        // exists, a doctor is on staff, but no service is published yet).
+        $extras = collect($categoryIds)
+            ->diff($derived)
+            ->shuffle()
+            ->take(rand(0, 2))
+            ->all();
+
+        $picked = array_unique(array_merge($derived, $extras));
+        if (empty($picked)) {
+            // Defensive: a clinic with zero services would otherwise be
+            // invisible to every category-based search. Fall back to one
+            // random tag so it still appears somewhere.
+            $picked = [$categoryIds[array_rand($categoryIds)]];
+        }
+
         DB::table('clinic_categories')->insert(array_map(fn ($cat) => [
             'clinic_id'   => $clinicId,
             'category_id' => $cat,
