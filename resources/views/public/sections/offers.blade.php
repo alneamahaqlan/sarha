@@ -34,8 +34,10 @@
                                 @if($service->image)
                                     <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($service->image) }}"
                                          alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
-                                @elseif($service->category?->emoji)
-                                    <span aria-hidden="true">{{ $service->category->emoji }}</span>
+                                @elseif($service->categories?->first()?->emoji)
+                                    {{-- Primary specialty's emoji as the visual fallback (services
+                                         can have up to 5 specialties; the first is treated as primary). --}}
+                                    <span aria-hidden="true">{{ $service->categories->first()->emoji }}</span>
                                 @endif
                                 @if($discount > 0)
                                     <span class="absolute top-3 start-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
