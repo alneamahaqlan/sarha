@@ -5,6 +5,8 @@ export interface CategoryRequest {
   name: string;
   status: 'pending' | 'approved' | 'rejected';
   clinic: { id: number; name: string } | null;
+  /** Optional — the service the clinic was editing when they submitted the request. */
+  service: { id: number; name: string } | null;
   created_at: string | null;
 }
 

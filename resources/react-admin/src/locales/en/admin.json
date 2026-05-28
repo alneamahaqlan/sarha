@@ -109,11 +109,23 @@
     "status_label": "Status",
     "approve": "Approve",
     "reject": "Reject",
+    "from_service": "From service",
     "status": {
       "pending": "Pending",
       "approved": "Approved",
       "rejected": "Rejected"
     }
+  },
+  "clinic_category_requests": {
+    "title": "Specialty requests",
+    "subtitle": "Track the specialties you've proposed. Once approved, the specialty is added to your services automatically.",
+    "new": "New request",
+    "name": "Requested specialty",
+    "status_label": "Status",
+    "created_at": "Sent at",
+    "empty": "You haven't submitted any request yet",
+    "pending_hint": "{{count}} pending review",
+    "dialog_desc": "Your request will be reviewed by the admins. Once approved, the specialty is created and becomes available to attach to your services."
   },
   "users": {
     "title": "Customers",
@@ -680,6 +692,7 @@
     "services": "My services",
     "packages": "Packages",
     "before_after": "Before / after",
+    "category_requests": "Specialty requests",
     "bookings": "Bookings",
     "price_quotes": "Price quotes",
     "complaints": "Complaints",

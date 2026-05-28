@@ -47,7 +47,7 @@ const adminNav = [
     items: [
       { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
       { to: '/admin/categories', label: 'nav.categories', icon: Tag },
-      { to: '/admin/category-requests', label: 'nav.category_requests', icon: Tags },
+      { to: '/admin/category-requests', label: 'nav.category_requests', icon: Tags, badge: 'category_requests' as keyof AdminNavBadges },
       { to: '/admin/admins', label: 'nav.admins', icon: Shield },
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
       { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },

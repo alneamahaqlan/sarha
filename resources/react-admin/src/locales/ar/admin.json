@@ -109,11 +109,23 @@
     "status_label": "الحالة",
     "approve": "اعتماد",
     "reject": "رفض",
+    "from_service": "من خدمة",
     "status": {
       "pending": "قيد المراجعة",
       "approved": "معتمد",
       "rejected": "مرفوض"
     }
+  },
+  "clinic_category_requests": {
+    "title": "طلبات التخصصات",
+    "subtitle": "تتبّع التخصصات اللي اقترحتها على الإدارة. عند الموافقة، يُضاف التخصص لخدماتك تلقائياً.",
+    "new": "طلب جديد",
+    "name": "التخصص المطلوب",
+    "status_label": "الحالة",
+    "created_at": "تاريخ الإرسال",
+    "empty": "لم تقدّم أي طلب بعد",
+    "pending_hint": "{{count}} طلب قيد المراجعة",
+    "dialog_desc": "يُراجع الطلب من الإدارة، وعند الموافقة يُنشأ التخصص ويصبح متاحاً لإضافته لخدماتك."
   },
   "users": {
     "title": "العملاء",
@@ -680,6 +692,7 @@
     "services": "خدماتي",
     "packages": "الباقات",
     "before_after": "قبل / بعد",
+    "category_requests": "طلبات التخصصات",
     "bookings": "الحجوزات",
     "price_quotes": "طلبات التسعير",
     "complaints": "الشكاوى",

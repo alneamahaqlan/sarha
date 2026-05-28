@@ -14,7 +14,11 @@ class CategoryRequestController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = CategoryRequest::query()->with('clinic:id,name')->latest();
+        // Eager-load the originating service so the review queue can show
+        // "from service: X" alongside the requested specialty name.
+        $query = CategoryRequest::query()
+            ->with(['clinic:id,name', 'service:id,name,clinic_id'])
+            ->latest();
 
         if ($status = $request->string('filter.status')->toString()) {
             $query->where('status', $status);
@@ -29,6 +33,7 @@ class CategoryRequestController extends Controller
                 'name'       => $r->name,
                 'status'     => $r->status,
                 'clinic'     => $r->clinic ? ['id' => $r->clinic->id, 'name' => $r->clinic->name] : null,
+                'service'    => $r->service ? ['id' => $r->service->id, 'name' => $r->service->name] : null,
                 'created_at' => $r->created_at,
             ]),
             'meta' => [

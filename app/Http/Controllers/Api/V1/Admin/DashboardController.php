@@ -137,6 +137,9 @@ class DashboardController extends Controller
                 'subscriptions_expiring' => Subscription::where('status', 'active')
                     ->whereBetween('ends_at', [now(), now()->addDays($reminderDays)])
                     ->count(),
+                // New-specialty requests pending admin review. Surfaces in the
+                // sidebar so the queue is never forgotten.
+                'category_requests'      => \App\Models\CategoryRequest::where('status', 'pending')->count(),
             ],
         ]);
     }
