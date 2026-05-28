@@ -604,13 +604,20 @@ class AiAssistantService
         $currentTokens   = $this->tokenize($query);
         $currentCategory = $this->firstMatchingCategory($currentTokens)
             ?? $this->firstMatchingCategory([$query]);
-        $historyCtx = $this->inferContextFromHistory($history);
+        $currentCityId   = $this->firstMatchingCityId($currentTokens);
+        $historyCtx      = $this->inferContextFromHistory($history);
         $ctx = [
-            'city_id'     => $liveContext['city_id']
-                ?? $historyCtx['city_id'],
+            // City sticks to the current turn first. Reusing $liveContext or
+            // $historyCtx for a turn that NEVER mentions a city makes the
+            // fallback hallucinate places the user didn't ask about — QA
+            // caught "بحثت لك في مكة المكرمة" appearing on a chest-pain
+            // query that had no city at all. Only carry the city forward
+            // when the current turn looks like a follow-up (≤ 4 tokens,
+            // no obvious symptom verbs).
+            'city_id'     => $currentCityId
+                ?? ($this->isLikelyFollowUp($query) ? ($liveContext['city_id'] ?? $historyCtx['city_id']) : null),
             'category_id' => $currentCategory?->id
-                ?? $liveContext['category_id']
-                ?? $historyCtx['category_id'],
+                ?? ($this->isLikelyFollowUp($query) ? ($liveContext['category_id'] ?? $historyCtx['category_id']) : null),
         ];
         // CRITICAL: names must come back in the user's language, not the app's
         // locale — so an Arabic chat never reads "Khobar" or "Dentistry".
@@ -1428,21 +1435,130 @@ RULES;
      * / suicidal language, or null when the query carries no red-line phrase.
      * Mental is checked first because phrases like "ما ابي اعيش" should never
      * be misrouted to a generic ambulance reply.
+     *
+     * Detection runs in 3 layers (each more flexible than the literal keyword
+     * lists alone, which famously missed "ألم في صدري" because the constant
+     * said "ألم شديد في الصدر"):
+     *   1. Literal keyword match against the raw + lower-cased query.
+     *   2. Literal keyword match against an Arabic-normalised query (strips
+     *      tashkeel, unifies alef/ya/ta-marbuta, drops the definite "ال").
+     *   3. Co-occurrence patterns — e.g. (pain/ألم/وجع) + (chest/صدر) anywhere
+     *      in the query → medical. Catches every phrasing of chest pain or
+     *      breathing distress without an exhaustive whitelist.
      */
     private function detectEmergency(string $query): ?string
     {
-        $lower = mb_strtolower($query);
+        $lower      = mb_strtolower($query);
+        $normalized = $this->normalizeArabicForMatch($query);
+
+        // Mental first — self-harm phrasing must never be misclassified as
+        // a generic chest-pain emergency.
         foreach (self::EMERGENCY_MENTAL_KEYWORDS as $needle) {
-            if (str_contains($query, $needle) || str_contains($lower, $needle)) {
+            $needleNorm = $this->normalizeArabicForMatch($needle);
+            if (str_contains($query, $needle)
+                || str_contains($lower, $needle)
+                || str_contains($normalized, $needleNorm)) {
                 return 'mental';
             }
         }
+
         foreach (self::EMERGENCY_MEDICAL_KEYWORDS as $needle) {
-            if (str_contains($query, $needle) || str_contains($lower, $needle)) {
+            $needleNorm = $this->normalizeArabicForMatch($needle);
+            if (str_contains($query, $needle)
+                || str_contains($lower, $needle)
+                || str_contains($normalized, $needleNorm)) {
                 return 'medical';
             }
         }
+
+        if ($this->hasMedicalEmergencyPattern($normalized, $lower)) {
+            return 'medical';
+        }
         return null;
+    }
+
+    /**
+     * Strips diacritics and unifies common Arabic letter variants so a
+     * literal keyword like "ألم شديد في الصدر" still matches a real-world
+     * phrasing like "الم شديد في صدري". Conservative on purpose — only
+     * touches code points that demonstrably cause emergency-match misses
+     * during QA.
+     */
+    private function normalizeArabicForMatch(string $s): string
+    {
+        $s = mb_strtolower($s);
+        // Tashkeel + kashida + dagger alef
+        $s = preg_replace('/[\x{064B}-\x{0652}\x{0670}\x{0640}]/u', '', $s) ?? $s;
+        // Alef variants → bare alef
+        $s = strtr($s, ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا']);
+        // Ya variants → bare ya
+        $s = strtr($s, ['ى' => 'ي', 'ئ' => 'ي']);
+        // Ta marbuta → ha (so "الصدرة" matches "الصدره" matches "صدري" via stem)
+        $s = strtr($s, ['ة' => 'ه']);
+        return $s;
+    }
+
+    /**
+     * Co-occurrence detector for medical emergencies. A keyword whitelist
+     * can't capture every phrasing of "I have severe chest pain" — this
+     * function asks the broader question: did the user mention (pain) AND
+     * (chest) in the same message? If so it's an emergency, regardless of
+     * the connecting words.
+     */
+    private function hasMedicalEmergencyPattern(string $normalized, string $lower): bool
+    {
+        $contains = static function (string $hay, array $needles): bool {
+            foreach ($needles as $n) {
+                if ($n !== '' && str_contains($hay, $n)) return true;
+            }
+            return false;
+        };
+
+        // Chest pain — (الم/وجع/pain) + (صدر/chest). Critical heart-attack signal.
+        $pain  = ['الم', 'وجع', 'pain', 'hurts', 'aching'];
+        $chest = ['صدر', 'chest'];
+        if ($contains($normalized, $pain) && $contains($normalized, $chest)) {
+            return true;
+        }
+
+        // Breathing distress — (ضيق/صعوب/can't/cant/difficulty) + (نفس/تنفس/breath).
+        // Catches "ضيق نفس", "ما اقدر اتنفس", "shortness of breath", etc.
+        $diff   = ['ضيق', 'صعوب', 'ما اقدر', 'ما أقدر', 'لا استطيع', 'لا أستطيع', "can't", 'cant', 'cannot', 'shortness', 'difficulty', 'trouble'];
+        $breath = ['نفس', 'تنفس', 'breath'];
+        if ($contains($normalized, $diff) && $contains($normalized, $breath)) {
+            return true;
+        }
+
+        // Choking
+        if ($contains($normalized, ['اختناق', 'يختنق', 'choking', 'choke'])) {
+            return true;
+        }
+
+        // Loss of consciousness
+        if ($contains($normalized, ['فقد الوعي', 'فقدت الوعي', 'مغمي', 'مغشي', 'مغمى',
+                                     'unconscious', 'passed out', 'fainted'])) {
+            return true;
+        }
+
+        // Heavy / non-stop bleeding
+        if (str_contains($normalized, 'نزيف')
+            && $contains($normalized, ['شديد', 'حاد', 'غزير', 'كثير', 'يتوقف', 'متواصل', 'لا يتوقف'])) {
+            return true;
+        }
+        if ($contains($lower, ['heavy bleeding', "won't stop bleeding", 'cant stop bleeding', "can't stop bleeding"])) {
+            return true;
+        }
+
+        // Stroke — sudden facial droop / slurred speech / one-sided weakness
+        if ($contains($normalized, ['وجهي مايل', 'وجهي مال', 'فمي مايل', 'شلل مفاجئ',
+                                     'تعثر الكلام', 'لا استطيع الكلام'])) {
+            return true;
+        }
+        if ($contains($lower, ['face drooping', 'slurred speech', 'sudden paralysis', "can't speak"])) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -1707,19 +1823,53 @@ MSG;
         return null;
     }
 
+    /**
+     * Resolves the first token that names an active specialty. Short tokens
+     * (< 4 chars) must match a whole word inside the category name — a bare
+     * substring search lets "نفس" (breath) collide with "نفسية" (psychiatry),
+     * which then routes a chest-pain query to the wrong specialty. Longer
+     * tokens keep the looser substring match because they're unambiguous.
+     */
     private function firstMatchingCategory(array $tokens): ?Category
     {
+        $categories = Category::query()->get(['id', 'name', 'name_en', 'slug', 'emoji']);
+        if ($categories->isEmpty()) return null;
+
         foreach ($tokens as $t) {
-            $variants = $this->withAlPrefixVariants($t);
-            $cat = Category::query()
-                ->where(function ($q) use ($variants) {
+            $tokenLen  = mb_strlen($t);
+            $tokenLow  = mb_strtolower($t);
+            $tokenNorm = $this->normalizeArabicForMatch($t);
+            $variants  = $this->withAlPrefixVariants($t);
+
+            foreach ($categories as $cat) {
+                // 1) Exact whole-word match — split the category name by
+                //    whitespace + the Arabic conjunctions "و"/"أو" and compare
+                //    each word individually. Handles "قلب وشرايين" → token "قلب".
+                $wordsAr = preg_split('/[\s,،]+|و(?=[\x{0600}-\x{06FF}])|أو/u', (string) $cat->name) ?: [];
+                $wordsEn = preg_split('/[\s,]+|and|\&|\//u', (string) ($cat->name_en ?? '')) ?: [];
+
+                foreach ($wordsAr as $w) {
+                    if ($w === '') continue;
+                    $wn = $this->normalizeArabicForMatch($w);
+                    $wnStripped = preg_replace('/^ال/u', '', $wn) ?? $wn;
+                    if ($wn === $tokenNorm || $wnStripped === $tokenNorm) return $cat;
+                }
+                foreach ($wordsEn as $w) {
+                    if ($w === '') continue;
+                    if (mb_strtolower(trim($w)) === $tokenLow) return $cat;
+                }
+
+                // 2) Long-token substring fallback — only for tokens ≥ 4
+                //    chars where false positives are vanishingly unlikely.
+                if ($tokenLen >= 4) {
                     foreach ($variants as $v) {
-                        $q->orWhere('name', 'like', "%{$v}%")
-                          ->orWhere('name_en', 'like', "%{$v}%");
+                        if (mb_stripos($cat->name, $v) !== false
+                            || mb_stripos((string) $cat->name_en, $v) !== false) {
+                            return $cat;
+                        }
                     }
-                })
-                ->first();
-            if ($cat) return $cat;
+                }
+            }
         }
         return null;
     }
@@ -1769,6 +1919,32 @@ MSG;
      * user just said they're in Khobar) actually search Khobar+dental
      * instead of asking the user for their city all over again.
      */
+
+    /**
+     * Heuristic: does the current query look like a short follow-up to a prior
+     * search? (e.g. "في الرياض" after "ابي ليزر إزالة الشعر"). The fallback
+     * only inherits city/category from prior context when this is true, so
+     * a fresh symptom-y query ("ألم في صدري") never picks up a city the user
+     * never typed.
+     */
+    private function isLikelyFollowUp(string $query): bool
+    {
+        $tokens = $this->tokenize($query);
+        if (count($tokens) > 4) return false;
+
+        // Symptom verbs / pain language => probably a new symptom report, NOT
+        // a follow-up to the prior search. Refuse to inherit context here.
+        $normalized = $this->normalizeArabicForMatch($query);
+        $symptomSignals = [
+            'الم', 'وجع', 'يوجعني', 'نزيف', 'ضيق', 'صعوبه', 'يحرقني',
+            'pain', 'hurts', 'bleeding', 'choking', 'shortness',
+        ];
+        foreach ($symptomSignals as $s) {
+            if (str_contains($normalized, $s)) return false;
+        }
+        return true;
+    }
+
     private function inferContextFromHistory(array $history): array
     {
         $cityId = null;
