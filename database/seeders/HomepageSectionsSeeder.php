@@ -34,6 +34,11 @@ class HomepageSectionsSeeder extends Seeder
             ['category_offers_2',   'category_offers', 70, 6,    ['category_slug' => 'dermatology']],
             ['category_offers_3',   'category_offers', 80, 6,    ['category_slug' => 'cosmetics']],
 
+            // Custom price-quote CTA — moved out of the clinic sidebar so
+            // visitors who haven't picked a complex yet can broadcast their
+            // request to all complexes in their city in one go.
+            ['price_quote',         'price_quote',     85, null, null],
+
             // ── Existing categories grid + below ────────────────────
             ['categories',          'categories',      90, 14,   null],
             ['ai_highlight',        'ai_highlight',   100, null, null],

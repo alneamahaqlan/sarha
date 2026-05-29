@@ -10,7 +10,8 @@ export type HomepageSectionType =
   | 'how_it_works'
   | 'clinic_list'
   | 'map'
-  | 'cta';
+  | 'cta'
+  | 'price_quote';
 
 export interface HomepageBannerSlide {
   id: number;

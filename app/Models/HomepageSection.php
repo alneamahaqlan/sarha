@@ -31,6 +31,7 @@ class HomepageSection extends Model
         'hero', 'stats', 'banner', 'offers', 'articles',
         'categories', 'category_offers', 'ai_highlight',
         'how_it_works', 'clinic_list', 'map', 'cta',
+        'price_quote',
     ];
 
     public const CACHE_KEY = 'homepage:sections:v1';

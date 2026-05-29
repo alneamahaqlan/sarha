@@ -32,6 +32,7 @@ const TYPE_LABEL_KEY: Record<string, string> = {
   clinic_list: 'homepage_sections.type_clinic_list',
   map: 'homepage_sections.type_map',
   cta: 'homepage_sections.type_cta',
+  price_quote: 'homepage_sections.type_price_quote',
 };
 
 export function HomepageSectionsIndex() {
