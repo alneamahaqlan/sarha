@@ -179,9 +179,7 @@ return [
 
     // Clinic page tabs
     'tab_services' => 'Services & prices',
-    'focused_service_notice' => 'Showing only the service you selected',
-    'focused_service_not_found' => 'The requested service is not available at this complex.',
-    'view_all_services' => 'View all services',
+    'booking_selected_service_title' => 'The service you\'re booking',
     'no_clinics_yet' => 'No clinics added yet',
     'doctors_count' => ':count doctor(s)',
     'tab_clinics' => 'Clinics',

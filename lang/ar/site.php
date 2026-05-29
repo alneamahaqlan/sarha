@@ -179,9 +179,7 @@ return [
 
     // Clinic page tabs
     'tab_services' => 'الخدمات والأسعار',
-    'focused_service_notice' => 'تعرض الخدمة التي اخترتها فقط',
-    'focused_service_not_found' => 'الخدمة المطلوبة غير متاحة في هذا المجمع.',
-    'view_all_services' => 'عرض كل الخدمات',
+    'booking_selected_service_title' => 'الخدمة التي اخترتها لحجز موعد لها',
     'no_clinics_yet' => 'لم يتم إضافة عيادات بعد',
     'doctors_count' => ':count طبيب',
     'tab_clinics' => 'العيادات',

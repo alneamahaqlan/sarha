@@ -28,9 +28,11 @@
                         $clinic   = $service->clinic;
                     @endphp
                     <div class="reveal" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">
-                        {{-- Deep-link to the clinic page WITH ?service= so the
-                             services tab opens pre-filtered to this exact offer. --}}
-                        <a href="{{ $clinic ? route('clinic.show', ['slug' => $clinic->slug, 'service' => $service->id]) : '#' }}"
+                        {{-- Tapping an offer card takes the customer straight
+                             to the booking form pre-filled with this service —
+                             the clinic profile page itself stays neutral
+                             (browsing-mode), not filtered to a single row. --}}
+                        <a href="{{ $clinic ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) : '#' }}"
                            class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden h-full">
                             <div class="relative aspect-[16/10] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-5xl">
                                 @if($service->image)

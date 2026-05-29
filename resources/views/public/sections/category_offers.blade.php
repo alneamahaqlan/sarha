@@ -26,8 +26,9 @@
                     $clinic   = $service->clinic;
                 @endphp
                 <div class="reveal" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
-                    {{-- Same deep-link convention as the main offers section. --}}
-                    <a href="{{ $clinic ? route('clinic.show', ['slug' => $clinic->slug, 'service' => $service->id]) : '#' }}"
+                    {{-- Same "go straight to booking form" convention as the
+                         main offers section above. --}}
+                    <a href="{{ $clinic ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) : '#' }}"
                        class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-lg hover:ring-gold-soft transition-all overflow-hidden h-full">
                         <div class="p-5 flex items-start gap-4">
                             <div class="shrink-0 w-16 h-16 rounded-xl bg-sage-mist text-sage-primary flex items-center justify-center text-2xl">

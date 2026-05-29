@@ -144,13 +144,8 @@
     @php
         $featuredOffers = $clinic->services->where('is_featured_offer', true);
         $offersCount = $featuredOffers->count() + $clinic->packages->count();
-        // Deep link from the homepage offers card: ?service=<id> opens the
-        // services tab pre-filtered to that one service. Any other entry
-        // point lands on offers (the conversion-rich tab) by default.
-        $focusedServiceId = (int) request('service') ?: null;
-        $initialTab = $focusedServiceId ? 'services' : 'offers';
     @endphp
-    <div x-data="{ tab: '{{ $initialTab }}' }" class="mb-8">
+    <div x-data="{ tab: 'offers' }" class="mb-8">
         <div class="border-b border-gray-200 mb-6 overflow-x-auto">
             <div class="flex gap-1 min-w-max">
                 @foreach([
@@ -185,11 +180,11 @@
                 </div>
 
                 {{-- Services tab — price-list view: services grouped by
-                     sub-clinic. Filters down to one service when ?service=
-                     is set so a customer who clicked a specific service
-                     card sees only that one (with a "view all" pill). --}}
+                     sub-clinic. Browse-mode only; tapping an offer card on
+                     the homepage routes straight to the booking form, so
+                     this tab never gets a single-service filter. --}}
                 <div x-show="tab === 'services'" x-cloak class="space-y-6">
-                    @include('public.partials.sub-clinics', ['focusedServiceId' => $focusedServiceId])
+                    @include('public.partials.sub-clinics')
                 </div>
 
                 {{-- Clinics tab — structural directory: each sub-clinic as

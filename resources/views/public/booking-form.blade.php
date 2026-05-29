@@ -14,6 +14,26 @@
         <span class="text-gray-800">@lang('site.book_appointment')</span>
     </nav>
 
+    {{-- Pre-filled service banner — appears when the customer arrived from
+         an offer card on the homepage. Confirms exactly which service the
+         booking is for; the select below stays editable so they can change. --}}
+    @if(! empty($service))
+        <div class="bg-sage-50 border border-sage-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+            <span class="shrink-0 mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full bg-sage-600 text-white">
+                <x-icon name="check-circle" class="w-5 h-5" />
+            </span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-sage-800">@lang('site.booking_selected_service_title')</p>
+                <p class="text-sm text-sage-900 mt-0.5">
+                    {{ $service->name }}
+                    @if($service->price)
+                        — <span class="font-semibold">{{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                    @endif
+                </p>
+            </div>
+        </div>
+    @endif
+
     {{-- Notice --}}
     <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 mb-6 text-sm">
         @lang('site.booking_page_notice')
