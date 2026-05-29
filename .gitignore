@@ -23,3 +23,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 .playwright-mcp/
+# Playwright / debug screenshots from QA — never commit
+*.png
+!resources/**/*.png
+!public/**/*.png
