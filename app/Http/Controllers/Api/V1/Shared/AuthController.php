@@ -82,6 +82,10 @@ class AuthController extends Controller
                 'email' => $user->email ?? null,
                 'phone' => $user->phone ?? null,
                 'role'  => $user->role ?? null,
+                // Only meaningful for clinic users — surfaces the public
+                // page slug so the Clinic SPA can deep-link to
+                // /clinic/{slug} (e.g. the Page Builder's "view my page").
+                'slug'  => $guard === 'clinic' ? ($user->slug ?? null) : null,
             ],
             'permissions' => $this->permissionMap($guard, $user),
             'impersonating' => session()->has(\App\Services\ImpersonationService::SESSION_KEY),

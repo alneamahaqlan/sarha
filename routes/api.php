@@ -30,6 +30,7 @@ use App\Http\Controllers\Api\V1\Admin\CustomerReportController as AdminCustomerR
 use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
 use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
 use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
+use App\Http\Controllers\Api\V1\Clinic\PageSectionController as ClinicPageSectionController;
 use App\Http\Controllers\Api\V1\Clinic\SubClinicController as ClinicSubClinicController;
 use App\Http\Controllers\Api\V1\Clinic\DashboardController as ClinicDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ImportServicesController as ClinicImportServicesController;
@@ -308,5 +309,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // the same ImportServicesService that the Filament page now calls.
         Route::post('import-services/analyze', [ClinicImportServicesController::class, 'analyze'])->name('clinic.import-services.analyze');
         Route::post('import-services/execute', [ClinicImportServicesController::class, 'execute'])->name('clinic.import-services.execute');
+
+        // Page Builder — clinic-scoped CMS for the public /clinic/{slug}
+        // page. Lazy-seeded on first index() call; reorder via the same
+        // {id, sort_order} array pattern used by Homepage CMS.
+        Route::get('page-sections', [ClinicPageSectionController::class, 'index'])->name('clinic.page-sections.index');
+        Route::post('page-sections/reorder', [ClinicPageSectionController::class, 'reorder'])->name('clinic.page-sections.reorder');
+        Route::patch('page-sections/{section}', [ClinicPageSectionController::class, 'update'])
+            ->name('clinic.page-sections.update');
     });
 });

@@ -778,6 +778,7 @@
     "complaints": "الشكاوى",
     "articles": "المقالات",
     "import_services": "استيراد خدمات",
+    "page_builder": "تخصيص صفحتي",
     "subscription": "الاشتراك",
     "profile": "ملف المجمع",
     "group": {
@@ -1312,5 +1313,43 @@
     "type_clinic_list":     "قائمة مجمعات",
     "type_map":             "خريطة جغرافية",
     "type_cta":             "دعوة لإجراء"
+  },
+  "clinic_page_builder": {
+    "title": "تخصيص صفحتي العامة",
+    "subtitle": "تحكّم في ترتيب وعرض أقسام صفحة مجمعك على الموقع، وعنوان كل قسم. التغييرات تظهر للزوار خلال ثوانٍ من حفظها.",
+    "view_public_page": "فتح صفحتي العامة",
+    "order": "الترتيب",
+    "section": "القسم",
+    "title_col": "العنوان المخصص",
+    "limit_col": "الحد",
+    "is_active": "مفعّل",
+    "protected": "محمي",
+    "default_title": "النص الافتراضي",
+    "edit_dialog_title": "تخصيص القسم",
+    "edit_dialog_hint": "العنوان المخصص يحل محل العنوان الافتراضي على صفحة مجمعك. اتركه فارغاً للنص الافتراضي.",
+    "title_ar": "العنوان (عربي)",
+    "title_en": "Title (English)",
+    "title_placeholder": "النص الافتراضي",
+    "item_limit": "عدد العناصر المعروضة",
+    "item_limit_default": "الافتراضي",
+    "item_limit_hint": "اتركه فارغاً لاستخدام الحد الافتراضي للنظام.",
+    "move_to_hint": "اكتب رقم الصف واضغط Enter للنقل المباشر.",
+    "cannot_hide_hint": "هذا القسم محمي ولا يمكن إخفاؤه.",
+    "section_name": {
+      "hero": "ترويسة المجمع",
+      "offers": "العروض",
+      "services": "الخدمات والأسعار",
+      "sub_clinics": "الأقسام / العيادات الداخلية",
+      "doctors": "عرض الأطباء",
+      "before_after": "قبل / بعد",
+      "google_reviews": "تقييمات جوجل",
+      "articles": "المقالات",
+      "about": "نبذة عنّا",
+      "contact_info": "معلومات التواصل",
+      "working_hours": "ساعات العمل",
+      "social_links": "روابط التواصل الاجتماعي",
+      "similar_services": "خدمات مشابهة قريبة",
+      "floating_ctas": "أزرار الإجراء العائمة"
+    }
   }
 }

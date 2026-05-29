@@ -178,6 +178,7 @@ return [
     'social_snapchat' => 'سناب شات',
     'social_tiktok' => 'تيك توك',
     'social_whatsapp' => 'واتساب',
+    'social_links_title' => 'تابعنا على',
 
     // Clinic page tabs
     'tab_services' => 'الخدمات والأسعار',

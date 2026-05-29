@@ -33,6 +33,45 @@
         'hasMap'  => $clinic->directionsUrl(),
         'sameAs'  => array_values($clinic->socialLinks()) ?: null,
     ])->filter(fn($v) => $v !== null)->toArray();
+
+    /*
+     * Page Builder integration.
+     * `$pageSections` is a Collection keyed by section `key`, containing
+     *   only ACTIVE sections in the admin's chosen order.
+     * Use `$pageSections->has('key')` to gate visibility, and the
+     *   sort_order on each row to drive tab/sidebar ordering.
+     * `$builder` (ClinicPageBuilderService) resolves the localized
+     *   display title per section, honoring admin overrides.
+     */
+    $pageSections = $pageSections ?? collect();
+    $builder      = $builder      ?? app(\App\Services\ClinicPageBuilderService::class);
+
+    // Body-content sections that render inside the tab panel, sorted by
+    // the admin's chosen order. Hero / contact_info / floating_ctas /
+    // working_hours / social_links / similar_services live outside the
+    // tab system so they're not in this list.
+    //
+    // NB: filter() not only() — Eloquent Collection's only() looks up by
+    // primary key, not by the keyBy('key') label.
+    $tabSectionKeys = [
+        'offers', 'services', 'sub_clinics', 'doctors',
+        'before_after', 'google_reviews', 'articles', 'about',
+    ];
+    $activeTabs = $pageSections
+        ->filter(fn ($s) => in_array($s->key, $tabSectionKeys, true))
+        ->sortBy('sort_order')
+        ->values();
+
+    // Sidebar widgets, in admin-chosen order. Always-on widgets (contact,
+    // request-quote) anchor the sidebar; clinic admin can hide
+    // working_hours + social_links and reorder them.
+    $sidebarSectionKeys = ['working_hours', 'contact_info', 'social_links'];
+    $activeSidebar = $pageSections
+        ->filter(fn ($s) => in_array($s->key, $sidebarSectionKeys, true))
+        ->sortBy('sort_order')
+        ->values();
+
+    $firstTabKey = optional($activeTabs->first())->key ?? 'about';
 @endphp
 @push('head')
 <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
@@ -50,7 +89,8 @@
         <span class="text-gray-800">{{ $clinic->name }}</span>
     </nav>
 
-    {{-- Hero Card --}}
+    {{-- Hero Card (protected — always renders) --}}
+    @if($pageSections->has('hero'))
     <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
         @if($clinic->logo)
             <div class="h-56 bg-gray-100">
@@ -139,29 +179,38 @@
             </div>
         </div>
     </div>
+    @endif
 
-    {{-- Tabs --}}
+    {{-- Tabs — only renders if at least one tab section is active. --}}
+    @if($activeTabs->isNotEmpty())
     @php
         $featuredOffers = $clinic->services->where('is_featured_offer', true);
         $offersCount = $featuredOffers->count() + $clinic->packages->count();
+
+        $tabCounts = [
+            'offers'         => $offersCount,
+            'services'       => $clinic->services->count(),
+            'sub_clinics'    => $clinic->subClinics->count(),
+            'doctors'        => $clinic->doctors->count(),
+            'before_after'   => $clinic->beforeAfterPhotos->count(),
+            'google_reviews' => $clinic->google_reviews_count ?? 0,
+            'articles'       => $clinic->articles->count(),
+            'about'          => null,
+        ];
     @endphp
-    <div x-data="{ tab: 'offers' }" class="mb-8">
+    <div x-data="{ tab: '{{ $firstTabKey }}' }" class="mb-8">
         <div class="border-b border-gray-200 mb-6 overflow-x-auto">
             <div class="flex gap-1 min-w-max">
-                @foreach([
-                    'offers'   => ['site.tab_offers', $offersCount],
-                    'services' => ['site.tab_services', $clinic->services->count()],
-                    'clinics'  => ['site.tab_clinics', $clinic->subClinics->count()],
-                    'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
-                    'before_after' => ['site.tab_before_after', $clinic->beforeAfterPhotos->count()],
-                    'reviews'  => ['site.tab_reviews', $clinic->google_reviews_count ?? 0],
-                    'articles' => ['site.tab_articles', $clinic->articles->count()],
-                    'about'    => ['site.tab_about', null],
-                ] as $key => [$labelKey, $count])
+                @foreach($activeTabs as $tabSection)
+                    @php
+                        $key   = $tabSection->key;
+                        $label = $builder->titleFor($tabSection);
+                        $count = $tabCounts[$key] ?? null;
+                    @endphp
                     <button @click="tab = '{{ $key }}'"
                             :class="tab === '{{ $key }}' ? 'border-sage-600 text-sage-700' : 'border-transparent text-gray-500 hover:text-gray-800'"
                             class="px-4 py-3 font-semibold border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap">
-                        @lang($labelKey)
+                        {{ $label }}
                         @if(! is_null($count))
                             <span :class="tab === '{{ $key }}' ? 'bg-sage-100 text-sage-700' : 'bg-gray-100 text-gray-600'"
                                   class="text-xs px-2 py-0.5 rounded-full">{{ $count }}</span>
@@ -174,42 +223,43 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Offers & packages tab — first by default (highest conversion intent). --}}
+                @if($pageSections->has('offers'))
                 <div x-show="tab === 'offers'" x-cloak class="space-y-6">
                     @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
                 </div>
+                @endif
 
-                {{-- Services tab — price-list view: services grouped by
-                     sub-clinic. Browse-mode only; tapping an offer card on
-                     the homepage routes straight to the booking form, so
-                     this tab never gets a single-service filter. --}}
+                @if($pageSections->has('services'))
                 <div x-show="tab === 'services'" x-cloak class="space-y-6">
                     @include('public.partials.sub-clinics')
                 </div>
+                @endif
 
-                {{-- Clinics tab — structural directory: each sub-clinic as
-                     a navigational card (specialty + description + counts),
-                     without the nested service rows. --}}
-                <div x-show="tab === 'clinics'" x-cloak class="space-y-6">
+                @if($pageSections->has('sub_clinics'))
+                <div x-show="tab === 'sub_clinics'" x-cloak class="space-y-6">
                     @include('public.partials.clinics')
                 </div>
+                @endif
 
-                {{-- Doctors tab --}}
+                @if($pageSections->has('doctors'))
                 <div x-show="tab === 'doctors'" x-cloak class="space-y-6">
                     @include('public.partials.doctors')
                 </div>
+                @endif
 
-                {{-- Before / after tab --}}
+                @if($pageSections->has('before_after'))
                 <div x-show="tab === 'before_after'" x-cloak class="space-y-6">
                     @include('public.partials.before-after')
                 </div>
+                @endif
 
-                {{-- Reviews tab --}}
-                <div x-show="tab === 'reviews'" x-cloak>
+                @if($pageSections->has('google_reviews'))
+                <div x-show="tab === 'google_reviews'" x-cloak>
                     @include('public.partials.google-reviews')
                 </div>
+                @endif
 
-                {{-- Articles tab --}}
+                @if($pageSections->has('articles'))
                 <div x-show="tab === 'articles'" x-cloak>
                     <div class="bg-white rounded-xl shadow-sm p-6">
                         <h2 class="text-lg font-bold text-gray-800 mb-4">@lang('site.clinic_articles')</h2>
@@ -229,8 +279,9 @@
                         @endif
                     </div>
                 </div>
+                @endif
 
-                {{-- About tab --}}
+                @if($pageSections->has('about'))
                 <div x-show="tab === 'about'" x-cloak class="space-y-6">
                     @if($clinic->description)
                         <div class="bg-white rounded-xl shadow-sm p-6">
@@ -253,40 +304,51 @@
                         </div>
                     @endif
                 </div>
+                @endif
             </div>
 
-            {{-- Sidebar (always visible) --}}
+            {{-- Sidebar — only the active widgets, in admin-chosen order.
+                 "Request price quote" is always-on (no toggle): it's a
+                 platform-level CTA, not a clinic-controlled section. --}}
             <aside class="lg:col-span-1 space-y-5">
-                {{-- Working hours --}}
-                @include('public.partials.working-hours')
+                @foreach($activeSidebar as $sidebarSection)
+                    @php $sidebarTitleOverride = $sidebarSection->title_ar || $sidebarSection->title_en ? $builder->titleFor($sidebarSection) : null; @endphp
+                    @switch($sidebarSection->key)
+                        @case('working_hours')
+                            @include('public.partials.working-hours', ['sidebarTitleOverride' => $sidebarTitleOverride])
+                            @break
 
-                {{-- Contact info --}}
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="font-bold text-gray-800 mb-4">@lang('site.contact_info')</h3>
-                    <div class="space-y-3">
-                        @if($clinic->phone)
-                            <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-sage-600">
-                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="phone" class="w-4 h-4" /></span>
-                                <span dir="ltr">{{ $clinic->phone }}</span>
-                            </a>
-                        @endif
-                        @if($clinic->email)
-                            <div class="flex items-center gap-3 text-gray-700">
-                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="envelope" class="w-4 h-4" /></span>
-                                <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
+                        @case('contact_info')
+                            <div class="bg-white rounded-xl shadow-sm p-6">
+                                <h3 class="font-bold text-gray-800 mb-4">{{ $builder->titleFor($sidebarSection) }}</h3>
+                                <div class="space-y-3">
+                                    @if($clinic->phone)
+                                        <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}" class="flex items-center gap-3 text-gray-700 hover:text-sage-600">
+                                            <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="phone" class="w-4 h-4" /></span>
+                                            <span dir="ltr">{{ $clinic->phone }}</span>
+                                        </a>
+                                    @endif
+                                    @if($clinic->email)
+                                        <div class="flex items-center gap-3 text-gray-700">
+                                            <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="envelope" class="w-4 h-4" /></span>
+                                            <span class="text-sm" dir="ltr">{{ $clinic->email }}</span>
+                                        </div>
+                                    @endif
+                                    @if($address = $clinic->address)
+                                        <div class="flex items-start gap-3 text-gray-700">
+                                            <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="map-pin" class="w-4 h-4" /></span>
+                                            <span class="text-sm">{{ $clinic->city->display_name ?? '' }}@if($clinic->city) — @endif{{ $address }}</span>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
-                        @endif
-                        @if($address = $clinic->address)
-                            <div class="flex items-start gap-3 text-gray-700">
-                                <span class="bg-sage-50 text-sage-600 p-2 rounded-lg"><x-icon name="map-pin" class="w-4 h-4" /></span>
-                                <span class="text-sm">{{ $clinic->city->display_name ?? '' }}@if($clinic->city) — @endif{{ $address }}</span>
-                            </div>
-                        @endif
-                    </div>
-                </div>
+                            @break
 
-                {{-- Social media bar --}}
-                @include('public.partials.social-bar')
+                        @case('social_links')
+                            @include('public.partials.social-bar', ['sidebarTitleOverride' => $sidebarTitleOverride])
+                            @break
+                    @endswitch
+                @endforeach
 
                 {{-- Custom price quote — broadcast to all complexes in the chosen cities --}}
                 <div class="bg-white rounded-xl shadow-sm p-6">
@@ -300,12 +362,18 @@
             </aside>
         </div>
     </div>
+    @endif
 
-    {{-- Similar --}}
-    @include('public.partials.similar-services')
+    @if($pageSections->has('similar_services'))
+        @include('public.partials.similar-services')
+    @endif
 </div>
 
-{{-- Floating buttons (desktop) + sticky action bar (mobile) --}}
-@include('public.partials.floating-actions')
-@include('public.partials.mobile-action-bar')
+{{-- Floating buttons (desktop) + sticky action bar (mobile) — protected
+     (always renders). The toggle stays in the page builder for layout
+     parity but is locked active. --}}
+@if($pageSections->has('floating_ctas'))
+    @include('public.partials.floating-actions')
+    @include('public.partials.mobile-action-bar')
+@endif
 @endsection

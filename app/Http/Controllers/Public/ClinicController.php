@@ -9,6 +9,7 @@ use App\Models\Clinic;
 use App\Models\ClinicStat;
 use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
+use App\Services\ClinicPageBuilderService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class ClinicController extends Controller
 {
     use IdentifiesCustomer;
 
-    public function show(string $slug)
+    public function show(string $slug, ClinicPageBuilderService $builder)
     {
         $clinic = Clinic::publiclyVisible()
             ->where('slug', $slug)
@@ -67,7 +68,12 @@ class ClinicController extends Controller
             // swallow — analytics must not affect the visitor experience
         }
 
-        return view('public.clinic', compact('clinic', 'similarServices'));
+        // Per-clinic Page Builder config: which of the 14 sections are
+        // active, their order, and any title/limit overrides. Lazy-seeds
+        // defaults on first visit so the X existing clinics keep working.
+        $pageSections = $builder->forPublic($clinic->id);
+
+        return view('public.clinic', compact('clinic', 'similarServices', 'pageSections', 'builder'));
     }
 
     public function bookingForm(string $slug, Request $request)

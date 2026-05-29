@@ -36,6 +36,8 @@ export interface CurrentUserResponse {
       email: string | null;
       phone: string | null;
       role: string | null;
+      /** Only populated when guard === 'clinic' — the clinic's public slug. */
+      slug?: string | null;
     };
     permissions: Record<string, boolean>;
     impersonating: boolean;

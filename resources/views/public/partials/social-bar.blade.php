@@ -47,7 +47,7 @@
 
 @if(!empty($socials))
 <div class="bg-white rounded-xl shadow-sm p-6">
-    <h3 class="font-bold text-gray-800 mb-4">@lang('site.follow_us')</h3>
+    <h3 class="font-bold text-gray-800 mb-4">{{ $sidebarTitleOverride ?? __('site.follow_us') }}</h3>
     <div class="flex flex-wrap gap-3">
         @foreach($socials as $platform => $url)
             @php $brand = $brands[$platform] ?? null; @endphp

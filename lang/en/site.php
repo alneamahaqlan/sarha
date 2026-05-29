@@ -178,6 +178,7 @@ return [
     'social_snapchat' => 'Snapchat',
     'social_tiktok' => 'TikTok',
     'social_whatsapp' => 'WhatsApp',
+    'social_links_title' => 'Follow us on',
 
     // Clinic page tabs
     'tab_services' => 'Services & prices',

@@ -50,6 +50,7 @@ const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/
 const ClinicProfilePage   = lazy(() => import('@/features/clinic/profile/pages/ClinicProfilePage').then(m => ({ default: m.ClinicProfilePage })));
 const ClinicSubscriptionPage = lazy(() => import('@/features/clinic/subscription/pages/ClinicSubscriptionPage').then(m => ({ default: m.ClinicSubscriptionPage })));
 const ImportServicesPage  = lazy(() => import('@/features/clinic/import-services/pages/ImportServicesPage').then(m => ({ default: m.ImportServicesPage })));
+const ClinicPageBuilderIndex = lazy(() => import('@/features/clinic/page-builder/pages/ClinicPageBuilderIndex').then(m => ({ default: m.ClinicPageBuilderIndex })));
 
 function PageFallback() {
   return (
@@ -143,6 +144,7 @@ export function AppRoutes() {
               <Route path="reports" element={<ClinicReportsIndex />} />
               <Route path="articles" element={<ClinicArticlesIndex />} />
               <Route path="import-services" element={<ImportServicesPage />} />
+              <Route path="page-builder" element={<ClinicPageBuilderIndex />} />
               <Route path="subscription" element={<ClinicSubscriptionPage />} />
               <Route path="profile" element={<ClinicProfilePage />} />
             </Route>

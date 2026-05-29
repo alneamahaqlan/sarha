@@ -24,7 +24,7 @@
 @if($clinic->workingHours->isNotEmpty())
 <div class="bg-white rounded-xl shadow-sm p-6">
     <div class="flex items-center justify-between mb-4">
-        <h3 class="font-bold text-gray-800">@lang('site.working_hours_title')</h3>
+        <h3 class="font-bold text-gray-800">{{ $sidebarTitleOverride ?? __('site.working_hours_title') }}</h3>
         @if($isOpenNow)
             <span class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-semibold">
                 ● @lang('site.working_hours_open_now')

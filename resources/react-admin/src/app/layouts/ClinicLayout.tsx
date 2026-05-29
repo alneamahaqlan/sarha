@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -51,6 +51,7 @@ const clinicNav = [
   {
     group: 'clinic_nav.group.settings',
     items: [
+      { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop },
       { to: '/clinic/subscription', label: 'clinic_nav.subscription', icon: CreditCard, badge: 'subscription_expiring' as keyof ClinicNavBadges },
       { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2 },
     ],

@@ -778,6 +778,7 @@
     "complaints": "Complaints",
     "articles": "Articles",
     "import_services": "Import services",
+    "page_builder": "Page builder",
     "subscription": "Subscription",
     "profile": "Complex profile",
     "group": {
@@ -1312,5 +1313,43 @@
     "type_clinic_list":     "Complex list",
     "type_map":             "Map",
     "type_cta":             "Call-to-action"
+  },
+  "clinic_page_builder": {
+    "title": "Customize my public page",
+    "subtitle": "Control which sections appear on your complex page, their order, and their titles. Changes go live for visitors within seconds.",
+    "view_public_page": "Open my public page",
+    "order": "Order",
+    "section": "Section",
+    "title_col": "Custom title",
+    "limit_col": "Limit",
+    "is_active": "Active",
+    "protected": "Locked",
+    "default_title": "Default text",
+    "edit_dialog_title": "Customize section",
+    "edit_dialog_hint": "A custom title replaces the default heading on your public page. Leave blank to use the default.",
+    "title_ar": "Title (Arabic)",
+    "title_en": "Title (English)",
+    "title_placeholder": "Default text",
+    "item_limit": "Items shown",
+    "item_limit_default": "Default",
+    "item_limit_hint": "Leave blank to use the platform default.",
+    "move_to_hint": "Type a position and press Enter to jump.",
+    "cannot_hide_hint": "This section is locked and cannot be hidden.",
+    "section_name": {
+      "hero": "Header card",
+      "offers": "Offers",
+      "services": "Services & prices",
+      "sub_clinics": "Departments / sub-clinics",
+      "doctors": "Doctors showcase",
+      "before_after": "Before / after",
+      "google_reviews": "Google reviews",
+      "articles": "Articles",
+      "about": "About us",
+      "contact_info": "Contact info",
+      "working_hours": "Working hours",
+      "social_links": "Social links",
+      "similar_services": "Similar services nearby",
+      "floating_ctas": "Floating call buttons"
+    }
   }
 }
