@@ -140,6 +140,8 @@ class DashboardController extends Controller
                 // New-specialty requests pending admin review. Surfaces in the
                 // sidebar so the queue is never forgotten.
                 'category_requests'      => \App\Models\CategoryRequest::where('status', 'pending')->count(),
+                // Clinic-side platform reports waiting for review.
+                'clinic_reports'         => \App\Models\ClinicReport::whereIn('status', ['new', 'in_review'])->count(),
             ],
         ]);
     }

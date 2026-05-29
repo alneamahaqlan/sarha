@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -39,6 +39,7 @@ const clinicNav = [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
       { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
       { to: '/clinic/complaints', label: 'clinic_nav.complaints', icon: AlertTriangle },
+      { to: '/clinic/reports', label: 'clinic_nav.reports', icon: MessageSquareWarning },
     ],
   },
   {

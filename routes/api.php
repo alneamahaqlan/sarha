@@ -24,6 +24,8 @@ use App\Http\Controllers\Api\V1\Clinic\BeforeAfterController as ClinicBeforeAfte
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
+use App\Http\Controllers\Api\V1\Clinic\ReportController as ClinicReportController;
+use App\Http\Controllers\Api\V1\Admin\ClinicReportController as AdminClinicReportController;
 use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
 use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
 use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
@@ -137,6 +139,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
         Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
+
+        // Clinic-side platform reports — review queue. Kept separate from
+        // /admin/complaints (which is customer→clinic only) so the two
+        // workflows don't get tangled in the same view.
+        Route::apiResource('clinic-reports', AdminClinicReportController::class)
+            ->only(['index', 'show', 'update'])
+            ->parameters(['clinic-reports' => 'clinicReport']);
 
         // Specialty (category) requests submitted by complexes — review queue.
         Route::get('category-requests', [AdminCategoryRequestController::class, 'index'])->name('category-requests.index');
@@ -259,9 +268,15 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Records a complex's outreach to a customer (WhatsApp/call) → stats + visibility.
         Route::post('outreach', [ClinicOutreachController::class, 'store'])->name('clinic.outreach');
 
-        // Complaints filed BY the complex (admins handle them).
+        // Customer complaints filed AGAINST this complex — read-only here
+        // (the complex sees what was raised against them; admins resolve).
         Route::get('complaints', [ClinicComplaintController::class, 'index'])->name('clinic.complaints.index');
-        Route::post('complaints', [ClinicComplaintController::class, 'store'])->name('clinic.complaints.store');
+
+        // Reports raised BY the complex to platform admins (the old
+        // "clinic complaint" surface, redesigned with proper report types:
+        // technical issue, abusive customer, fake review, billing, etc.).
+        Route::get('reports', [ClinicReportController::class, 'index'])->name('clinic.reports.index');
+        Route::post('reports', [ClinicReportController::class, 'store'])->name('clinic.reports.store');
 
         // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
         // the basic-plan monthly publish limit; preserved as-is via Model events.

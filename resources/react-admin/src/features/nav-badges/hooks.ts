@@ -7,6 +7,7 @@ export interface AdminNavBadges {
   clinics_pending: number;
   subscriptions_expiring: number;
   category_requests: number;
+  clinic_reports: number;
 }
 
 export interface ClinicNavBadges {

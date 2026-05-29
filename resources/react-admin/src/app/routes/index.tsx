@@ -39,6 +39,8 @@ const ClinicSubClinicsIndex = lazy(() => import('@/features/clinic/sub-clinics/p
 const ClinicDoctorsIndex  = lazy(() => import('@/features/clinic/doctors/pages/ClinicDoctorsIndex').then(m => ({ default: m.ClinicDoctorsIndex })));
 const ClinicPackagesIndex = lazy(() => import('@/features/clinic/packages/pages/ClinicPackagesIndex').then(m => ({ default: m.ClinicPackagesIndex })));
 const ClinicComplaintsIndex = lazy(() => import('@/features/clinic/complaints/pages/ClinicComplaintsIndex').then(m => ({ default: m.ClinicComplaintsIndex })));
+const ClinicReportsIndex = lazy(() => import('@/features/clinic/reports/pages/ClinicReportsIndex').then(m => ({ default: m.ClinicReportsIndex })));
+const AdminClinicReportsIndex = lazy(() => import('@/features/clinic-reports/pages/AdminClinicReportsIndex').then(m => ({ default: m.AdminClinicReportsIndex })));
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
 const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
@@ -107,6 +109,7 @@ export function AppRoutes() {
               <Route path="system-settings" element={<SystemSettingsIndex />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />
+              <Route path="clinic-reports" element={<AdminClinicReportsIndex />} />
             </Route>
           </Route>
           <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />
@@ -135,6 +138,7 @@ export function AppRoutes() {
               <Route path="bookings" element={<ClinicBookingsIndex />} />
               <Route path="price-quotes" element={<ClinicQuotesIndex />} />
               <Route path="complaints" element={<ClinicComplaintsIndex />} />
+              <Route path="reports" element={<ClinicReportsIndex />} />
               <Route path="articles" element={<ClinicArticlesIndex />} />
               <Route path="import-services" element={<ImportServicesPage />} />
               <Route path="subscription" element={<ClinicSubscriptionPage />} />
