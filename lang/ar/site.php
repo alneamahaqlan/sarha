@@ -77,6 +77,8 @@ return [
 
     // Similar clinics
     'similar_clinics' => 'مجمعات مشابهة',
+    'similar_services_title' => 'خدمات مشابهة بنفس المدينة',
+    'similar_services_subtitle' => 'قارن الأسعار من مجمعات أخرى قبل الحجز',
     'reviews_count_label' => ':count تقييم',
     'no_reviews_yet' => 'لا توجد تقييمات بعد',
     'starting_from' => 'يبدأ من :amount ريال',

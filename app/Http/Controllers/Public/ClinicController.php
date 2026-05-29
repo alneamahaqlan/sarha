@@ -41,14 +41,24 @@ class ClinicController extends Controller
             ->withCount('googleReviews')
             ->firstOrFail();
 
-        $similarClinics = Clinic::publiclyVisible()
-            ->where('id', '!=', $clinic->id)
-            ->where('city_id', $clinic->city_id)
-            ->whereHas('categories', fn($q) => $q->whereIn('categories.id', $clinic->categories->pluck('id')))
-            ->with(['city', 'categories'])
-            ->rankedForListing()
-            ->take(3)
-            ->get();
+        // "Similar services in the same city" — replaces the previous
+        // similar-clinics block. Aggregates services from OTHER clinics in
+        // this city whose category set overlaps the current clinic's
+        // specialty coverage, ordered cheapest-first so the customer can
+        // price-compare without leaving the page.
+        $thisCategoryIds = $clinic->categories->pluck('id');
+        $similarServices = $thisCategoryIds->isNotEmpty()
+            ? \App\Models\Service::query()
+                ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'categories:id,name,emoji'])
+                ->where('is_active', true)
+                ->whereNotNull('price')
+                ->where('clinic_id', '!=', $clinic->id)
+                ->whereHas('clinic', fn ($q) => $q->publiclyVisible()->where('city_id', $clinic->city_id))
+                ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $thisCategoryIds))
+                ->orderBy('price')
+                ->take(8)
+                ->get()
+            : collect();
 
         // Record a page view (never let stats break the page).
         try {
@@ -57,7 +67,7 @@ class ClinicController extends Controller
             // swallow — analytics must not affect the visitor experience
         }
 
-        return view('public.clinic', compact('clinic', 'similarClinics'));
+        return view('public.clinic', compact('clinic', 'similarServices'));
     }
 
     public function bookingForm(string $slug, Request $request)

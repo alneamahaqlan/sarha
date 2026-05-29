@@ -77,6 +77,8 @@ return [
 
     // Similar clinics
     'similar_clinics' => 'Similar complexes',
+    'similar_services_title' => 'Similar services in this city',
+    'similar_services_subtitle' => 'Compare prices from other complexes before booking',
     'reviews_count_label' => ':count reviews',
     'no_reviews_yet' => 'No reviews yet',
     'starting_from' => 'from :amount SAR',

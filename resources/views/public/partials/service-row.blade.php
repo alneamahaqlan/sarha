@@ -1,8 +1,12 @@
 {{--
-    A single service row in the public clinic page.
+    A single service row in the public clinic page. Two columns: the left
+    holds name + description + offer chip, the right holds the price + a
+    prominent "احجز موعد" button (every service now exposes its own
+    booking entry point — previously it was a faint text link customers
+    routinely missed).
     Expects: $service, $clinic
 --}}
-<div class="py-3 flex items-center justify-between gap-4">
+<div class="py-3 flex items-start justify-between gap-4">
     <div class="flex-1 min-w-0">
         <p class="font-medium text-gray-800">{{ $service->name }}</p>
         @if($service->description)
@@ -14,25 +18,34 @@
             </span>
         @endif
     </div>
-    <div class="text-end flex-shrink-0">
+    <div class="text-end flex-shrink-0 flex flex-col items-end gap-2 min-w-[8rem]">
         @if($service->price)
-            @if($service->old_price)
-                <span class="block text-[11px] text-gray-400" title="@lang('site.price_before_discount')">
-                    @lang('site.price_before_discount'): <span class="line-through">{{ number_format($service->old_price) }}</span>
+            <div>
+                @if($service->old_price)
+                    <span class="block text-[11px] text-gray-400" title="@lang('site.price_before_discount')">
+                        @lang('site.price_before_discount'): <span class="line-through">{{ number_format($service->old_price) }}</span>
+                    </span>
+                @endif
+                <span class="text-sage-700 font-bold whitespace-nowrap">
+                    <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
+                    {{ number_format($service->price) }}
+                    <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                 </span>
-            @endif
-            <span class="text-sage-700 font-bold">
-                <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
-                {{ number_format($service->price) }}
-                <span class="text-xs font-normal">@lang('site.currency_sar')</span>
-            </span>
+            </div>
             <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
                data-track="booking" data-clinic="{{ $clinic->id }}"
-               class="block mt-1 text-xs text-sage-600 hover:underline">
+               class="inline-flex items-center gap-1.5 bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-colors whitespace-nowrap">
+                <x-icon name="calendar" class="w-3.5 h-3.5" />
                 @lang('site.book_appointment')
             </a>
         @else
             <span class="text-gray-400 text-sm">@lang('site.call_for_inquiry')</span>
+            <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
+               data-track="booking" data-clinic="{{ $clinic->id }}"
+               class="inline-flex items-center gap-1.5 bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition-colors whitespace-nowrap">
+                <x-icon name="calendar" class="w-3.5 h-3.5" />
+                @lang('site.book_appointment')
+            </a>
         @endif
     </div>
 </div>

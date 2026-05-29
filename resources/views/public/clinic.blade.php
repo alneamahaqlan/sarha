@@ -302,7 +302,7 @@
     </div>
 
     {{-- Similar --}}
-    @include('public.partials.similar-clinics')
+    @include('public.partials.similar-services')
 </div>
 
 {{-- Floating buttons (desktop) + sticky action bar (mobile) --}}
