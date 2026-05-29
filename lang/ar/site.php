@@ -83,7 +83,7 @@ return [
 
     // Booking page
     'booking_page_title' => 'طلب تواصل مع :clinic',
-    'booking_page_notice' => '⚠️ هذا طلب تواصل وليس حجز موعد نهائي — سيتصل بك المجمع خلال يوم عمل لتأكيد الموعد المناسب لك.',
+    'booking_page_notice' => '⚠️ هذا طلب تواصل وليس حجز موعد نهائي — سيتواصل معك المجمع في أقرب وقت ممكن لتأكيد الموعد المناسب لك.',
     'booking_summary' => 'ملخّص الطلب',
     'booking_target_clinic' => 'المجمع المستهدف',
     'booking_target_service' => 'الخدمة المطلوبة',
@@ -91,7 +91,7 @@ return [
 
     // Booking confirmation
     'booking_confirmed_title' => 'تم استلام طلبك بنجاح',
-    'booking_confirmed_subtitle' => 'سيتواصل معك فريق المجمع خلال يوم عمل واحد.',
+    'booking_confirmed_subtitle' => 'سيتواصل معك فريق المجمع في أقرب وقت ممكن.',
     'booking_reference_label' => 'رقم الطلب',
     'booking_back_home' => 'العودة للرئيسية',
     'booking_browse_more' => 'تصفّح مجمعات أخرى',
@@ -179,6 +179,9 @@ return [
 
     // Clinic page tabs
     'tab_services' => 'الخدمات والأسعار',
+    'focused_service_notice' => 'تعرض الخدمة التي اخترتها فقط',
+    'focused_service_not_found' => 'الخدمة المطلوبة غير متاحة في هذا المجمع.',
+    'view_all_services' => 'عرض كل الخدمات',
     'tab_clinics' => 'العيادات',
     'tab_doctors' => 'الأطباء',
     'tab_offers' => 'العروض والباقات',

@@ -120,7 +120,7 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sub_clinic_id">{t('clinic_doctors.sub_clinic')}</Label>
-              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' || v === null || v === undefined ? null : Number(v)) })}>
                 <option value="">—</option>
                 {subClinics?.data.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
               </Select>

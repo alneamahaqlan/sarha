@@ -103,14 +103,14 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="sub_clinic_id">{t('clinic_before_after.sub_clinic')}</Label>
-              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' || v === null || v === undefined ? null : Number(v)) })}>
                 <option value="">{t('clinic_before_after.unlinked')}</option>
                 {subClinics?.data.map((sc) => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
               </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="service_id">{t('clinic_before_after.service')}</Label>
-              <Select id="service_id" {...form.register('service_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+              <Select id="service_id" {...form.register('service_id', { setValueAs: (v) => (v === '' || v === null || v === undefined ? null : Number(v)) })}>
                 <option value="">{t('clinic_before_after.unlinked')}</option>
                 {services?.data.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>

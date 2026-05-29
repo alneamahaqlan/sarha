@@ -129,7 +129,7 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="category_id">{t('clinic_sub_clinics.specialty')}</Label>
-              <Select id="category_id" {...form.register('category_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+              <Select id="category_id" {...form.register('category_id', { setValueAs: (v) => (v === '' || v === null || v === undefined ? null : Number(v)) })}>
                 <option value="">—</option>
                 {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </Select>

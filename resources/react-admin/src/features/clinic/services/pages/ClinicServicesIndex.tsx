@@ -154,7 +154,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="sub_clinic_id">{t('clinic_services.sub_clinic')}</Label>
-              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' ? null : Number(v)) })}>
+              <Select id="sub_clinic_id" {...form.register('sub_clinic_id', { setValueAs: (v) => (v === '' || v === null || v === undefined ? null : Number(v)) })}>
                 <option value="">—</option>
                 {subClinics?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </Select>

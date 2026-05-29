@@ -83,7 +83,7 @@ return [
 
     // Booking page
     'booking_page_title' => 'Contact request to :clinic',
-    'booking_page_notice' => '⚠️ This is a contact request, not a confirmed appointment — the complex will call you within one business day to arrange a time.',
+    'booking_page_notice' => '⚠️ This is a contact request, not a confirmed appointment — the complex will reach out as soon as possible to arrange a time.',
     'booking_summary' => 'Request summary',
     'booking_target_clinic' => 'Target complex',
     'booking_target_service' => 'Requested service',
@@ -91,7 +91,7 @@ return [
 
     // Booking confirmation
     'booking_confirmed_title' => 'Your request has been received',
-    'booking_confirmed_subtitle' => 'The complex team will contact you within one business day.',
+    'booking_confirmed_subtitle' => 'The complex team will reach out as soon as possible.',
     'booking_reference_label' => 'Reference',
     'booking_back_home' => 'Back to home',
     'booking_browse_more' => 'Browse more complexes',
@@ -179,6 +179,9 @@ return [
 
     // Clinic page tabs
     'tab_services' => 'Services & prices',
+    'focused_service_notice' => 'Showing only the service you selected',
+    'focused_service_not_found' => 'The requested service is not available at this complex.',
+    'view_all_services' => 'View all services',
     'tab_clinics' => 'Clinics',
     'tab_doctors' => 'Doctors',
     'tab_offers' => 'Offers & packages',

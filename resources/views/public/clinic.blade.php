@@ -144,14 +144,19 @@
     @php
         $featuredOffers = $clinic->services->where('is_featured_offer', true);
         $offersCount = $featuredOffers->count() + $clinic->packages->count();
+        // Deep link from the homepage offers card: ?service=<id> opens the
+        // services tab pre-filtered to that one service. Any other entry
+        // point lands on offers (the conversion-rich tab) by default.
+        $focusedServiceId = (int) request('service') ?: null;
+        $initialTab = $focusedServiceId ? 'services' : 'offers';
     @endphp
-    <div x-data="{ tab: 'clinics' }" class="mb-8">
+    <div x-data="{ tab: '{{ $initialTab }}' }" class="mb-8">
         <div class="border-b border-gray-200 mb-6 overflow-x-auto">
             <div class="flex gap-1 min-w-max">
                 @foreach([
-                    'clinics'  => ['site.tab_clinics', $clinic->subClinics->count()],
-                    'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
                     'offers'   => ['site.tab_offers', $offersCount],
+                    'services' => ['site.tab_services', $clinic->subClinics->count()],
+                    'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
                     'before_after' => ['site.tab_before_after', $clinic->beforeAfterPhotos->count()],
                     'reviews'  => ['site.tab_reviews', $clinic->google_reviews_count ?? 0],
                     'articles' => ['site.tab_articles', $clinic->articles->count()],
@@ -173,19 +178,22 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Clinics tab — complex → clinic → services, nested. --}}
-                <div x-show="tab === 'clinics'" x-cloak class="space-y-6">
-                    @include('public.partials.sub-clinics')
+                {{-- Offers & packages tab — first by default (highest conversion intent). --}}
+                <div x-show="tab === 'offers'" x-cloak class="space-y-6">
+                    @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
+                </div>
+
+                {{-- Services tab — complex → sub-clinic → services, nested.
+                     Filters down to one service when ?service= is set so a
+                     customer who clicked a specific service card sees only
+                     that one (with a "view all" pill to reset). --}}
+                <div x-show="tab === 'services'" x-cloak class="space-y-6">
+                    @include('public.partials.sub-clinics', ['focusedServiceId' => $focusedServiceId])
                 </div>
 
                 {{-- Doctors tab --}}
                 <div x-show="tab === 'doctors'" x-cloak class="space-y-6">
                     @include('public.partials.doctors')
-                </div>
-
-                {{-- Offers & packages tab --}}
-                <div x-show="tab === 'offers'" x-cloak class="space-y-6">
-                    @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
                 </div>
 
                 {{-- Before / after tab --}}
