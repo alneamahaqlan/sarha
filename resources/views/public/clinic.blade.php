@@ -155,7 +155,8 @@
             <div class="flex gap-1 min-w-max">
                 @foreach([
                     'offers'   => ['site.tab_offers', $offersCount],
-                    'services' => ['site.tab_services', $clinic->subClinics->count()],
+                    'services' => ['site.tab_services', $clinic->services->count()],
+                    'clinics'  => ['site.tab_clinics', $clinic->subClinics->count()],
                     'doctors'  => ['site.tab_doctors', $clinic->doctors->count()],
                     'before_after' => ['site.tab_before_after', $clinic->beforeAfterPhotos->count()],
                     'reviews'  => ['site.tab_reviews', $clinic->google_reviews_count ?? 0],
@@ -183,12 +184,19 @@
                     @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
                 </div>
 
-                {{-- Services tab — complex → sub-clinic → services, nested.
-                     Filters down to one service when ?service= is set so a
-                     customer who clicked a specific service card sees only
-                     that one (with a "view all" pill to reset). --}}
+                {{-- Services tab — price-list view: services grouped by
+                     sub-clinic. Filters down to one service when ?service=
+                     is set so a customer who clicked a specific service
+                     card sees only that one (with a "view all" pill). --}}
                 <div x-show="tab === 'services'" x-cloak class="space-y-6">
                     @include('public.partials.sub-clinics', ['focusedServiceId' => $focusedServiceId])
+                </div>
+
+                {{-- Clinics tab — structural directory: each sub-clinic as
+                     a navigational card (specialty + description + counts),
+                     without the nested service rows. --}}
+                <div x-show="tab === 'clinics'" x-cloak class="space-y-6">
+                    @include('public.partials.clinics')
                 </div>
 
                 {{-- Doctors tab --}}

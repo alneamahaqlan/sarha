@@ -182,6 +182,8 @@ return [
     'focused_service_notice' => 'تعرض الخدمة التي اخترتها فقط',
     'focused_service_not_found' => 'الخدمة المطلوبة غير متاحة في هذا المجمع.',
     'view_all_services' => 'عرض كل الخدمات',
+    'no_clinics_yet' => 'لم يتم إضافة عيادات بعد',
+    'doctors_count' => ':count طبيب',
     'tab_clinics' => 'العيادات',
     'tab_doctors' => 'الأطباء',
     'tab_offers' => 'العروض والباقات',

@@ -182,6 +182,8 @@ return [
     'focused_service_notice' => 'Showing only the service you selected',
     'focused_service_not_found' => 'The requested service is not available at this complex.',
     'view_all_services' => 'View all services',
+    'no_clinics_yet' => 'No clinics added yet',
+    'doctors_count' => ':count doctor(s)',
     'tab_clinics' => 'Clinics',
     'tab_doctors' => 'Doctors',
     'tab_offers' => 'Offers & packages',
