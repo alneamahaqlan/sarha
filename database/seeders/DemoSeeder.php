@@ -274,9 +274,6 @@ class DemoSeeder extends Seeder
                     'name'             => $this->pick($names),
                     'description'      => 'خدمة طبية احترافية على يد نخبة من الأطباء.',
                     'price'            => $price,
-                    'old_price'         => $hasOffer ? $price + rand(50, 500) : null,
-                    'offer_expires_at'  => $hasOffer ? $this->now->copy()->addDays(rand(2, 20))->toDateTimeString() : null,
-                    'is_featured_offer' => $hasOffer,
                     'is_active'         => true,
                     'sort_order'        => $j,
                     'created_at'        => $this->ts(rand(1, 120)),
@@ -295,17 +292,39 @@ class DemoSeeder extends Seeder
                         ]);
                     }
                 }
+
+                // Roughly one in three services gets a promotional Offer
+                // attached, half of which are featured. Stored in the
+                // standalone offers table now.
+                if ($hasOffer) {
+                    DB::table('offers')->insert([[
+                        'clinic_id'   => $cid,
+                        'service_id'  => $serviceId,
+                        'type'        => 'service',
+                        'title'       => 'عرض خاص: ' . $this->pick($names),
+                        'description' => null,
+                        'image'       => null,
+                        'old_price'   => $price + rand(50, 500),
+                        'price'       => $price,
+                        'starts_at'   => $this->now->copy()->subDays(rand(0, 5))->toDateTimeString(),
+                        'ends_at'     => $this->now->copy()->addDays(rand(2, 20))->toDateTimeString(),
+                        'is_featured' => rand(0, 1) === 0,
+                        'is_active'   => true,
+                        'sort_order'  => 0,
+                        'created_at'  => $this->now,
+                        'updated_at'  => $this->now,
+                    ]]);
+                }
             }
         }
     }
 
-    /** Flag discounted services as "featured offers" so the offers tab has demo data. */
+    /** No-op kept for callers; featured offers are now seeded inline above as standalone Offer rows. */
     private function seedFeaturedOffers(): void
     {
-        DB::table('services')
-            ->whereNotNull('old_price')
-            ->where('is_featured_offer', false)
-            ->update(['is_featured_offer' => true]);
+        // Standalone Offer entities replaced the legacy is_featured_offer
+        // flag on services. The is_featured flag is set per-row during
+        // seedServices() above; nothing left to backfill.
     }
 
     private function seedDoctors(): void

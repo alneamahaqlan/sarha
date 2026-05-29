@@ -21,9 +21,6 @@ function ServiceRow({ service }: { service: StructureService }) {
       <div className="text-xs text-[var(--color-muted-foreground)] whitespace-nowrap">
         {service.price != null ? (
           <>
-            {service.old_price != null && (
-              <span className="line-through me-1 text-[10px] opacity-60">{service.old_price.toLocaleString()}</span>
-            )}
             <span className="text-[var(--color-foreground)] font-medium">{service.price.toLocaleString()}</span>{' '}
             <span className="text-[10px]">{t('common.sar')}</span>
           </>

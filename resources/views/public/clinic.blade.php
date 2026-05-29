@@ -54,7 +54,7 @@
     // NB: filter() not only() — Eloquent Collection's only() looks up by
     // primary key, not by the keyBy('key') label.
     $tabSectionKeys = [
-        'offers', 'services', 'sub_clinics', 'doctors',
+        'offers', 'packages', 'services', 'sub_clinics', 'doctors',
         'before_after', 'google_reviews', 'articles', 'about',
     ];
     $activeTabs = $pageSections
@@ -184,11 +184,17 @@
     {{-- Tabs — only renders if at least one tab section is active. --}}
     @if($activeTabs->isNotEmpty())
     @php
-        $featuredOffers = $clinic->services->where('is_featured_offer', true);
-        $offersCount = $featuredOffers->count() + $clinic->packages->count();
+        // Active offers for THIS clinic — only running ones (within
+        // [starts_at, ends_at] + is_active). Featured first.
+        $activeOffers = $clinic->offers
+            ->where('is_active', true)
+            ->filter(fn ($o) => $o->starts_at <= now() && $o->ends_at >= now())
+            ->sortByDesc('is_featured')
+            ->values();
 
         $tabCounts = [
-            'offers'         => $offersCount,
+            'offers'         => $activeOffers->count(),
+            'packages'       => $clinic->packages->count(),
             'services'       => $clinic->services->count(),
             'sub_clinics'    => $clinic->subClinics->count(),
             'doctors'        => $clinic->doctors->count(),
@@ -225,7 +231,13 @@
 
                 @if($pageSections->has('offers'))
                 <div x-show="tab === 'offers'" x-cloak class="space-y-6">
-                    @include('public.partials.offers', ['featuredOffers' => $featuredOffers])
+                    @include('public.partials.offers', ['activeOffers' => $activeOffers])
+                </div>
+                @endif
+
+                @if($pageSections->has('packages'))
+                <div x-show="tab === 'packages'" x-cloak class="space-y-6">
+                    @include('public.partials.packages')
                 </div>
                 @endif
 
@@ -349,16 +361,6 @@
                             @break
                     @endswitch
                 @endforeach
-
-                {{-- Custom price quote — broadcast to all complexes in the chosen cities --}}
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="font-bold text-gray-800 mb-2">@lang('site.request_price_quote')</h3>
-                    <p class="text-sm text-gray-500 mb-4">@lang('site.quote_request_subtitle')</p>
-                    <a href="{{ route('quotes.request') }}"
-                       class="block text-center w-full bg-gradient-to-l from-gold-primary to-gold-deep hover:from-gold-deep hover:to-gold-deep text-white py-2.5 rounded-lg font-semibold transition-colors">
-                        @lang('site.request_price_quote')
-                    </a>
-                </div>
             </aside>
         </div>
     </div>

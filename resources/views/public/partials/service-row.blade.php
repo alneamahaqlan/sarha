@@ -12,20 +12,10 @@
         @if($service->description)
             <p class="text-sm text-gray-500 mt-0.5">{{ $service->description }}</p>
         @endif
-        @if($service->hasActiveOffer())
-            <span class="inline-block mt-1 bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold">
-                -{{ $service->discountPercentage() }}%
-            </span>
-        @endif
     </div>
     <div class="text-end flex-shrink-0 flex flex-col items-end gap-2 min-w-[8rem]">
         @if($service->price)
             <div>
-                @if($service->old_price)
-                    <span class="block text-[11px] text-gray-400" title="@lang('site.price_before_discount')">
-                        @lang('site.price_before_discount'): <span class="line-through">{{ number_format($service->old_price) }}</span>
-                    </span>
-                @endif
                 <span class="text-sage-700 font-bold whitespace-nowrap">
                     <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
                     {{ number_format($service->price) }}

@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\HomepageSection;
+use App\Models\Offer;
 use App\Models\Service;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -42,7 +43,7 @@ class HomepageRenderService
             'hero'            => ['cities' => $this->cities()],
             'stats'           => ['stats' => $this->stats()],
             'banner'          => ['slides' => $s->bannerSlides->where('is_active', true)->values()],
-            'offers'          => ['services' => $this->offers(null, $s->item_limit ?? 8, (int) data_get($s->config, 'min_discount', 0))],
+            'offers'          => ['offers' => $this->offers(null, $s->item_limit ?? 8, (int) data_get($s->config, 'min_discount', 0))],
             'articles'        => ['articles' => $this->articles($s->item_limit ?? 6)],
             'categories'      => ['categories' => $this->categories($s->item_limit ?? 14)],
             'category_offers' => $this->categoryOffersData($s),
@@ -77,31 +78,46 @@ class HomepageRenderService
     }
 
     /**
-     * Services with an active discount. Optionally narrowed by category and
-     * by minimum percentage so the "deep discounts" section can ask for only
+     * Active Offer entities (running window + is_active). Optionally
+     * narrowed by category (via the linked service's specialties) and by
+     * minimum percentage so the "deep discounts" section can ask for only
      * 20%+ off, etc.
+     *
+     * General offers (no linked service) participate in the unfiltered
+     * list but are excluded when a category filter is applied, since
+     * they're not tied to a specialty.
      */
     private function offers(?int $categoryId, int $limit, int $minDiscountPercent = 0): Collection
     {
-        $q = Service::query()
-            ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'categories:id,name,name_en,slug,emoji'])
-            ->where('is_active', true)
-            ->whereNotNull('old_price')
-            ->whereNotNull('offer_expires_at')
-            ->where('offer_expires_at', '>', now())
+        $q = Offer::query()
+            ->runningNow()
+            ->with([
+                'clinic:id,name,slug,city_id',
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
             ->whereHas('clinic', fn ($c) => $c->publiclyVisible());
 
         if ($categoryId !== null) {
-            $q->whereHas('categories', fn ($c) => $c->where('categories.id', $categoryId));
+            // Category filtering implies "service-linked" — general offers
+            // have no specialty to match against.
+            $q->where('type', Offer::TYPE_SERVICE)
+                ->whereHas('service.categories', fn ($c) => $c->where('categories.id', $categoryId));
         }
 
         if ($minDiscountPercent > 0) {
-            // (old_price - price) / old_price >= minDiscount/100
-            $q->whereRaw('(old_price - price) / old_price >= ?', [$minDiscountPercent / 100]);
+            // (old_price - price) / old_price >= minDiscount/100. Only
+            // makes sense for offers that have both prices; the WHERE
+            // protects against division by zero / NULL.
+            $q->whereNotNull('old_price')
+                ->whereNotNull('price')
+                ->where('old_price', '>', 0)
+                ->whereRaw('(old_price - price) / old_price >= ?', [$minDiscountPercent / 100]);
         }
 
-        return $q->orderByDesc('is_featured_offer')
-            ->orderByRaw('(old_price - price) / old_price DESC')
+        return $q->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
             ->limit($limit)
             ->get();
     }
@@ -128,7 +144,10 @@ class HomepageRenderService
         $category = $slug ? Category::where('slug', $slug)->first() : null;
         return [
             'category' => $category,
-            'services' => $category
+            // Same key name 'offers' as the main offers section so the
+            // category_offers partial can stay symmetric. Value is now a
+            // Collection of Offer entities (was Service rows before).
+            'offers'   => $category
                 ? $this->offers($category->id, $s->item_limit ?? 6)
                 : collect(),
         ];

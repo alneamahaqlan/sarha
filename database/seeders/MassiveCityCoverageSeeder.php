@@ -304,8 +304,11 @@ class MassiveCityCoverageSeeder extends Seeder
         // category_service pivot. 15–30 per clinic × 630 clinics = ~13k
         // rows total — well within seeder budget.
         $pivotRows = [];
+        $offerRows = [];
         foreach ($picked as $j => $svc) {
             $price    = (int) (round(rand($svc[1], $svc[2]) / 10) * 10);
+            // ~25% of services get a promotional offer attached. Stored
+            // in the new offers table now (was inline fields before).
             $hasOffer = rand(0, 3) === 0;
             $poolSlug = $svc[3] ?? null;
             $catSlug  = $poolSlug ? (self::POOL_SLUG_MAP[$poolSlug] ?? 'family-medicine') : null;
@@ -317,14 +320,39 @@ class MassiveCityCoverageSeeder extends Seeder
                 'name'                => $svc[0],
                 'description'         => 'خدمة طبية احترافية على يد نخبة من الأطباء وبأحدث الأجهزة.',
                 'price'               => $price,
-                'old_price'           => $hasOffer ? $price + rand(50, 800) : null,
-                'offer_expires_at'    => $hasOffer ? $this->now->copy()->addDays(rand(3, 45))->toDateTimeString() : null,
-                'is_featured_offer'   => $hasOffer,
                 'is_active'           => rand(0, 14) > 0, // ~7% inactive
                 'sort_order'          => $j,
                 'created_at'          => $this->now->copy()->subDays(min($createdDays, rand(0, $createdDays + 1)))->toDateTimeString(),
                 'updated_at'          => $this->now,
             ]);
+
+            if ($hasOffer) {
+                $oldPrice = $price + rand(50, 800);
+                $offerRows[] = [
+                    'clinic_id'   => $clinicId,
+                    'service_id'  => $serviceId,
+                    'type'        => 'service',
+                    'title'       => $svc[0],
+                    'description' => null,
+                    'image'       => null,
+                    'old_price'   => $oldPrice,
+                    'price'       => $price,
+                    // 60% live now, 40% scheduled to start within a week
+                    // — gives the admin UI a realistic mix for the
+                    // "active vs scheduled" filter chips.
+                    'starts_at'   => rand(0, 9) < 6
+                        ? $this->now->copy()->subDays(rand(0, 14))->toDateTimeString()
+                        : $this->now->copy()->addDays(rand(1, 7))->toDateTimeString(),
+                    'ends_at'     => $this->now->copy()->addDays(rand(3, 45))->toDateTimeString(),
+                    // ~20% of offers are featured — shown prominently on
+                    // the clinic page and homepage.
+                    'is_featured' => rand(0, 4) === 0,
+                    'is_active'   => true,
+                    'sort_order'  => 0,
+                    'created_at'  => $this->now,
+                    'updated_at'  => $this->now,
+                ];
+            }
 
             // Always attach the primary specialty; ~35% of services also
             // get a second related specialty (e.g. laser hair removal =
@@ -340,6 +368,39 @@ class MassiveCityCoverageSeeder extends Seeder
         }
         foreach (array_chunk($pivotRows, 500) as $chunk) {
             DB::table('category_service')->insert($chunk);
+        }
+        foreach (array_chunk($offerRows, 500) as $chunk) {
+            DB::table('offers')->insert($chunk);
+        }
+
+        // ~30% of clinics also get one "general" promo not tied to any
+        // specific service — covers the seasonal / bundle scenarios the
+        // dedicated offer page is meant to make easy.
+        if (rand(0, 9) < 3) {
+            $generalTemplates = [
+                ['title' => 'خصم رمضان على كافة الخدمات', 'desc' => 'خصم خاص بمناسبة شهر رمضان المبارك على كامل الفاتورة.'],
+                ['title' => 'باقة العيد الترويجية', 'desc' => 'تخفيضات حصرية بمناسبة العيد — اتصل بنا للاستفسار عن التفاصيل.'],
+                ['title' => 'عرض الصيف للجلدية والتجميل', 'desc' => 'خصومات على باقات العناية بالبشرة طوال موسم الصيف.'],
+                ['title' => 'عرض المجموعات للعائلات', 'desc' => 'خصم خاص عند حجز موعدين أو أكثر لنفس العائلة.'],
+            ];
+            $tpl = $generalTemplates[array_rand($generalTemplates)];
+            DB::table('offers')->insert([[
+                'clinic_id'   => $clinicId,
+                'service_id'  => null,
+                'type'        => 'general',
+                'title'       => $tpl['title'],
+                'description' => $tpl['desc'],
+                'image'       => null,
+                'old_price'   => null,
+                'price'       => null,
+                'starts_at'   => $this->now->copy()->subDays(rand(0, 7))->toDateTimeString(),
+                'ends_at'     => $this->now->copy()->addDays(rand(14, 60))->toDateTimeString(),
+                'is_featured' => rand(0, 2) === 0,
+                'is_active'   => true,
+                'sort_order'  => 0,
+                'created_at'  => $this->now,
+                'updated_at'  => $this->now,
+            ]]);
         }
     }
 

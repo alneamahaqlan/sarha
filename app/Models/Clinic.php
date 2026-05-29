@@ -164,6 +164,15 @@ class Clinic extends Authenticatable
         return $this->hasMany(Package::class)->where('is_active', true)->orderBy('sort_order');
     }
 
+    /**
+     * Promotional offers (standalone entity, replaced the legacy
+     * old_price/is_featured_offer fields on services).
+     */
+    public function offers()
+    {
+        return $this->hasMany(Offer::class);
+    }
+
     /** Unfiltered packages (active + inactive) — used by the clinic panel. */
     public function packagesAll()
     {

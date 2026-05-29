@@ -24,13 +24,6 @@ interface Props {
   onCancel?: () => void;
 }
 
-function toDateTimeLocal(iso?: string | null): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
 export function ServiceForm({ service, onSuccess, onCancel }: Props) {
   const { t } = useTranslation();
   const { data: clinics } = useClinicLookup();
@@ -42,8 +35,6 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
-      old_price: service?.old_price ?? null,
-      offer_expires_at: toDateTimeLocal(service?.offer_expires_at) || null,
       is_active: service?.is_active ?? true,
     },
   });
@@ -54,8 +45,6 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
-      old_price: service?.old_price ?? null,
-      offer_expires_at: toDateTimeLocal(service?.offer_expires_at) || null,
       is_active: service?.is_active ?? true,
     });
   }, [service, form]);
@@ -65,15 +54,11 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
 
   const onSubmit = async (values: ServiceFormSchema) => {
     try {
-      const payload = {
-        ...values,
-        offer_expires_at: values.offer_expires_at ? new Date(values.offer_expires_at).toISOString() : null,
-      };
       if (service) {
-        await update.mutateAsync(payload);
+        await update.mutateAsync(values);
         toast.success(t('services.updated'));
       } else {
-        await create.mutateAsync(payload);
+        await create.mutateAsync(values);
         toast.success(t('services.created'));
       }
       onSuccess?.();
@@ -90,7 +75,6 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
   };
 
   const submitting = create.isPending || update.isPending;
-  const showOfferDate = !!form.watch('old_price');
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -129,35 +113,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
           )}
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="old_price">{t('services.old_price')}</Label>
-          <Input
-            id="old_price"
-            type="number"
-            step="0.01"
-            min={0}
-            {...form.register('old_price', {
-              setValueAs: (v) => (v === '' || v === null ? null : Number(v)),
-            })}
-          />
-          {form.formState.errors.old_price && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.old_price.message}</p>
-          )}
-        </div>
-
-        {showOfferDate && (
-          <div className="space-y-1.5 md:col-span-2">
-            <Label htmlFor="offer_expires_at">{t('services.offer_expires_at')}</Label>
-            <Input id="offer_expires_at" type="datetime-local" {...form.register('offer_expires_at')} />
-            {form.formState.errors.offer_expires_at && (
-              <p className="text-xs text-[var(--color-destructive)]">
-                {form.formState.errors.offer_expires_at.message}
-              </p>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-end gap-3 pb-2 md:col-span-2">
+        <div className="flex items-end gap-3 pb-2">
           <Switch
             checked={form.watch('is_active')}
             onCheckedChange={(v) => form.setValue('is_active', v, { shouldDirty: true })}

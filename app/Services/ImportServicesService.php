@@ -77,10 +77,8 @@ class ImportServicesService
 
             if (empty($service['name'])) continue;
 
-            foreach (['price', 'old_price'] as $priceField) {
-                if (! empty($service[$priceField])) {
-                    $service[$priceField] = (float) preg_replace('/[^\d.]/', '', $service[$priceField]);
-                }
+            if (! empty($service['price'])) {
+                $service['price'] = (float) preg_replace('/[^\d.]/', '', $service['price']);
             }
 
             Service::create($service);
@@ -103,7 +101,6 @@ class ImportServicesService
         $rules = [
             'name'        => ['/name|اسم/iu'],
             'price'       => ['/^price|سعر$|السعر/iu'],
-            'old_price'   => ['/old|قديم|قبل/iu'],
             'description' => ['/desc|وصف|تفاصيل/iu'],
         ];
 

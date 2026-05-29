@@ -45,26 +45,10 @@ const schema = z
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
-    old_price: z.union([z.number().min(0), z.literal('')]).optional().nullable()
-      .transform((v) => (v === '' || v === undefined ? null : (v as number))),
-    offer_expires_at: z.string().nullish(),
-    is_featured_offer: z.boolean().default(false),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
-  })
-  .superRefine((d, ctx) => {
-    if (d.old_price !== null && d.old_price !== undefined) {
-      if (d.old_price <= d.price) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['old_price'], message: 'must_be_greater' });
-      if (!d.offer_expires_at) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['offer_expires_at'], message: 'required' });
-    }
   });
 type FormValues = z.infer<typeof schema>;
-
-function toLocal(iso?: string | null) {
-  if (!iso) return '';
-  const d = new Date(iso); const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
 
 function ServiceDialog({ service, onClose }: { service: Service | null; onClose: () => void }) {
   const { t } = useTranslation();
@@ -84,9 +68,6 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
-      old_price: service?.old_price ?? null,
-      offer_expires_at: toLocal(service?.offer_expires_at) || null,
-      is_featured_offer: service?.is_featured_offer ?? false,
       is_active: service?.is_active ?? true,
       sort_order: service?.sort_order ?? 0,
     },
@@ -94,9 +75,8 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
 
   const onSubmit = async (v: FormValues) => {
     try {
-      const payload = { ...v, offer_expires_at: v.offer_expires_at ? new Date(v.offer_expires_at).toISOString() : null };
-      if (service) { await update.mutateAsync(payload); toast.success(t('clinic_services.updated')); }
-      else { await create.mutateAsync(payload); toast.success(t('clinic_services.created')); }
+      if (service) { await update.mutateAsync(v); toast.success(t('clinic_services.updated')); }
+      else { await create.mutateAsync(v); toast.success(t('clinic_services.created')); }
       onClose();
     } catch (err) {
       const ve = extractValidationErrors(err);
@@ -106,7 +86,6 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
   };
 
   const submitting = create.isPending || update.isPending;
-  const showOffer = !!form.watch('old_price');
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -169,31 +148,16 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               {form.formState.errors.price && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.price.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="old_price">{t('clinic_services.old_price')}</Label>
-              <Input id="old_price" type="number" step="0.01" min={0} {...form.register('old_price', { setValueAs: (v) => (v === '' || v === null ? null : Number(v)) })} />
-              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_services.old_price_hint')}</p>
-              {form.formState.errors.old_price && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.old_price.message}</p>}
-            </div>
-            {showOffer && (
-              <div className="space-y-1.5 md:col-span-2">
-                <Label htmlFor="offer_expires_at">{t('clinic_services.offer_expires_at')}</Label>
-                <Input id="offer_expires_at" type="datetime-local" {...form.register('offer_expires_at')} />
-                <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_services.offer_expires_hint')}</p>
-                {form.formState.errors.offer_expires_at && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.offer_expires_at.message}</p>}
-              </div>
-            )}
-            <div className="flex items-end gap-3 pb-2">
-              <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
-              <Label>{t('clinic_services.is_active')}</Label>
-            </div>
-            <div className="flex items-end gap-3 pb-2">
-              <Switch checked={form.watch('is_featured_offer')} onCheckedChange={(c) => form.setValue('is_featured_offer', c, { shouldDirty: true })} />
-              <Label>{t('clinic_services.is_featured_offer')}</Label>
-            </div>
-            <div className="space-y-1.5">
               <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>
               <Input id="sort_order" type="number" min={0} step={1} {...form.register('sort_order', { valueAsNumber: true })} />
             </div>
+            <div className="flex items-end gap-3 pb-2 md:col-span-2">
+              <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
+              <Label>{t('clinic_services.is_active')}</Label>
+            </div>
+            <p className="md:col-span-2 rounded-md bg-[var(--color-muted)] px-3 py-2 text-xs text-[var(--color-muted-foreground)]">
+              {t('clinic_services.offers_moved_hint', 'لإضافة سعر مخفّض على هذه الخدمة، انتقل إلى "العروض" من القائمة الجانبية.')}
+            </p>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
@@ -266,14 +230,8 @@ export function ClinicServicesIndex() {
         </TableCell>
       )}
       <TableCell>
-        <div className="flex items-baseline gap-2">
-          <span className="font-medium">{fmtCurrency(s.price)}</span>
-          {s.old_price !== null && s.has_active_offer && (
-            <span className="text-xs text-[var(--color-muted-foreground)] line-through">{fmtCurrency(s.old_price)}</span>
-          )}
-        </div>
+        <span className="font-medium">{fmtCurrency(s.price)}</span>
       </TableCell>
-      <TableCell>{s.has_active_offer ? <Badge variant="success">-{s.discount_percentage}%</Badge> : <span className="text-[var(--color-muted-foreground)]">—</span>}</TableCell>
       <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
       <TableCell className="text-end">
         <div className="flex justify-end gap-1">
@@ -301,7 +259,6 @@ export function ClinicServicesIndex() {
         <TableHead>{t('clinic_services.name')}</TableHead>
         {showSubClinic && <TableHead>{t('clinic_services.sub_clinic')}</TableHead>}
         <TableHead>{t('clinic_services.price')}</TableHead>
-        <TableHead>{t('clinic_services.offer')}</TableHead>
         <TableHead>{t('clinic_services.is_active')}</TableHead>
         <TableHead className="text-end">{t('common.actions')}</TableHead>
       </TableRow>

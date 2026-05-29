@@ -31,6 +31,7 @@ class ClinicPageBuilderService
     public const DEFAULT_TITLE_KEYS = [
         'hero'             => null,                    // hero has no heading
         'offers'           => 'site.tab_offers',
+        'packages'         => 'site.tab_packages',
         'services'         => 'site.tab_services',
         'sub_clinics'      => 'site.tab_clinics',
         'doctors'          => 'site.tab_doctors',

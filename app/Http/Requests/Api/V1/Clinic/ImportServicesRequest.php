@@ -20,7 +20,7 @@ class ImportServicesRequest extends FormRequest
             'rows.*'         => ['array'],
             'mapping'        => ['required', 'array', 'min:1'],
             // Mapping is { headerIndex: modelField } — modelField restricted to allowed.
-            'mapping.*'      => ['nullable', 'in:name,description,price,old_price'],
+            'mapping.*'      => ['nullable', 'in:name,description,price'],
         ];
     }
 }

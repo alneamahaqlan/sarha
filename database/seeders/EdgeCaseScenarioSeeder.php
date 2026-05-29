@@ -168,29 +168,45 @@ class EdgeCaseScenarioSeeder extends Seeder
     }
 
     /**
-     * Deep discounts — picks services that currently have NO active offer and
-     * stamps them with a 50–80% discount + 30–90 day expiry. Drives the
-     * "huge discount badge" rendering path.
+     * Deep discounts — picks services that don't already have a featured
+     * Offer attached and adds one with a 50–80% discount + 30–90 day
+     * window. Drives the "huge discount badge" rendering path on the
+     * homepage and clinic offers tab.
      */
     private function seedDeepDiscountOffers(int $count): void
     {
         $candidates = DB::table('services')
-            ->whereNull('old_price')
-            ->where('is_active', true)
+            ->leftJoin('offers', function ($join) {
+                $join->on('offers.service_id', '=', 'services.id')
+                    ->where('offers.is_featured', '=', true);
+            })
+            ->whereNull('offers.id')
+            ->where('services.is_active', true)
             ->inRandomOrder()
             ->limit($count)
-            ->get(['id', 'price']);
+            ->get(['services.id', 'services.clinic_id', 'services.name', 'services.price']);
 
         foreach ($candidates as $svc) {
             $discountPct = rand(50, 80);
             // old_price = price / (1 - discount/100)
             $oldPrice = (int) round($svc->price / (1 - $discountPct / 100));
-            DB::table('services')->where('id', $svc->id)->update([
-                'old_price'         => $oldPrice,
-                'offer_expires_at'  => $this->now->copy()->addDays(rand(30, 90))->toDateTimeString(),
-                'is_featured_offer' => true,
-                'updated_at'        => $this->now,
-            ]);
+            DB::table('offers')->insert([[
+                'clinic_id'   => $svc->clinic_id,
+                'service_id'  => $svc->id,
+                'type'        => 'service',
+                'title'       => 'عرض حصري: ' . $svc->name,
+                'description' => null,
+                'image'       => null,
+                'old_price'   => $oldPrice,
+                'price'       => $svc->price,
+                'starts_at'   => $this->now->copy()->subDays(rand(0, 7))->toDateTimeString(),
+                'ends_at'     => $this->now->copy()->addDays(rand(30, 90))->toDateTimeString(),
+                'is_featured' => true,
+                'is_active'   => true,
+                'sort_order'  => 0,
+                'created_at'  => $this->now,
+                'updated_at'  => $this->now,
+            ]]);
         }
     }
 

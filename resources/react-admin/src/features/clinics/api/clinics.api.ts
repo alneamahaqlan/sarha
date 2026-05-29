@@ -166,7 +166,6 @@ export interface StructureService {
   id: number;
   name: string;
   price: number | null;
-  old_price: number | null;
   is_active: boolean;
 }
 

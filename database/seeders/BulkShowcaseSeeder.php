@@ -189,27 +189,47 @@ class BulkShowcaseSeeder extends Seeder
             }
 
             // --- services (dozens: 10-24) ---
+            // Inserted row-by-row so we can capture each id and attach
+            // standalone Offer rows for the discounted ones.
             $chosen = collect($servicePool)->shuffle()->take(rand(10, 24))->values();
-            $serviceRows = [];
+            $offerRows = [];
             foreach ($chosen as $j => $svc) {
                 $price = (int) (round(rand($svc[1], $svc[2]) / 10) * 10);
                 $hasOffer = rand(0, 2) === 0;
-                $serviceRows[] = [
+                $serviceId = DB::table('services')->insertGetId([
                     'clinic_id'         => $clinicId,
                     'sub_clinic_id'     => rand(0, 4) > 0 && $subIds ? $this->pick($subIds) : null,
                     'name'              => $svc[0],
                     'description'       => 'خدمة طبية احترافية على يد نخبة من الأطباء بأحدث الأجهزة.',
                     'price'             => $price,
-                    'old_price'         => $hasOffer ? $price + rand(50, 800) : null,
-                    'offer_expires_at'  => $hasOffer ? $this->now->copy()->addDays(rand(2, 40))->toDateTimeString() : null,
-                    'is_featured_offer' => $hasOffer,
                     'is_active'         => rand(0, 12) > 0, // ~8% inactive
                     'sort_order'        => $j,
                     'created_at'        => $this->at(min($createdDays, $this->dayAgo($createdDays ?: 1))),
                     'updated_at'        => $this->now,
-                ];
+                ]);
+                if ($hasOffer) {
+                    $offerRows[] = [
+                        'clinic_id'   => $clinicId,
+                        'service_id'  => $serviceId,
+                        'type'        => 'service',
+                        'title'       => $svc[0],
+                        'description' => null,
+                        'image'       => null,
+                        'old_price'   => $price + rand(50, 800),
+                        'price'       => $price,
+                        'starts_at'   => $this->now->copy()->subDays(rand(0, 7))->toDateTimeString(),
+                        'ends_at'     => $this->now->copy()->addDays(rand(2, 40))->toDateTimeString(),
+                        'is_featured' => rand(0, 3) === 0,
+                        'is_active'   => true,
+                        'sort_order'  => 0,
+                        'created_at'  => $this->now,
+                        'updated_at'  => $this->now,
+                    ];
+                }
             }
-            DB::table('services')->insert($serviceRows);
+            if (! empty($offerRows)) {
+                DB::table('offers')->insert($offerRows);
+            }
 
             // --- doctors (3-8) ---
             $docRows = [];

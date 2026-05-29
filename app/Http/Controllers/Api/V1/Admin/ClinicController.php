@@ -102,7 +102,6 @@ class ClinicController extends Controller
             'id'         => $s->id,
             'name'       => $s->name,
             'price'      => $s->price,
-            'old_price'  => $s->old_price,
             'is_active'  => (bool) $s->is_active,
         ];
 

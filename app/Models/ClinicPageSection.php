@@ -29,6 +29,7 @@ class ClinicPageSection extends Model
     public const KEYS = [
         'hero',
         'offers',
+        'packages',
         'services',
         'sub_clinics',
         'doctors',

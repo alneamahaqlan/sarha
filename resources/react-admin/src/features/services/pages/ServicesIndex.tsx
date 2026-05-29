@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { Check, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -130,7 +129,6 @@ export function ServicesIndex() {
             <TableHead>{t('services.clinic')}</TableHead>
             <TableHead>{t('services.name')}</TableHead>
             <TableHead>{t('services.price')}</TableHead>
-            <TableHead>{t('services.offer')}</TableHead>
             <TableHead>{t('services.is_active')}</TableHead>
             <TableHead>{t('services.created_at')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
@@ -139,13 +137,13 @@ export function ServicesIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -155,21 +153,7 @@ export function ServicesIndex() {
                 <TableCell className="text-[var(--color-muted-foreground)]">{service.clinic?.name ?? '—'}</TableCell>
                 <TableCell className="font-medium">{service.name}</TableCell>
                 <TableCell>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-medium">{fmtCurrency(service.price)}</span>
-                    {service.old_price !== null && service.has_active_offer && (
-                      <span className="text-xs text-[var(--color-muted-foreground)] line-through">
-                        {fmtCurrency(service.old_price)}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {service.has_active_offer ? (
-                    <Badge variant="success">-{service.discount_percentage}%</Badge>
-                  ) : (
-                    <span className="text-[var(--color-muted-foreground)]">—</span>
-                  )}
+                  <span className="font-medium">{fmtCurrency(service.price)}</span>
                 </TableCell>
                 <TableCell>
                   {service.is_active ? (

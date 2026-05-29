@@ -19,7 +19,6 @@
             @php
                 $otherClinic = $svc->clinic;
                 $emoji       = $svc->categories?->first()?->emoji;
-                $discount    = $svc->discountPercentage();
             @endphp
             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg hover:ring-sage-200 transition-all overflow-hidden flex flex-col">
                 <div class="relative aspect-[4/3] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
@@ -28,11 +27,6 @@
                              alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                     @elseif($emoji)
                         <span aria-hidden="true">{{ $emoji }}</span>
-                    @endif
-                    @if($discount > 0)
-                        <span class="absolute top-2 start-2 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-md">
-                            -{{ $discount }}%
-                        </span>
                     @endif
                 </div>
                 <div class="p-4 flex-1 flex flex-col">
@@ -49,9 +43,6 @@
 
                     <div class="mt-3 flex items-end justify-between gap-2">
                         <div>
-                            @if($svc->old_price)
-                                <span class="block text-[11px] text-gray-400 line-through">{{ number_format($svc->old_price) }}</span>
-                            @endif
                             <span class="text-sage-700 font-bold whitespace-nowrap">
                                 {{ number_format($svc->price) }}
                                 <span class="text-xs font-normal">@lang('site.currency_sar')</span>

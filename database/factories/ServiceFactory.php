@@ -17,7 +17,6 @@ class ServiceFactory extends Factory
             'name'       => $this->faker->words(3, true),
             'description'=> $this->faker->sentence(),
             'price'      => $this->faker->numberBetween(50, 5000),
-            'old_price'  => null,
             'is_active'  => true,
             'sort_order' => 0,
         ];

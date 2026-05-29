@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\ClinicStat;
 use App\Models\GoogleReview;
+use App\Models\Offer;
 use App\Models\PriceQuoteRequest;
 use App\Models\Service;
 use App\Models\SystemSetting;
@@ -94,10 +95,12 @@ class DashboardController extends Controller
             && $clinic->subscription_ends_at->lte(now()->addDays($reminderDays))
         ) ? 1 : 0;
 
-        $offerExpiring = Service::where('clinic_id', $clinicId)
-            ->whereNotNull('old_price')
-            ->whereNotNull('offer_expires_at')
-            ->whereBetween('offer_expires_at', [now(), now()->addDays(3)])
+        // Active offers ending in the next 3 days — surfaces to the
+        // sidebar so the admin can extend or refresh them.
+        $offerExpiring = Offer::where('clinic_id', $clinicId)
+            ->where('is_active', true)
+            ->where('starts_at', '<=', now())
+            ->whereBetween('ends_at', [now(), now()->addDays(3)])
             ->count();
 
         return response()->json([
