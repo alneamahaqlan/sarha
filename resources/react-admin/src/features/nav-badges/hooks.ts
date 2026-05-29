@@ -8,12 +8,14 @@ export interface AdminNavBadges {
   subscriptions_expiring: number;
   category_requests: number;
   clinic_reports: number;
+  customer_reports: number;
 }
 
 export interface ClinicNavBadges {
   price_quotes: number;
   subscription_expiring: number;
   offer_expiring: number;
+  complaints: number;
 }
 
 export function useAdminNavBadges() {

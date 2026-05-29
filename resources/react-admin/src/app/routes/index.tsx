@@ -41,6 +41,7 @@ const ClinicPackagesIndex = lazy(() => import('@/features/clinic/packages/pages/
 const ClinicComplaintsIndex = lazy(() => import('@/features/clinic/complaints/pages/ClinicComplaintsIndex').then(m => ({ default: m.ClinicComplaintsIndex })));
 const ClinicReportsIndex = lazy(() => import('@/features/clinic/reports/pages/ClinicReportsIndex').then(m => ({ default: m.ClinicReportsIndex })));
 const AdminClinicReportsIndex = lazy(() => import('@/features/clinic-reports/pages/AdminClinicReportsIndex').then(m => ({ default: m.AdminClinicReportsIndex })));
+const AdminCustomerReportsIndex = lazy(() => import('@/features/customer-reports/pages/AdminCustomerReportsIndex').then(m => ({ default: m.AdminCustomerReportsIndex })));
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
 const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
@@ -110,6 +111,7 @@ export function AppRoutes() {
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />
               <Route path="clinic-reports" element={<AdminClinicReportsIndex />} />
+              <Route path="customer-reports" element={<AdminCustomerReportsIndex />} />
             </Route>
           </Route>
           <Route path="/login" element={<Navigate to="/admin/dashboard" replace />} />

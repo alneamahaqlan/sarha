@@ -86,5 +86,9 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/quotes', [AccountController::class, 'quotes'])->name('account.quotes');
     Route::get('/account/complaints', [AccountController::class, 'complaints'])->name('account.complaints');
     Route::post('/account/complaints', [AccountController::class, 'storeComplaint'])->name('account.complaints.store');
+    // Customer-side platform reports — separate from complaints because they
+    // route to admin only (bugs / suggestions / abuse), not to a clinic inbox.
+    Route::get('/account/reports', [AccountController::class, 'reports'])->name('account.reports');
+    Route::post('/account/reports', [AccountController::class, 'storeReport'])->name('account.reports.store');
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
 });

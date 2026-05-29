@@ -24,6 +24,7 @@ const adminNav = [
       { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
       { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
       { to: '/admin/clinic-reports', label: 'nav.clinic_reports', icon: MessageSquareWarning, badge: 'clinic_reports' as keyof AdminNavBadges },
+      { to: '/admin/customer-reports', label: 'nav.customer_reports', icon: MessageSquareWarning, badge: 'customer_reports' as keyof AdminNavBadges },
       { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof AdminNavBadges },
       { to: '/admin/users', label: 'nav.users', icon: Users },
     ],

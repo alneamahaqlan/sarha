@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCatego
 use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
 use App\Http\Controllers\Api\V1\Clinic\ReportController as ClinicReportController;
 use App\Http\Controllers\Api\V1\Admin\ClinicReportController as AdminClinicReportController;
+use App\Http\Controllers\Api\V1\Admin\CustomerReportController as AdminCustomerReportController;
 use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
 use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
 use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
@@ -146,6 +147,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('clinic-reports', AdminClinicReportController::class)
             ->only(['index', 'show', 'update'])
             ->parameters(['clinic-reports' => 'clinicReport']);
+
+        // Customer-side platform reports (bugs, suggestions, abuse) — also
+        // their own queue. Same triage workflow as clinic-reports.
+        Route::apiResource('customer-reports', AdminCustomerReportController::class)
+            ->only(['index', 'show', 'update'])
+            ->parameters(['customer-reports' => 'customerReport']);
 
         // Specialty (category) requests submitted by complexes — review queue.
         Route::get('category-requests', [AdminCategoryRequestController::class, 'index'])->name('category-requests.index');

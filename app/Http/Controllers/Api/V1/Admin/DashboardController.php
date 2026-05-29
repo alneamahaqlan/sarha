@@ -142,6 +142,8 @@ class DashboardController extends Controller
                 'category_requests'      => \App\Models\CategoryRequest::where('status', 'pending')->count(),
                 // Clinic-side platform reports waiting for review.
                 'clinic_reports'         => \App\Models\ClinicReport::whereIn('status', ['new', 'in_review'])->count(),
+                // Customer-side platform reports waiting for review.
+                'customer_reports'       => \App\Models\CustomerReport::whereIn('status', ['new', 'in_review'])->count(),
             ],
         ]);
     }

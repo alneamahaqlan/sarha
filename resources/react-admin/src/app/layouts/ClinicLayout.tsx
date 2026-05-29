@@ -38,7 +38,7 @@ const clinicNav = [
     items: [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar },
       { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges },
-      { to: '/clinic/complaints', label: 'clinic_nav.complaints', icon: AlertTriangle },
+      { to: '/clinic/complaints', label: 'clinic_nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof ClinicNavBadges },
       { to: '/clinic/reports', label: 'clinic_nav.reports', icon: MessageSquareWarning },
     ],
   },

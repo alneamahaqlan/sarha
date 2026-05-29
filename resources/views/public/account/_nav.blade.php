@@ -7,6 +7,7 @@
                 ['route' => 'account.bookings',  'label' => 'site.account_my_bookings',  'icon' => 'calendar'],
                 ['route' => 'account.quotes',    'label' => 'site.account_my_quotes',    'icon' => 'clipboard'],
                 ['route' => 'account.complaints','label' => 'site.account_my_complaints','icon' => 'warning'],
+                ['route' => 'account.reports',   'label' => 'site.account_my_reports',   'icon' => 'warning'],
                 ['route' => 'account.favorites', 'label' => 'site.account_my_favorites', 'icon' => 'star'],
             ];
         @endphp

@@ -108,6 +108,13 @@ class DashboardController extends Controller
                     ->count(),
                 'subscription_expiring' => $subscriptionExpiring,
                 'offer_expiring'        => $offerExpiring,
+                // Customer complaints raised against this complex that the
+                // admin hasn't resolved yet. Surfaces so the complex knows
+                // a customer is awaiting follow-up.
+                'complaints' => \App\Models\Complaint::where('clinic_id', $clinicId)
+                    ->where('source', 'customer')
+                    ->whereIn('status', ['new', 'in_review'])
+                    ->count(),
             ],
         ]);
     }
