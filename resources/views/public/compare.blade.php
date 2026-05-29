@@ -121,7 +121,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 <a href="{{ route('clinic.show', $clinic->slug) }}"
-                                   class="inline-block bg-sage-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-sage-700 transition-colors">
+                                   class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm font-semibold hover:bg-sage-700 transition-colors">
                                     @lang('site.compare_visit')
                                 </a>
                             </td>

@@ -17,28 +17,38 @@
         </div>
     @endif
 
-    {{-- Compare toggle (search results) — handled by the global compare tray script --}}
+    {{-- Compare toggle (search results) — handled by the global compare tray script.
+         Outer button reserves a full 44×44 tap zone (per WCAG); inner `compare-chip`
+         span carries the small visible circle so the card layout doesn't change.
+         The `.is-selected` styling targets the inner chip so existing JS still
+         flips the visual state by toggling the class on the button. --}}
     @if($compare ?? false)
         <button type="button"
-                class="compare-toggle absolute top-3 end-3 z-20 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-colors hover:text-sage-600 [&.is-selected]:bg-sage-600 [&.is-selected]:text-white [&.is-selected]:ring-sage-600"
+                class="compare-toggle absolute top-1 end-1 z-20 inline-flex items-center justify-center min-h-touch min-w-touch rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500"
                 data-compare-id="{{ $clinic->id }}"
                 data-compare-name="{{ $clinic->name }}"
                 aria-pressed="false"
                 aria-label="@lang('site.compare_add')"
                 title="@lang('site.compare_add')">
-            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>
-            </svg>
+            <span class="compare-chip flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-500 shadow-sm ring-1 ring-gray-200 transition-colors group-[.compare-toggle:hover]:text-sage-600 [.compare-toggle.is-selected_&]:bg-sage-600 [.compare-toggle.is-selected_&]:text-white [.compare-toggle.is-selected_&]:ring-sage-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
+            </span>
         </button>
     @endif
 
+    {{-- aspect-ratio reserves the slot in the layout BEFORE the image
+         decodes, so the rest of the card doesn't jump down by 160px
+         when the network is slow. The 5/3 ratio matches the visual
+         feel of the previous fixed h-40 on a typical card width. --}}
     @if($clinic->logo)
-        <div class="h-40 overflow-hidden bg-gray-100">
+        <div class="aspect-[5/3] overflow-hidden bg-gray-100">
             <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
         </div>
     @else
-        <div class="h-40 bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
+        <div class="aspect-[5/3] bg-gradient-to-br from-sage-100 to-sage-200 flex items-center justify-center">
             <x-icon name="building" class="w-12 h-12 text-sage-600/40" />
         </div>
     @endif

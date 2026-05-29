@@ -10,9 +10,11 @@ use App\Models\Clinic;
 use App\Models\ClinicStat;
 use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
+use App\Models\Relative;
 use App\Services\ClinicPageBuilderService;
 use App\Services\ImpressionTrackerService;
 use App\Services\SmsService;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 
 class ClinicController extends Controller
@@ -86,6 +88,13 @@ class ClinicController extends Controller
                 ->trackManyServices($similarServices->all(), ImpressionSource::SIMILAR);
         }
 
+        // Feed the super-admin profile timeline.
+        if (auth('web')->check()) {
+            app(UserActivityLogger::class)->logClinicView(
+                request(), auth('web')->id(), $clinic->id, $clinic->slug,
+            );
+        }
+
         // Per-clinic Page Builder config: which of the 14 sections are
         // active, their order, and any title/limit overrides. Lazy-seeds
         // defaults on first visit so the X existing clinics keep working.
@@ -108,7 +117,17 @@ class ClinicController extends Controller
         // Returning customer's saved identity (from a prior verified booking).
         $identity = $this->customerIdentity($request);
 
-        return view('public.booking-form', compact('clinic', 'service', 'identity'));
+        // Authenticated booker → load their saved relatives so the
+        // "book for someone else" UI can show cards. Guests get an
+        // empty collection and the radio stays hidden.
+        $relatives = auth('web')->check()
+            ? auth('web')->user()->relatives()->latest('id')->get()
+            : collect();
+        $relativeTypes = Relative::TYPES;
+
+        return view('public.booking-form', compact(
+            'clinic', 'service', 'identity', 'relatives', 'relativeTypes',
+        ));
     }
 
     public function book(Request $request, string $slug)
@@ -119,14 +138,46 @@ class ClinicController extends Controller
             return back()->withErrors(['account' => __('site.account_blocked')])->withInput();
         }
 
-        $validated = $request->validate([
-            'customer_name'  => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20|regex:/^05\d{8}$/',
-            'service_id'     => 'nullable|exists:services,id',
-            'notes'          => 'nullable|string|max:1000',
-        ], [
+        // Mode = who is the patient?
+        //   self                → booker == patient (default; only path open to guests)
+        //   relative_existing   → pick one of the booker's saved relatives
+        //   relative_new        → enter relative inline, save it + use it
+        $bookerUser = auth('web')->user();
+        $mode = $request->input('booking_for', 'self');
+        if (! in_array($mode, ['self', 'relative_existing', 'relative_new'], true) || ! $bookerUser) {
+            $mode = 'self';
+        }
+
+        $rules = [
+            'service_id' => 'nullable|exists:services,id',
+            'notes'      => 'nullable|string|max:1000',
+        ];
+
+        if ($mode === 'self') {
+            $rules['customer_name']  = 'required|string|max:255';
+            $rules['customer_phone'] = 'required|string|max:20|regex:/^05\d{8}$/';
+        } elseif ($mode === 'relative_existing') {
+            $rules['relative_id'] = 'required|integer|exists:relatives,id';
+        } else {
+            $rules['relative.name']               = 'required|string|max:255';
+            $rules['relative.relationship_type']  = 'required|string|in:' . implode(',', Relative::TYPES);
+            $rules['relative.relationship_label'] = 'nullable|string|max:50';
+            $rules['relative.phone']              = 'required|string|max:20|regex:/^05\d{8}$/';
+        }
+
+        $validated = $request->validate($rules, [
             'customer_phone.regex' => __('site.phone_invalid'),
+            'relative.phone.regex' => __('site.phone_invalid'),
         ]);
+
+        // Translate the chosen mode into (customer_name, customer_phone,
+        // booker_user_id, relative_id). For new-relative mode, this is
+        // also the point we persist the Relative row.
+        $resolved = $this->resolveBookingTarget($mode, $bookerUser, $validated, $request);
+        if ($resolved instanceof \Illuminate\Http\RedirectResponse) {
+            return $resolved;
+        }
+        $validated = array_merge($validated, $resolved);
 
         // A logged-in customer, or a returning device whose saved phone matches,
         // skips OTP. First-time guests must verify once (registers them).
@@ -200,15 +251,98 @@ class ClinicController extends Controller
             ->withCookie($this->identityCookie($pending['customer_name'], $pending['customer_phone']));
     }
 
+    /**
+     * Resolve the chosen mode into the booker / patient / relative tuple
+     * the rest of the pipeline needs. For 'relative_new', this is also
+     * where the Relative row is persisted (after validation, before the
+     * Booking is created — order keeps the relative around even if the
+     * OTP step is interrupted, which matches the "auto-save on confirm"
+     * spec since the cap was already enforced).
+     *
+     * Returns either a partial array (customer_name, customer_phone,
+     * booker_user_id, relative_id) to be merged into $validated, OR a
+     * RedirectResponse when a soft error (cap reached, stale relative
+     * id) needs to be surfaced via flash.
+     */
+    private function resolveBookingTarget(string $mode, ?\App\Models\User $bookerUser, array $validated, Request $request): array|\Illuminate\Http\RedirectResponse
+    {
+        if ($mode === 'self') {
+            return [
+                // Spec: booker_user_id is null for self-bookings. user_id
+                // already carries the booker, so this column only flips on
+                // when the booking is placed on behalf of a relative.
+                'booker_user_id' => null,
+                'relative_id'    => null,
+                'customer_name'  => $validated['customer_name'],
+                'customer_phone' => $validated['customer_phone'],
+            ];
+        }
+
+        if ($mode === 'relative_existing') {
+            $relative = $bookerUser->relatives()->find($validated['relative_id']);
+            if (! $relative) {
+                return back()
+                    ->withErrors(['relative_id' => __('site.relative_not_found')])
+                    ->withInput();
+            }
+            return [
+                'booker_user_id' => $bookerUser->id,
+                'relative_id'    => $relative->id,
+                'customer_name'  => $relative->name,
+                'customer_phone' => $relative->phone,
+            ];
+        }
+
+        // relative_new: hard cap of 3 is enforced here so the form never
+        // creates a fourth row even if the front-end button slipped through.
+        if ($bookerUser->relatives()->count() >= Relative::MAX_PER_USER) {
+            return back()
+                ->withErrors(['relative.name' => __('site.relative_max_reached')])
+                ->withInput();
+        }
+
+        $relative = $bookerUser->relatives()->create([
+            'name'               => $validated['relative']['name'],
+            'relationship_type'  => $validated['relative']['relationship_type'],
+            'relationship_label' => $validated['relative']['relationship_label'] ?? null,
+            'phone'              => $validated['relative']['phone'],
+        ]);
+
+        return [
+            'booker_user_id' => $bookerUser->id,
+            'relative_id'    => $relative->id,
+            'customer_name'  => $relative->name,
+            'customer_phone' => $relative->phone,
+        ];
+    }
+
     /** Create the booking, attaching/creating the customer user for persistence. */
     private function createBooking(Clinic $clinic, array $data): Booking
     {
-        $userId = auth('web')->id()
-            ?? $this->resolveCustomerUser($data['customer_name'], $data['customer_phone'])->id;
+        // user_id is the account that OWNS the booking (where it shows
+        // up under /account/bookings). For relative-mode it's the
+        // booker, not the relative — spec: "القريب نفسه لا يرى الحجز
+        // في حسابه (لتجنّب الازدواجية)".
+        $relativeId = $data['relative_id'] ?? null;
+        $bookerId   = $data['booker_user_id'] ?? null;
+
+        if ($relativeId) {
+            // Relative-mode always carries booker_user_id (resolveBookingTarget
+            // sets both). user_id = the booker so the booking is filed
+            // under the right account.
+            $userId = $bookerId;
+        } else {
+            // Self-mode: auth user OR a freshly-resolved customer from
+            // the typed phone (guest path, same as before).
+            $userId = auth('web')->id()
+                ?? $this->resolveCustomerUser($data['customer_name'], $data['customer_phone'])->id;
+        }
 
         $booking = Booking::create([
             'clinic_id'      => $clinic->id,
             'user_id'        => $userId,
+            'booker_user_id' => $bookerId,
+            'relative_id'    => $data['relative_id'] ?? null,
             'service_id'     => $data['service_id'] ?? null,
             'customer_name'  => $data['customer_name'],
             'customer_phone' => $data['customer_phone'],

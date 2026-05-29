@@ -166,7 +166,19 @@ export function ClinicBookingsIndex() {
             data.data.map((b) => (
               <TableRow key={b.id}>
                 <TableCell><CopyBadge value={b.reference_code} /></TableCell>
-                <TableCell className="font-medium">{b.customer_name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span>{b.customer_name}</span>
+                    {b.is_for_relative && (
+                      <Badge variant="info" className="text-[10px]">{t('bookings.booked_by_proxy_badge')}</Badge>
+                    )}
+                  </div>
+                  {b.is_for_relative && b.booker?.name && (
+                    <div className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                      {t('bookings.booked_by_proxy_line', { name: b.booker.name, phone: b.booker.phone ?? '' })}
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell>
                   <a href={`tel:${b.customer_phone}`} className="inline-flex items-center gap-1 text-[var(--color-primary)]" dir="ltr">
                     <Phone className="h-3 w-3" />{b.customer_phone}

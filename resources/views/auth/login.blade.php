@@ -27,6 +27,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">@lang('site.phone_number')</label>
                         <input type="tel" name="phone" value="{{ old('phone') }}" required
                                placeholder="05XXXXXXXX"
+                               inputmode="tel" autocomplete="tel" pattern="05[0-9]{8}"
                                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400 text-center tracking-wider"
                                dir="ltr">
                     </div>
@@ -49,6 +50,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">@lang('site.otp_label')</label>
                         <input type="text" name="code" maxlength="6" required
                                placeholder="XXXXXX"
+                               inputmode="numeric" pattern="\d{6}"
                                class="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400 text-center tracking-[0.5em] text-xl"
                                dir="ltr" autocomplete="one-time-code">
                     </div>

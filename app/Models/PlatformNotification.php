@@ -11,15 +11,17 @@ class PlatformNotification extends Model
 
     protected $fillable = [
         'notifiable_type', 'notifiable_id',
-        'type', 'icon', 'url', 'priority',
-        'title', 'body', 'data', 'read_at',
+        'type', 'event_type', 'icon', 'url', 'priority',
+        'title', 'body', 'data', 'action_buttons', 'group_key',
+        'read_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'data'    => 'array',
-            'read_at' => 'datetime',
+            'data'           => 'array',
+            'action_buttons' => 'array',
+            'read_at'        => 'datetime',
         ];
     }
 

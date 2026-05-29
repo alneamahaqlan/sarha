@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
@@ -6,13 +6,12 @@ import { useAuth } from '@/app/providers/AuthProvider';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { apiClient } from '@/lib/api-client';
 import { queryClient } from '@/lib/query-client';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { NotificationBell } from '@/features/notifications/NotificationBell';
 import { ImpersonationBanner } from '@/features/impersonation/ImpersonationBanner';
 import { useAdminNavBadges, type AdminNavBadges } from '@/features/nav-badges/hooks';
 import { MobileNav } from './MobileNav';
-import { Logo } from '@/components/ui/Logo';
+import { Sidebar } from './Sidebar';
 
 const adminNav = [
   { to: '/admin/dashboard', label: 'nav.dashboard', icon: LayoutDashboard },
@@ -73,127 +72,83 @@ export function AdminLayout() {
     },
   });
 
-  return (
-    <div className="flex min-h-screen flex-col bg-[var(--color-background)]">
-      <ImpersonationBanner />
-      <div className="flex flex-1">
-      <aside className="hidden w-64 flex-col border-e border-[var(--color-border)] bg-white md:flex">
-        <div className="border-b border-[var(--color-border)] px-5 py-4">
-          <Logo size={36} />
-        </div>
-        <nav className="flex-1 space-y-2 overflow-y-auto p-2">
-          {adminNav.map((entry, idx) => {
-            if ('group' in entry) {
-              return (
-                <div key={`g-${idx}`} className="space-y-1">
-                  <div className="px-3 pt-2 text-xs font-semibold uppercase tracking-wide text-[var(--color-muted-foreground)]">
-                    {t(entry.group)}
-                  </div>
-                  {entry.items.map((item) => {
-                    const Icon = item.icon;
-                    const count = item.badge ? badges?.[item.badge] ?? 0 : 0;
-                    return (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        className={({ isActive }) =>
-                          cn(
-                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                            isActive
-                              ? 'bg-[var(--color-primary)] text-white'
-                              : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
-                          )
-                        }
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span className="flex-1">{t(item.label)}</span>
-                        {count > 0 && (
-                          <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[var(--color-destructive)] px-1.5 text-xs font-medium text-white">
-                            {count > 99 ? '99+' : count}
-                          </span>
-                        )}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              );
-            }
-            const Icon = entry.icon;
-            return (
-              <NavLink
-                key={entry.to}
-                to={entry.to}
-                className={({ isActive }) =>
-                  cn(
-                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-                    isActive
-                      ? 'bg-[var(--color-primary)] text-white'
-                      : 'text-[var(--color-foreground)] hover:bg-[var(--color-muted)]',
-                  )
-                }
-              >
-                <Icon className="h-4 w-4" />
-                <span className="flex-1">{t(entry.label)}</span>
-              </NavLink>
-            );
-          })}
-        </nav>
-        <div className="space-y-1 border-t border-[var(--color-border)] p-3 text-xs text-[var(--color-muted-foreground)]">
-          <div className="flex items-center gap-2">
-            <span className="truncate font-medium text-[var(--color-foreground)]">{user?.user.name}</span>
-            {user?.user.role && (
-              <Badge variant="muted" className="shrink-0">
-                {t(`roles.${user.user.role}`, { defaultValue: user.user.role })}
-              </Badge>
-            )}
-          </div>
-          <div className="truncate">{user?.user.email}</div>
-        </div>
-      </aside>
-
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-white px-4">
-          <div className="flex items-center gap-2 md:hidden">
-            <MobileNav items={adminNav} title={t('brand')} badges={badges} />
-            <span className="text-sm font-medium">{t('brand')}</span>
-          </div>
-          <div className="ms-auto flex items-center gap-2">
-            {(badges?.clinics_pending ?? 0) > 0 && (
-              <Link
-                to="/admin/clinics?status=pending"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-3 text-xs font-medium text-amber-800 hover:bg-amber-100"
-              >
-                <Building2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{t('dashboard.pending_clinics_label')}</span>
-                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
-                  {(badges?.clinics_pending ?? 0) > 99 ? '99+' : badges?.clinics_pending}
-                </span>
-              </Link>
-            )}
-            <NotificationBell />
-            <button
-              type="button"
-              onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
-              className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--color-border)] px-3 text-xs font-medium hover:bg-[var(--color-muted)]"
-            >
-              <Languages className="h-3 w-3" />
-              {locale === 'ar' ? 'English' : 'العربية'}
-            </button>
-            <button
-              type="button"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              className="inline-flex h-8 items-center gap-1 rounded-md px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
-            >
-              <LogOut className="h-3 w-3" />
-              {t('common.logout')}
-            </button>
-          </div>
-        </header>
-        <main className="flex-1 p-6">
-          <Outlet />
-        </main>
+  const sidebarFooter = (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <span className="truncate font-medium text-[var(--color-foreground)]">{user?.user.name}</span>
+        {user?.user.role && (
+          <Badge variant="muted" className="shrink-0">
+            {t(`roles.${user.user.role}`, { defaultValue: user.user.role })}
+          </Badge>
+        )}
       </div>
+      <div className="truncate">{user?.user.email}</div>
+    </div>
+  );
+
+  return (
+    // overflow-x-hidden on the outermost div is the safety net: if any
+    // single descendant misses a min-w-0 (a chart, a table, a long
+    // word in RTL) the document-level horizontal scroll is still
+    // suppressed. Standard pattern for admin shells.
+    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[var(--color-background)]">
+      <ImpersonationBanner />
+      <div className="flex min-w-0 flex-1">
+        {/* Dual-mode sidebar — hidden on mobile, icon-rail on tablet,
+            full on desktop. MobileNav (Sheet) covers the mobile path. */}
+        <Sidebar items={adminNav} badges={badges} footer={sidebarFooter} />
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-12 sm:h-14 items-center gap-2 border-b border-[var(--color-border)] bg-white px-3 sm:px-4">
+            {/* Mobile brand block: min-w-0 + truncate so a long brand
+                name shrinks instead of pushing the action buttons off
+                the viewport. */}
+            <div className="flex min-w-0 items-center gap-2 md:hidden">
+              <MobileNav items={adminNav} title={t('brand')} badges={badges} />
+              <span className="text-sm font-medium truncate">{t('brand')}</span>
+            </div>
+            {/* Action block — shrink-0 keeps these icons readable
+                while the brand truncates. gap shrinks on xs. */}
+            <div className="ms-auto flex shrink-0 items-center gap-1 sm:gap-2">
+              {(badges?.clinics_pending ?? 0) > 0 && (
+                <Link
+                  to="/admin/clinics?status=pending"
+                  className="inline-flex h-8 items-center gap-1 sm:gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-1.5 sm:px-3 text-xs font-medium text-amber-800 hover:bg-amber-100"
+                  aria-label={t('dashboard.pending_clinics_label')}
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{t('dashboard.pending_clinics_label')}</span>
+                  <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-semibold text-white">
+                    {(badges?.clinics_pending ?? 0) > 99 ? '99+' : badges?.clinics_pending}
+                  </span>
+                </Link>
+              )}
+              <NotificationBell />
+              <button
+                type="button"
+                onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}
+                className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--color-border)] px-2 sm:px-3 text-xs font-medium hover:bg-[var(--color-muted)]"
+                aria-label={t('common.toggle_language')}
+              >
+                <Languages className="h-3 w-3" />
+                <span className="hidden sm:inline">{locale === 'ar' ? 'English' : 'العربية'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => logout.mutate()}
+                disabled={logout.isPending}
+                className="inline-flex h-8 items-center gap-1 rounded-md px-2 sm:px-3 text-xs font-medium text-[var(--color-destructive)] hover:bg-red-50"
+                aria-label={t('common.logout')}
+              >
+                <LogOut className="h-3 w-3" />
+                <span className="hidden sm:inline">{t('common.logout')}</span>
+              </button>
+            </div>
+          </header>
+          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   );

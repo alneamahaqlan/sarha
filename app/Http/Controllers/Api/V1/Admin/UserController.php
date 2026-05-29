@@ -68,4 +68,46 @@ class UserController extends Controller
 
         return new UserResource($user->loadCount('bookings'));
     }
+
+    /**
+     * Quick "suspend / unsuspend" action surfaced from the user profile
+     * header. Flips is_active and writes an audit entry. The platform
+     * already gates blocked accounts on every entry point.
+     */
+    public function suspend(Request $request, User $user): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        $user->update(['is_active' => ! $user->is_active]);
+
+        \App\Services\AuditLogService::log(
+            $user->is_active ? 'user.unsuspended' : 'user.suspended',
+            $user,
+        );
+
+        return response()->json(['data' => ['is_active' => (bool) $user->is_active]]);
+    }
+
+    /**
+     * Force the user out of every active web session. We close all
+     * open visit_sessions and clear any row in the Laravel sessions
+     * table tied to their user_id. Next request from that browser
+     * lands on the login screen.
+     */
+    public function forceLogout(User $user): JsonResponse
+    {
+        $this->authorize('update', $user);
+
+        if (config('session.driver') === 'database') {
+            \DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)->delete();
+        }
+
+        \App\Models\UserVisitSession::where('user_id', $user->id)
+            ->whereNull('ended_at')->update(['ended_at' => now()]);
+
+        \App\Services\AuditLogService::log('user.force_logout', $user);
+
+        return response()->json(['data' => ['ok' => true]]);
+    }
 }

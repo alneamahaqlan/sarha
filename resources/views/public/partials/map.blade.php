@@ -107,7 +107,12 @@
         @endpush
     @endonce
 
-    <div class="relative">
+    {{-- min-w-0 on the relative wrapper guarantees Leaflet's tile layer
+         (which can be 2500+ pixels wide internally) is fully contained
+         even when this partial sits inside a flex/grid track that
+         doesn't already constrain its children. Without it, the body
+         picks up the leaked horizontal scroll on small viewports. --}}
+    <div class="relative min-w-0 max-w-full">
         <div id="{{ $mapId }}"
              class="w-full {{ $tall ? 'h-96 md:h-[32rem]' : 'h-80 md:h-96' }} rounded-2xl overflow-hidden border border-gray-200 z-0"></div>
 

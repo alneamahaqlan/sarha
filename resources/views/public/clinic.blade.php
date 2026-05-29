@@ -92,9 +92,18 @@
     {{-- Hero Card (protected — always renders) --}}
     @if($pageSections->has('hero'))
     <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+        {{-- aspect-ratio so the hero area is reserved before the image
+             arrives — prevents the page header card below from shifting
+             down 224px when the logo decodes. 16/7 keeps a banner feel
+             close to the previous fixed h-56 on typical viewports. --}}
         @if($clinic->logo)
-            <div class="h-56 bg-gray-100">
-                <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}" loading="lazy" class="w-full h-full object-cover">
+            <div class="aspect-[16/7] bg-gray-100">
+                {{-- Above-the-fold hero — eager loading + fetchpriority="high"
+                     so LCP fires fast. lazy here would defer the most
+                     visible asset and tank the page's perceived speed. --}}
+                <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}"
+                     fetchpriority="high" decoding="async"
+                     class="w-full h-full object-cover">
             </div>
         @endif
         <div class="p-6">
@@ -158,7 +167,7 @@
                                 @csrf
                                 <button type="submit"
                                         title="{{ $isFavorited ? __('site.favorite_remove') : __('site.favorite_add') }}"
-                                        class="w-9 h-9 rounded-full {{ $isFavorited ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }} flex items-center justify-center transition-colors">
+                                        class="w-11 h-11 rounded-full {{ $isFavorited ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }} flex items-center justify-center transition-colors">
                                     <x-icon :name="$isFavorited ? 'heart-solid' : 'heart'" class="w-4 h-4" />
                                 </button>
                             </form>
@@ -167,7 +176,7 @@
                     </div>
                     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
                        data-track="booking" data-clinic="{{ $clinic->id }}"
-                       class="bg-sage-600 hover:bg-sage-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
+                       class="inline-flex items-center justify-center min-h-touch bg-sage-600 hover:bg-sage-700 text-white px-6 py-2.5 rounded-lg font-semibold transition-colors whitespace-nowrap">
                         @lang('site.book_appointment')
                     </a>
                 </div>
@@ -310,7 +319,7 @@
                                     loading="lazy"></iframe>
                             <a href="https://www.google.com/maps/dir/?api=1&destination={{ $clinic->latitude }},{{ $clinic->longitude }}"
                                target="_blank" rel="noopener"
-                               class="mt-3 inline-flex w-full items-center justify-center gap-2 text-center bg-sage-50 text-sage-700 hover:bg-sage-100 py-2 rounded-lg text-sm font-semibold transition-colors">
+                               class="mt-3 inline-flex w-full items-center justify-center gap-2 text-center min-h-touch bg-sage-50 text-sage-700 hover:bg-sage-100 py-2 px-4 rounded-lg text-sm font-semibold transition-colors">
                                 <x-icon name="map" class="w-4 h-4" /> @lang('site.directions_open_maps')
                             </a>
                         </div>

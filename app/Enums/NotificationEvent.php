@@ -1,0 +1,139 @@
+<?php
+
+namespace App\Enums;
+
+use App\Models\Admin;
+use App\Models\Clinic;
+use App\Models\User;
+
+/**
+ * Single-source catalog for all platform events that should ring a
+ * notification bell. Each case carries:
+ *   - target role (which user type receives it)
+ *   - priority (drives channels + sound)
+ *   - i18n keys for title/body
+ *   - deep-link URL builder
+ *
+ * Adding a new event = adding a single case + its translation keys.
+ * The dispatcher, web-push payload builder, and React UI all read
+ * from here, so no parallel lists drift apart.
+ */
+enum NotificationEvent: string
+{
+    // ── Clinic-side events ─────────────────────────────────────────
+    case BOOKING_CREATED            = 'booking_created';
+    case BOOKING_CANCELLED_BY_USER  = 'booking_cancelled_by_user';
+    case COMPLAINT_CREATED          = 'complaint_created';
+    case QUOTE_CREATED              = 'quote_created';
+
+    // ── User-side events ───────────────────────────────────────────
+    case BOOKING_CONFIRMED          = 'booking_confirmed';
+    case COMPLAINT_REPLIED          = 'complaint_replied';
+    case QUOTE_REPLIED              = 'quote_replied';
+
+    // ── Admin-side events ──────────────────────────────────────────
+    case CLINIC_PENDING_APPROVAL    = 'clinic_pending_approval';
+    case AI_EMERGENCY               = 'ai_emergency';
+
+    /**
+     * Which model class receives this event. Drives broadcast channel
+     * naming + which notifiable_type column gets written.
+     */
+    public function targetClass(): string
+    {
+        return match ($this) {
+            self::BOOKING_CREATED,
+            self::BOOKING_CANCELLED_BY_USER,
+            self::COMPLAINT_CREATED,
+            self::QUOTE_CREATED => Clinic::class,
+
+            self::BOOKING_CONFIRMED,
+            self::COMPLAINT_REPLIED,
+            self::QUOTE_REPLIED => User::class,
+
+            self::CLINIC_PENDING_APPROVAL,
+            self::AI_EMERGENCY => Admin::class,
+        };
+    }
+
+    public function priority(): NotificationPriority
+    {
+        return match ($this) {
+            self::AI_EMERGENCY => NotificationPriority::URGENT,
+
+            self::BOOKING_CREATED,
+            self::BOOKING_CANCELLED_BY_USER,
+            self::COMPLAINT_CREATED,
+            self::BOOKING_CONFIRMED,
+            self::CLINIC_PENDING_APPROVAL => NotificationPriority::HIGH,
+
+            self::QUOTE_CREATED,
+            self::COMPLAINT_REPLIED,
+            self::QUOTE_REPLIED => NotificationPriority::NORMAL,
+        };
+    }
+
+    /** Lucide / heroicon name the bell renders next to the row. */
+    public function icon(): string
+    {
+        return match ($this) {
+            self::BOOKING_CREATED, self::BOOKING_CONFIRMED => 'calendar',
+            self::BOOKING_CANCELLED_BY_USER                => 'calendar-x',
+            self::COMPLAINT_CREATED, self::COMPLAINT_REPLIED => 'alert-triangle',
+            self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
+            self::CLINIC_PENDING_APPROVAL                    => 'building-2',
+            self::AI_EMERGENCY                               => 'siren',
+        };
+    }
+
+    /** Translated title — short headline that fits a push notification. */
+    public function title(array $data = []): string
+    {
+        return (string) __("notifications.events.{$this->value}.title", $data);
+    }
+
+    /** Translated body — one sentence with placeholders filled. */
+    public function body(array $data = []): string
+    {
+        return (string) __("notifications.events.{$this->value}.body", $data);
+    }
+
+    /**
+     * Where the user lands when they click the notification. Returns
+     * a path (not full URL) so the JS layer can build the final href
+     * with the right host.
+     */
+    public function url(array $data = []): ?string
+    {
+        return match ($this) {
+            self::BOOKING_CREATED,
+            self::BOOKING_CANCELLED_BY_USER =>
+                isset($data['reference_code'])
+                    ? '/app/clinic/bookings?search=' . urlencode((string) $data['reference_code'])
+                    : '/app/clinic/bookings',
+
+            self::COMPLAINT_CREATED => '/app/clinic/complaints',
+            self::QUOTE_CREATED     => '/app/clinic/price-quotes',
+
+            self::BOOKING_CONFIRMED  => '/account/bookings',
+            self::COMPLAINT_REPLIED  => '/account/complaints',
+            self::QUOTE_REPLIED      => '/account/quotes',
+
+            self::CLINIC_PENDING_APPROVAL => '/app/admin/clinics?status=pending',
+
+            self::AI_EMERGENCY => isset($data['conversation_id'])
+                ? '/app/admin/ai-center?conversation=' . urlencode((string) $data['conversation_id'])
+                : '/app/admin/ai-center',
+        };
+    }
+
+    /**
+     * Channels this event flows through. Phase A returns database only
+     * — phases B (broadcast) and C (webpush) extend this list per
+     * priority without touching call sites.
+     */
+    public function channels(): array
+    {
+        return ['database'];
+    }
+}

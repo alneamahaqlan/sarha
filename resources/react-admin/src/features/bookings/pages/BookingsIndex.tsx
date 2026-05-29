@@ -197,7 +197,19 @@ export function BookingsIndex() {
                   )}
                 </TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{booking.clinic?.name ?? '—'}</TableCell>
-                <TableCell className="font-medium">{booking.customer_name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span>{booking.customer_name}</span>
+                    {booking.is_for_relative && (
+                      <Badge variant="info" className="text-[10px]">{t('bookings.booked_by_proxy_badge')}</Badge>
+                    )}
+                  </div>
+                  {booking.is_for_relative && booking.booker?.name && (
+                    <div className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                      {t('bookings.booked_by_proxy_line', { name: booking.booker.name, phone: booking.booker.phone ?? '' })}
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell dir="ltr">{booking.customer_phone}</TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]">{booking.service?.name ?? '—'}</TableCell>
                 <TableCell><BookingStatusBadge status={booking.status} /></TableCell>

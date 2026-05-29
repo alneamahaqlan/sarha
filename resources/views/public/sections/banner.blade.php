@@ -44,11 +44,17 @@
                         @if($slide->link_url)
                             <a href="{{ $slide->link_url }}" class="block w-full h-full">
                                 <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($slide->image) }}"
-                                     alt="" class="w-full h-full object-cover" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                                     alt="" class="w-full h-full object-cover"
+                                     loading="{{ $i === 0 ? 'eager' : 'lazy' }}"
+                                     @if($i === 0) fetchpriority="high" @endif
+                                     decoding="async">
                             </a>
                         @else
                             <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($slide->image) }}"
-                                 alt="" class="w-full h-full object-cover" loading="{{ $i === 0 ? 'eager' : 'lazy' }}">
+                                 alt="" class="w-full h-full object-cover"
+                                 loading="{{ $i === 0 ? 'eager' : 'lazy' }}"
+                                 @if($i === 0) fetchpriority="high" @endif
+                                 decoding="async">
                         @endif
                     </div>
                 @endforeach

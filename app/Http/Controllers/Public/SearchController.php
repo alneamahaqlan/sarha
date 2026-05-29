@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Services\ImpressionTrackerService;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -208,6 +209,21 @@ class SearchController extends Controller
             $clinics->getCollection()->pluck('id')->all(),
             $source,
         );
+
+        // Feed the super-admin "comprehensive user profile" timeline.
+        // We only record events when a logged-in user actually filtered
+        // or searched — bare /search visits with no params would just
+        // be noise (they'd fire on every nav-bar click).
+        if (auth('web')->check() && $request->hasAny(['q', 'city', 'category', 'district', 'min_rating', 'price_max'])) {
+            app(UserActivityLogger::class)->logSearch(
+                $request,
+                auth('web')->id(),
+                (string) $request->input('q', ''),
+                $request->filled('city') ? (int) $request->input('city') : null,
+                $request->filled('category') ? (int) $request->input('category') : null,
+                $clinics->total(),
+            );
+        }
 
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
         $cities = City::where('is_active', true)->orderBy('sort_order')->get();

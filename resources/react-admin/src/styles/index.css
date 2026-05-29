@@ -42,6 +42,18 @@
 
   --radius: 0.5rem;
 
+  /* Responsive design tokens.
+   *  - --spacing-touch: 44px WCAG-recommended minimum touch target on mobile;
+   *    used by Button/IconButton sizes (min-h-touch / min-w-touch).
+   *  - --spacing-sidebar / --spacing-sidebar-icon: sidebar widths shared by
+   *    AdminLayout + ClinicLayout so a future tweak is one edit.
+   * Breakpoints stay at Tailwind defaults (sm 640 / md 768 / lg 1024 / xl 1280
+   * / 2xl 1536) — internationally recognised, no overrides.
+   */
+  --spacing-touch: 2.75rem;        /* 44px */
+  --spacing-sidebar: 16rem;        /* 256px, full sidebar on lg+ */
+  --spacing-sidebar-icon: 4rem;    /* 64px, collapsed icon rail on md */
+
   /* Named brand palette (mirrors public app.css) */
   --color-sage-deep: #1F4A3F;
   --color-sage-primary: #2D6A5C;

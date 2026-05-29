@@ -486,4 +486,27 @@ return [
         'subscription_undefined' => 'غير محدد',
         'default_user_name' => 'مستخدم',
     ],
+
+    // Comprehensive user profile (server-side timeline strings used by
+    // UserProfileController::renderActivityTitle and the timeline event
+    // titles for booking/complaint/ai/favorite/quote rows).
+    'user_profile' => [
+        'timeline' => [
+            'login'             => 'تسجيل دخول للمنصة',
+            'logout'             => 'تسجيل خروج',
+            'otp_verified'       => 'توثيق رمز OTP',
+            'search'             => 'بحث عن: ":q"',
+            'filter'             => 'تطبيق فلتر مدينة/تخصص',
+            'clinic_view'        => 'زيارة صفحة المجمع :clinic',
+            'compare'            => 'مقارنة بين :count مجمعات',
+            'action_click'       => 'نقرة :button على :clinic',
+            'account_edit'       => 'تعديل بيانات الحساب',
+            'booking_created'    => 'إنشاء حجز في :clinic — :service',
+            'booking_cancelled'  => 'إلغاء حجز في :clinic',
+            'complaint_created'  => 'إنشاء شكوى: :subject',
+            'ai_conversation'    => 'محادثة مع المساعد الذكي (:turns turns): :query',
+            'favorite_added'     => 'إضافة :clinic للمفضلة',
+            'quote_request'      => 'طلب عرض سعر — :service',
+        ],
+    ],
 ];

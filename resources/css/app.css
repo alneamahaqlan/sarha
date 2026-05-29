@@ -69,6 +69,12 @@
     --color-danger: #C76B57;
     --color-info: #5B85A8;
 
+    /* Responsive token — WCAG-recommended minimum tap target on mobile.
+     * Maps to utilities min-h-touch / min-w-touch / h-touch etc. Used
+     * by the patient-journey buttons (book, call, pagination) so they
+     * always clear 44px regardless of inherited padding. */
+    --spacing-touch: 2.75rem; /* 44px */
+
     /* Legacy teal scale → sage (safety net for existing markup) */
     --color-teal-50: #E8F0EC;
     --color-teal-100: #D6E6DF;
@@ -91,6 +97,18 @@
     body {
         background-color: var(--color-cream);
         color: var(--color-charcoal);
+    }
+    /* Mobile-first safety net. Decorative elements (blur orbs in the
+     * hero, Leaflet tiles in the map) sometimes leak past their
+     * overflow-hidden parent — Chromium reports the leak via
+     * documentElement.scrollWidth even when the visible page is
+     * clipped. Setting `overflow-x: clip` on BOTH html and body
+     * stops the leak in every Chromium config we test in.
+     * `clip` is preferred over `hidden` because it does NOT create
+     * a new scroll containing block (so `position: sticky` keeps
+     * working) and it forbids any scrolling at all — not just hiding it. */
+    html, body {
+        overflow-x: clip;
     }
 }
 

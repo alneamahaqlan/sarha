@@ -20,7 +20,7 @@ class BookingController extends Controller
 
         // Mirror Filament's withoutGlobalScopes(SoftDeletingScope) — see BookingResource::getEloquentQuery().
         $query = Booking::query()->withoutGlobalScopes([SoftDeletingScope::class])
-            ->with(['clinic:id,name', 'service:id,name']);
+            ->with(['clinic:id,name', 'service:id,name', 'relative', 'booker:id,name,phone']);
 
         // TrashedFilter mapping: only|with|without (matches Filament default).
         $trashed = $request->string('filter.trashed')->toString();

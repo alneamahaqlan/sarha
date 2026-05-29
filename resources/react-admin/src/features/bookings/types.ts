@@ -15,6 +15,21 @@ export const BOOKING_STATUSES: BookingStatus[] = [
   'cancelled',
 ];
 
+export interface BookingRelative {
+  id: number;
+  name: string;
+  /** Slug key from RELATIVE_TYPES on the server; "other" carries a free-text label. */
+  relationship_type: string;
+  relationship_label: string | null;
+  phone: string;
+}
+
+export interface BookingBooker {
+  id: number;
+  name: string | null;
+  phone: string | null;
+}
+
 export interface Booking {
   id: number;
   reference_code: string;
@@ -30,6 +45,10 @@ export interface Booking {
   source: string | null;
   clinic?: { id: number; name: string };
   service?: { id: number; name: string } | null;
+  /** True when the booking was placed by an account holder on behalf of a relative. */
+  is_for_relative: boolean;
+  relative?: BookingRelative | null;
+  booker?: BookingBooker | null;
   is_trashed: boolean;
   created_at: string | null;
   updated_at: string | null;

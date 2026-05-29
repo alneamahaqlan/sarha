@@ -18,7 +18,7 @@ class BookingController extends Controller
 
         $query = Booking::query()
             ->where('clinic_id', auth('clinic')->id())
-            ->with('service:id,name');
+            ->with(['service:id,name', 'relative', 'booker:id,name,phone']);
 
         if ($search = $request->string('search')->toString()) {
             $query->where(function ($q) use ($search) {
@@ -63,13 +63,13 @@ class BookingController extends Controller
     {
         $this->authorize('view', $booking);
 
-        return new BookingApiResource($booking->load('service:id,name'));
+        return new BookingApiResource($booking->load(['service:id,name', 'relative', 'booker:id,name,phone']));
     }
 
     public function update(UpdateBookingRequest $request, Booking $booking): BookingApiResource
     {
         $booking->update($request->validated());
 
-        return new BookingApiResource($booking->fresh()->load('service:id,name'));
+        return new BookingApiResource($booking->fresh()->load(['service:id,name', 'relative', 'booker:id,name,phone']));
     }
 }

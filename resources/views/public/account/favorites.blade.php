@@ -34,7 +34,7 @@
                                 @csrf
                                 <button type="submit"
                                         title="{{ __('site.favorite_remove') }}"
-                                        class="bg-white/95 hover:bg-red-50 text-red-500 w-9 h-9 rounded-full flex items-center justify-center shadow transition-colors">
+                                        class="bg-white/95 hover:bg-red-50 text-red-500 w-11 h-11 rounded-full flex items-center justify-center shadow transition-colors">
                                     <x-icon name="heart-solid" class="w-4 h-4" />
                                 </button>
                             </form>

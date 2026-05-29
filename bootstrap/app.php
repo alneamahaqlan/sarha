@@ -11,6 +11,7 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         apiPrefix: 'api',
         commands: __DIR__.'/../routes/console.php',
+        channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule) {
@@ -27,6 +28,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            // Heartbeat for the super-admin "comprehensive user
+            // profile" timeline — extends or opens the visit_session
+            // row on every authenticated web request. Failures are
+            // swallowed inside the middleware.
+            \App\Http\Middleware\TrackUserVisit::class,
         ]);
 
         $middleware->statefulApi();

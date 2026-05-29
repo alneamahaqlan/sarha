@@ -6,6 +6,7 @@ use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Services\ImpressionTrackerService;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 
 /**
@@ -45,6 +46,13 @@ class CompareController extends Controller
             // not specific service cards.
             app(ImpressionTrackerService::class)
                 ->trackManyClinics($clinics->pluck('id')->all(), ImpressionSource::COMPARE);
+
+            // Profile timeline event.
+            if (auth('web')->check()) {
+                app(UserActivityLogger::class)->logCompare(
+                    $request, auth('web')->id(), $clinics->pluck('id')->all(),
+                );
+            }
         }
 
         return view('public.compare', compact('clinics'));

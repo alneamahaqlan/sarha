@@ -27,3 +27,4 @@ Thumbs.db
 *.png
 !resources/**/*.png
 !public/**/*.png
+/storage/vapid-backup.txt

@@ -85,7 +85,7 @@
         <a href="{{ $ctaHref }}"
            @if(! $isServiceLinked) target="_blank" rel="noopener" @endif
            data-track="{{ $isServiceLinked ? 'booking' : 'contact' }}" data-clinic="{{ $clinic->id }}"
-           class="mt-4 inline-flex items-center justify-center gap-2 bg-sage-600 hover:bg-sage-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+           class="mt-4 inline-flex items-center justify-center gap-2 min-h-touch bg-sage-600 hover:bg-sage-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
             <x-icon name="{{ $isServiceLinked ? 'calendar' : 'phone' }}" class="w-4 h-4" />
             {{ $ctaLabel }}
         </a>

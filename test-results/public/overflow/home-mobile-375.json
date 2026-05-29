@@ -1,0 +1,41 @@
+{
+  "scroll": 375,
+  "width": 375,
+  "worst": [
+    {
+      "tag": "DIV",
+      "id": "home-map",
+      "cls": "w-full h-80 md:h-96 rounded-2xl overflow-hidden border border-gray-200 z-0 leaflet-container leaflet",
+      "w": 2542,
+      "ow": 343
+    },
+    {
+      "tag": "DIV",
+      "id": null,
+      "cls": "leaflet-pane leaflet-map-pane",
+      "w": 2542,
+      "ow": 0
+    },
+    {
+      "tag": "DIV",
+      "id": null,
+      "cls": "leaflet-pane leaflet-tile-pane",
+      "w": 445,
+      "ow": 0
+    },
+    {
+      "tag": "DIV",
+      "id": null,
+      "cls": "leaflet-layer ",
+      "w": 445,
+      "ow": 0
+    },
+    {
+      "tag": "DIV",
+      "id": null,
+      "cls": "leaflet-tile-container leaflet-zoom-animated",
+      "w": 445,
+      "ow": 0
+    }
+  ]
+}

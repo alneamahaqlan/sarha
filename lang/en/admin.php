@@ -486,4 +486,24 @@ return [
         'subscription_undefined' => 'Not set',
         'default_user_name' => 'Customer',
     ],
+
+    'user_profile' => [
+        'timeline' => [
+            'login'             => 'Logged in',
+            'logout'             => 'Logged out',
+            'otp_verified'       => 'OTP verified',
+            'search'             => 'Searched for ":q"',
+            'filter'             => 'Applied city/category filter',
+            'clinic_view'        => 'Visited :clinic',
+            'compare'            => 'Compared :count complexes',
+            'action_click'       => 'Clicked :button on :clinic',
+            'account_edit'       => 'Edited account details',
+            'booking_created'    => 'Created booking at :clinic — :service',
+            'booking_cancelled'  => 'Cancelled booking at :clinic',
+            'complaint_created'  => 'Filed complaint: :subject',
+            'ai_conversation'    => 'AI conversation (:turns turns): :query',
+            'favorite_added'     => 'Favorited :clinic',
+            'quote_request'      => 'Quote request for :service',
+        ],
+    ],
 ];

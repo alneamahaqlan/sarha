@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\OtpCode;
 use App\Models\User;
 use App\Services\SmsService;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 
 class OtpController extends Controller
@@ -74,12 +75,24 @@ class OtpController extends Controller
 
         auth('web')->login($user, remember: true);
 
+        // Feed the super-admin "comprehensive user profile" timeline.
+        $tracker = app(UserActivityLogger::class);
+        $tracker->touchVisitSession($request, $user->id);
+        $tracker->logOtpVerified($request, $user->id, 'login');
+        $tracker->logLogin($request, $user->id);
+
         return redirect()->intended(route('home'));
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
+        $userId = auth('web')->id();
         auth('web')->logout();
+        if ($userId) {
+            $tracker = app(UserActivityLogger::class);
+            $tracker->logLogout($request, $userId);
+            $tracker->closeVisitSession($userId);
+        }
         return redirect()->route('home');
     }
 }

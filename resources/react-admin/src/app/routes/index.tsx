@@ -16,6 +16,7 @@ const CategoriesIndex        = lazy(() => import('@/features/categories/pages/Ca
 const HomepageSectionsIndex  = lazy(() => import('@/features/homepage-sections/pages/HomepageSectionsIndex').then(m => ({ default: m.HomepageSectionsIndex })));
 const AiCenterPage           = lazy(() => import('@/features/ai-center/pages/AiCenterPage').then(m => ({ default: m.AiCenterPage })));
 const UsersIndex          = lazy(() => import('@/features/users/pages/UsersIndex').then(m => ({ default: m.UsersIndex })));
+const UserProfilePage     = lazy(() => import('@/features/users/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const AdminsIndex         = lazy(() => import('@/features/admins/pages/AdminsIndex').then(m => ({ default: m.AdminsIndex })));
 const ServicesIndex       = lazy(() => import('@/features/services/pages/ServicesIndex').then(m => ({ default: m.ServicesIndex })));
 const BookingsIndex       = lazy(() => import('@/features/bookings/pages/BookingsIndex').then(m => ({ default: m.BookingsIndex })));
@@ -101,6 +102,7 @@ export function AppRoutes() {
               <Route path="complaints" element={<ComplaintsIndex />} />
               <Route path="sales-leads" element={<SalesLeadsIndex />} />
               <Route path="users" element={<UsersIndex />} />
+              <Route path="users/:id" element={<UserProfilePage />} />
               <Route path="services" element={<ServicesIndex />} />
               <Route path="articles" element={<ArticlesIndex />} />
               <Route path="cities" element={<CitiesIndex />} />

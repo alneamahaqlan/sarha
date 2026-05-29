@@ -23,7 +23,10 @@
     "inactive": "غير نشط",
     "sar": "ر.س",
     "logout_confirm_title": "تسجيل الخروج؟",
-    "logout_confirm_body": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى لوحتك."
+    "logout_confirm_body": "ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى لوحتك.",
+    "expand_sidebar": "توسيع الشريط الجانبي",
+    "collapse_sidebar": "طيّ الشريط الجانبي",
+    "toggle_language": "تبديل اللغة"
   },
   "nav": {
     "dashboard": "لوحة المعلومات",
@@ -302,7 +305,9 @@
     "deleted": "تم حذف الحجز",
     "restored": "تم استعادة الحجز",
     "delete_confirm_title": "حذف الحجز؟",
-    "delete_confirm_body": "يمكن استعادته لاحقاً من فلتر «المحذوفة»."
+    "delete_confirm_body": "يمكن استعادته لاحقاً من فلتر «المحذوفة».",
+    "booked_by_proxy_badge": "بالنيابة",
+    "booked_by_proxy_line": "حجز بالنيابة بواسطة: {{name}} — رقم البوكر: {{phone}}"
   },
   "complaints": {
     "title": "الشكاوى",
@@ -744,7 +749,16 @@
   "notifications": {
     "title": "الإشعارات",
     "mark_all_read": "تحديد الكل كمقروء",
-    "empty": "لا توجد إشعارات"
+    "empty": "لا توجد إشعارات",
+    "push_blocked": "إشعارات المتصفّح مُعطَّلة",
+    "push_blocked_help": "كيف أُفعّلها؟",
+    "ios_hint_title": "على iPhone/iPad؟",
+    "ios_hint_body": "لتفعيل الإشعارات اللحظية على iOS، أضف الموقع للشاشة الرئيسية كتطبيق.",
+    "push_enable_title": "احصل على إشعارات فورية",
+    "push_enable_body": "نَصِلك الأحداث المهمة حتى وأنت خارج المنصة.",
+    "push_enable_button": "فعّل الإشعارات",
+    "push_enabled": "الإشعارات مُفعَّلة",
+    "push_disable": "إيقاف"
   },
   "impersonation": {
     "banner": "أنت تعمل حاليًا كحساب {{clinic}}",
@@ -1519,5 +1533,91 @@
       "similar_services": "خدمات مشابهة قريبة",
       "floating_ctas": "أزرار الإجراء العائمة"
     }
+  },
+  "user_profile": {
+    "privacy_notice": "هذه البيانات سرّية. وصولك مسجَّل لأغراض الامتثال والمراجعة.",
+    "back_to_users": "رجوع إلى قائمة المستخدمين",
+    "reveal": "كشف",
+    "hide": "إخفاء",
+    "member_since_days": "عضو منذ {{days}} يوماً",
+    "bookings_count": "{{count}} حجز",
+    "complaints_count": "{{count}} شكوى",
+    "suspended": "موقوف",
+    "suspend": "إيقاف",
+    "unsuspend": "تفعيل",
+    "force_logout": "إجبار تسجيل خروج",
+    "action_done": "تم تنفيذ الإجراء",
+    "force_logout_done": "تم إجبار تسجيل الخروج لجميع الجلسات النشطة",
+    "sessions_total": "إجمالي الجلسات",
+    "time_on_platform": "الوقت على المنصة",
+    "last_login": "آخر دخول",
+    "avg_session": "متوسط مدة الجلسة",
+    "top_category": "التخصص الأكثر بحثاً",
+    "top_city": "المدينة الأكثر اهتماماً",
+    "insights": "مؤشرات سلوكية",
+    "insight_engagement": "مستوى التفاعل",
+    "insight_decision_stage": "مرحلة القرار",
+    "insight_preferred_city": "التفضيل المديني",
+    "insight_preferred_category": "التفضيل التخصصي",
+    "engagement_level": {
+      "active": "نشط",
+      "medium": "متوسط",
+      "idle": "خامل"
+    },
+    "decision_stage": {
+      "exploration": "استكشاف",
+      "comparing": "مقارنة جادة",
+      "near_decision": "قريب من حجز"
+    },
+    "risk_flags_label": "علامات تنبيه:",
+    "risk": {
+      "repeated_complaints": "شكاوى متكررة ({{count}})",
+      "repeated_cancellations": "إلغاء حجوزات متكرر ({{count}})",
+      "suspicious_activity": "دخول من عناوين IP متباعدة ({{count}})",
+      "search_no_booking": "بحث متكرر بدون حجز ({{count}} بحث)"
+    },
+    "activity_hours": "ساعات النشاط (آخر 90 يوم)",
+    "weekday": {
+      "0": "الأحد", "1": "الإثنين", "2": "الثلاثاء", "3": "الأربعاء",
+      "4": "الخميس", "5": "الجمعة", "6": "السبت"
+    },
+    "timeline": {
+      "title": "التسلسل الزمني للتفاعلات",
+      "search_placeholder": "ابحث في التفاصيل…",
+      "period_all": "كل الفترات",
+      "period_1d": "آخر يوم",
+      "period_7d": "آخر أسبوع",
+      "period_30d": "آخر شهر"
+    },
+    "types": {
+      "login": "دخول",
+      "logout": "خروج",
+      "otp_verified": "OTP",
+      "search": "بحث",
+      "filter": "فلتر",
+      "clinic_view": "زيارة مجمع",
+      "compare": "مقارنة",
+      "action_click": "نقرة إجراء",
+      "account_edit": "تعديل حساب",
+      "booking_created": "حجز",
+      "booking_cancelled": "إلغاء حجز",
+      "complaint_created": "شكوى",
+      "ai_conversation": "محادثة AI",
+      "favorite_added": "مفضلة",
+      "quote_request": "عرض سعر"
+    },
+    "tabs": {
+      "bookings": "حجوزات",
+      "complaints": "شكاوى",
+      "ai": "محادثات المساعد الذكي",
+      "sessions": "جلسات الدخول",
+      "favorites": "المفضلة",
+      "quotes": "طلبات الأسعار",
+      "account_edits": "تعديلات الحساب"
+    },
+    "open": "فتح",
+    "turns_count": "{{count}} رد",
+    "ai_emergency": "طوارئ",
+    "ai_blocked": "مرفوض"
   }
 }

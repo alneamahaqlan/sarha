@@ -1,0 +1,101 @@
+{
+  "count": 12,
+  "offenders": [
+    {
+      "tag": "A",
+      "text": "Home",
+      "h": 21,
+      "w": 38,
+      "cls": "hover:text-sage-600",
+      "href": "http://sarha.test"
+    },
+    {
+      "tag": "A",
+      "text": "site.breadcrumb_clinics",
+      "h": 21,
+      "w": 149,
+      "cls": "hover:text-sage-600",
+      "href": "http://sarha.test/search"
+    },
+    {
+      "tag": "A",
+      "text": "Riyadh",
+      "h": 20,
+      "w": 63,
+      "cls": "flex items-center gap-1 hover:text-sage-600 transition-colors",
+      "href": "https://www.google.com/maps/dir/?api=1&destination=24.69570000,46.69250000"
+    },
+    {
+      "tag": "A",
+      "text": "0550000001",
+      "h": 36,
+      "w": 295,
+      "cls": "flex items-center gap-3 text-gray-700 hover:text-sage-600",
+      "href": "tel:0550000001"
+    },
+    {
+      "tag": "A",
+      "text": "مركز طب الفؤاد 2 الطبي\n                           ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-2-ntfz7"
+    },
+    {
+      "tag": "A",
+      "text": "مركز المروج 23 الطبي\n                             ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-23-v32kl"
+    },
+    {
+      "tag": "A",
+      "text": "مستوصف التميز 5\n                                  ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-5-9hzyj"
+    },
+    {
+      "tag": "A",
+      "text": "مركز طب التخصصي 15\n                               ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-15-dytmj"
+    },
+    {
+      "tag": "A",
+      "text": "مجمع الجوهرة 26\n                                  ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-26-d6jbw"
+    },
+    {
+      "tag": "A",
+      "text": "مركز طب النور 12 التخصصي\n                         ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-12-fdesu"
+    },
+    {
+      "tag": "A",
+      "text": "مركز طب السلامة 10 الطبي\n                         ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-10-wy98q"
+    },
+    {
+      "tag": "A",
+      "text": "عيادات الفؤاد 4\n                                  ",
+      "h": 32,
+      "w": 311,
+      "cls": "block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate",
+      "href": "http://sarha.test/clinic/clinic-mc-1-4-edg9y"
+    }
+  ]
+}

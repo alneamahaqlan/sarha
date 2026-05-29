@@ -37,6 +37,22 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    /**
+     * Bookings the user placed on behalf of one of their saved relatives,
+     * including the ones they made for themselves. Same source as
+     * `bookings()` — exposed separately so the account-page filters can
+     * scope on it without renaming the primary relation.
+     */
+    public function bookerBookings()
+    {
+        return $this->hasMany(Booking::class, 'booker_user_id');
+    }
+
+    public function relatives()
+    {
+        return $this->hasMany(Relative::class);
+    }
+
     public function priceQuoteRequests()
     {
         return $this->hasMany(PriceQuoteRequest::class);

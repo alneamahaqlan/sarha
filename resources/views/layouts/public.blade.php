@@ -41,9 +41,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center gap-2">
-                {{-- Mobile hamburger --}}
+                {{-- Mobile hamburger — sized to clear 44px so a thumb tap
+                     never misses. -ms-2 stays so the icon stays optically
+                     flush with the brand logo. --}}
                 <button type="button" @click="open = !open"
-                        class="md:hidden p-2 -ms-2 text-gray-600 hover:text-sage-600"
+                        class="md:hidden inline-flex items-center justify-center min-h-touch min-w-touch -ms-2 text-gray-600 hover:text-sage-600"
                         :aria-expanded="open.toString()" aria-label="@lang('site.menu')">
                     <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -58,21 +60,22 @@
             </div>
 
             <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('search') }}" class="text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_search')</a>
-                <a href="{{ route('quotes.board') }}" class="text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_quotes')</a>
+                <a href="{{ route('search') }}" class="inline-flex items-center min-h-touch text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_search')</a>
+                <a href="{{ route('quotes.board') }}" class="inline-flex items-center min-h-touch text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_quotes')</a>
             </div>
 
             <div class="flex items-center gap-3">
-                {{-- Language switcher --}}
+                {{-- Language switcher — bumped from py-1 to min-h-touch so it
+                     clears 44px on mobile thumbs. Sizing keeps desktop tight. --}}
                 <a href="{{ route('lang.switch', $altLocale) }}"
-                   class="text-sm text-gray-600 hover:text-sage-600 transition-colors px-2 py-1 border border-gray-200 rounded-lg"
+                   class="inline-flex items-center justify-center min-h-touch text-sm text-gray-600 hover:text-sage-600 transition-colors px-3 border border-gray-200 rounded-lg"
                    title="@lang('site.language')">
                     {{ $altLocale === 'en' ? 'English' : 'العربية' }}
                 </a>
 
                 @auth('web')
                     <a href="{{ route('account.show') }}"
-                       class="text-sm text-gray-700 hover:text-sage-600 transition-colors flex items-center gap-1.5">
+                       class="inline-flex items-center gap-1.5 min-h-touch text-sm text-gray-700 hover:text-sage-600 transition-colors">
                         <span class="w-7 h-7 rounded-full bg-sage-100 text-sage-700 flex items-center justify-center text-xs font-bold">
                             {{ mb_substr(auth('web')->user()->name ?: 'م', 0, 1) }}
                         </span>
@@ -80,27 +83,28 @@
                     </a>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
+                        <button type="submit" class="inline-flex items-center min-h-touch text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="bg-sage-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-sage-700 transition-colors">
+                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
                         @lang('site.nav_login')
                     </a>
                 @endauth
             </div>
         </div>
 
-        {{-- Mobile menu panel --}}
+        {{-- Mobile menu panel — each row gets min-h-touch so the
+             whole strip is a comfortable thumb target. --}}
         <div x-show="open" x-cloak @click.outside="open = false"
              class="md:hidden border-t border-gray-100 py-2">
-            <a href="{{ route('search') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_search')</a>
-            <a href="{{ route('quotes.board') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_quotes')</a>
+            <a href="{{ route('search') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_search')</a>
+            <a href="{{ route('quotes.board') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_quotes')</a>
             @auth('web')
-                <a href="{{ route('account.show') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_profile')</a>
-                <a href="{{ route('account.bookings') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
-                <a href="{{ route('account.favorites') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>
+                <a href="{{ route('account.show') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_profile')</a>
+                <a href="{{ route('account.bookings') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
+                <a href="{{ route('account.favorites') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>
             @else
-                <a href="{{ route('login') }}" class="block px-2 py-2.5 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
+                <a href="{{ route('login') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
             @endauth
         </div>
     </div>
@@ -137,15 +141,19 @@
             </div>
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_quick_links')</h4>
-                <ul class="space-y-2 text-sm">
-                    <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">@lang('site.breadcrumb_home')</a></li>
-                    <li><a href="{{ route('search') }}" class="hover:text-white transition-colors">@lang('site.nav_search')</a></li>
+                {{-- Footer link rows used to be naked inline text (~21px tall).
+                     Each link is now a block-level hit area clearing 44px so
+                     thumbs land reliably; gap stays 0 since each row has
+                     intrinsic vertical padding from min-h-touch. --}}
+                <ul class="text-sm">
+                    <li><a href="{{ route('home') }}" class="flex items-center min-h-touch hover:text-white transition-colors">@lang('site.breadcrumb_home')</a></li>
+                    <li><a href="{{ route('search') }}" class="flex items-center min-h-touch hover:text-white transition-colors">@lang('site.nav_search')</a></li>
                 </ul>
             </div>
             <div>
                 <h4 class="text-white font-semibold mb-3">@lang('site.footer_for_clinics')</h4>
                 <p class="text-sm mb-3">@lang('site.footer_for_clinics_desc')</p>
-                <a href="{{ route('clinic.register') }}" class="bg-sage-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-sage-700 transition-colors inline-block">
+                <a href="{{ route('clinic.register') }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
                     @lang('site.nav_register_clinic')
                 </a>
             </div>

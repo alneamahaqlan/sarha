@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Complaint;
+use App\Models\Relative;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -20,28 +22,61 @@ class AccountController extends Controller
 
     public function update(Request $request)
     {
+        $user = auth('web')->user();
+
         $validated = $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:users,email,' . auth('web')->id(),
+            'email' => 'nullable|email|max:255|unique:users,email,' . $user->id,
         ]);
 
-        auth('web')->user()->update($validated);
+        // Snapshot the before/after so the profile timeline can show
+        // "name: oldX → newY". Only diffed fields are recorded.
+        $changes = [];
+        foreach ($validated as $field => $newVal) {
+            $oldVal = $user->{$field};
+            if ($oldVal != $newVal) {
+                $changes[$field] = ['from' => $oldVal, 'to' => $newVal];
+            }
+        }
+
+        $user->update($validated);
+
+        if (! empty($changes)) {
+            app(\App\Services\UserActivityLogger::class)->logAccountEdit(
+                $request, $user->id, $changes,
+            );
+        }
+
         return back()->with('success', __('site.account_updated'));
     }
 
-    public function bookings()
+    public function bookings(Request $request)
     {
         $user = auth('web')->user();
+
+        // "self" = bookings the user made for themselves (no relative_id)
+        // "relatives" = bookings they placed on behalf of saved relatives
+        // "all" (default) = both
+        $filter = $request->query('filter', 'all');
+        if (! in_array($filter, ['all', 'self', 'relatives'], true)) {
+            $filter = 'all';
+        }
+
         $bookings = $user
             ->bookings()
-            ->with(['clinic.city', 'service'])
+            ->with(['clinic.city', 'service', 'relative'])
+            ->when($filter === 'self', fn ($q) => $q->whereNull('relative_id'))
+            ->when($filter === 'relatives', fn ($q) => $q->whereNotNull('relative_id'))
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         $bookingsCount = $user->bookings()->count();
         $favoritesCount = $user->favorites()->count();
 
-        return view('public.account.bookings', compact('bookings', 'user', 'bookingsCount', 'favoritesCount'));
+        return view('public.account.bookings', compact(
+            'bookings', 'user', 'bookingsCount', 'favoritesCount', 'filter',
+        ));
     }
 
     public function favorites()
@@ -239,5 +274,71 @@ class AccountController extends Controller
 
         $user->favorites()->attach($clinic->id);
         return back()->with('success', __('site.favorite_added'));
+    }
+
+    /**
+     * AJAX edit a saved relative from the booking-form card. Returns the
+     * updated row so the front-end can swap the card text in place
+     * without losing the booker's mid-flow form state.
+     */
+    public function updateRelative(Request $request, Relative $relative): JsonResponse
+    {
+        $this->authorizeRelative($relative);
+
+        $validated = $request->validate([
+            'name'                => 'required|string|max:255',
+            'relationship_type'   => 'required|string|in:' . implode(',', Relative::TYPES),
+            'relationship_label'  => 'nullable|string|max:50',
+            'phone'               => 'required|string|max:20|regex:/^05\d{8}$/',
+        ], [
+            'phone.regex' => __('site.phone_invalid'),
+        ]);
+
+        $relative->update($validated);
+
+        return response()->json([
+            'data' => $this->relativePayload($relative->fresh()),
+        ]);
+    }
+
+    /**
+     * AJAX delete (soft) a saved relative. Past bookings keep their
+     * snapshotted customer_name/customer_phone so the history stays
+     * readable — only the picker entry disappears.
+     */
+    public function destroyRelative(Relative $relative): JsonResponse
+    {
+        $this->authorizeRelative($relative);
+
+        $relative->delete();
+
+        return response()->json([
+            'data' => [
+                'id'         => $relative->id,
+                'deleted'    => true,
+                'remaining'  => auth('web')->user()->relatives()->count(),
+                'max'        => Relative::MAX_PER_USER,
+            ],
+        ]);
+    }
+
+    /** 404 if the relative doesn't belong to the auth user — prevents id-guess. */
+    private function authorizeRelative(Relative $relative): void
+    {
+        abort_unless($relative->user_id === auth('web')->id(), 404);
+    }
+
+    private function relativePayload(Relative $rel): array
+    {
+        return [
+            'id'                  => $rel->id,
+            'name'                => $rel->name,
+            'relationship_type'   => $rel->relationship_type,
+            'relationship_label'  => $rel->relationship_label,
+            'relationship_display' => $rel->relationship_type === 'other'
+                ? ($rel->relationship_label ?: __('site.relative_type_other'))
+                : __('site.relative_type.' . $rel->relationship_type),
+            'phone'               => $rel->phone,
+        ];
     }
 }

@@ -14,9 +14,9 @@ class Booking extends Model
     public const REFERENCE_PREFIX = 'SAR-';
 
     protected $fillable = [
-        'reference_code', 'clinic_id', 'user_id', 'service_id', 'customer_name',
-        'customer_phone', 'notes', 'status', 'clinic_notes',
-        'appointment_at', 'source',
+        'reference_code', 'clinic_id', 'user_id', 'booker_user_id', 'relative_id',
+        'service_id', 'customer_name', 'customer_phone', 'notes', 'status',
+        'clinic_notes', 'appointment_at', 'source',
     ];
 
     protected function casts(): array
@@ -57,5 +57,25 @@ class Booking extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    /**
+     * The account holder who actually placed the booking. Null for
+     * legacy rows (pre-feature) — fall back to user() when reading.
+     */
+    public function booker()
+    {
+        return $this->belongsTo(User::class, 'booker_user_id');
+    }
+
+    public function relative()
+    {
+        return $this->belongsTo(Relative::class)->withTrashed();
+    }
+
+    /** Convenience flag the React/Blade views can render off. */
+    public function isForRelative(): bool
+    {
+        return ! is_null($this->relative_id);
     }
 }

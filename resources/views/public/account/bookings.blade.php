@@ -23,6 +23,25 @@
         <div class="lg:col-span-1">@include('public.account._nav')</div>
 
         <div class="lg:col-span-3 space-y-3">
+            {{-- Filter tabs: self vs relatives vs all. Mirrors the
+                 booking_for radio on the form so users can quickly find
+                 a booking they placed for a parent or child. --}}
+            <div class="flex flex-wrap items-center gap-1.5 bg-white rounded-xl p-2 shadow-sm">
+                @php
+                    $filterTabs = [
+                        'all'       => __('site.account_bookings_filter_all'),
+                        'self'      => __('site.account_bookings_filter_self'),
+                        'relatives' => __('site.account_bookings_filter_relatives'),
+                    ];
+                @endphp
+                @foreach($filterTabs as $key => $label)
+                    <a href="{{ route('account.bookings', $key === 'all' ? [] : ['filter' => $key]) }}"
+                       class="px-3 py-1.5 rounded-md text-sm transition-colors {{ ($filter ?? 'all') === $key ? 'bg-sage-600 text-white' : 'text-gray-600 hover:bg-gray-100' }}">
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
+
             @forelse($bookings as $booking)
                 <div class="bg-white rounded-xl shadow-sm p-5">
                     <div class="flex items-start justify-between mb-3 gap-4">
@@ -34,6 +53,21 @@
                             <p class="text-xs text-gray-500 mt-1">{{ $booking->clinic->city->display_name ?? '' }}</p>
                         </div>
                         <span class="text-xs font-mono bg-gray-100 px-2 py-1 rounded" dir="ltr">{{ $booking->reference_code }}</span>
+                    </div>
+
+                    {{-- Patient column: "أنا" for self-bookings, the
+                         relative's name + relationship for proxy bookings.
+                         Mirrors how the clinic sees it on their side. --}}
+                    <div class="mb-2 flex items-center gap-2 text-sm">
+                        <span class="text-xs text-gray-500">@lang('site.booking_patient_label')</span>
+                        @if($booking->relative)
+                            <span class="font-medium text-gray-800">{{ $booking->relative->name }}</span>
+                            <span class="text-xs bg-sage-100 text-sage-700 px-2 py-0.5 rounded-full">
+                                {{ $booking->relative->relationship_type === 'other' ? ($booking->relative->relationship_label ?: __('site.relative_type_other')) : __('site.relative_type.' . $booking->relative->relationship_type) }}
+                            </span>
+                        @else
+                            <span class="font-medium text-gray-800">@lang('site.booking_patient_self')</span>
+                        @endif
                     </div>
 
                     <div class="flex flex-wrap items-center gap-4 text-sm">

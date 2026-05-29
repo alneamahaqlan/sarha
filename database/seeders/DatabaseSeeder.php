@@ -62,6 +62,16 @@ class DatabaseSeeder extends Seeder
             $this->call(YearOfUsageSeeder::class);
             $this->call(EdgeCaseScenarioSeeder::class);
         }
+
+        // Saved relatives + a few proxy bookings so the "حجز لأحد أقاربي"
+        // filter and the clinic-side "بالنيابة" badge have data to render.
+        // Lives outside the heavy block — light, idempotent, always wanted.
+        $this->call(RelativesAndProxyBookingsSeeder::class);
+
+        // 5 behavioural archetypes × 4 users so the super-admin
+        // "comprehensive user profile" screen has realistic timelines,
+        // visit histories, and risk-flag triggers on a fresh seed.
+        $this->call(UserActivityPatternsSeeder::class);
     }
 
     private function seedAdmins(): void

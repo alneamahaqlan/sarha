@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
+use App\Http\Controllers\Api\V1\Admin\UserProfileController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BeforeAfterController as ClinicBeforeAfterController;
@@ -82,6 +83,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
         Route::post('auth/logout', [AuthController::class, 'logout']);
 
+        // Web Push (Phase C) — VAPID public key is whitelist-safe to
+        // expose to any auth user; the subscribe/unsubscribe endpoints
+        // bind the row to whichever guard's session is active.
+        Route::get('push/vapid-public-key', [\App\Http\Controllers\Api\V1\PushSubscriptionController::class, 'vapidPublicKey']);
+        Route::post('push/subscribe',   [\App\Http\Controllers\Api\V1\PushSubscriptionController::class, 'subscribe']);
+        Route::delete('push/unsubscribe', [\App\Http\Controllers\Api\V1\PushSubscriptionController::class, 'unsubscribe']);
+
         Route::get('lookups/clinics', [LookupController::class, 'clinics']);
         Route::get('lookups/cities', [LookupController::class, 'cities']);
         Route::get('lookups/categories', [LookupController::class, 'categories']);
@@ -120,6 +128,18 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // UserResource has no Delete in Filament — restrict to index/show/store/update only.
         Route::apiResource('users', UserController::class)->except(['destroy']);
+
+        // Super-admin "comprehensive user profile" — header, timeline,
+        // tab loaders, hours heatmap, and the suspend / force-logout
+        // quick actions. Every show() call writes a row to audit_logs.
+        Route::get('users/{user}/profile', [UserProfileController::class, 'show'])->name('users.profile');
+        Route::get('users/{user}/profile/timeline', [UserProfileController::class, 'timeline'])->name('users.profile.timeline');
+        Route::get('users/{user}/profile/hours', [UserProfileController::class, 'hours'])->name('users.profile.hours');
+        Route::get('users/{user}/profile/tab/{tab}', [UserProfileController::class, 'tab'])
+            ->whereIn('tab', ['bookings', 'complaints', 'ai', 'sessions', 'favorites', 'quotes', 'account_edits'])
+            ->name('users.profile.tab');
+        Route::post('users/{user}/suspend', [UserController::class, 'suspend'])->name('users.suspend');
+        Route::post('users/{user}/force-logout', [UserController::class, 'forceLogout'])->name('users.force-logout');
 
         // Admin (panel administrators) — route param renamed to avoid collision with the
         // 'admin' segment that the api.guard middleware uses.

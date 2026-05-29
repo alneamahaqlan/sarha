@@ -23,7 +23,10 @@
     "inactive": "Inactive",
     "sar": "SAR",
     "logout_confirm_title": "Sign out?",
-    "logout_confirm_body": "You will need to sign in again to access your panel."
+    "logout_confirm_body": "You will need to sign in again to access your panel.",
+    "expand_sidebar": "Expand sidebar",
+    "collapse_sidebar": "Collapse sidebar",
+    "toggle_language": "Toggle language"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -302,7 +305,9 @@
     "deleted": "Booking deleted",
     "restored": "Booking restored",
     "delete_confirm_title": "Delete booking?",
-    "delete_confirm_body": "It can be restored later from the 'Trashed' filter."
+    "delete_confirm_body": "It can be restored later from the 'Trashed' filter.",
+    "booked_by_proxy_badge": "By proxy",
+    "booked_by_proxy_line": "Booked by {{name}} — {{phone}}"
   },
   "complaints": {
     "title": "Complaints",
@@ -744,7 +749,16 @@
   "notifications": {
     "title": "Notifications",
     "mark_all_read": "Mark all read",
-    "empty": "No notifications"
+    "empty": "No notifications",
+    "push_blocked": "Browser notifications blocked",
+    "push_blocked_help": "How to enable?",
+    "ios_hint_title": "On iPhone/iPad?",
+    "ios_hint_body": "For real-time push on iOS, add this site to your home screen as an app.",
+    "push_enable_title": "Get instant alerts",
+    "push_enable_body": "We'll reach you even when the panel tab is closed.",
+    "push_enable_button": "Enable notifications",
+    "push_enabled": "Notifications enabled",
+    "push_disable": "Turn off"
   },
   "impersonation": {
     "banner": "You are currently impersonating {{clinic}}",
@@ -1519,5 +1533,91 @@
       "similar_services": "Similar services nearby",
       "floating_ctas": "Floating call buttons"
     }
+  },
+  "user_profile": {
+    "privacy_notice": "Confidential data. Your access is logged for compliance and audit.",
+    "back_to_users": "Back to users list",
+    "reveal": "Reveal",
+    "hide": "Hide",
+    "member_since_days": "Member for {{days}} days",
+    "bookings_count": "{{count}} bookings",
+    "complaints_count": "{{count}} complaints",
+    "suspended": "Suspended",
+    "suspend": "Suspend",
+    "unsuspend": "Unsuspend",
+    "force_logout": "Force logout",
+    "action_done": "Action applied",
+    "force_logout_done": "All active sessions have been terminated",
+    "sessions_total": "Sessions total",
+    "time_on_platform": "Time on platform",
+    "last_login": "Last login",
+    "avg_session": "Avg session duration",
+    "top_category": "Top searched specialty",
+    "top_city": "Top searched city",
+    "insights": "Behavioral insights",
+    "insight_engagement": "Engagement level",
+    "insight_decision_stage": "Decision stage",
+    "insight_preferred_city": "Preferred city",
+    "insight_preferred_category": "Preferred specialty",
+    "engagement_level": {
+      "active": "Active",
+      "medium": "Medium",
+      "idle": "Idle"
+    },
+    "decision_stage": {
+      "exploration": "Exploration",
+      "comparing": "Comparing seriously",
+      "near_decision": "Near decision"
+    },
+    "risk_flags_label": "Risk flags:",
+    "risk": {
+      "repeated_complaints": "Repeated complaints ({{count}})",
+      "repeated_cancellations": "Repeated cancellations ({{count}})",
+      "suspicious_activity": "Distant IPs in 24h ({{count}})",
+      "search_no_booking": "Heavy search, no bookings ({{count}})"
+    },
+    "activity_hours": "Activity hours (last 90 days)",
+    "weekday": {
+      "0": "Sun", "1": "Mon", "2": "Tue", "3": "Wed",
+      "4": "Thu", "5": "Fri", "6": "Sat"
+    },
+    "timeline": {
+      "title": "Activity timeline",
+      "search_placeholder": "Search details…",
+      "period_all": "All time",
+      "period_1d": "Last 24h",
+      "period_7d": "Last 7 days",
+      "period_30d": "Last 30 days"
+    },
+    "types": {
+      "login": "Login",
+      "logout": "Logout",
+      "otp_verified": "OTP",
+      "search": "Search",
+      "filter": "Filter",
+      "clinic_view": "Clinic view",
+      "compare": "Compare",
+      "action_click": "Action click",
+      "account_edit": "Account edit",
+      "booking_created": "Booking",
+      "booking_cancelled": "Cancellation",
+      "complaint_created": "Complaint",
+      "ai_conversation": "AI chat",
+      "favorite_added": "Favorite",
+      "quote_request": "Quote"
+    },
+    "tabs": {
+      "bookings": "Bookings",
+      "complaints": "Complaints",
+      "ai": "AI Conversations",
+      "sessions": "Login sessions",
+      "favorites": "Favorites",
+      "quotes": "Quote requests",
+      "account_edits": "Account edits"
+    },
+    "open": "Open",
+    "turns_count": "{{count}} turns",
+    "ai_emergency": "Emergency",
+    "ai_blocked": "Blocked"
   }
 }

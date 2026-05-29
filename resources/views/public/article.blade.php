@@ -20,9 +20,16 @@
     </nav>
 
     <article class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        {{-- Article hero — wrapper carries aspect-ratio so a slow image
+             load doesn't shift the title down. eager + fetchpriority on
+             the IMG itself because this is the LCP candidate for the
+             article page. --}}
         @if($article->cover_image)
-            <img src="{{ Storage::url($article->cover_image) }}" alt="{{ $article->title }}"
-                 class="w-full h-64 md:h-80 object-cover">
+            <div class="aspect-[16/9] md:aspect-[16/7] bg-gray-100">
+                <img src="{{ Storage::url($article->cover_image) }}" alt="{{ $article->title }}"
+                     fetchpriority="high" loading="eager" decoding="async"
+                     class="w-full h-full object-cover">
+            </div>
         @endif
 
         <div class="p-6 md:p-8">

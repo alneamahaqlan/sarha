@@ -32,8 +32,13 @@
                 <div class="p-4 flex-1 flex flex-col">
                     <h3 class="font-semibold text-gray-800 line-clamp-1">{{ $svc->name }}</h3>
                     @if($otherClinic)
+                        {{-- Secondary "go to clinic page" link — the primary
+                             action is the booking button below. Vertical
+                             padding expands the tap zone from ~16px to ~36px
+                             without inflating the card layout the way
+                             min-h-touch would. --}}
                         <a href="{{ route('clinic.show', $otherClinic->slug) }}"
-                           class="block text-xs text-gray-500 mt-0.5 hover:text-sage-700 line-clamp-1 truncate">
+                           class="block text-xs text-gray-500 py-2 hover:text-sage-700 line-clamp-1 truncate">
                             {{ $otherClinic->name }}
                             @if($otherClinic->city)
                                 <span class="text-gray-400">· {{ $otherClinic->city->display_name ?? $otherClinic->city->name }}</span>
@@ -53,8 +58,8 @@
                     @if($otherClinic)
                         <a href="{{ route('clinic.book.form', ['slug' => $otherClinic->slug, 'service' => $svc->id]) }}"
                            data-track="booking" data-clinic="{{ $otherClinic->id }}"
-                           class="mt-3 inline-flex items-center justify-center gap-1.5 bg-sage-600 hover:bg-sage-700 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-sm transition-colors">
-                            <x-icon name="calendar" class="w-3.5 h-3.5" />
+                           class="mt-3 inline-flex w-full items-center justify-center gap-1.5 min-h-touch bg-sage-600 hover:bg-sage-700 text-white text-sm font-semibold px-3 py-2 rounded-lg shadow-sm transition-colors">
+                            <x-icon name="calendar" class="w-4 h-4" />
                             @lang('site.book_appointment')
                         </a>
                     @endif

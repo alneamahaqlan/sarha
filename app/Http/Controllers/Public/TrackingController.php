@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
+use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -31,6 +32,15 @@ class TrackingController extends Controller
             try {
                 if (Clinic::whereKey($clinicId)->exists()) {
                     ClinicStat::bump($clinicId, self::MAP[$type]);
+
+                    // Profile timeline: only when a known user clicked.
+                    // sendBeacon often fires from anonymous tabs too,
+                    // and we don't want to invent a "ghost user".
+                    if (auth('web')->check()) {
+                        app(UserActivityLogger::class)->logActionClick(
+                            $request, auth('web')->id(), $clinicId, $type,
+                        );
+                    }
                 }
             } catch (\Throwable $e) {
                 // ignore — tracking must never surface an error

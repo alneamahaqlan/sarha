@@ -91,4 +91,11 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/reports', [AccountController::class, 'reports'])->name('account.reports');
     Route::post('/account/reports', [AccountController::class, 'storeReport'])->name('account.reports.store');
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
+
+    // Saved relatives — managed inline from the booking form (no
+    // dedicated /account/relatives page per the spec).
+    Route::patch('/account/relatives/{relative}', [AccountController::class, 'updateRelative'])
+        ->name('account.relatives.update');
+    Route::delete('/account/relatives/{relative}', [AccountController::class, 'destroyRelative'])
+        ->name('account.relatives.destroy');
 });

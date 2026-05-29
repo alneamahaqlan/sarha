@@ -72,4 +72,13 @@ return [
         'publishable' => env('MOYASAR_PUBLISHABLE_KEY'),
     ],
 
+    // VAPID identity for Web Push (Phase C). Public key is also
+    // exposed to the browser via /api/v1/push/vapid-public-key so the
+    // service worker can sign its subscription handshake.
+    'webpush' => [
+        'vapid_public_key'  => env('VAPID_PUBLIC_KEY'),
+        'vapid_private_key' => env('VAPID_PRIVATE_KEY'),
+        'vapid_subject'     => env('VAPID_SUBJECT', 'mailto:admin@saerha.sa'),
+    ],
+
 ];

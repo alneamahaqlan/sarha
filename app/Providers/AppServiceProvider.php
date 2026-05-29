@@ -30,6 +30,19 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Windows + Laragon needs OPENSSL_CONF set explicitly for EC
+        // curve key operations (Web Push VAPID signing, OAuth, etc.).
+        // We probe the bundled openssl.cnf and export it ourselves so
+        // queue workers and CLI commands inherit a working OpenSSL
+        // config without the user having to set a system env var.
+        if (PHP_OS_FAMILY === 'Windows' && ! getenv('OPENSSL_CONF')) {
+            $candidate = dirname(PHP_BINARY) . DIRECTORY_SEPARATOR . 'extras'
+                . DIRECTORY_SEPARATOR . 'ssl' . DIRECTORY_SEPARATOR . 'openssl.cnf';
+            if (is_file($candidate)) {
+                putenv("OPENSSL_CONF={$candidate}");
+            }
+        }
+
         // Custom Tailwind pagination view used across the public Blade lists.
         Paginator::defaultView('vendor.pagination.saerha');
 

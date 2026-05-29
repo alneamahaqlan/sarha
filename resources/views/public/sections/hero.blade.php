@@ -2,8 +2,13 @@
 <section class="relative overflow-hidden bg-gradient-to-br from-sage-800 via-sage-700 to-sage-900 animate-gradient text-white">
     <div class="absolute inset-0 opacity-[0.10] pointer-events-none"
          style="background-image:linear-gradient(rgba(255,255,255,.7) 1px,transparent 1px),linear-gradient(to right,rgba(255,255,255,.7) 1px,transparent 1px);background-size:64px 64px"></div>
-    <div class="absolute -top-28 -end-24 w-[28rem] h-[28rem] rounded-full bg-gold-primary/20 blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-40 -start-28 w-[28rem] h-[28rem] rounded-full bg-sage-400/25 blur-3xl pointer-events-none"></div>
+    {{-- Decorative blur orbs — hidden below sm because at 375px they
+         extend 100+ pixels past the viewport edge despite the
+         section's overflow-hidden, leaking a hairline document scroll
+         on some Chromium configurations. They're purely cosmetic, so
+         the visual loss on small phones is negligible. --}}
+    <div class="hidden sm:block absolute -top-28 -end-24 w-[28rem] h-[28rem] rounded-full bg-gold-primary/20 blur-3xl pointer-events-none"></div>
+    <div class="hidden sm:block absolute -bottom-40 -start-28 w-[28rem] h-[28rem] rounded-full bg-sage-400/25 blur-3xl pointer-events-none"></div>
     <div class="absolute top-20 start-8 w-24 h-24 bg-gold-primary/10 ring-1 ring-gold-primary/20 blob float hidden md:block pointer-events-none"></div>
     <div class="absolute bottom-24 end-12 w-16 h-16 bg-white/5 ring-1 ring-white/10 blob float float-delay-2 hidden md:block pointer-events-none"></div>
     <svg class="absolute top-14 end-20 w-36 h-36 opacity-50 float float-delay hidden lg:block pointer-events-none" viewBox="0 0 90 90" aria-hidden="true">

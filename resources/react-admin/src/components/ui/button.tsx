@@ -15,11 +15,16 @@ const buttonVariants = cva(
         ghost: 'hover:bg-[var(--color-muted)]',
         link: 'text-[var(--color-primary)] underline-offset-4 hover:underline',
       },
+      // Touch-target policy: every size enforces the 44px WCAG floor on
+      // mobile (< md) via min-h-touch / min-w-touch, then snaps down to
+      // the desktop-friendly compact height on md+. Same gestalt across
+      // sizes — `sm` still LOOKS smaller on desktop, but mobile users
+      // never get a sub-44px tap area.
       size: {
-        default: 'h-9 px-4 py-2',
-        sm: 'h-8 px-3',
-        lg: 'h-10 px-6',
-        icon: 'h-9 w-9',
+        default: 'min-h-touch md:min-h-9 md:h-9 px-4 py-2',
+        sm: 'min-h-touch md:min-h-8 md:h-8 px-3',
+        lg: 'min-h-touch md:min-h-10 md:h-10 px-6',
+        icon: 'min-h-touch min-w-touch md:min-h-9 md:min-w-9 md:h-9 md:w-9',
       },
     },
     defaultVariants: { variant: 'default', size: 'default' },

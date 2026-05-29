@@ -29,6 +29,23 @@ class BookingResource extends JsonResource
                 'id'   => $this->service->id,
                 'name' => $this->service->name,
             ] : null),
+            // By-proxy context for the clinic admin view: when the
+            // booking was placed by an account holder on behalf of one
+            // of their saved relatives, surface both the relative
+            // (= the patient) and the booker (= the contact account).
+            'is_for_relative' => ! is_null($this->relative_id),
+            'relative'        => $this->whenLoaded('relative', fn() => $this->relative ? [
+                'id'                  => $this->relative->id,
+                'name'                => $this->relative->name,
+                'relationship_type'   => $this->relative->relationship_type,
+                'relationship_label'  => $this->relative->relationship_label,
+                'phone'               => $this->relative->phone,
+            ] : null),
+            'booker'          => $this->whenLoaded('booker', fn() => $this->booker ? [
+                'id'    => $this->booker->id,
+                'name'  => $this->booker->name,
+                'phone' => $this->booker->phone,
+            ] : null),
             'is_trashed'     => $this->trashed(),
             'created_at'     => $this->created_at?->toIso8601String(),
             'updated_at'     => $this->updated_at?->toIso8601String(),
