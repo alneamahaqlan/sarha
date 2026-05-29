@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
+use App\Enums\ImpressionSource;
 use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
 use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
 use App\Services\ClinicPageBuilderService;
+use App\Services\ImpressionTrackerService;
 use App\Services\SmsService;
 use Illuminate\Http\Request;
 
@@ -72,6 +74,16 @@ class ClinicController extends Controller
             ClinicStat::bump($clinic->id, 'page_views');
         } catch (\Throwable $e) {
             // swallow — analytics must not affect the visitor experience
+        }
+
+        // Multi-source impression tracking: every service surfaced in
+        // the "similar services" block counts as an impression for that
+        // service AND (via cascade) its owning clinic. The current
+        // clinic itself is NOT bumped — this is a direct page visit,
+        // already covered by `page_views` above.
+        if ($similarServices->isNotEmpty()) {
+            app(ImpressionTrackerService::class)
+                ->trackManyServices($similarServices->all(), ImpressionSource::SIMILAR);
         }
 
         // Per-clinic Page Builder config: which of the 14 sections are

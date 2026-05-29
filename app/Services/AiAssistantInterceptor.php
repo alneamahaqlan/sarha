@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ImpressionSource;
 use App\Jobs\SummarizeUserInteractionJob;
 use App\Models\AiAssistantLog;
 use App\Models\AiRestriction;
@@ -238,13 +239,16 @@ class AiAssistantInterceptor
                     ));
                 }
 
-                // Bump clinic stats — silently blended with existing
-                // search_appearances counter so the clinic admin can't
-                // tell which impressions came from the assistant.
-                foreach ($clinicIds as $cid) {
-                    ClinicStat::bump($cid, 'search_appearances');
-                }
+                // Multi-source impression: each clinic that surfaced
+                // in this reply gets a bump under source='ai'. The
+                // ImpressionTrackerService handles the upsert + cascade
+                // (none here since we don't track per-service AI
+                // mentions at this layer — that would require parsing
+                // the reply text). Clinic-level only is enough for the
+                // dashboard.
                 if (! empty($clinicIds)) {
+                    app(\App\Services\ImpressionTrackerService::class)
+                        ->trackManyClinics($clinicIds, ImpressionSource::AI);
                     $log->update(['stats_bumped' => true]);
                 }
 

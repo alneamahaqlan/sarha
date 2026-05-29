@@ -3,8 +3,22 @@ import { apiClient } from '@/lib/api-client';
 /** Quick period (days) or an explicit custom range. */
 export type StatsRange = { period: number } | { from: string; to: string };
 
+/** The 6 server-side impression sources. AI is excluded from the clinic view. */
+export type ImpressionSource = 'search' | 'filter' | 'home' | 'similar_services' | 'compare' | 'ai';
+
 export interface StatsSummary {
+  /** Back-compat alias: equal to `impressions_total`. */
   search_appearances: number;
+  /** All-source total — INCLUDES AI even when the breakdown hides it. */
+  impressions_total: number;
+  /**
+   * Per-source breakdown. Keys vary by audience:
+   *  - clinic-facing payload omits `ai` (the row is hidden by spec)
+   *  - admin-facing payload includes all 6
+   * The headline `impressions_total` may exceed the sum of these values
+   * when `ai` is hidden — that's the deliberate "silent contribution".
+   */
+  impressions: Partial<Record<ImpressionSource, number>>;
   page_views: number;
   bookings: number;
   quote_requests: number;
@@ -13,6 +27,14 @@ export interface StatsSummary {
   directions_clicks: number;
   booking_clicks: number;
   conversion_rate: number;
+}
+
+/** One row in the "top services by impressions" table. */
+export interface StatsServiceImpressionRow {
+  service_id: number;
+  name: string;
+  total: number;
+  by_source: Partial<Record<ImpressionSource, number>>;
 }
 
 export interface StatsComparison {
@@ -63,6 +85,7 @@ export interface ClinicStatsFull {
   quotes_by_status: Record<string, number>;
   quotes_top_services: { name: string; count: number }[];
   services_performance: StatsServiceRow[];
+  top_services_by_views: StatsServiceImpressionRow[];
   articles_performance: StatsArticleRow[];
   best_days: { top_visits_weekday: number | null; top_requests_weekday: number | null };
   recommendation: string;

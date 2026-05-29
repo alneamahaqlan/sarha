@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
-use App\Models\ClinicStat;
+use App\Services\ImpressionTrackerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -197,14 +198,16 @@ class SearchController extends Controller
 
         $clinics = $query->paginate(12)->withQueryString();
 
-        // Record a search appearance for each clinic shown on this page.
-        try {
-            foreach ($clinics->getCollection() as $shown) {
-                ClinicStat::bump($shown->id, 'search_appearances');
-            }
-        } catch (\Throwable $e) {
-            // ignore — analytics must not break search
-        }
+        // Multi-source impression tracking: clinics that surfaced from a
+        // typed query attribute to SEARCH; clinics that surfaced from
+        // city/category filters only attribute to FILTER. Knowing the
+        // distinction lets the clinic admin see which surface is doing
+        // the work.
+        $source = $request->filled('q') ? ImpressionSource::SEARCH : ImpressionSource::FILTER;
+        app(ImpressionTrackerService::class)->trackManyClinics(
+            $clinics->getCollection()->pluck('id')->all(),
+            $source,
+        );
 
         $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
         $cities = City::where('is_active', true)->orderBy('sort_order')->get();

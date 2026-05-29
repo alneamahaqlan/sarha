@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
+use App\Services\ImpressionTrackerService;
 use Illuminate\Http\Request;
 
 /**
@@ -36,6 +38,13 @@ class CompareController extends Controller
                 // Preserve the order the user selected them in.
                 ->sortBy(fn (Clinic $c) => $ids->search($c->id))
                 ->values();
+
+            // Bump impressions for everyone that surfaced in the
+            // comparison view — clinic-only, no service-level cascade
+            // because the compare layout shows clinic-wide summaries,
+            // not specific service cards.
+            app(ImpressionTrackerService::class)
+                ->trackManyClinics($clinics->pluck('id')->all(), ImpressionSource::COMPARE);
         }
 
         return view('public.compare', compact('clinics'));

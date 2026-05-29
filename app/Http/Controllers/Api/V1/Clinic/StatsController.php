@@ -23,6 +23,8 @@ class StatsController extends Controller
             (int) $request->query('period', 0),
         );
 
-        return response()->json(['data' => $stats->compute($clinic, $from, $to)]);
+        // showAi=false — clinic-facing surface omits the AI source row
+        // from the breakdown but still includes its count in the total.
+        return response()->json(['data' => $stats->compute($clinic, $from, $to, showAi: false)]);
     }
 }

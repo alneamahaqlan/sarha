@@ -1,4 +1,5 @@
-import { Bell, Calendar, DollarSign, Eye, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles } from 'lucide-react';
+import { useState } from 'react';
+import { Bell, Calendar, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-import type { ClinicStatsFull } from '../api';
+import type { ClinicStatsFull, ImpressionSource } from '../api';
 
 const BOOKING_STATUSES = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
 const QUOTE_STATUSES = ['new', 'replied', 'closed'];
@@ -23,9 +24,9 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards */}
+      {/* Summary cards — top row: impressions card is now expandable */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Search} tone="info" label={t('clinic_stats.search_appearances')} value={nf.format(s.search_appearances)} delta={c.appearances_vs_avg_pct} />
+        <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
         <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct} />
         <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct} />
         <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} />
@@ -34,7 +35,16 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
         <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
         <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
         <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
-        <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_clicks')} value={nf.format(s.booking_clicks)} />
+        {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
+            with a tooltip clarifying it is NOT a completed booking. */}
+        <Card
+          icon={MousePointerClick}
+          tone="warning"
+          label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')}
+          value={nf.format(s.booking_clicks)}
+          tooltip={t('clinic_stats.booking_page_opens_tooltip',
+            'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
+        />
       </div>
       <div className="grid grid-cols-1">
         <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
@@ -101,6 +111,9 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
         <BestDay label={t('clinic_stats.best_visit_day')} weekday={data.best_days.top_visits_weekday} />
         <BestDay label={t('clinic_stats.best_request_day')} weekday={data.best_days.top_requests_weekday} />
       </div>
+
+      {/* Top services by impressions — per-source breakdown */}
+      <TopServicesByImpressions rows={data.top_services_by_views} />
 
       {/* Services performance */}
       <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
@@ -189,16 +202,23 @@ const TONE: Record<Tone, string> = {
 };
 
 function Card({
-  icon: Icon, tone, label, value, delta,
+  icon: Icon, tone, label, value, delta, tooltip,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: string | number; delta?: number | null;
+  tone: Tone; label: string; value: string | number; delta?: number | null; tooltip?: string;
 }) {
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-xs text-[var(--color-muted-foreground)]">{label}</div>
+          <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+            <span>{label}</span>
+            {tooltip && (
+              <span title={tooltip} className="cursor-help text-[var(--color-muted-foreground)]">
+                <Info className="h-3 w-3" />
+              </span>
+            )}
+          </div>
           <div className="mt-1 text-2xl font-semibold">{value}</div>
           {delta !== undefined && delta !== null && (
             <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
@@ -209,6 +229,128 @@ function Card({
         <div className={`flex h-9 w-9 items-center justify-center rounded-md ${TONE[tone]}`}>
           <Icon className="h-5 w-5" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Total-impressions card with collapsible per-source breakdown. The
+ * server hides AI from the breakdown for the clinic-facing payload,
+ * which is why the total may exceed the sum of visible rows.
+ */
+function ImpressionsCard({
+  summary, delta, nf,
+}: { summary: ClinicStatsFull['summary']; delta: number | null; nf: Intl.NumberFormat }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+
+  const entries = Object.entries(summary.impressions ?? {}).filter(([, v]) => v !== undefined) as [ImpressionSource, number][];
+  const visibleSum = entries.reduce((sum, [, v]) => sum + (v ?? 0), 0);
+  const hasHiddenContribution = summary.impressions_total > visibleSum;
+
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+      <div className="flex items-start justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="text-xs text-[var(--color-muted-foreground)]">
+            {t('clinic_stats.impressions_total', 'إجمالي الظهور')}
+          </div>
+          <div className="mt-1 text-2xl font-semibold">{nf.format(summary.impressions_total)}</div>
+          {delta !== undefined && delta !== null && (
+            <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
+              {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}%
+            </div>
+          )}
+        </div>
+        <div className={`flex h-9 w-9 items-center justify-center rounded-md ${TONE.info}`}>
+          <Search className="h-5 w-5" />
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-[var(--color-primary)] hover:underline"
+      >
+        {open ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {t('clinic_stats.show_sources', 'تفصيل المصادر')}
+      </button>
+
+      {open && (
+        <div className="mt-2 space-y-1 border-t border-[var(--color-border)] pt-2 text-[11px]">
+          {entries.map(([source, count]) => (
+            <div key={source} className="flex items-center justify-between">
+              <span className="text-[var(--color-muted-foreground)]">
+                {t(`clinic_stats.source_${source}`, source)}
+              </span>
+              <span className="font-mono font-semibold">{nf.format(count ?? 0)}</span>
+            </div>
+          ))}
+          {hasHiddenContribution && (
+            <p className="mt-2 rounded-md bg-[var(--color-muted)] px-2 py-1 text-[10px] italic text-[var(--color-muted-foreground)]">
+              {t('clinic_stats.hidden_contribution_note', 'الإجمالي يَتضمّن مصادر داخلية للمنصة لا تُعرَض كصفّ منفصل.')}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Top services by impressions — table with per-source breakdown. The
+ * `by_source` keys come straight from the server, so the AI column
+ * appears in the admin view and is absent in the clinic view.
+ */
+function TopServicesByImpressions({ rows }: { rows: ClinicStatsFull['top_services_by_views'] }) {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
+  const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
+
+  // Derive the visible source set from the first row (server already
+  // hides AI from clinic-facing payloads, so this list is correct
+  // for whichever audience we're rendering for).
+  const sources = (rows[0] ? (Object.keys(rows[0].by_source) as ImpressionSource[]) : []) as ImpressionSource[];
+
+  return (
+    <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+      <h2 className="mb-3 text-sm font-semibold">
+        {t('clinic_stats.top_services_by_views', 'أكثر الخدمات ظهوراً')}
+      </h2>
+      <div className="max-h-80 overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('clinic_stats.service')}</TableHead>
+              <TableHead>{t('clinic_stats.impressions_total', 'إجمالي الظهور')}</TableHead>
+              {sources.map((s) => (
+                <TableHead key={s} className="text-xs">{t(`clinic_stats.source_${s}`, s)}</TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2 + sources.length} className="py-6 text-center text-[var(--color-muted-foreground)]">
+                  {t('common.no_data')}
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((r) => (
+                <TableRow key={r.service_id}>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell className="font-semibold">{nf.format(r.total)}</TableCell>
+                  {sources.map((s) => (
+                    <TableCell key={s} className="text-xs text-[var(--color-muted-foreground)]">
+                      {nf.format(r.by_source[s] ?? 0)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

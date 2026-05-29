@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\ImpressionSource;
 use App\Models\Article;
 use App\Models\Booking;
 use App\Models\Clinic;
@@ -10,6 +11,7 @@ use App\Models\PriceQuoteRequest;
 use App\Models\Service;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Computes the full statistics payload for a single clinic over a date range.
@@ -60,7 +62,16 @@ class ClinicStatsService
         return [$today->copy()->subDays($n - 1), $today->copy()];
     }
 
-    public function compute(Clinic $clinic, Carbon $from, Carbon $to): array
+    /**
+     * @param bool $showAi When true, the impressions breakdown surfaces
+     *                     the AI source as its own row. When false (the
+     *                     default — clinic-facing path), AI's count is
+     *                     folded into the total but NOT enumerated, so
+     *                     the clinic can't tell which impressions came
+     *                     from the assistant. The dashboard total ≠ sum
+     *                     of the displayed rows by design.
+     */
+    public function compute(Clinic $clinic, Carbon $from, Carbon $to, bool $showAi = false): array
     {
         $fromDate = $from->toDateString();
         $toDate = $to->toDateString();
@@ -70,7 +81,7 @@ class ClinicStatsService
         $scoped = ClinicStat::where('clinic_id', $clinic->id)->whereBetween('date', [$fromDate, $toDate]);
 
         $t = (clone $scoped)->selectRaw(
-            'COALESCE(SUM(search_appearances),0) sa, COALESCE(SUM(page_views),0) pv, '
+            'COALESCE(SUM(page_views),0) pv, '
             . 'COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr, '
             . 'COALESCE(SUM(whatsapp_clicks),0) wa, COALESCE(SUM(call_clicks),0) cl, '
             . 'COALESCE(SUM(booking_clicks),0) bc, COALESCE(SUM(directions_clicks),0) dr'
@@ -80,8 +91,18 @@ class ClinicStatsService
         $bk = (int) $t->bk;
         $qr = (int) $t->qr;
 
+        // Multi-source impressions — replaces the legacy single
+        // search_appearances column with a per-source breakdown.
+        $impressions = $this->impressionBreakdown($clinic->id, $fromDate, $toDate, $showAi);
+        $impressionsTotal = $impressions['total'];
+
         $summary = [
-            'search_appearances' => (int) $t->sa,
+            // Legacy alias — kept so existing back-compat consumers
+            // (e.g. comparison rank) keep working; equal to the
+            // ALL-source total, including AI when present.
+            'search_appearances' => $impressionsTotal,
+            'impressions_total'  => $impressionsTotal,
+            'impressions'        => $impressions['by_source'],
             'page_views'         => $pv,
             'bookings'           => $bk,
             'quote_requests'     => $qr,
@@ -92,17 +113,12 @@ class ClinicStatsService
             'conversion_rate'    => $pv > 0 ? round((($bk + $qr) / $pv) * 100, 1) : 0.0,
         ];
 
-        $trend = (clone $scoped)->orderBy('date')
-            ->get(['date', 'search_appearances', 'page_views', 'bookings_count', 'quote_requests_count'])
-            ->map(fn (ClinicStat $s) => [
-                'date'               => $s->date?->toDateString(),
-                'search_appearances' => (int) $s->search_appearances,
-                'page_views'         => (int) $s->page_views,
-                'bookings'           => (int) $s->bookings_count,
-                'quote_requests'     => (int) $s->quote_requests_count,
-            ])->values();
+        // Trend now sources its impressions-per-day from the new
+        // breakdown table; everything else (page_views, bookings,
+        // quotes) stays on clinic_stats.
+        $trend = $this->trend($clinic->id, $fromDate, $toDate);
 
-        $comparison = $this->comparison($clinic, $fromDate, $toDate, $bk, $pv, (int) $t->sa);
+        $comparison = $this->comparison($clinic, $fromDate, $toDate, $bk, $pv, $impressionsTotal);
 
         // ---- bookings & quotes distributions ----
         $bookings = Booking::where('clinic_id', $clinic->id)->whereBetween('created_at', [$startAt, $endAt]);
@@ -150,50 +166,65 @@ class ClinicStatsService
                 'ai_generated' => (bool) $a->ai_generated,
             ])->values();
 
+        // Top services BY IMPRESSIONS with per-source breakdown — new
+        // table the spec asks for. Same showAi gating as the clinic
+        // summary so the clinic-facing call hides the AI column.
+        $topServices = $this->topServicesByImpressions($clinic->id, $fromDate, $toDate, $showAi);
+
         return [
-            'period'               => ['from' => $fromDate, 'to' => $toDate, 'days' => $from->diffInDays($to) + 1],
-            'summary'              => $summary,
-            'comparison'           => $comparison,
-            'trend'                => $trend,
-            'bookings_by_status'   => $bookingsByStatus,
-            'bookings_by_source'   => $bookingsBySource,
-            'quotes_by_status'     => $quotesByStatus,
-            'quotes_top_services'  => $quotesTopServices,
-            'services_performance' => $servicesPerf,
-            'articles_performance' => $articles,
-            'best_days'            => $this->bestDays($clinic, $fromDate, $toDate),
-            'recommendation'       => $this->recommendation($summary, $comparison),
+            'period'                => ['from' => $fromDate, 'to' => $toDate, 'days' => $from->diffInDays($to) + 1],
+            'summary'               => $summary,
+            'comparison'            => $comparison,
+            'trend'                 => $trend,
+            'bookings_by_status'    => $bookingsByStatus,
+            'bookings_by_source'    => $bookingsBySource,
+            'quotes_by_status'      => $quotesByStatus,
+            'quotes_top_services'   => $quotesTopServices,
+            'services_performance'  => $servicesPerf,
+            'top_services_by_views' => $topServices,
+            'articles_performance'  => $articles,
+            'best_days'             => $this->bestDays($clinic, $fromDate, $toDate),
+            'recommendation'        => $this->recommendation($summary, $comparison),
             // Back-compat keys still read by the current admin stats page.
-            'cards' => ['page_views' => $pv, 'bookings' => $bk, 'quote_requests' => $qr, 'search_appearances' => (int) $t->sa],
+            'cards' => ['page_views' => $pv, 'bookings' => $bk, 'quote_requests' => $qr, 'search_appearances' => $impressionsTotal],
             'kpis'  => ['this_clinic_bookings' => $bk, 'avg_bookings_platform' => $comparison['avg_bookings']],
         ];
     }
 
     private function comparison(Clinic $clinic, string $from, string $to, int $bookings, int $visits, int $appearances): array
     {
-        // Rank active complexes by total search appearances (visibility/الظهور),
-        // not by bookings. Cache key is versioned (v2) so the previous
-        // booking-based ranking can't be served stale after this change.
-        $ordered = Cache::remember("stats:rankmap:v2:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
+        // Rank active complexes by total impressions (all sources, AI
+        // included — the ranking is a private platform-level metric).
+        // Cache key bumped to v3 so the post-impressions-migration
+        // ranking can't be served stale.
+        $ordered = Cache::remember("stats:rankmap:v3:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
             $active = Clinic::where('status', 'active')->pluck('id');
-            $sums = ClinicStat::whereIn('clinic_id', $active)->whereBetween('date', [$from, $to])
-                ->selectRaw('clinic_id, SUM(search_appearances) a')->groupBy('clinic_id')->pluck('a', 'clinic_id');
+            $sums = DB::table('clinic_impressions')
+                ->whereIn('clinic_id', $active)
+                ->whereBetween('date', [$from, $to])
+                ->selectRaw('clinic_id, SUM(count) a')
+                ->groupBy('clinic_id')
+                ->pluck('a', 'clinic_id');
 
             return $active->mapWithKeys(fn ($id) => [$id => (int) ($sums[$id] ?? 0)])
                 ->sortDesc()->keys()->values()->all();
         });
 
-        $averages = Cache::remember("stats:avg:v2:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
+        $averages = Cache::remember("stats:avg:v3:{$from}:{$to}", self::CACHE_TTL, function () use ($from, $to) {
             $active = Clinic::where('status', 'active')->pluck('id');
             $count = max($active->count(), 1);
             $agg = ClinicStat::whereIn('clinic_id', $active)->whereBetween('date', [$from, $to])
-                ->selectRaw('COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(page_views),0) pv, COALESCE(SUM(search_appearances),0) sa')
+                ->selectRaw('COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(page_views),0) pv')
                 ->first();
+            $impressionSum = (int) DB::table('clinic_impressions')
+                ->whereIn('clinic_id', $active)
+                ->whereBetween('date', [$from, $to])
+                ->sum('count');
 
             return [
                 'avg_bookings'    => round(((int) $agg->bk) / $count, 1),
                 'avg_visits'      => round(((int) $agg->pv) / $count, 1),
-                'avg_appearances' => round(((int) $agg->sa) / $count, 1),
+                'avg_appearances' => round($impressionSum / $count, 1),
             ];
         });
 
@@ -270,5 +301,119 @@ class ClinicStatsService
         }
 
         return $out;
+    }
+
+    /**
+     * Per-source impression breakdown for one clinic over the date range.
+     *
+     * Returns:
+     *   - total: ALL sources, AI included (so the dashboard headline
+     *            number always reflects every impression)
+     *   - by_source: keyed by source string, values are int counts. When
+     *                $showAi is false, the AI row is OMITTED from
+     *                by_source — the spec is explicit that the clinic
+     *                shouldn't see AI named, just feel its effect via
+     *                the total > sum-of-rows.
+     */
+    private function impressionBreakdown(int $clinicId, string $fromDate, string $toDate, bool $showAi): array
+    {
+        $rows = DB::table('clinic_impressions')
+            ->where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('source, COALESCE(SUM(count), 0) AS c')
+            ->groupBy('source')
+            ->pluck('c', 'source');
+
+        $bySource = [];
+        $total = 0;
+        $allowed = $showAi ? ImpressionSource::ALL : ImpressionSource::CLINIC_VISIBLE;
+
+        // Initialise every allowed bucket to 0 so the UI doesn't have
+        // to guess which sources exist.
+        foreach ($allowed as $source) {
+            $bySource[$source] = 0;
+        }
+
+        foreach ($rows as $source => $count) {
+            $count = (int) $count;
+            $total += $count; // total always sums EVERYTHING
+            if (in_array($source, $allowed, true)) {
+                $bySource[$source] = $count;
+            }
+            // sources outside $allowed (i.e. AI when !$showAi) flow
+            // into $total but never appear in $bySource.
+        }
+
+        return ['total' => $total, 'by_source' => $bySource];
+    }
+
+    /**
+     * Per-day total impressions (across ALL sources, AI included) plus
+     * the legacy page_views/bookings/quotes that the chart already
+     * graphs. Single query for impressions, plus existing clinic_stats.
+     */
+    private function trend(int $clinicId, string $fromDate, string $toDate): array
+    {
+        $impressionsByDate = DB::table('clinic_impressions')
+            ->where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('date, COALESCE(SUM(count), 0) AS c')
+            ->groupBy('date')
+            ->pluck('c', 'date');
+
+        return ClinicStat::where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->orderBy('date')
+            ->get(['date', 'page_views', 'bookings_count', 'quote_requests_count'])
+            ->map(fn (ClinicStat $s) => [
+                'date'               => $s->date?->toDateString(),
+                'search_appearances' => (int) ($impressionsByDate[$s->date?->toDateString()] ?? 0),
+                'page_views'         => (int) $s->page_views,
+                'bookings'           => (int) $s->bookings_count,
+                'quote_requests'     => (int) $s->quote_requests_count,
+            ])->values()->all();
+    }
+
+    /**
+     * Top services for this clinic by impression count over the range.
+     * Each row carries a per-source breakdown so the React table can
+     * render the same "Total + 5/6 sources" pattern the summary uses.
+     */
+    private function topServicesByImpressions(int $clinicId, string $fromDate, string $toDate, bool $showAi): array
+    {
+        $allowed = $showAi ? ImpressionSource::ALL : ImpressionSource::CLINIC_VISIBLE;
+
+        // Pull EVERY source so we can compute the (visible) total
+        // including AI even when the UI omits the AI column.
+        $rows = DB::table('service_impressions as si')
+            ->join('services as s', 's.id', '=', 'si.service_id')
+            ->where('si.clinic_id', $clinicId)
+            ->whereBetween('si.date', [$fromDate, $toDate])
+            ->selectRaw('si.service_id, s.name, si.source, SUM(si.count) AS c')
+            ->groupBy('si.service_id', 's.name', 'si.source')
+            ->get();
+
+        $buckets = [];
+        foreach ($rows as $r) {
+            $sid = (int) $r->service_id;
+            if (! isset($buckets[$sid])) {
+                $buckets[$sid] = [
+                    'service_id' => $sid,
+                    'name'       => $r->name,
+                    'total'      => 0,
+                    'by_source'  => array_fill_keys($allowed, 0),
+                ];
+            }
+            $count = (int) $r->c;
+            $buckets[$sid]['total'] += $count;
+            if (in_array($r->source, $allowed, true)) {
+                $buckets[$sid]['by_source'][$r->source] = $count;
+            }
+        }
+
+        // Sort by total desc, cap at top 20 — same threshold as
+        // articles_performance.
+        usort($buckets, fn ($a, $b) => $b['total'] <=> $a['total']);
+        return array_slice($buckets, 0, 20);
     }
 }

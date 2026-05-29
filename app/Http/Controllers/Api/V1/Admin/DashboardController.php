@@ -183,7 +183,9 @@ class DashboardController extends Controller
             (int) $request->query('period', 0),
         );
 
-        return response()->json(['data' => $stats->compute($clinic, $from, $to)]);
+        // showAi=true — super-admin gets full visibility into every
+        // impression source including the AI assistant attribution.
+        return response()->json(['data' => $stats->compute($clinic, $from, $to, showAi: true)]);
     }
 
     /**
