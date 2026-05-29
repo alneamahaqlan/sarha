@@ -9,6 +9,7 @@ import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import type { BookingStatus } from '@/features/bookings/types';
 
 import { useAdminStats, useBookingsTrend, useDashboardSections, useLatestBookings } from '../hooks';
+import { AiDashboardWidget } from '@/features/ai-center/phase2/components/AiDashboardWidget';
 
 interface StatCardProps {
   label: string;
@@ -92,6 +93,14 @@ export function DashboardPage() {
           icon={Users}
           tone="info"
         />
+      </div>
+
+      {/* AI Assistant summary — Phase 2 widget. Same row dimensions as
+          the kpi cards above so it doesn't push the bookings chart down. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="lg:col-span-1">
+          <AiDashboardWidget />
+        </div>
       </div>
 
       <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">

@@ -14,6 +14,7 @@ const DashboardPage       = lazy(() => import('@/features/dashboard/pages/Dashbo
 const CitiesIndex         = lazy(() => import('@/features/cities/pages/CitiesIndex').then(m => ({ default: m.CitiesIndex })));
 const CategoriesIndex        = lazy(() => import('@/features/categories/pages/CategoriesIndex').then(m => ({ default: m.CategoriesIndex })));
 const HomepageSectionsIndex  = lazy(() => import('@/features/homepage-sections/pages/HomepageSectionsIndex').then(m => ({ default: m.HomepageSectionsIndex })));
+const AiCenterPage           = lazy(() => import('@/features/ai-center/pages/AiCenterPage').then(m => ({ default: m.AiCenterPage })));
 const UsersIndex          = lazy(() => import('@/features/users/pages/UsersIndex').then(m => ({ default: m.UsersIndex })));
 const AdminsIndex         = lazy(() => import('@/features/admins/pages/AdminsIndex').then(m => ({ default: m.AdminsIndex })));
 const ServicesIndex       = lazy(() => import('@/features/services/pages/ServicesIndex').then(m => ({ default: m.ServicesIndex })));
@@ -51,6 +52,7 @@ const ClinicProfilePage   = lazy(() => import('@/features/clinic/profile/pages/C
 const ClinicSubscriptionPage = lazy(() => import('@/features/clinic/subscription/pages/ClinicSubscriptionPage').then(m => ({ default: m.ClinicSubscriptionPage })));
 const ImportServicesPage  = lazy(() => import('@/features/clinic/import-services/pages/ImportServicesPage').then(m => ({ default: m.ImportServicesPage })));
 const ClinicPageBuilderIndex = lazy(() => import('@/features/clinic/page-builder/pages/ClinicPageBuilderIndex').then(m => ({ default: m.ClinicPageBuilderIndex })));
+const ClinicOffersIndex = lazy(() => import('@/features/clinic/offers/pages/ClinicOffersIndex').then(m => ({ default: m.ClinicOffersIndex })));
 
 function PageFallback() {
   return (
@@ -109,6 +111,7 @@ export function AppRoutes() {
               <Route path="price-quotes" element={<PriceQuotesIndex />} />
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
+              <Route path="ai-center" element={<AiCenterPage />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />
               <Route path="clinic-reports" element={<AdminClinicReportsIndex />} />
@@ -136,6 +139,7 @@ export function AppRoutes() {
               <Route path="sub-clinics" element={<ClinicSubClinicsIndex />} />
               <Route path="doctors" element={<ClinicDoctorsIndex />} />
               <Route path="packages" element={<ClinicPackagesIndex />} />
+              <Route path="offers" element={<ClinicOffersIndex />} />
               <Route path="before-after" element={<ClinicBeforeAfterIndex />} />
               <Route path="category-requests" element={<ClinicCategoryRequestsIndex />} />
               <Route path="bookings" element={<ClinicBookingsIndex />} />

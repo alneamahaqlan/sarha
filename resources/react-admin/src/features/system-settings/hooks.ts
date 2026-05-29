@@ -4,10 +4,10 @@ import type { SystemSettingFormValues } from './types';
 
 const KEY = ['admin', 'system-settings'] as const;
 
-export function useSystemSettings(search?: string) {
+export function useSystemSettings(search?: string, group?: string) {
   return useQuery({
-    queryKey: [...KEY, 'list', search ?? ''],
-    queryFn: () => systemSettingsApi.list(search),
+    queryKey: [...KEY, 'list', search ?? '', group ?? ''],
+    queryFn: () => systemSettingsApi.list(search, group),
   });
 }
 

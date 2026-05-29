@@ -1,6 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Admin\AdminController;
+use App\Http\Controllers\Api\V1\Admin\AiCenterAnalyticsController as AdminAiCenterAnalyticsController;
+use App\Http\Controllers\Api\V1\Admin\AiCenterConversationsController as AdminAiCenterConversationsController;
+use App\Http\Controllers\Api\V1\Admin\AiCenterDashboardWidgetController as AdminAiCenterDashboardWidgetController;
+use App\Http\Controllers\Api\V1\Admin\AiRestrictionController as AdminAiRestrictionController;
+use App\Http\Controllers\Api\V1\Admin\AiResponseTemplateController as AdminAiResponseTemplateController;
+use App\Http\Controllers\Api\V1\Admin\UserAiInterestsController as AdminUserAiInterestsController;
 use App\Http\Controllers\Api\V1\Admin\ArticleController as AdminArticleController;
 use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
@@ -29,6 +35,7 @@ use App\Http\Controllers\Api\V1\Admin\ClinicReportController as AdminClinicRepor
 use App\Http\Controllers\Api\V1\Admin\CustomerReportController as AdminCustomerReportController;
 use App\Http\Controllers\Api\V1\Clinic\DoctorController as ClinicDoctorController;
 use App\Http\Controllers\Api\V1\Clinic\OutreachController as ClinicOutreachController;
+use App\Http\Controllers\Api\V1\Clinic\OfferController as ClinicOfferController;
 use App\Http\Controllers\Api\V1\Clinic\PackageController as ClinicPackageController;
 use App\Http\Controllers\Api\V1\Clinic\PageSectionController as ClinicPageSectionController;
 use App\Http\Controllers\Api\V1\Clinic\SubClinicController as ClinicSubClinicController;
@@ -194,6 +201,26 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             ->only(['index', 'show', 'update'])
             ->parameters(['system-settings' => 'systemSetting']);
 
+        // AI Center — admin-managed safety net for the public assistant.
+        // The "Settings" tab is built on top of /system-settings?filter[group]=ai
+        // (so the existing edit dialog handles encrypted API keys for free).
+        // These routes back the "Restrictions & Instructions" tab.
+        Route::apiResource('ai-restrictions', AdminAiRestrictionController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['ai-restrictions' => 'aiRestriction']);
+        Route::apiResource('ai-response-templates', AdminAiResponseTemplateController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['ai-response-templates' => 'aiResponseTemplate']);
+
+        // AI Center Phase 2 surfaces — analytics tab, conversations
+        // browser, dashboard widget, per-user interests timeline.
+        Route::get('ai-center/analytics',          [AdminAiCenterAnalyticsController::class,       'show']);
+        Route::get('ai-center/dashboard-widget',   [AdminAiCenterDashboardWidgetController::class, 'show']);
+        Route::get('ai-center/conversations',      [AdminAiCenterConversationsController::class,   'index']);
+        Route::get('ai-center/conversations/{conversation}', [AdminAiCenterConversationsController::class, 'show'])
+            ->where('conversation', '[0-9a-f-]{36}');
+        Route::get('users/{user}/ai-interests', [AdminUserAiInterestsController::class, 'show']);
+
         // Mass notify — delegates to MassNotifyService (same code the Filament page calls).
         Route::post('mass-notify', [MassNotifyController::class, 'send'])->name('mass-notify.send');
 
@@ -251,6 +278,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('packages', ClinicPackageController::class)
             ->only(['index', 'store', 'update', 'destroy'])
             ->names('clinic.packages');
+
+        // Offers (standalone promo entity, replaced the legacy
+        // old_price/is_featured_offer fields on services). "extend" is a
+        // quick-action bump on ends_at — called by the "تمديد" button.
+        Route::post('offers/{offer}/extend', [ClinicOfferController::class, 'extend'])->name('clinic.offers.extend');
+        Route::apiResource('offers', ClinicOfferController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->names('clinic.offers');
 
         // Before/after photo gallery — clinic-owned CRUD.
         Route::apiResource('before-after', ClinicBeforeAfterController::class)

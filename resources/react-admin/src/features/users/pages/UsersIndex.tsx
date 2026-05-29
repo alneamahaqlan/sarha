@@ -19,6 +19,7 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { useUsers } from '../hooks';
 import { UserForm } from '../components/UserForm';
 import type { User } from '../types';
+import { UserAiInterestsSection } from '@/features/ai-center/phase2/components/UserAiInterestsSection';
 
 const STATUS_FILTERS = [
   { value: undefined, key: 'common.all' as const },
@@ -181,22 +182,27 @@ export function UsersIndex() {
           }
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t('users.edit') : t('users.create')}</DialogTitle>
             <DialogDescription className="sr-only">{t('users.subtitle')}</DialogDescription>
           </DialogHeader>
-          <UserForm
-            user={editing}
-            onSuccess={() => {
-              setCreating(false);
-              setEditing(null);
-            }}
-            onCancel={() => {
-              setCreating(false);
-              setEditing(null);
-            }}
-          />
+          <div className="space-y-4">
+            <UserForm
+              user={editing}
+              onSuccess={() => {
+                setCreating(false);
+                setEditing(null);
+              }}
+              onCancel={() => {
+                setCreating(false);
+                setEditing(null);
+              }}
+            />
+            {/* Embedded AI Interests panel — only shown when editing an
+                existing user, and only opens its API call on expand. */}
+            {editing && <UserAiInterestsSection userId={editing.id} />}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

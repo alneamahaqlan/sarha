@@ -170,6 +170,38 @@ class DatabaseSeeder extends Seeder
             // the original hard-coded values if a setting is empty.
             ['key' => 'ai_emergency_ambulance',      'value' => '997',       'type' => 'string', 'group' => 'ai', 'label' => 'رقم الإسعاف (طوارئ طبية)', 'description' => 'الرقم الذي يعرضه المساعد فوراً عند اكتشاف أعراض طارئة (ألم صدري شديد، ضيق تنفس مفاجئ، نزيف حاد، فقدان وعي). الافتراضي 997 للهلال الأحمر السعودي.'],
             ['key' => 'ai_emergency_mental_support', 'value' => '920033360', 'type' => 'string', 'group' => 'ai', 'label' => 'خط الدعم النفسي',       'description' => 'الرقم الذي يعرضه المساعد فوراً عند اكتشاف لغة إيذاء النفس أو الانتحار. الافتراضي 920033360 (خط الدعم النفسي السعودي، 24/7 ومجاني).'],
+
+            // ── AI Center additions: admin-controlled tone + free-text
+            // augmentation + emergency response template. All three are
+            // singletons; richer per-rule strings live in ai_restrictions.
+            ['key' => 'ai_tone',                       'value' => 'friendly', 'type' => 'string', 'group' => 'ai', 'label' => 'نبرة المساعد',                'description' => 'النبرة الافتراضية لردود المساعد: formal (رسمية), friendly (ودودة), concise (مختصرة).'],
+            ['key' => 'ai_system_prompt_extension',    'value' => null,       'type' => 'text',   'group' => 'ai', 'label' => 'إضافة لبرومت النظام',           'description' => 'نص يُضاف إلى برومت النظام في كل محادثة (لا يستبدل البرومت الأصلي). مكان مناسب لإضافات صغيرة دون تعديل ai_system_prompt كاملاً.'],
+            ['key' => 'ai_emergency_response_template','value' => null,       'type' => 'text',   'group' => 'ai', 'label' => 'قالب رد الطوارئ',               'description' => 'الرد الذي يَظهر فوراً عند تطابق كلمة طوارئ مُضافة من الأدمن. استخدم :ambulance ليُستبدَل برقم الإسعاف. اتركه فارغاً لاستخدام الافتراضي.'],
+
+            // ── Phase 2 expansion: knobs that used to be hardcoded
+            // constants in service classes are now editable here. Empty
+            // / 0 / null values fall back to the original code defaults.
+            ['key' => 'ai_default_locale',                 'value' => 'ar',  'type' => 'string',  'group' => 'ai', 'label' => 'لغة المساعد الافتراضية', 'description' => 'الافتراضي عند عدم تمرير لغة من العميل. ar أو en.'],
+            ['key' => 'ai_max_query_length',               'value' => '500', 'type' => 'integer', 'group' => 'ai', 'label' => 'أقصى طول للسؤال (حروف)', 'description' => 'الحدّ الأقصى لطول رسالة المستخدم في كل turn. الافتراضي 500.'],
+            ['key' => 'ai_conversation_window_minutes',    'value' => '30',  'type' => 'integer', 'group' => 'ai_advanced', 'label' => 'نافذة تجميع المحادثات (دقائق)', 'description' => 'إذا تَكلّم نفس المستخدم خلال هذه الفترة من آخر turn، يُعتبر استكمالاً للمحادثة نفسها. الافتراضي 30.'],
+            ['key' => 'ai_summarize_use_llm',              'value' => '0',   'type' => 'boolean', 'group' => 'ai_advanced', 'label' => 'استخدام LLM لتوليد ملخّص اهتمامات المستخدم', 'description' => 'عند التفعيل، الـbackground job يستدعي الـLLM لإنتاج ملخّص أغنى. عند الإيقاف، يَستخدم القاعدة heuristic فقط (افتراضي — أرخص).'],
+            ['key' => 'ai_pii_masking_enabled',            'value' => '1',   'type' => 'boolean', 'group' => 'ai_advanced', 'label' => 'إخفاء البيانات الشخصية افتراضياً', 'description' => 'عند التفعيل، سجل المحادثات يَعرض الأسماء والهواتف مخفية افتراضياً (مع زر كشف). عند الإيقاف، يَظهر النص الخام مباشرة.'],
+            ['key' => 'ai_logs_retention_days',            'value' => '0',   'type' => 'integer', 'group' => 'ai_advanced', 'label' => 'مدة الاحتفاظ بسجلات المحادثات (أيام)', 'description' => '0 = للأبد. أي رقم > 0 = يَحذف السجلات الأقدم منه عند تشغيل php artisan ai:prune-logs (يُجدول عادةً يومياً).'],
+
+            // ── Alert thresholds — widget on the admin dashboard.
+            ['key' => 'ai_alert_emergency_window_hours',   'value' => '24',  'type' => 'integer', 'group' => 'ai_alerts', 'label' => 'نافذة إنذار الطوارئ (ساعات)',  'description' => 'إذا حصلت محادثة طوارئ خلال هذه الفترة، يَظهر إنذار في widget لوحة المعلومات. الافتراضي 24.'],
+            ['key' => 'ai_block_spike_threshold',          'value' => '3',   'type' => 'float',   'group' => 'ai_alerts', 'label' => 'حد ارتفاع معدّل الرفض (مضاعفات)', 'description' => 'إنذار "ارتفاع غير طبيعي في الرفض" يَظهر عندما معدّل اليوم >= هذه المضاعفة × معدّل 30 يوم. الافتراضي 3.0.'],
+            ['key' => 'ai_block_spike_min_volume',         'value' => '20',  'type' => 'integer', 'group' => 'ai_alerts', 'label' => 'حد أدنى للحجم قبل تشغيل إنذار الرفض', 'description' => 'الإنذار لا يَفعل إلا إذا حصل اليوم >= هذا العدد من المحادثات (لتجنّب false positives على عيّنات صغيرة). الافتراضي 20.'],
+
+            // ── Cache TTLs — performance knobs.
+            ['key' => 'ai_analytics_cache_ttl',            'value' => '300', 'type' => 'integer', 'group' => 'ai_cache', 'label' => 'مدة Cache الإحصائيات (ثواني)',   'description' => 'كم ثانية تَبقى نتائج تبويب الإحصائيات في الذاكرة. زِد الرقم لتقليل الحمل، قلّله للحصول على أرقام أحدث. الافتراضي 300.'],
+            ['key' => 'ai_widget_cache_ttl',               'value' => '60',  'type' => 'integer', 'group' => 'ai_cache', 'label' => 'مدة Cache widget لوحة المعلومات',  'description' => 'كم ثانية تَبقى أرقام الـwidget في الذاكرة. الافتراضي 60.'],
+            ['key' => 'ai_restrictions_cache_ttl',         'value' => '60',  'type' => 'integer', 'group' => 'ai_cache', 'label' => 'مدة Cache الموانع',              'description' => 'كم ثانية تَبقى قائمة الموانع النشطة في الذاكرة. الإضافة/التعديل يَبطل الـcache تلقائياً. الافتراضي 60.'],
+
+            // ── Heuristic seriousness keywords used by SummarizeJob to
+            // bucket each conversation. JSON arrays. Admin can extend.
+            ['key' => 'ai_seriousness_keywords_near_decision', 'value' => '["احجز","أبي احجز","أريد حجز","أبدأ العلاج","تواصل معي","احجز موعد"]', 'type' => 'json', 'group' => 'ai_advanced', 'label' => 'كلمات "قريب من قرار"', 'description' => 'قائمة كلمات تَدل أن المستخدم قريب من حجز/قرار. تَنعكس على مستوى الجدية في ملخّص اهتمامات المستخدم.'],
+            ['key' => 'ai_seriousness_keywords_comparing',     'value' => '["أيهما","مقارنة","الفرق بين","أرخص","أفضل","كم سعر","بكم"]',          'type' => 'json', 'group' => 'ai_advanced', 'label' => 'كلمات "يقارن"',         'description' => 'كلمات تَدل أن المستخدم في مرحلة مقارنة بين خيارات.'],
         ];
 
         foreach ($settings as $setting) {
