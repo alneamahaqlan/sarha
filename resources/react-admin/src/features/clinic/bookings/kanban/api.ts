@@ -4,6 +4,7 @@ import type {
   AssigneeOption,
   BookingActivity,
   BookingDetail,
+  CreateBookingInput,
   CustomerProfile,
   KanbanBoard,
   KanbanFilters,
@@ -11,6 +12,8 @@ import type {
   QuickAction,
   TagColor,
   TagDto,
+  TagLabelOption,
+  UpdateBookingInput,
 } from './types';
 
 function flattenFilters(f: KanbanFilters, cursors?: Record<string, string | null>) {
@@ -22,6 +25,7 @@ function flattenFilters(f: KanbanFilters, cursors?: Record<string, string | null
   if (f.date_from) out.date_from = f.date_from;
   if (f.date_to) out.date_to = f.date_to;
   if (f.auto_tag) out.auto_tag = f.auto_tag;
+  if (f.custom_tag) out.custom_tag = f.custom_tag;
   if (f.mine_only) out.mine_only = '1';
   if (cursors) {
     for (const k of Object.keys(cursors)) {
@@ -99,6 +103,21 @@ export const bookingKanbanApi = {
     clinic_notes?: string | null;
   }) => {
     const res = await apiClient.patch(`/clinic/bookings/${id}`, payload);
+    return res.data.data;
+  },
+
+  update: async (id: number, payload: UpdateBookingInput) => {
+    const res = await apiClient.patch(`/clinic/bookings/${id}`, payload);
+    return res.data.data;
+  },
+
+  create: async (payload: CreateBookingInput) => {
+    const res = await apiClient.post('/clinic/bookings', payload);
+    return res.data.data;
+  },
+
+  tagLabels: async (): Promise<TagLabelOption[]> => {
+    const res = await apiClient.get<{ data: TagLabelOption[] }>('/clinic/bookings/tag-labels');
     return res.data.data;
   },
 };

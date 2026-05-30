@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Clinic\CreateBookingRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateBookingRequest;
 use App\Http\Resources\Api\V1\BookingResource as BookingApiResource;
 use App\Models\Booking;
+use App\Models\Clinic;
+use App\Models\ClinicTeamMember;
 use App\Services\ClinicActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,6 +65,53 @@ class BookingController extends Controller
         }
 
         return response()->json(['data' => $counts]);
+    }
+
+    public function store(CreateBookingRequest $request): JsonResponse
+    {
+        $clinicId = (int) auth('clinic')->id();
+        $data = $request->validated();
+
+        // Walk-in / phone booking — source flags this row as
+        // clinic-originated (vs. customer-originated from /book).
+        $payload = [
+            'clinic_id'      => $clinicId,
+            'customer_name'  => $data['customer_name'],
+            'customer_phone' => $data['customer_phone'],
+            'service_id'     => $data['service_id'] ?? null,
+            'appointment_at' => $data['appointment_at'] ?? null,
+            'notes'          => $data['notes'] ?? null,
+            'clinic_notes'   => $data['clinic_notes'] ?? null,
+            'status'         => $data['status'] ?? 'new',
+            'source'         => 'clinic',
+        ];
+
+        // Validate + map assignee (the picker only sends valid types).
+        if (! empty($data['assignee_type']) && ! empty($data['assignee_id'])) {
+            $fq = $data['assignee_type'] === 'Clinic' ? Clinic::class : ClinicTeamMember::class;
+            $ok = $fq === Clinic::class
+                ? (int) $data['assignee_id'] === $clinicId
+                : ClinicTeamMember::where('id', $data['assignee_id'])
+                    ->where('clinic_id', $clinicId)
+                    ->where('is_active', true)
+                    ->exists();
+            if ($ok) {
+                $payload['assignee_type'] = $fq;
+                $payload['assignee_id']   = (int) $data['assignee_id'];
+            }
+        }
+
+        $booking = Booking::create($payload);
+
+        $this->activity->log('booking.created_manually', $booking, [
+            'reference' => $booking->reference_code,
+            'customer'  => $booking->customer_name,
+            'customer_phone' => $booking->customer_phone,
+        ]);
+
+        return response()->json([
+            'data' => (new BookingApiResource($booking->fresh()->load(['service:id,name']))),
+        ], 201);
     }
 
     public function show(Booking $booking): BookingApiResource

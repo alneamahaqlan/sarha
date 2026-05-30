@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useTranslation } from '@/app/providers/LocaleProvider';
-import { useAssignees } from '../hooks';
+import { useAssignees, useTagLabels } from '../hooks';
 import type { KanbanFilters as F } from '../types';
 
 interface Props {
@@ -16,6 +16,7 @@ interface Props {
 export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
   const { t } = useTranslation();
   const { data: assignees } = useAssignees();
+  const { data: tagLabels } = useTagLabels();
   const active = Object.values(filters).some((v) => v != null && v !== '' && v !== false);
 
   return (
@@ -58,6 +59,19 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
         <option value="">{t('clinic_bookings_kanban.filters.tag_any')}</option>
         <option value="urgent_confirm">{t('clinic_bookings_kanban.filters.tag_urgent')}</option>
       </Select>
+
+      {(tagLabels?.length ?? 0) > 0 && (
+        <Select
+          value={filters.custom_tag ?? ''}
+          onChange={(e) => onChange({ custom_tag: e.target.value || undefined })}
+          className="lg:max-w-[200px]"
+        >
+          <option value="">{t('clinic_bookings_kanban.filters.custom_tag_any')}</option>
+          {tagLabels!.map((tag) => (
+            <option key={tag.label} value={tag.label}>{tag.label}</option>
+          ))}
+        </Select>
+      )}
 
       <Input
         type="date"

@@ -948,6 +948,7 @@
       "booking.unassigned": "Unassigned the booking",
       "booking.tag_added": "Added tag \"{{label}}\"",
       "booking.tag_removed": "Removed tag \"{{label}}\"",
+      "booking.created_manually": "Manually created a booking for {{customer}}",
       "complaint.replied": "Replied to complaint #{{reference}}",
       "price_quote.replied": "Replied to quote from {{customer}}",
       "team.member_added": "Added team member ({{member_name}})",
@@ -1352,7 +1353,22 @@
     },
     "view": {
       "kanban": "Kanban",
-      "table": "Table"
+      "table": "Table",
+      "calendar": "Day"
+    },
+    "create": {
+      "cta": "Add booking",
+      "title": "New booking (walk-in / phone)",
+      "subtitle": "Enter a customer who contacted you directly. All fields are editable later.",
+      "missing_fields": "Name and phone are required",
+      "success": "Booking created"
+    },
+    "edit": {
+      "title": "Edit booking"
+    },
+    "calendar": {
+      "today": "Today",
+      "unscheduled": "No appointment set"
     },
     "column": {
       "new": "New",
@@ -1389,13 +1405,16 @@
     "card": {
       "unassigned": "Unassigned",
       "assignee": "Following",
-      "tags": "Tags"
+      "tags": "Tags",
+      "mark_contacted": "Mark contacted",
+      "marked_contacted": "Marked as contacted"
     },
     "filters": {
       "search_placeholder": "Search by name, phone, or ref…",
       "assignee_any": "Any assignee",
       "tag_any": "Any tag",
       "tag_urgent": "Urgent confirm (24h)",
+      "custom_tag_any": "Any custom tag",
       "mine_only": "My bookings only"
     },
     "move": {

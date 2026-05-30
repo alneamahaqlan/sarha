@@ -1,24 +1,27 @@
 import { lazy, Suspense, useState } from 'react';
-import { LayoutGrid, Table as TableIcon } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { KanbanBoard } from '../components/KanbanBoard';
 import { StatsBar } from '../components/StatsBar';
 import { KanbanFiltersBar } from '../components/KanbanFilters';
 import { BookingTableView } from '../components/BookingTableView';
+import { BookingCalendarView } from '../components/BookingCalendarView';
+import { CreateBookingDialog } from '../components/CreateBookingDialog';
 import type { KanbanCard, KanbanFilters } from '../types';
 
 const BookingDetailSheet = lazy(() =>
   import('../components/BookingDetailSheet').then((m) => ({ default: m.BookingDetailSheet }))
 );
 
-type View = 'kanban' | 'table';
+type View = 'kanban' | 'table' | 'calendar';
 
 export function ClinicBookingsKanban() {
   const { t } = useTranslation();
   const [view, setView] = useState<View>('kanban');
   const [filters, setFilters] = useState<KanbanFilters>({});
   const [openCard, setOpenCard] = useState<KanbanCard | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const patchFilters = (p: Partial<KanbanFilters>) => setFilters((prev) => ({ ...prev, ...p }));
   const clearFilters = () => setFilters({});
@@ -30,25 +33,25 @@ export function ClinicBookingsKanban() {
           <h1 className="text-xl font-semibold">{t('clinic_bookings_kanban.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border border-[var(--color-border)] p-0.5">
-          <Button
-            variant={view === 'kanban' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('kanban')}
-            className="gap-1"
-          >
-            <LayoutGrid className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('clinic_bookings_kanban.view.kanban')}</span>
+        <div className="flex items-center gap-2">
+          <Button onClick={() => setCreateOpen(true)} className="gap-1.5">
+            <Plus className="h-4 w-4" />
+            <span>{t('clinic_bookings_kanban.create.cta')}</span>
           </Button>
-          <Button
-            variant={view === 'table' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setView('table')}
-            className="gap-1"
-          >
-            <TableIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('clinic_bookings_kanban.view.table')}</span>
-          </Button>
+          <div className="flex items-center gap-1 rounded-md border border-[var(--color-border)] p-0.5">
+            <Button variant={view === 'kanban' ? 'default' : 'ghost'} size="sm" onClick={() => setView('kanban')} className="gap-1">
+              <LayoutGrid className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.view.kanban')}</span>
+            </Button>
+            <Button variant={view === 'calendar' ? 'default' : 'ghost'} size="sm" onClick={() => setView('calendar')} className="gap-1">
+              <CalendarIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.view.calendar')}</span>
+            </Button>
+            <Button variant={view === 'table' ? 'default' : 'ghost'} size="sm" onClick={() => setView('table')} className="gap-1">
+              <TableIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.view.table')}</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -56,11 +59,9 @@ export function ClinicBookingsKanban() {
 
       <KanbanFiltersBar filters={filters} onChange={patchFilters} onClear={clearFilters} />
 
-      {view === 'kanban' ? (
-        <KanbanBoard filters={filters} onOpenCard={setOpenCard} />
-      ) : (
-        <BookingTableView filters={filters} onOpenCard={setOpenCard} />
-      )}
+      {view === 'kanban' && <KanbanBoard filters={filters} onOpenCard={setOpenCard} />}
+      {view === 'table' && <BookingTableView filters={filters} onOpenCard={setOpenCard} />}
+      {view === 'calendar' && <BookingCalendarView filters={filters} onOpenCard={setOpenCard} />}
 
       <Suspense fallback={null}>
         {openCard && (
@@ -71,6 +72,8 @@ export function ClinicBookingsKanban() {
           />
         )}
       </Suspense>
+
+      {createOpen && <CreateBookingDialog open onClose={() => setCreateOpen(false)} />}
     </div>
   );
 }

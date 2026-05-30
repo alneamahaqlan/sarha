@@ -51,6 +51,13 @@ class BookingKanbanController extends Controller
         return response()->json(['data' => $this->kanban->stats($clinicId)]);
     }
 
+    public function tagLabels(): JsonResponse
+    {
+        $this->authorize('viewAny', Booking::class);
+        $clinicId = (int) auth('clinic')->id();
+        return response()->json(['data' => $this->kanban->tagLabels($clinicId)]);
+    }
+
     public function show(Booking $booking): BookingDetailResource
     {
         $this->authorize('view', $booking);
@@ -68,6 +75,7 @@ class BookingKanbanController extends Controller
             'date_from'     => $request->input('date_from'),
             'date_to'       => $request->input('date_to'),
             'auto_tag'      => $request->input('auto_tag'),
+            'custom_tag'    => $request->input('custom_tag'),
             'mine_only'     => filter_var($request->input('mine_only'), FILTER_VALIDATE_BOOLEAN),
         ];
 

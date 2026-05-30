@@ -1,5 +1,7 @@
-import { Phone, MessageCircle, Clock, User2 } from 'lucide-react';
+import { useState } from 'react';
+import { Phone, MessageCircle, Clock, User2, Pencil } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +16,7 @@ import { ActivityTimeline } from './ActivityTimeline';
 import { AssigneePicker } from './AssigneePicker';
 import { TagsManager } from './TagsManager';
 import { Customer360Panel } from './Customer360Panel';
+import { EditBookingDialog } from './EditBookingDialog';
 
 interface Props {
   bookingId: number;
@@ -32,6 +35,7 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
   const { t } = useTranslation();
   const { locale } = useLocale();
   const { data, isLoading } = useBookingDetail(bookingId);
+  const [editOpen, setEditOpen] = useState(false);
 
   const waPhone = customerPhone.replace(/[^0-9]/g, '');
   const waLink = waPhone ? `https://wa.me/${waPhone.startsWith('0') ? '966' + waPhone.slice(1) : waPhone}` : null;
@@ -67,7 +71,13 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                   <div className="space-y-2 p-3">
                     <div className="flex items-center justify-between">
                       <div className="text-[11px] text-[var(--color-muted-foreground)]" dir="ltr">{data.reference_code}</div>
-                      <Badge variant="muted">{t(`clinic_bookings_kanban.column.${data.kanban_column}`)}</Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant="muted">{t(`clinic_bookings_kanban.column.${data.kanban_column}`)}</Badge>
+                        <Button size="sm" variant="ghost" className="h-7 gap-1 px-1.5 text-[11px]" onClick={() => setEditOpen(true)}>
+                          <Pencil className="h-3 w-3" />
+                          {t('common.edit')}
+                        </Button>
+                      </div>
                     </div>
                     <CardAutoTags tags={data.auto_tags} />
                     <CardSuggestions suggestions={data.suggestions} />
@@ -132,6 +142,9 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
           )}
         </div>
       </SheetContent>
+      {data && editOpen && (
+        <EditBookingDialog open booking={data} onClose={() => setEditOpen(false)} />
+      )}
     </Sheet>
   );
 }

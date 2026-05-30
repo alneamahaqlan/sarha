@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookingKanbanApi } from './api';
-import type { AssigneeKind, KanbanFilters, QuickAction, TagColor } from './types';
+import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, TagColor, UpdateBookingInput } from './types';
 
 const KEY = ['clinic', 'bookings', 'kanban'] as const;
 
@@ -109,5 +109,29 @@ export function useUpdateBookingStatus(id: number) {
       completion_note?: string;
     }) => bookingKanbanApi.updateStatus(id, payload),
     onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useUpdateBooking(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: UpdateBookingInput) => bookingKanbanApi.update(id, payload),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useCreateBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateBookingInput) => bookingKanbanApi.create(payload),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useTagLabels() {
+  return useQuery({
+    queryKey: [...KEY, 'tag-labels'],
+    queryFn: () => bookingKanbanApi.tagLabels(),
+    staleTime: 30_000,
   });
 }

@@ -341,6 +341,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
         Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
         Route::get('bookings/kanban-stats', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'stats'])->name('clinic.bookings.kanban-stats');
+        Route::get('bookings/tag-labels',   [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'tagLabels'])->name('clinic.bookings.tag-labels');
         Route::get('bookings/assignees',    [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'index'])->name('clinic.bookings.assignees');
         Route::get('bookings/{booking}/detail', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'show'])->name('clinic.bookings.detail');
 
@@ -363,7 +364,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             ->name('clinic.customers.profile');
 
         Route::apiResource('bookings', ClinicBookingController::class)
-            ->only(['index', 'show', 'update'])
+            ->only(['index', 'store', 'show', 'update'])
             ->names('clinic.bookings');
 
         // Broadcast price quote requests — clinic sees requests targeting its

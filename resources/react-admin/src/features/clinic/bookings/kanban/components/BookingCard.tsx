@@ -1,8 +1,12 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Clock, User, UserCheck } from 'lucide-react';
+import { Check, Clock, User, UserCheck } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Badge } from '@/components/ui/badge';
+import { extractMessage } from '@/lib/api-client';
+import { bookingKanbanApi } from '../api';
 import { CardAutoTags } from './CardAutoTags';
 import { CardSuggestions } from './CardSuggestions';
 import { CardHeatBar } from './CardHeatBar';
@@ -37,10 +41,24 @@ function TagChip({ tag }: { tag: TagDto }) {
 export function BookingCard({ card, onOpen }: Props) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const qc = useQueryClient();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { card },
   });
+
+  // Quick toggle: new → contacted (sub-status inside the "جديد" column).
+  // Doesn't move the card to another column; just flips the sub-badge.
+  async function markContacted(e: React.MouseEvent) {
+    e.stopPropagation();
+    try {
+      await bookingKanbanApi.updateStatus(card.id, { status: 'contacted' });
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings'] });
+      toast.success(t('clinic_bookings_kanban.card.marked_contacted'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  }
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -115,6 +133,18 @@ export function BookingCard({ card, onOpen }: Props) {
               </>
             )}
           </div>
+          {card.status === 'new' && (
+            <button
+              type="button"
+              onClick={markContacted}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 hover:bg-emerald-100"
+              title={t('clinic_bookings_kanban.card.mark_contacted')}
+            >
+              <Check className="h-3 w-3" />
+              {t('clinic_bookings_kanban.card.mark_contacted')}
+            </button>
+          )}
         </div>
       </div>
       <CardHeatBar heat={card.heat} />

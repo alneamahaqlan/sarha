@@ -948,6 +948,7 @@
       "booking.unassigned": "ألغى إسناد الحجز",
       "booking.tag_added": "أضاف شارة \"{{label}}\"",
       "booking.tag_removed": "أزال شارة \"{{label}}\"",
+      "booking.created_manually": "أنشأ حجزاً يدوياً لـ{{customer}}",
       "complaint.replied": "ردّ على شكوى #{{reference}}",
       "price_quote.replied": "ردّ على طلب سعر للعميل {{customer}}",
       "team.member_added": "أضاف عضواً للفريق ({{member_name}})",
@@ -1352,7 +1353,22 @@
     },
     "view": {
       "kanban": "Kanban",
-      "table": "جدول"
+      "table": "جدول",
+      "calendar": "اليوم"
+    },
+    "create": {
+      "cta": "إضافة حجز",
+      "title": "حجز جديد (walk-in / هاتف)",
+      "subtitle": "أَدخل بيانات المريض الذي تواصل معك مباشرة. كل الحقول قابلة للتعديل لاحقاً.",
+      "missing_fields": "الاسم ورقم الجوال مطلوبان",
+      "success": "تم إنشاء الحجز"
+    },
+    "edit": {
+      "title": "تعديل الحجز"
+    },
+    "calendar": {
+      "today": "اليوم",
+      "unscheduled": "بدون موعد محدّد"
     },
     "column": {
       "new": "جديد",
@@ -1389,13 +1405,16 @@
     "card": {
       "unassigned": "غير مَسنَد",
       "assignee": "بمتابعة",
-      "tags": "الشارات"
+      "tags": "الشارات",
+      "mark_contacted": "تم التواصل",
+      "marked_contacted": "تم وضع علامة \"تم التواصل\""
     },
     "filters": {
       "search_placeholder": "ابحث باسم أو رقم أو مرجع…",
       "assignee_any": "كل المسؤولين",
       "tag_any": "كل الشارات",
       "tag_urgent": "تأكيد عاجل (24س)",
+      "custom_tag_any": "كل الشارات المخصّصة",
       "mine_only": "حجوزاتي فقط"
     },
     "move": {

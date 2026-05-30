@@ -156,6 +156,45 @@ class BookingKanbanService
               ->where('appointment_at', '>=', now());
         }
 
+        // Custom-tag filter: matches a tag label across BOTH scopes
+        // (per-booking tags and per-customer tags). The Kanban shows
+        // both kinds inline on each card, so the filter does too.
+        if ($label = trim((string) ($filters['custom_tag'] ?? ''))) {
+            $q->where(function ($w) use ($clinicId, $label) {
+                $w->whereHas('tags', fn($q) => $q->where('label', $label))
+                  ->orWhereIn('customer_phone', function ($sub) use ($clinicId, $label) {
+                      $sub->select('customer_phone')
+                          ->from('booking_customer_tags')
+                          ->where('clinic_id', $clinicId)
+                          ->where('label', $label);
+                  });
+            });
+        }
+
         return $q;
+    }
+
+    /**
+     * Distinct list of custom tag labels in use within a clinic —
+     * both customer-scoped and booking-scoped. Powers the filter
+     * dropdown.
+     */
+    public function tagLabels(int $clinicId): array
+    {
+        $customer = \App\Models\BookingCustomerTag::query()
+            ->where('clinic_id', $clinicId)
+            ->select('label', 'color')
+            ->distinct()
+            ->get();
+        $booking = \App\Models\BookingTag::query()
+            ->whereHas('booking', fn($q) => $q->where('clinic_id', $clinicId))
+            ->select('label', 'color')
+            ->distinct()
+            ->get();
+        return $customer->concat($booking)
+            ->unique('label')
+            ->values()
+            ->map(fn($t) => ['label' => $t->label, 'color' => $t->color])
+            ->all();
     }
 }

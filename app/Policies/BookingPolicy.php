@@ -29,7 +29,10 @@ class BookingPolicy
         if ($actor instanceof Admin) {
             return $actor->is_active;
         }
-        return false; // bookings are created via the public site, not the clinic UI
+        // Walk-in / phone bookings entered by the clinic team via the
+        // Kanban "إضافة حجز" CTA. Per-role gating lives on the route
+        // (clinic.role:bookings.*).
+        return true;
     }
 
     public function update(Admin|Clinic $actor, Booking $booking): bool

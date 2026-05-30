@@ -95,7 +95,32 @@ export interface KanbanFilters {
   date_from?: string;
   date_to?: string;
   auto_tag?: 'vip' | 'repeat' | 'urgent_confirm' | 'complaint' | 'cancel_risk';
+  /** Custom tag label (matches both booking + customer scope) */
+  custom_tag?: string;
   mine_only?: boolean;
+}
+
+export interface CreateBookingInput {
+  customer_name: string;
+  customer_phone: string;
+  service_id?: number | null;
+  appointment_at?: string | null;
+  notes?: string | null;
+  clinic_notes?: string | null;
+  status?: 'new' | 'contacted' | 'appointment_set';
+  assignee_type?: AssigneeKind | null;
+  assignee_id?: number | null;
+}
+
+export interface UpdateBookingInput {
+  status?: string;
+  appointment_at?: string | null;
+  clinic_notes?: string | null;
+}
+
+export interface TagLabelOption {
+  label: string;
+  color: TagColor;
 }
 
 export interface BookingActivity {
