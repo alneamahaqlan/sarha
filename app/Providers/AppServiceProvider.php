@@ -14,9 +14,12 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Observers\ArticleObserver;
 use App\Observers\AuditObserver;
+use App\Observers\BookingCustomerLinkObserver;
 use App\Observers\BookingObserver;
 use App\Observers\ClinicActivityObserver;
+use App\Observers\ComplaintCustomerLinkObserver;
 use App\Observers\ComplaintObserver;
+use App\Observers\PriceQuoteCustomerLinkObserver;
 use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
 use Illuminate\Pagination\Paginator;
@@ -68,6 +71,14 @@ class AppServiceProvider extends ServiceProvider
         Complaint::observe(ComplaintObserver::class);
         PriceQuoteRequest::observe(PriceQuoteRequestObserver::class);
         PriceQuoteReply::observe(PriceQuoteReplyObserver::class);
+
+        // Customer entity link/upkeep — runs alongside the
+        // notification observers above. Each one resolves the owning
+        // Customer (creating it on first sight) and keeps the
+        // denormalized counters in sync.
+        Booking::observe(BookingCustomerLinkObserver::class);
+        Complaint::observe(ComplaintCustomerLinkObserver::class);
+        PriceQuoteRequest::observe(PriceQuoteCustomerLinkObserver::class);
 
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);

@@ -62,23 +62,25 @@ class EdgeCaseScenarioSeeder extends Seeder
         $showcaseSlugs = ['dentistry', 'dermatology', 'cosmetics', 'ophthalmology', 'orthopedics'];
         $catIds = DB::table('categories')->whereIn('slug', $showcaseSlugs)->pluck('id')->all();
 
-        // Clinics that already have a service in one of the showcase categories.
+        // Clinics that already have a service in one of the showcase
+        // categories. Post-M2M migration, the join goes through
+        // category_service pivot.
         $clinicIds = DB::table('services')
-            ->whereIn('category_id', $catIds)
+            ->join('category_service', 'category_service.service_id', '=', 'services.id')
+            ->whereIn('category_service.category_id', $catIds)
             ->distinct()
-            ->pluck('clinic_id')
+            ->pluck('services.clinic_id')
             ->all();
 
         if (empty($clinicIds)) {
             return;
         }
 
-        // Pre-resolve a small pool of services per clinic so the photo can
-        // optionally link to one.
         $servicesByClinic = DB::table('services')
-            ->whereIn('clinic_id', $clinicIds)
-            ->whereIn('category_id', $catIds)
-            ->get(['id', 'clinic_id', 'sub_clinic_id'])
+            ->join('category_service', 'category_service.service_id', '=', 'services.id')
+            ->whereIn('services.clinic_id', $clinicIds)
+            ->whereIn('category_service.category_id', $catIds)
+            ->get(['services.id', 'services.clinic_id', 'services.sub_clinic_id'])
             ->groupBy('clinic_id');
 
         $titles = [

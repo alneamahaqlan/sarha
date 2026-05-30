@@ -90,6 +90,12 @@ class DatabaseSeeder extends Seeder
         // smart suggestions, Timeline entries). Depends on ClinicTeam-
         // Seeder (needs team members to assign to).
         $this->call(BookingsCrmSeeder::class);
+
+        // Phase 1 foundation: walk every booking / complaint /
+        // price-quote and link it to the unified Customer entity
+        // (creating Customers along the way). Must run LAST — sees
+        // the full data picture produced by every seeder above.
+        $this->call(CustomersBackfillSeeder::class);
     }
 
     private function seedAdmins(): void

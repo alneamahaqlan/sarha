@@ -32,7 +32,8 @@ class Booking extends Model
     ];
 
     protected $fillable = [
-        'reference_code', 'clinic_id', 'user_id', 'booker_user_id', 'relative_id',
+        'reference_code', 'clinic_id', 'customer_id',
+        'user_id', 'booker_user_id', 'relative_id',
         'service_id', 'customer_name', 'customer_phone', 'notes', 'status',
         'clinic_notes', 'appointment_at', 'source',
         'assignee_type', 'assignee_id',
@@ -66,6 +67,11 @@ class Booking extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function user()

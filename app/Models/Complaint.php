@@ -20,7 +20,8 @@ class Complaint extends Model
 
     protected $fillable = [
         'reference_code',
-        'clinic_id', 'user_id', 'booking_id', 'source',
+        'clinic_id', 'customer_id',
+        'user_id', 'booking_id', 'source',
         'customer_name', 'customer_phone', 'customer_email',
         'type', 'status', 'priority',
         'subject', 'description',
@@ -70,6 +71,11 @@ class Complaint extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function user()
