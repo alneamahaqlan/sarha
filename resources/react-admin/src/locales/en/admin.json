@@ -814,6 +814,7 @@
     "category_requests": "Specialty requests",
     "reports": "My reports",
     "bookings": "Bookings",
+    "customers": "Customers",
     "price_quotes": "Price quotes",
     "complaints": "Complaints",
     "articles": "Articles",
@@ -1340,6 +1341,119 @@
       "service": "Service",
       "appointment": "Appointment",
       "status": "Status"
+    }
+  },
+  "clinic_customers": {
+    "title": "Customers",
+    "subtitle": "Unified customer base — full history, auto badges, internal notes",
+    "empty": "No customers match this filter",
+    "open_full_profile": "Open full profile",
+    "page_of": "Page {{current}} of {{total}}",
+    "view": {
+      "table": "Table",
+      "segments": "Segments"
+    },
+    "stats": {
+      "total": "Total customers",
+      "vip": "VIP",
+      "repeat": "Repeat",
+      "new_month": "New this month",
+      "has_complaint": "Has complaint",
+      "inactive_90d": "Inactive 90+ days",
+      "avg_bookings": "Avg bookings"
+    },
+    "filters": {
+      "search_placeholder": "Search by name, phone, or email…",
+      "segment_any": "Any segment",
+      "segment_vip": "VIP only",
+      "segment_repeat": "Repeat only",
+      "segment_new": "New only",
+      "segment_has_complaint": "Has prior complaint",
+      "segment_inactive": "Inactive 90+ days",
+      "booking_range_any": "Any booking count",
+      "booking_range_1": "1 booking",
+      "booking_range_2_4": "2-4 bookings",
+      "booking_range_5_9": "5-9 bookings",
+      "booking_range_10_plus": "10+ bookings",
+      "last_any": "Any time",
+      "last_30d": "Last 30 days",
+      "last_90d": "Last 90 days",
+      "last_180d_plus": "Over 180 days",
+      "has_notes": "Has notes"
+    },
+    "table": {
+      "name": "Customer",
+      "phone": "Phone",
+      "bookings": "Bookings",
+      "last_interaction": "Last interaction",
+      "tags": "Tags",
+      "actions": "Actions",
+      "total_completed": "{{completed}}/{{total}} completed"
+    },
+    "interaction": {
+      "booking": "Booking",
+      "complaint": "Complaint",
+      "quote_request": "Quote"
+    },
+    "actions": {
+      "open": "Open profile"
+    },
+    "segments": {
+      "vip":           { "title": "🔥 VIP customers",       "desc": "5+ completed bookings — invest in the relationship" },
+      "repeat":        { "title": "↺ Repeat",               "desc": "2-4 completed bookings — keep them loyal" },
+      "new_month":     { "title": "🆕 New this month",      "desc": "First interaction within 30 days — welcome warmly" },
+      "has_complaint": { "title": "⚠ Has prior complaint",  "desc": "Handle with care — confirm satisfaction" },
+      "inactive_90d":  { "title": "😴 Inactive",            "desc": "No interaction in 90+ days — time to reconnect" }
+    },
+    "profile": {
+      "back_to_list": "Back to customers",
+      "not_found": "Customer not found",
+      "saved": "Customer saved"
+    },
+    "summary": {
+      "bookings": "Total bookings",
+      "bookings_breakdown": "{{completed}} completed · {{cancelled}} cancelled",
+      "last_booking": "Last booking",
+      "complaints": "Complaints",
+      "quote_requests_value": "{{value}} quote requests",
+      "service_value": "Service value",
+      "first_seen": "Customer since {{date}}"
+    },
+    "tabs": {
+      "bookings": "Bookings",
+      "complaints": "Complaints",
+      "quotes": "Quote requests",
+      "notes": "Notes",
+      "timeline": "Activity",
+      "empty_bookings": "No bookings for this customer",
+      "empty_complaints": "No complaints",
+      "empty_quotes": "No quote requests"
+    },
+    "notes": {
+      "section_title": "Team notes on customer",
+      "placeholder": "Internal note visible to the whole team on this customer's profile…",
+      "pin_on_create": "Pin to top",
+      "add": "Add",
+      "empty": "No notes yet — add the first note on this customer",
+      "added": "Note added",
+      "updated": "Note updated",
+      "deleted": "Note deleted",
+      "delete_confirm": "Delete this note?",
+      "pin": "Pin",
+      "unpin": "Unpin"
+    },
+    "timeline": {
+      "empty": "No interactions yet",
+      "booking_created": "New booking",
+      "complaint_filed": "Complaint filed",
+      "quote_requested": "Quote request"
+    }
+  },
+  "customer": {
+    "timeline": {
+      "booking_created": "New booking",
+      "complaint_filed": "Complaint filed",
+      "quote_requested": "Quote request"
     }
   },
   "clinic_bookings_kanban": {

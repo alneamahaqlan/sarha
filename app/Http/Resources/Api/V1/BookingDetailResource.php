@@ -66,7 +66,9 @@ class BookingDetailResource extends JsonResource
                 'total_bookings'     => $signals['total_bookings'],
                 'first_seen'         => $signals['first_seen'],
             ],
-            'customer_notes' => $customer?->notes,
+            // Customer notes moved to a dedicated thread endpoint in
+            // phase 3 — the side panel fetches them via
+            // /clinic/customers/{id}/notes when opened.
             'suggestions'    => $suggest,
             'heat'           => $heat,
             'tags'           => $this->whenLoaded('tags', fn() => $this->tags->map(fn($t) => [

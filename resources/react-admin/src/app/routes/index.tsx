@@ -79,6 +79,8 @@ const ClinicPageBuilderIndex = lazy(() => import('@/features/clinic/page-builder
 const ClinicOffersIndex = lazy(() => import('@/features/clinic/offers/pages/ClinicOffersIndex').then(m => ({ default: m.ClinicOffersIndex })));
 const ClinicTeamIndex = lazy(() => import('@/features/clinic/team/pages/ClinicTeamIndex').then(m => ({ default: m.ClinicTeamIndex })));
 const ClinicTeamActivityPage = lazy(() => import('@/features/clinic/team/pages/ClinicTeamActivityPage').then(m => ({ default: m.ClinicTeamActivityPage })));
+const ClinicCustomersIndex = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomersIndex').then(m => ({ default: m.ClinicCustomersIndex })));
+const ClinicCustomerProfile = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomerProfile').then(m => ({ default: m.ClinicCustomerProfile })));
 
 function PageFallback() {
   return (
@@ -171,6 +173,8 @@ export function AppRoutes() {
               <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
               <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
               <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
+              <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />
+              <Route path="customers/:id" element={<RoleGuard ability="customers.view"><ClinicCustomerProfile /></RoleGuard>} />
               <Route path="price-quotes" element={<RoleGuard ability="price_quotes.view"><ClinicQuotesIndex /></RoleGuard>} />
               <Route path="complaints" element={<RoleGuard ability="complaints.view"><ClinicComplaintsIndex /></RoleGuard>} />
               <Route path="reports" element={<RoleGuard ability="complaints.view"><ClinicReportsIndex /></RoleGuard>} />

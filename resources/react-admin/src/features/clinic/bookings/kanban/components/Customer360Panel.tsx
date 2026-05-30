@@ -1,8 +1,9 @@
-import { Calendar, AlertOctagon, FileQuestion } from 'lucide-react';
+import { ExternalLink, Calendar, AlertOctagon, FileQuestion } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Badge } from '@/components/ui/badge';
 import { useCustomerProfile } from '../hooks';
-import { CustomerNotesEditor } from './CustomerNotesEditor';
+import { CustomerNotesThread } from '@/features/clinic/customers/components/CustomerNotesThread';
 
 interface Props {
   phone: string;
@@ -26,7 +27,17 @@ export function Customer360Panel({ phone }: Props) {
 
   return (
     <div className="space-y-4">
-      <CustomerNotesEditor customerId={data.customer_id ?? null} initialNotes={data.notes} />
+      {data.customer_id && (
+        <div className="flex justify-end">
+          <Link
+            to={`/clinic/customers/${data.customer_id}`}
+            className="inline-flex items-center gap-1 text-[11px] text-[var(--color-primary)] hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            {t('clinic_customers.open_full_profile')}
+          </Link>
+        </div>
+      )}
 
       <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
         <div className="text-sm font-semibold">{data.name}</div>
@@ -81,6 +92,13 @@ export function Customer360Panel({ phone }: Props) {
           </ul>
         )}
       </section>
+
+      {data.customer_id && (
+        <section className="space-y-1.5">
+          <div className="text-xs font-semibold">{t('clinic_customers.notes.section_title')}</div>
+          <CustomerNotesThread customerId={data.customer_id} compact />
+        </section>
+      )}
 
       {data.complaints.length > 0 && (
         <section className="space-y-1.5">

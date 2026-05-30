@@ -94,13 +94,9 @@ export const bookingKanbanApi = {
     return res.data.data;
   },
 
-  updateCustomerNotes: async (customerId: number, notes: string | null): Promise<{ customer_id: number; notes: string | null }> => {
-    const res = await apiClient.patch<{ data: { customer_id: number; notes: string | null } }>(
-      `/clinic/customers/${customerId}/notes`,
-      { notes }
-    );
-    return res.data.data;
-  },
+  // Customer notes moved to a thread endpoint in phase 3. See
+  // features/clinic/customers/api.ts for the new createNote/
+  // updateNote/deleteNote functions.
 
   updateStatus: async (id: number, payload: {
     status: string;

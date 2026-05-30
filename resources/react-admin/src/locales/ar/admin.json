@@ -814,6 +814,7 @@
     "category_requests": "طلبات التخصصات",
     "reports": "بلاغاتي للإدارة",
     "bookings": "الحجوزات",
+    "customers": "العملاء",
     "price_quotes": "طلبات التسعير",
     "complaints": "الشكاوى",
     "articles": "المقالات",
@@ -1340,6 +1341,119 @@
       "service": "الخدمة",
       "appointment": "الموعد",
       "status": "الحالة"
+    }
+  },
+  "clinic_customers": {
+    "title": "عملاء المجمع",
+    "subtitle": "قاعدة عملائك الموحَّدة — تَفاصيل كاملة، شارات تلقائية، ملاحظات داخلية",
+    "empty": "لا يوجد عملاء مَطابقون لهذا الفلتر",
+    "open_full_profile": "افتح الملف الكامل",
+    "page_of": "صفحة {{current}} من {{total}}",
+    "view": {
+      "table": "جدول",
+      "segments": "شرائح"
+    },
+    "stats": {
+      "total": "إجمالي العملاء",
+      "vip": "عملاء VIP",
+      "repeat": "متكرّرون",
+      "new_month": "جدد هذا الشهر",
+      "has_complaint": "ذوو شكوى",
+      "inactive_90d": "خاملون 90+ يوم",
+      "avg_bookings": "متوسط الحجوزات"
+    },
+    "filters": {
+      "search_placeholder": "ابحث باسم أو رقم أو إيميل…",
+      "segment_any": "كل الشرائح",
+      "segment_vip": "VIP فقط",
+      "segment_repeat": "متكرّرون فقط",
+      "segment_new": "جدد فقط",
+      "segment_has_complaint": "ذوو شكوى سابقة",
+      "segment_inactive": "خاملون 90+ يوم",
+      "booking_range_any": "كل عدد الحجوزات",
+      "booking_range_1": "حجز واحد",
+      "booking_range_2_4": "2-4 حجوزات",
+      "booking_range_5_9": "5-9 حجوزات",
+      "booking_range_10_plus": "10+ حجوزات",
+      "last_any": "كل الفترات",
+      "last_30d": "آخر 30 يوم",
+      "last_90d": "آخر 90 يوم",
+      "last_180d_plus": "أكثر من 180 يوم",
+      "has_notes": "لديهم ملاحظات"
+    },
+    "table": {
+      "name": "العميل",
+      "phone": "الجوّال",
+      "bookings": "الحجوزات",
+      "last_interaction": "آخر تَفاعل",
+      "tags": "شارات",
+      "actions": "إجراءات",
+      "total_completed": "{{completed}}/{{total}} مكتمل"
+    },
+    "interaction": {
+      "booking": "حجز",
+      "complaint": "شكوى",
+      "quote_request": "طلب سعر"
+    },
+    "actions": {
+      "open": "فتح الملف"
+    },
+    "segments": {
+      "vip":           { "title": "🔥 عملاء VIP",       "desc": "5+ حجوزات مكتملة — استثمر في علاقتك معهم" },
+      "repeat":        { "title": "↺ متكرّرون",         "desc": "2-4 حجوزات مكتملة — حافظ على ولائهم" },
+      "new_month":     { "title": "🆕 جدد هذا الشهر",  "desc": "أول تَفاعل خلال 30 يوم — رحّب بهم بحرارة" },
+      "has_complaint": { "title": "⚠ ذوو شكوى سابقة", "desc": "تَعامل بحذر — تَأكَّد من رضاهم" },
+      "inactive_90d":  { "title": "😴 خاملون",          "desc": "لم يَتفاعلوا منذ 90+ يوم — حان وقت التَواصل" }
+    },
+    "profile": {
+      "back_to_list": "العودة لقائمة العملاء",
+      "not_found": "العميل غير موجود",
+      "saved": "تم حفظ بيانات العميل"
+    },
+    "summary": {
+      "bookings": "إجمالي الحجوزات",
+      "bookings_breakdown": "{{completed}} مكتمل · {{cancelled}} ملغى",
+      "last_booking": "آخر حجز",
+      "complaints": "الشكاوى",
+      "quote_requests_value": "{{value}} طلب سعر",
+      "service_value": "قيمة الخدمات",
+      "first_seen": "عميل منذ {{date}}"
+    },
+    "tabs": {
+      "bookings": "الحجوزات",
+      "complaints": "الشكاوى",
+      "quotes": "طلبات الأسعار",
+      "notes": "ملاحظات",
+      "timeline": "السجل الزمني",
+      "empty_bookings": "لا حجوزات لهذا العميل",
+      "empty_complaints": "لا شكاوى",
+      "empty_quotes": "لا طلبات أسعار"
+    },
+    "notes": {
+      "section_title": "ملاحظات الفريق على العميل",
+      "placeholder": "اكتب ملاحظة سيراها كل الفريق على ملف هذا العميل…",
+      "pin_on_create": "تثبيت في الأعلى",
+      "add": "إضافة",
+      "empty": "لا ملاحظات بعد — أَضف أول ملاحظة عن هذا العميل",
+      "added": "تمت إضافة الملاحظة",
+      "updated": "تم تَحديث الملاحظة",
+      "deleted": "تم حذف الملاحظة",
+      "delete_confirm": "حذف هذه الملاحظة؟",
+      "pin": "تثبيت",
+      "unpin": "إلغاء التثبيت"
+    },
+    "timeline": {
+      "empty": "لا تَفاعلات بعد",
+      "booking_created": "حجز جديد",
+      "complaint_filed": "شكوى جديدة",
+      "quote_requested": "طلب سعر جديد"
+    }
+  },
+  "customer": {
+    "timeline": {
+      "booking_created": "حجز جديد",
+      "complaint_filed": "شكوى جديدة",
+      "quote_requested": "طلب سعر جديد"
     }
   },
   "clinic_bookings_kanban": {

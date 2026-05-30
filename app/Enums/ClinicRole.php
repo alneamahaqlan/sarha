@@ -32,6 +32,7 @@ enum ClinicRole: string
             self::COORDINATOR => [
                 // Day-to-day operations
                 'bookings.*', 'complaints.*', 'price_quotes.*',
+                'customers.*',
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
@@ -41,6 +42,10 @@ enum ClinicRole: string
             ],
             self::RECEPTION => [
                 'bookings.*', 'complaints.*', 'price_quotes.*',
+                // Reception sees + searches customers and can ADD
+                // notes (author check enforces self-edit only) but
+                // can't edit details or delete others' notes.
+                'customers.view', 'customers.notes.create',
                 'profile.view',
             ],
         };
@@ -108,6 +113,9 @@ enum ClinicRole: string
             'category_requests.view',
             'page_builder.view', 'page_builder.manage',
             'profile.view', 'profile.manage',
+            // Customer Hub (phase 3)
+            'customers.view', 'customers.manage',
+            'customers.notes.create', 'customers.notes.manage',
             // Owner-only domains
             'subscription.view', 'subscription.manage',
             'team.view', 'team.manage',

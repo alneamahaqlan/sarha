@@ -146,7 +146,13 @@ export interface CustomerProfile {
   phone: string;
   name: string;
   email?: string | null;
-  notes?: string | null;
+  pinned_notes?: Array<{
+    id: number;
+    body: string;
+    is_pinned: boolean;
+    created_by_name: string;
+    created_at: string;
+  }>;
   summary: {
     total_bookings: number;
     completed_count: number;
@@ -189,7 +195,6 @@ export interface CustomerProfile {
 export interface BookingDetail {
   id: number;
   customer_id: number | null;
-  customer_notes?: string | null;
   reference_code: string;
   customer_name: string;
   customer_phone: string;

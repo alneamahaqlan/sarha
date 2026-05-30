@@ -34,7 +34,7 @@ class Customer extends Model
         'last_interaction_at', 'last_interaction_type',
         'total_bookings', 'completed_bookings',
         'total_complaints', 'total_quote_requests',
-        'notes',
+        // notes column dropped in 040100 — replaced by customer_notes thread
     ];
 
     protected function casts(): array
@@ -79,6 +79,13 @@ class Customer extends Model
     public function tags()
     {
         return $this->hasMany(CustomerTag::class);
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(CustomerNote::class)
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('created_at');
     }
 
     // ---------- computed badges (derived from persisted counters) ----------

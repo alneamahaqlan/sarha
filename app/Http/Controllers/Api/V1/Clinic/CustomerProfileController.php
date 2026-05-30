@@ -72,11 +72,19 @@ class CustomerProfileController extends Controller
 
         return response()->json([
             'data' => [
-                'customer_id' => $customer->id,
-                'phone'       => $customer->phone,
-                'name'        => $customer->name,
-                'email'       => $customer->email,
-                'notes'       => $customer->notes,
+                'customer_id'   => $customer->id,
+                'phone'         => $customer->phone,
+                'name'          => $customer->name,
+                'email'         => $customer->email,
+                // Phase 3: notes are a thread now. Surface up to 3
+                // pinned-first entries for the side panel's quick view.
+                'pinned_notes'  => $customer->notes()->limit(3)->get()->map(fn($n) => [
+                    'id'              => $n->id,
+                    'body'            => $n->body,
+                    'is_pinned'       => $n->is_pinned,
+                    'created_by_name' => $n->created_by_name,
+                    'created_at'      => $n->created_at?->toIso8601String(),
+                ])->all(),
                 'summary'     => [
                     'total_bookings'     => $customer->total_bookings,
                     'completed_count'    => $customer->completed_bookings,
@@ -120,30 +128,6 @@ class CustomerProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the customer-level free-text note.
-     */
-    public function updateNotes(Request $request, int $customerId): JsonResponse
-    {
-        $clinicId = (int) auth('clinic')->id();
-        $customer = Customer::where('id', $customerId)
-            ->where('clinic_id', $clinicId)
-            ->firstOrFail();
-
-        $validated = $request->validate([
-            'notes' => ['nullable', 'string', 'max:5000'],
-        ]);
-
-        $customer->update(['notes' => $validated['notes'] ?? null]);
-
-        return response()->json([
-            'data' => [
-                'customer_id' => $customer->id,
-                'notes'       => $customer->notes,
-            ],
-        ]);
-    }
-
     private function emptyShape(string $phone): array
     {
         return [
@@ -151,7 +135,7 @@ class CustomerProfileController extends Controller
             'phone'        => $phone,
             'name'         => '—',
             'email'        => null,
-            'notes'        => null,
+            'pinned_notes' => [],
             'summary'      => [
                 'total_bookings'     => 0, 'completed_count' => 0, 'first_seen' => null,
                 'is_vip' => false, 'is_repeat' => false, 'is_new' => true,

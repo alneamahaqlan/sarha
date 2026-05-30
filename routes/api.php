@@ -358,12 +358,30 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Assignment.
         Route::patch('bookings/{booking}/assignee', [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'update'])->name('clinic.bookings.assignee.update');
 
-        // Customer 360 — keyed by phone, clinic-scoped.
+        // Customer 360 in the Kanban side panel — keyed by phone for
+        // back-compat with the existing widget.
         Route::get('customers/by-phone/{phone}', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'show'])
             ->where('phone', '[0-9+]+')
             ->name('clinic.customers.profile');
-        Route::patch('customers/{customer}/notes', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'updateNotes'])
-            ->name('clinic.customers.notes');
+
+        // Customers Hub (phase 3) — full standalone surface.
+        Route::middleware('clinic.role:customers.view')->group(function () {
+            Route::get('customers',                       [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'index'])->name('clinic.customers.index');
+            Route::get('customers/stats',                 [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'stats'])->name('clinic.customers.stats');
+            Route::get('customers/{customer}',            [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'show'])->name('clinic.customers.show');
+            Route::get('customers/{customer}/bookings',   [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'bookings'])->name('clinic.customers.bookings');
+            Route::get('customers/{customer}/complaints', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'complaints'])->name('clinic.customers.complaints');
+            Route::get('customers/{customer}/price-quotes', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'priceQuotes'])->name('clinic.customers.price-quotes');
+            Route::get('customers/{customer}/timeline',   [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'timeline'])->name('clinic.customers.timeline');
+            // Notes (read available to all roles with customers.view; write/edit/delete gated inside the controller).
+            Route::get('customers/{customer}/notes',                 [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'index'])->name('clinic.customers.notes.index');
+            Route::post('customers/{customer}/notes',                [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'store'])->name('clinic.customers.notes.store');
+            Route::patch('customers/{customer}/notes/{note}',        [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'update'])->name('clinic.customers.notes.update');
+            Route::delete('customers/{customer}/notes/{note}',       [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'destroy'])->name('clinic.customers.notes.destroy');
+        });
+        Route::middleware('clinic.role:customers.manage')->group(function () {
+            Route::patch('customers/{customer}', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'update'])->name('clinic.customers.update');
+        });
 
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'store', 'show', 'update'])
