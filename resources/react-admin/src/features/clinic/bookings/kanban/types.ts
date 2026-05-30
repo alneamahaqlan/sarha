@@ -53,6 +53,7 @@ export const TAG_COLORS: TagColor[] = ['rose', 'amber', 'emerald', 'sky', 'viole
 
 export interface KanbanCard {
   id: number;
+  customer_id: number | null;
   reference_code: string;
   customer_name: string;
   customer_phone: string;
@@ -94,7 +95,7 @@ export interface KanbanFilters {
   assignee_type?: AssigneeKind;
   date_from?: string;
   date_to?: string;
-  auto_tag?: 'vip' | 'repeat' | 'urgent_confirm' | 'complaint' | 'cancel_risk';
+  auto_tag?: 'urgent_confirm' | 'vip' | 'repeat' | 'new_customer' | 'has_complaint';
   /** Custom tag label (matches both booking + customer scope) */
   custom_tag?: string;
   mine_only?: boolean;
@@ -141,8 +142,11 @@ export type QuickAction =
   | 'note_added';
 
 export interface CustomerProfile {
+  customer_id: number | null;
   phone: string;
   name: string;
+  email?: string | null;
+  notes?: string | null;
   summary: {
     total_bookings: number;
     completed_count: number;
@@ -184,6 +188,8 @@ export interface CustomerProfile {
 
 export interface BookingDetail {
   id: number;
+  customer_id: number | null;
+  customer_notes?: string | null;
   reference_code: string;
   customer_name: string;
   customer_phone: string;

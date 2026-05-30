@@ -94,6 +94,14 @@ export const bookingKanbanApi = {
     return res.data.data;
   },
 
+  updateCustomerNotes: async (customerId: number, notes: string | null): Promise<{ customer_id: number; notes: string | null }> => {
+    const res = await apiClient.patch<{ data: { customer_id: number; notes: string | null } }>(
+      `/clinic/customers/${customerId}/notes`,
+      { notes }
+    );
+    return res.data.data;
+  },
+
   updateStatus: async (id: number, payload: {
     status: string;
     cancel_reason?: string;

@@ -2,6 +2,7 @@ import { Calendar, AlertOctagon, FileQuestion } from 'lucide-react';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Badge } from '@/components/ui/badge';
 import { useCustomerProfile } from '../hooks';
+import { CustomerNotesEditor } from './CustomerNotesEditor';
 
 interface Props {
   phone: string;
@@ -25,6 +26,8 @@ export function Customer360Panel({ phone }: Props) {
 
   return (
     <div className="space-y-4">
+      <CustomerNotesEditor customerId={data.customer_id ?? null} initialNotes={data.notes} />
+
       <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
         <div className="text-sm font-semibold">{data.name}</div>
         <div className="mt-0.5 text-[11px] text-[var(--color-muted-foreground)]" dir="ltr">{data.phone}</div>

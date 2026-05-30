@@ -135,3 +135,14 @@ export function useTagLabels() {
     staleTime: 30_000,
   });
 }
+
+export function useUpdateCustomerNotes(customerId: number | null | undefined) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (notes: string | null) => {
+      if (!customerId) return Promise.reject(new Error('missing_customer_id'));
+      return bookingKanbanApi.updateCustomerNotes(customerId, notes);
+    },
+    onSuccess: () => invalidateKanban(qc),
+  });
+}

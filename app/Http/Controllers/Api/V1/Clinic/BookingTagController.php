@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\BookingCustomerTag;
 use App\Models\BookingTag;
+use App\Models\CustomerTag;
 use App\Services\ClinicActivityLogger;
 use App\Support\ActingClinicUser;
 use Illuminate\Http\JsonResponse;
@@ -13,9 +13,12 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 /**
- * Manages booking-scoped tags AND customer-scoped tags (per phone +
- * clinic). Single controller for both, with `scope=booking|customer`
- * on the payload. Both scopes use the same color palette.
+ * Manages booking-scoped tags AND customer-scoped tags. Single
+ * controller for both, `scope=booking|customer` on the payload.
+ *
+ * Phase 2: customer-scope tags now FK the Customer entity (via the
+ * booking's customer_id) instead of the legacy (clinic_id, phone)
+ * pair.
  */
 class BookingTagController extends Controller
 {
@@ -61,11 +64,18 @@ class BookingTagController extends Controller
             ], 201);
         }
 
-        $tag = BookingCustomerTag::firstOrCreate(
+        // Customer scope — needs a linked Customer (phase 1 link
+        // observer ensures this for every new booking).
+        if (! $booking->customer_id) {
+            return response()->json([
+                'message' => 'booking_missing_customer_link',
+            ], 422);
+        }
+
+        $tag = CustomerTag::firstOrCreate(
             [
-                'clinic_id'      => $booking->clinic_id,
-                'customer_phone' => $booking->customer_phone,
-                'label'          => $validated['label'],
+                'customer_id' => $booking->customer_id,
+                'label'       => $validated['label'],
             ],
             [
                 'color'           => $validated['color'],
@@ -103,9 +113,10 @@ class BookingTagController extends Controller
             $tag = BookingTag::where('booking_id', $booking->id)->find($tagId);
             if ($tag) { $label = $tag->label; $tag->delete(); }
         } else {
-            $tag = BookingCustomerTag::where('clinic_id', $booking->clinic_id)
-                ->where('customer_phone', $booking->customer_phone)
-                ->find($tagId);
+            if (! $booking->customer_id) {
+                return response()->json(['message' => 'booking_missing_customer_link'], 422);
+            }
+            $tag = CustomerTag::where('customer_id', $booking->customer_id)->find($tagId);
             if ($tag) { $label = $tag->label; $tag->delete(); }
         }
 

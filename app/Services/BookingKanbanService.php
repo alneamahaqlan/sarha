@@ -146,28 +146,40 @@ class BookingKanbanService
             $q->whereDate('appointment_at', '<=', $to);
         }
 
-        // The `auto_tag` filter maps to a derived signal. Apply only
-        // safe DB-level filters here; the rest (vip/repeat) are
-        // post-filtered in the controller against the resource output.
-        if (($tag = $filters['auto_tag'] ?? null) === 'urgent_confirm') {
-            $q->whereIn('status', [Booking::STATUS_NEW, Booking::STATUS_CONTACTED])
-              ->whereNotNull('appointment_at')
-              ->where('appointment_at', '<=', now()->addHours(24))
-              ->where('appointment_at', '>=', now());
-        }
+        // The `auto_tag` filter maps to a derived signal — most are
+        // now backed by Customer entity counters from phase 1, so we
+        // push the filter down into SQL via whereHas (uses the new
+        // (clinic_id, completed_bookings) etc. composite indexes).
+        $autoTag = $filters['auto_tag'] ?? null;
+        match ($autoTag) {
+            'urgent_confirm' => $q
+                ->whereIn('status', [Booking::STATUS_NEW, Booking::STATUS_CONTACTED])
+                ->whereNotNull('appointment_at')
+                ->where('appointment_at', '<=', now()->addHours(24))
+                ->where('appointment_at', '>=', now()),
+
+            'vip' => $q->whereHas('customer', fn($w) => $w
+                ->where('completed_bookings', '>=', \App\Models\Customer::VIP_THRESHOLD)),
+
+            'repeat' => $q->whereHas('customer', fn($w) => $w
+                ->whereBetween('completed_bookings', [\App\Models\Customer::REPEAT_THRESHOLD, \App\Models\Customer::VIP_THRESHOLD - 1])),
+
+            'new_customer' => $q->whereHas('customer', fn($w) => $w
+                ->where('total_bookings', '<=', 1)),
+
+            'has_complaint' => $q->whereHas('customer', fn($w) => $w
+                ->where('total_complaints', '>', 0)),
+
+            default => null,
+        };
 
         // Custom-tag filter: matches a tag label across BOTH scopes
-        // (per-booking tags and per-customer tags). The Kanban shows
-        // both kinds inline on each card, so the filter does too.
+        // (per-booking tags and per-customer tags). After phase 2 the
+        // customer tags live in `customer_tags` keyed by customer_id.
         if ($label = trim((string) ($filters['custom_tag'] ?? ''))) {
-            $q->where(function ($w) use ($clinicId, $label) {
+            $q->where(function ($w) use ($label) {
                 $w->whereHas('tags', fn($q) => $q->where('label', $label))
-                  ->orWhereIn('customer_phone', function ($sub) use ($clinicId, $label) {
-                      $sub->select('customer_phone')
-                          ->from('booking_customer_tags')
-                          ->where('clinic_id', $clinicId)
-                          ->where('label', $label);
-                  });
+                  ->orWhereHas('customer.tags', fn($q) => $q->where('label', $label));
             });
         }
 
@@ -181,8 +193,8 @@ class BookingKanbanService
      */
     public function tagLabels(int $clinicId): array
     {
-        $customer = \App\Models\BookingCustomerTag::query()
-            ->where('clinic_id', $clinicId)
+        $customer = \App\Models\CustomerTag::query()
+            ->whereHas('customer', fn($q) => $q->where('clinic_id', $clinicId))
             ->select('label', 'color')
             ->distinct()
             ->get();

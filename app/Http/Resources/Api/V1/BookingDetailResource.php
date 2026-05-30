@@ -7,8 +7,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Full payload for the Kanban side-panel — booking detail + customer
- * 360 summary + assignee + tags. The Timeline (activity log) is
- * fetched via /booking-activities to keep this responseu cacheable.
+ * insights + assignee + tags. Timeline is fetched via the activity
+ * controller. Customer notes / counters come from the linked
+ * Customer entity (phase 1).
  */
 class BookingDetailResource extends JsonResource
 {
@@ -18,13 +19,15 @@ class BookingDetailResource extends JsonResource
         $insights = app(CustomerInsightService::class);
         $insights->preload($this->clinic_id, collect([$this->resource]));
 
-        $phone   = (string) $this->customer_phone;
-        $signals = $insights->insightsFor($phone);
-        $suggest = $insights->suggestionsFor($this->id);
-        $heat    = $insights->heatFor($phone, $suggest);
+        $signals      = $insights->insightsFor($this->resource);
+        $suggest      = $insights->suggestionsFor($this->id);
+        $heat         = $insights->heatFor($this->resource, $suggest);
+        $customerTags = $insights->customerTagsFor($this->resource);
+        $customer     = $insights->customerFor($this->resource);
 
         return [
             'id'             => $this->id,
+            'customer_id'    => $this->customer_id,
             'reference_code' => $this->reference_code,
             'customer_name'  => $this->customer_name,
             'customer_phone' => $this->customer_phone,
@@ -63,6 +66,7 @@ class BookingDetailResource extends JsonResource
                 'total_bookings'     => $signals['total_bookings'],
                 'first_seen'         => $signals['first_seen'],
             ],
+            'customer_notes' => $customer?->notes,
             'suggestions'    => $suggest,
             'heat'           => $heat,
             'tags'           => $this->whenLoaded('tags', fn() => $this->tags->map(fn($t) => [
@@ -71,7 +75,7 @@ class BookingDetailResource extends JsonResource
                 'color' => $t->color,
                 'scope' => 'booking',
             ])->all(), []),
-            'customer_tags'  => collect($insights->customerTagsFor($this->clinic_id, $phone))
+            'customer_tags'  => collect($customerTags)
                 ->map(fn($t) => [
                     'id'    => $t->id,
                     'label' => $t->label,

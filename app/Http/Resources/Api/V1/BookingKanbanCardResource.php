@@ -8,10 +8,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * Lightweight card shape rendered on each Kanban column. Heavy detail
  * (Timeline, customer 360, full booker block) is fetched separately
- * on side-panel open to keep the board load small even at 100+ cards.
+ * on side-panel open to keep the board load small.
  *
- * Assumes the calling controller has already called
- * CustomerInsightService::preload() with the full column collection.
+ * Phase 2: derives signals from the Customer entity (preloaded by
+ * the caller via CustomerInsightService::preload).
  */
 class BookingKanbanCardResource extends JsonResource
 {
@@ -19,13 +19,14 @@ class BookingKanbanCardResource extends JsonResource
     {
         /** @var CustomerInsightService $insights */
         $insights = app(CustomerInsightService::class);
-        $phone    = (string) $this->customer_phone;
-        $signals  = $insights->insightsFor($phone);
-        $suggest  = $insights->suggestionsFor($this->id);
-        $heat     = $insights->heatFor($phone, $suggest);
+        $signals = $insights->insightsFor($this->resource);
+        $suggest = $insights->suggestionsFor($this->id);
+        $heat    = $insights->heatFor($this->resource, $suggest);
+        $customerTags = $insights->customerTagsFor($this->resource);
 
         return [
             'id'             => $this->id,
+            'customer_id'    => $this->customer_id,
             'reference_code' => $this->reference_code,
             'customer_name'  => $this->customer_name,
             'customer_phone' => $this->customer_phone,
@@ -55,7 +56,7 @@ class BookingKanbanCardResource extends JsonResource
                 'color' => $t->color,
                 'scope' => 'booking',
             ])->all(), []),
-            'customer_tags'  => collect($insights->customerTagsFor($this->clinic_id, $phone))
+            'customer_tags'  => collect($customerTags)
                 ->map(fn($t) => [
                     'id'    => $t->id,
                     'label' => $t->label,
@@ -75,10 +76,6 @@ class BookingKanbanCardResource extends JsonResource
         return 'new';
     }
 
-    /**
-     * Per-column sub-status badge derived from (status + appointment
-     * timing + activity log proximity).
-     */
     private function subBadge(): ?string
     {
         $now = now();

@@ -1414,8 +1414,17 @@
       "assignee_any": "كل المسؤولين",
       "tag_any": "كل الشارات",
       "tag_urgent": "تأكيد عاجل (24س)",
+      "tag_vip": "VIP فقط",
+      "tag_repeat": "متكرّرون فقط",
+      "tag_new_customer": "عملاء جدد فقط",
+      "tag_has_complaint": "ذوو شكوى سابقة",
       "custom_tag_any": "كل الشارات المخصّصة",
       "mine_only": "حجوزاتي فقط"
+    },
+    "customer_notes": {
+      "label": "ملاحظة على المريض",
+      "placeholder": "ملاحظة داخلية تَنطبق على كل حجوزات هذا المريض…",
+      "saved": "تم حفظ الملاحظة"
     },
     "move": {
       "cancel_title": "تأكيد الإلغاء",

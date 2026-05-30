@@ -76,6 +76,11 @@ class Customer extends Model
         return $this->hasMany(PriceQuoteRequest::class);
     }
 
+    public function tags()
+    {
+        return $this->hasMany(CustomerTag::class);
+    }
+
     // ---------- computed badges (derived from persisted counters) ----------
     public function getIsVipAttribute(): bool
     {

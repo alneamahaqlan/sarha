@@ -3,112 +3,126 @@
 namespace App\Services;
 
 use App\Models\Booking;
-use App\Models\BookingCustomerTag;
 use App\Models\ClinicActivityLog;
-use App\Models\Complaint;
+use App\Models\Customer;
+use App\Support\PhoneNormalizer;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
- * Computes per-customer (phone-keyed) derived signals used by the
- * Kanban: auto-tags (vip / repeat / new / cancel-risk), open-complaint
- * flag, and the smart suggestion list per booking.
+ * Per-request batched accessor for Customer-derived signals used by
+ * the Kanban (auto-tags, suggestions, customer tags, heat).
  *
- * Designed to be called ONCE per request with the full list of phones
- * visible in the column. All counts are pulled in a single grouped
- * query per concern (no N+1). Results are cached on the service
- * instance for the duration of the request.
+ * Phase 2 rewrite: instead of recomputing counters every request by
+ * scanning bookings/complaints, we read directly from the Customer
+ * entity's persisted counters (populated by CustomerLinker
+ * observers in phase 1). Auto-tags are computed via the model's
+ * own is_vip / is_repeat / etc. accessors.
  *
- * Registered as a singleton in AppServiceProvider so the cache
- * survives across resources/controllers within the same request.
+ * Suggestions still need a live look at recent ClinicActivityLog
+ * entries (call_attempted with outcome, reminder_sent timing) so
+ * the suggestion preload remains.
  */
 class CustomerInsightService
 {
-    private const VIP_COMPLETED_THRESHOLD = 5;
-    private const REPEAT_COMPLETED_MIN    = 2;
-    private const CANCEL_RISK_THRESHOLD   = 2;
+    /** @var array<int, Customer> customer_id => Customer */
+    private array $customerCache = [];
 
-    /** @var array<string, array<string, mixed>> phone => insights */
-    private array $cache = [];
-
-    /** @var array<int, array<string, mixed>> bookingId => suggestions */
+    /** @var array<int, array<int,string>> bookingId => suggestion keys */
     private array $suggestionCache = [];
 
     /**
-     * Preload signals for a set of bookings within a clinic. After
-     * this, insightsFor() / suggestionsFor() are O(1) lookups.
+     * Preload signals for a set of bookings. After this call,
+     * insightsFor() / suggestionsFor() are O(1) lookups.
+     *
+     * The collection must contain the bookings' customer_id values —
+     * passed bookings without one fall back to a phone lookup so
+     * legacy rows still render something sensible.
      */
     public function preload(int $clinicId, Collection $bookings): void
     {
-        $phones = $bookings->pluck('customer_phone')->unique()->filter()->values();
-        if ($phones->isEmpty()) {
-            return;
+        $customerIds = $bookings->pluck('customer_id')->filter()->unique()->values();
+
+        // Bookings without customer_id (shouldn't happen post-phase 1,
+        // defensive): resolve by phone so the card still shows badges.
+        $orphanPhones = $bookings
+            ->filter(fn($b) => empty($b->customer_id))
+            ->pluck('customer_phone')
+            ->filter()
+            ->map(fn($p) => PhoneNormalizer::normalizeOrSelf($p))
+            ->unique()
+            ->values();
+
+        if ($customerIds->isNotEmpty()) {
+            Customer::query()
+                ->whereIn('id', $customerIds)
+                ->with('tags:id,customer_id,label,color')
+                ->get()
+                ->each(fn(Customer $c) => $this->customerCache[$c->id] = $c);
         }
 
-        $completedCounts = Booking::query()
-            ->where('clinic_id', $clinicId)
-            ->whereIn('customer_phone', $phones)
-            ->where('status', Booking::STATUS_COMPLETED)
-            ->selectRaw('customer_phone, COUNT(*) as aggregate')
-            ->groupBy('customer_phone')
-            ->pluck('aggregate', 'customer_phone');
-
-        $totalCounts = Booking::query()
-            ->where('clinic_id', $clinicId)
-            ->whereIn('customer_phone', $phones)
-            ->selectRaw('customer_phone, COUNT(*) as aggregate, MIN(created_at) as first_seen')
-            ->groupBy('customer_phone')
-            ->get()
-            ->keyBy('customer_phone');
-
-        $cancelCounts = Booking::query()
-            ->where('clinic_id', $clinicId)
-            ->whereIn('customer_phone', $phones)
-            ->whereIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
-            ->selectRaw('customer_phone, COUNT(*) as aggregate')
-            ->groupBy('customer_phone')
-            ->pluck('aggregate', 'customer_phone');
-
-        $openComplaintPhones = Complaint::query()
-            ->where('clinic_id', $clinicId)
-            ->whereIn('customer_phone', $phones)
-            ->whereIn('status', ['new', 'in_review'])
-            ->pluck('customer_phone')
-            ->unique()
-            ->flip();
-
-        foreach ($phones as $phone) {
-            $completed = (int) ($completedCounts[$phone] ?? 0);
-            $total     = (int) ($totalCounts[$phone]->aggregate ?? 0);
-            $firstSeen = $totalCounts[$phone]->first_seen ?? null;
-            $cancels   = (int) ($cancelCounts[$phone] ?? 0);
-
-            $this->cache[$phone] = [
-                'is_vip'             => $completed >= self::VIP_COMPLETED_THRESHOLD,
-                'is_repeat'          => $completed >= self::REPEAT_COMPLETED_MIN && $completed < self::VIP_COMPLETED_THRESHOLD,
-                'is_new'             => $total <= 1, // current booking is the only one
-                'completed_count'    => $completed,
-                'total_bookings'     => $total,
-                'first_seen'         => $firstSeen ? Carbon::parse($firstSeen)->toIso8601String() : null,
-                'cancel_risk'        => $cancels >= self::CANCEL_RISK_THRESHOLD,
-                'has_open_complaint' => isset($openComplaintPhones[$phone]),
-            ];
+        if ($orphanPhones->isNotEmpty()) {
+            Customer::query()
+                ->where('clinic_id', $clinicId)
+                ->whereIn('phone', $orphanPhones)
+                ->with('tags:id,customer_id,label,color')
+                ->get()
+                ->each(fn(Customer $c) => $this->customerCache[$c->id] = $c);
         }
 
         $this->preloadSuggestions($clinicId, $bookings);
     }
 
-    public function insightsFor(string $phone): array
+    /**
+     * Get the Customer for a booking. Looks up by customer_id when
+     * present; falls back to (clinic_id, normalized phone) for legacy
+     * unlinked rows.
+     */
+    public function customerFor(Booking $booking): ?Customer
     {
-        return $this->cache[$phone] ?? [
-            'is_vip'             => false,
-            'is_repeat'          => false,
-            'is_new'             => true,
-            'completed_count'    => 0,
-            'total_bookings'     => 0,
-            'first_seen'         => null,
-            'cancel_risk'        => false,
-            'has_open_complaint' => false,
+        if ($booking->customer_id && isset($this->customerCache[$booking->customer_id])) {
+            return $this->customerCache[$booking->customer_id];
+        }
+        // Fallback to phone scan within the preloaded cache.
+        $phone = PhoneNormalizer::normalizeOrSelf($booking->customer_phone);
+        foreach ($this->customerCache as $c) {
+            if ($c->clinic_id === $booking->clinic_id && $c->phone === $phone) {
+                return $c;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Flat insights dict (compatibility with the old resource shape).
+     */
+    public function insightsFor(Booking $booking): array
+    {
+        $c = $this->customerFor($booking);
+        if (! $c) {
+            return [
+                'is_vip'             => false,
+                'is_repeat'          => false,
+                'is_new'             => true,
+                'completed_count'    => 0,
+                'total_bookings'     => 0,
+                'first_seen'         => null,
+                'cancel_risk'        => false,
+                'has_open_complaint' => false,
+            ];
+        }
+        return [
+            'is_vip'             => $c->is_vip,
+            'is_repeat'          => $c->is_repeat,
+            'is_new'             => $c->is_new,
+            'completed_count'    => $c->completed_bookings,
+            'total_bookings'     => $c->total_bookings,
+            'first_seen'         => $c->first_seen_at?->toIso8601String(),
+            // cancel_risk is still derived (no dedicated counter): it's
+            // a behavioural signal, not a count. Pull it live from the
+            // booking history for this customer.
+            'cancel_risk'        => $this->cancelRiskFor($c),
+            'has_open_complaint' => $c->has_prior_complaint,
         ];
     }
 
@@ -118,28 +132,58 @@ class CustomerInsightService
     }
 
     /**
-     * Heat indicator: red for urgent, yellow for attention, green
-     * otherwise. Derived purely from already-computed signals.
+     * Heat indicator: red for urgent / cancel risk, yellow for VIP /
+     * repeat / complaint, green otherwise.
      *
      * @param  array<int,string> $activeSuggestionKeys
      */
-    public function heatFor(string $phone, array $activeSuggestionKeys): string
+    public function heatFor(Booking $booking, array $activeSuggestionKeys): string
     {
         if (in_array('confirm_urgent', $activeSuggestionKeys, true)
             || in_array('cancel_risk', $activeSuggestionKeys, true)) {
             return 'red';
         }
-        $insights = $this->insightsFor($phone);
-        if ($insights['is_vip'] || $insights['is_repeat'] || $insights['has_open_complaint']) {
+        $c = $this->customerFor($booking);
+        if ($c && ($c->is_vip || $c->is_repeat || $c->has_prior_complaint)) {
             return 'yellow';
         }
         return 'green';
     }
 
     /**
-     * Smart suggestions tied to booking state + activity. Computed
-     * per booking; we batch-load all activities for the visible
-     * bookings, then derive suggestions from that pile.
+     * Returns the customer-scoped tags for a booking's customer.
+     * Loaded eagerly during preload, so this is a cheap dict lookup.
+     */
+    public function customerTagsFor(Booking $booking): array
+    {
+        $c = $this->customerFor($booking);
+        return $c?->tags?->all() ?? [];
+    }
+
+    // ---------- internal ----------
+
+    /**
+     * Cancel-risk = the customer has 2+ historical cancellations or
+     * no-shows. Computed live (we don't store it as a counter).
+     * Cached per customer so multiple cards for the same customer
+     * don't re-query.
+     */
+    private array $cancelRiskCache = [];
+    private function cancelRiskFor(Customer $customer): bool
+    {
+        if (! isset($this->cancelRiskCache[$customer->id])) {
+            $this->cancelRiskCache[$customer->id] = Booking::query()
+                ->where('customer_id', $customer->id)
+                ->whereIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+                ->count() >= 2;
+        }
+        return $this->cancelRiskCache[$customer->id];
+    }
+
+    /**
+     * Suggestion preload reads recent activities for the visible
+     * bookings in a single batched query. State for "retry_call" etc
+     * is derived from the activity log, not the customer entity.
      */
     private function preloadSuggestions(int $clinicId, Collection $bookings): void
     {
@@ -191,21 +235,12 @@ class CustomerInsightService
                 $activeKeys[] = 'reminder_soon';
             }
 
-            $insights = $this->insightsFor((string) $b->customer_phone);
-            if ($insights['cancel_risk'] && $isPending) {
+            $customer = $this->customerFor($b);
+            if ($customer && $this->cancelRiskFor($customer) && $isPending) {
                 $activeKeys[] = 'cancel_risk';
             }
 
             $this->suggestionCache[$b->id] = $activeKeys;
         }
-    }
-
-    public function customerTagsFor(int $clinicId, string $phone): Collection
-    {
-        return BookingCustomerTag::query()
-            ->where('clinic_id', $clinicId)
-            ->where('customer_phone', $phone)
-            ->orderBy('id')
-            ->get();
     }
 }

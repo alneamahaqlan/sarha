@@ -1414,8 +1414,17 @@
       "assignee_any": "Any assignee",
       "tag_any": "Any tag",
       "tag_urgent": "Urgent confirm (24h)",
+      "tag_vip": "VIP only",
+      "tag_repeat": "Repeat only",
+      "tag_new_customer": "New customers only",
+      "tag_has_complaint": "Has prior complaint",
       "custom_tag_any": "Any custom tag",
       "mine_only": "My bookings only"
+    },
+    "customer_notes": {
+      "label": "Customer note",
+      "placeholder": "Internal note that applies to every booking for this customer…",
+      "saved": "Note saved"
     },
     "move": {
       "cancel_title": "Confirm cancellation",

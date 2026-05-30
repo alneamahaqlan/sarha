@@ -362,6 +362,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('customers/by-phone/{phone}', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'show'])
             ->where('phone', '[0-9+]+')
             ->name('clinic.customers.profile');
+        Route::patch('customers/{customer}/notes', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'updateNotes'])
+            ->name('clinic.customers.notes');
 
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'store', 'show', 'update'])

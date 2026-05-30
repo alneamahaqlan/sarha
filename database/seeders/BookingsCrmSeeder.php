@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Booking;
-use App\Models\BookingCustomerTag;
+use App\Models\Customer;
+use App\Models\CustomerTag;
+use App\Support\PhoneNormalizer;
 use App\Models\BookingTag;
 use App\Models\Clinic;
 use App\Models\ClinicActivityLog;
@@ -168,12 +170,17 @@ class BookingsCrmSeeder extends Seeder
         ];
 
         foreach ($customerTags as $tag) {
-            BookingCustomerTag::firstOrCreate(
-                [
-                    'clinic_id'      => $clinic->id,
-                    'customer_phone' => $tag['phone'],
-                    'label'          => $tag['label'],
-                ],
+            // Phase 2: tags belong to Customer (FK), not phone strings.
+            // The booking observer from phase 1 has already created
+            // (or upserted) Customer rows for these phones via
+            // seedVipCustomers() above.
+            $normalized = PhoneNormalizer::normalizeOrSelf($tag['phone']);
+            $customer = Customer::where('clinic_id', $clinic->id)
+                ->where('phone', $normalized)
+                ->first();
+            if (! $customer) continue;
+            CustomerTag::firstOrCreate(
+                ['customer_id' => $customer->id, 'label' => $tag['label']],
                 ['color' => $tag['color']]
             );
         }

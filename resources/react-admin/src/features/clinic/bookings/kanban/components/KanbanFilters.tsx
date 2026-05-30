@@ -58,6 +58,10 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
       >
         <option value="">{t('clinic_bookings_kanban.filters.tag_any')}</option>
         <option value="urgent_confirm">{t('clinic_bookings_kanban.filters.tag_urgent')}</option>
+        <option value="vip">{t('clinic_bookings_kanban.filters.tag_vip')}</option>
+        <option value="repeat">{t('clinic_bookings_kanban.filters.tag_repeat')}</option>
+        <option value="new_customer">{t('clinic_bookings_kanban.filters.tag_new_customer')}</option>
+        <option value="has_complaint">{t('clinic_bookings_kanban.filters.tag_has_complaint')}</option>
       </Select>
 
       {(tagLabels?.length ?? 0) > 0 && (
