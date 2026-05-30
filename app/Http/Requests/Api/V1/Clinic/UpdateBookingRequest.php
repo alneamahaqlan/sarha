@@ -20,6 +20,12 @@ class UpdateBookingRequest extends FormRequest
             'status'         => ['sometimes', 'required', 'in:new,contacted,appointment_set,completed,no_show,cancelled'],
             'appointment_at' => ['nullable', 'date'],
             'clinic_notes'   => ['nullable', 'string'],
+            // Optional context attached to the status transition —
+            // logged into clinic_activity_logs.summary so the
+            // Kanban Timeline can render "Cancelled: schedule_conflict".
+            'cancel_reason'  => ['nullable', 'in:patient_cancelled,no_answer,schedule_conflict,other'],
+            'cancel_note'    => ['nullable', 'string', 'max:500'],
+            'completion_note'=> ['nullable', 'string', 'max:500'],
         ];
     }
 }

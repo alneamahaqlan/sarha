@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,10 +14,28 @@ class Booking extends Model
 
     public const REFERENCE_PREFIX = 'SAR-';
 
+    // The 6 storage statuses (DB enum), grouped into the 4 Kanban
+    // columns by KANBAN_GROUPS. Keep these in sync with the bookings
+    // migration enum.
+    public const STATUS_NEW              = 'new';
+    public const STATUS_CONTACTED        = 'contacted';
+    public const STATUS_APPOINTMENT_SET  = 'appointment_set';
+    public const STATUS_COMPLETED        = 'completed';
+    public const STATUS_NO_SHOW          = 'no_show';
+    public const STATUS_CANCELLED        = 'cancelled';
+
+    public const KANBAN_GROUPS = [
+        'new'       => [self::STATUS_NEW, self::STATUS_CONTACTED],
+        'confirmed' => [self::STATUS_APPOINTMENT_SET],
+        'completed' => [self::STATUS_COMPLETED, self::STATUS_NO_SHOW],
+        'cancelled' => [self::STATUS_CANCELLED],
+    ];
+
     protected $fillable = [
         'reference_code', 'clinic_id', 'user_id', 'booker_user_id', 'relative_id',
         'service_id', 'customer_name', 'customer_phone', 'notes', 'status',
         'clinic_notes', 'appointment_at', 'source',
+        'assignee_type', 'assignee_id',
     ];
 
     protected function casts(): array
@@ -77,5 +96,25 @@ class Booking extends Model
     public function isForRelative(): bool
     {
         return ! is_null($this->relative_id);
+    }
+
+    /**
+     * Polymorphic assignee — either Clinic (the owner) or
+     * ClinicTeamMember. Null = "غير مَسنَد".
+     */
+    public function assignee()
+    {
+        return $this->morphTo();
+    }
+
+    public function tags()
+    {
+        return $this->hasMany(BookingTag::class);
+    }
+
+    public function scopeForKanbanColumn(Builder $q, string $column): Builder
+    {
+        $statuses = self::KANBAN_GROUPS[$column] ?? [];
+        return $q->whereIn('status', $statuses);
     }
 }

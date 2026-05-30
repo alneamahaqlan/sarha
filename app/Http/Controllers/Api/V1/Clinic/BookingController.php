@@ -74,19 +74,36 @@ class BookingController extends Controller
     public function update(UpdateBookingRequest $request, Booking $booking): BookingApiResource
     {
         $oldStatus = $booking->status;
-        $booking->update($request->validated());
+        $data = $request->validated();
 
-        // Explicit activity entry for status transitions — more
-        // meaningful than the generic "booking.updated" the observer
-        // would emit. We only fire when status actually changed.
+        // Strip Kanban-only context keys before persisting — they
+        // never live on the bookings table.
+        $context = [
+            'cancel_reason'  => $data['cancel_reason']  ?? null,
+            'cancel_note'    => $data['cancel_note']    ?? null,
+            'completion_note'=> $data['completion_note']?? null,
+        ];
+        unset($data['cancel_reason'], $data['cancel_note'], $data['completion_note']);
+
+        $booking->update($data);
+
         $newStatus = $booking->status;
         if ($oldStatus !== $newStatus) {
-            $this->activity->log("booking.{$newStatus}", $booking, [
+            $summary = [
                 'reference' => $booking->reference_code,
                 'customer'  => $booking->customer_name,
+                'customer_phone' => $booking->customer_phone,
                 'from'      => $oldStatus,
                 'to'        => $newStatus,
-            ]);
+            ];
+            if ($newStatus === 'cancelled') {
+                if (! empty($context['cancel_reason'])) $summary['reason'] = $context['cancel_reason'];
+                if (! empty($context['cancel_note']))   $summary['note']   = $context['cancel_note'];
+            }
+            if (in_array($newStatus, ['completed', 'no_show'], true) && ! empty($context['completion_note'])) {
+                $summary['note'] = $context['completion_note'];
+            }
+            $this->activity->log("booking.{$newStatus}", $booking, $summary);
         }
 
         return new BookingApiResource($booking->fresh()->load(['service:id,name', 'relative', 'booker:id,name,phone']));

@@ -83,6 +83,13 @@ class DatabaseSeeder extends Seeder
         // the new "فريقي" + "نشاط الفريق" screens have content on a
         // fresh seed. Lightweight & idempotent (skips if rows exist).
         $this->call(ClinicTeamSeeder::class);
+
+        // CRM-shaped bookings data: assignees, VIP customers, cancel-
+        // risk customers, tags, and activity-log rows so the new
+        // Kanban "لوحة الحجوزات" has signals to render (VIP badges,
+        // smart suggestions, Timeline entries). Depends on ClinicTeam-
+        // Seeder (needs team members to assign to).
+        $this->call(BookingsCrmSeeder::class);
     }
 
     private function seedAdmins(): void

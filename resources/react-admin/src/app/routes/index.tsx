@@ -69,7 +69,7 @@ const AdminClinicReportsIndex = lazy(() => import('@/features/clinic-reports/pag
 const AdminCustomerReportsIndex = lazy(() => import('@/features/customer-reports/pages/AdminCustomerReportsIndex').then(m => ({ default: m.AdminCustomerReportsIndex })));
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
-const ClinicBookingsIndex = lazy(() => import('@/features/clinic/bookings/pages/ClinicBookingsIndex').then(m => ({ default: m.ClinicBookingsIndex })));
+const ClinicBookingsKanban = lazy(() => import('@/features/clinic/bookings/kanban/pages/ClinicBookingsKanban').then(m => ({ default: m.ClinicBookingsKanban })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
 const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/ClinicArticlesIndex').then(m => ({ default: m.ClinicArticlesIndex })));
 const ClinicProfilePage   = lazy(() => import('@/features/clinic/profile/pages/ClinicProfilePage').then(m => ({ default: m.ClinicProfilePage })));
@@ -170,7 +170,7 @@ export function AppRoutes() {
               <Route path="offers" element={<RoleGuard ability="offers.view"><ClinicOffersIndex /></RoleGuard>} />
               <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
               <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
-              <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsIndex /></RoleGuard>} />
+              <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
               <Route path="price-quotes" element={<RoleGuard ability="price_quotes.view"><ClinicQuotesIndex /></RoleGuard>} />
               <Route path="complaints" element={<RoleGuard ability="complaints.view"><ClinicComplaintsIndex /></RoleGuard>} />
               <Route path="reports" element={<RoleGuard ability="complaints.view"><ClinicReportsIndex /></RoleGuard>} />

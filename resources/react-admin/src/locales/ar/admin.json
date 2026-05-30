@@ -938,6 +938,16 @@
       "booking.completed": "أتمّ حجز #{{reference}}",
       "booking.cancelled": "ألغى حجز #{{reference}}",
       "booking.no_show": "حدّد حجز #{{reference}} كـ\"لم يحضر\"",
+      "booking.call_attempted": "اتصل بالعميل",
+      "booking.whatsapped": "راسل العميل عبر واتساب",
+      "booking.reminder_sent": "أرسل تذكيراً للعميل",
+      "booking.patient_confirmed_verbally": "أكّد المريض الحضور شفهياً",
+      "booking.patient_cancelled_verbally": "أبلغ المريض عن الإلغاء شفهياً",
+      "booking.note_added": "أضاف ملاحظة",
+      "booking.assigned": "أَسنَد الحجز إلى {{to}}",
+      "booking.unassigned": "ألغى إسناد الحجز",
+      "booking.tag_added": "أضاف شارة \"{{label}}\"",
+      "booking.tag_removed": "أزال شارة \"{{label}}\"",
       "complaint.replied": "ردّ على شكوى #{{reference}}",
       "price_quote.replied": "ردّ على طلب سعر للعميل {{customer}}",
       "team.member_added": "أضاف عضواً للفريق ({{member_name}})",
@@ -1323,7 +1333,144 @@
     "created_at": "تاريخ الحجز",
     "filter_all_statuses": "كل الحالات",
     "tab_all": "الكل",
-    "updated": "تم تحديث الحجز"
+    "updated": "تم تحديث الحجز",
+    "columns": {
+      "customer": "العميل",
+      "service": "الخدمة",
+      "appointment": "الموعد",
+      "status": "الحالة"
+    }
+  },
+  "clinic_bookings_kanban": {
+    "title": "لوحة الحجوزات",
+    "subtitle": "ادر حجوزات مجمعك بنظرة واحدة — اسحب البطاقة لتغيير الحالة، انقر لفتح ملف الحجز",
+    "stats": {
+      "today": "حجز اليوم",
+      "no_show_yesterday": "لم يحضروا أمس",
+      "urgent_confirm": "بحاجة تأكيد عاجل",
+      "weekly_rate": "معدل التأكيد هذا الأسبوع"
+    },
+    "view": {
+      "kanban": "Kanban",
+      "table": "جدول"
+    },
+    "column": {
+      "new": "جديد",
+      "confirmed": "مؤكّد",
+      "completed": "مُكتمل",
+      "cancelled": "ملغى",
+      "empty": "لا توجد حجوزات في هذا العمود"
+    },
+    "sub_badge": {
+      "awaiting_contact": "بانتظار التواصل",
+      "contacted": "تم التواصل",
+      "today": "اليوم",
+      "within_48h": "خلال 48 ساعة",
+      "within_week": "خلال أسبوع",
+      "scheduled": "مجدوَل",
+      "attended": "حضر",
+      "no_show": "لم يحضر",
+      "cancelled": "ملغى"
+    },
+    "tag": {
+      "vip": "VIP",
+      "repeat": "متكرّر",
+      "new": "جديد",
+      "complaint": "شكوى سابقة",
+      "cancel_risk": "خطر إلغاء"
+    },
+    "suggestion": {
+      "confirm_urgent": "تأكيد عاجل",
+      "first_contact": "تواصل أولي",
+      "retry_call": "حاول مجدداً",
+      "reminder_soon": "أرسل تذكيراً",
+      "cancel_risk": "خطر إلغاء"
+    },
+    "card": {
+      "unassigned": "غير مَسنَد",
+      "assignee": "بمتابعة",
+      "tags": "الشارات"
+    },
+    "filters": {
+      "search_placeholder": "ابحث باسم أو رقم أو مرجع…",
+      "assignee_any": "كل المسؤولين",
+      "tag_any": "كل الشارات",
+      "tag_urgent": "تأكيد عاجل (24س)",
+      "mine_only": "حجوزاتي فقط"
+    },
+    "move": {
+      "cancel_title": "تأكيد الإلغاء",
+      "completion_title": "تأكيد الإكمال",
+      "backwards_title": "تراجع عن الحالة؟",
+      "backwards_desc": "أنت تنقل بطاقة من عمود نهائي. هل أنت متأكّد؟",
+      "target_desc": "ستنقل البطاقة إلى عمود \"{{column}}\"",
+      "cancel_reason": "سبب الإلغاء",
+      "cancel_reason_patient_cancelled": "ألغى المريض",
+      "cancel_reason_no_answer": "لم يَرد",
+      "cancel_reason_schedule_conflict": "تَعارض موعد",
+      "cancel_reason_other": "أخرى",
+      "outcome": "هل حضر المريض؟",
+      "note_optional": "ملاحظة ختامية (اختياري)",
+      "success": "تم تحديث الحالة"
+    },
+    "quick": {
+      "logged": "تم تسجيل النشاط",
+      "call_attempted": "اتصلت",
+      "whatsapped": "راسلت واتساب",
+      "reminder_sent": "أرسلت تذكير",
+      "patient_confirmed_verbally": "أكّد المريض",
+      "patient_cancelled_verbally": "ألغى المريض",
+      "note_added": "ملاحظة",
+      "outcome_label": "نتيجة الاتصال",
+      "outcome_answered": "ردّ",
+      "outcome_no_answer": "لم يَرد",
+      "note_placeholder": "اكتب ملاحظة سيراها الفريق فقط…"
+    },
+    "tab": {
+      "overview": "نظرة عامة",
+      "customer": "ملف المريض",
+      "timeline": "السجل"
+    },
+    "detail": {
+      "customer_notes": "ملاحظات العميل",
+      "clinic_notes": "ملاحظات داخلية",
+      "for_relative": "حجز لقريب",
+      "quick_actions": "إجراءات سريعة",
+      "tags": "شارات"
+    },
+    "assignee": {
+      "label": "المسؤول عن المتابعة",
+      "self_option": "تعيين لنفسي",
+      "updated": "تم تحديث المسؤول"
+    },
+    "tags": {
+      "added": "تمت إضافة الشارة",
+      "customer_section": "شارات المريض",
+      "booking_section": "شارات الحجز",
+      "add_new": "أضف شارة جديدة",
+      "scope_customer": "للمريض",
+      "scope_booking": "للحجز",
+      "label_placeholder": "اسم الشارة",
+      "color_rose": "وردي",
+      "color_amber": "كهرماني",
+      "color_emerald": "أخضر",
+      "color_sky": "سماوي",
+      "color_violet": "بنفسجي",
+      "color_slate": "رمادي"
+    },
+    "timeline": {
+      "empty": "لا توجد أنشطة على هذا الحجز بعد"
+    },
+    "c360": {
+      "total": "إجمالي الحجوزات",
+      "completed": "مكتمل",
+      "first_seen": "عميل منذ",
+      "past_bookings": "الحجوزات السابقة",
+      "no_bookings": "لا حجوزات سابقة",
+      "complaints": "الشكاوى",
+      "price_quotes": "طلبات الأسعار",
+      "last_interaction": "آخر تفاعل"
+    }
   },
   "clinic_quotes": {
     "title": "طلبات التسعير",

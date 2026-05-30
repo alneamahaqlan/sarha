@@ -26,7 +26,11 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // CustomerInsightService caches per-customer derived signals
+        // for the duration of a single request — make it a singleton
+        // so the Kanban resource + the side-panel resource share the
+        // same cache.
+        $this->app->singleton(\App\Services\CustomerInsightService::class);
     }
 
     public function boot(): void

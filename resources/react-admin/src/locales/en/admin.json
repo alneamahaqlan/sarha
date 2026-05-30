@@ -938,6 +938,16 @@
       "booking.completed": "Completed booking #{{reference}}",
       "booking.cancelled": "Cancelled booking #{{reference}}",
       "booking.no_show": "Marked booking #{{reference}} as no-show",
+      "booking.call_attempted": "Called the patient",
+      "booking.whatsapped": "Sent a WhatsApp message",
+      "booking.reminder_sent": "Sent a reminder",
+      "booking.patient_confirmed_verbally": "Patient confirmed verbally",
+      "booking.patient_cancelled_verbally": "Patient cancelled verbally",
+      "booking.note_added": "Added a note",
+      "booking.assigned": "Assigned booking to {{to}}",
+      "booking.unassigned": "Unassigned the booking",
+      "booking.tag_added": "Added tag \"{{label}}\"",
+      "booking.tag_removed": "Removed tag \"{{label}}\"",
       "complaint.replied": "Replied to complaint #{{reference}}",
       "price_quote.replied": "Replied to quote from {{customer}}",
       "team.member_added": "Added team member ({{member_name}})",
@@ -1323,7 +1333,144 @@
     "created_at": "Created",
     "filter_all_statuses": "All statuses",
     "tab_all": "All",
-    "updated": "Booking updated"
+    "updated": "Booking updated",
+    "columns": {
+      "customer": "Customer",
+      "service": "Service",
+      "appointment": "Appointment",
+      "status": "Status"
+    }
+  },
+  "clinic_bookings_kanban": {
+    "title": "Bookings board",
+    "subtitle": "Manage your complex's bookings at a glance — drag to change status, click to open the booking file",
+    "stats": {
+      "today": "Bookings today",
+      "no_show_yesterday": "No-shows yesterday",
+      "urgent_confirm": "Need urgent confirmation",
+      "weekly_rate": "Weekly confirmation rate"
+    },
+    "view": {
+      "kanban": "Kanban",
+      "table": "Table"
+    },
+    "column": {
+      "new": "New",
+      "confirmed": "Confirmed",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "empty": "No bookings in this column"
+    },
+    "sub_badge": {
+      "awaiting_contact": "Awaiting contact",
+      "contacted": "Contacted",
+      "today": "Today",
+      "within_48h": "Within 48h",
+      "within_week": "This week",
+      "scheduled": "Scheduled",
+      "attended": "Attended",
+      "no_show": "No show",
+      "cancelled": "Cancelled"
+    },
+    "tag": {
+      "vip": "VIP",
+      "repeat": "Repeat",
+      "new": "New",
+      "complaint": "Past complaint",
+      "cancel_risk": "Cancel risk"
+    },
+    "suggestion": {
+      "confirm_urgent": "Confirm urgent",
+      "first_contact": "First contact",
+      "retry_call": "Retry call",
+      "reminder_soon": "Send reminder",
+      "cancel_risk": "Cancel risk"
+    },
+    "card": {
+      "unassigned": "Unassigned",
+      "assignee": "Following",
+      "tags": "Tags"
+    },
+    "filters": {
+      "search_placeholder": "Search by name, phone, or ref…",
+      "assignee_any": "Any assignee",
+      "tag_any": "Any tag",
+      "tag_urgent": "Urgent confirm (24h)",
+      "mine_only": "My bookings only"
+    },
+    "move": {
+      "cancel_title": "Confirm cancellation",
+      "completion_title": "Confirm completion",
+      "backwards_title": "Move back?",
+      "backwards_desc": "You're moving a card out of a terminal column. Are you sure?",
+      "target_desc": "The card will move to \"{{column}}\"",
+      "cancel_reason": "Cancellation reason",
+      "cancel_reason_patient_cancelled": "Patient cancelled",
+      "cancel_reason_no_answer": "No answer",
+      "cancel_reason_schedule_conflict": "Schedule conflict",
+      "cancel_reason_other": "Other",
+      "outcome": "Did the patient attend?",
+      "note_optional": "Closing note (optional)",
+      "success": "Status updated"
+    },
+    "quick": {
+      "logged": "Activity logged",
+      "call_attempted": "Called",
+      "whatsapped": "WhatsApped",
+      "reminder_sent": "Sent reminder",
+      "patient_confirmed_verbally": "Patient confirmed",
+      "patient_cancelled_verbally": "Patient cancelled",
+      "note_added": "Note",
+      "outcome_label": "Call outcome",
+      "outcome_answered": "Answered",
+      "outcome_no_answer": "No answer",
+      "note_placeholder": "Internal note for the team…"
+    },
+    "tab": {
+      "overview": "Overview",
+      "customer": "Customer",
+      "timeline": "Activity"
+    },
+    "detail": {
+      "customer_notes": "Customer notes",
+      "clinic_notes": "Internal notes",
+      "for_relative": "Booked for a relative",
+      "quick_actions": "Quick actions",
+      "tags": "Tags"
+    },
+    "assignee": {
+      "label": "Following up",
+      "self_option": "Assign to me",
+      "updated": "Assignee updated"
+    },
+    "tags": {
+      "added": "Tag added",
+      "customer_section": "Customer tags",
+      "booking_section": "Booking tags",
+      "add_new": "Add a tag",
+      "scope_customer": "Customer",
+      "scope_booking": "Booking",
+      "label_placeholder": "Tag label",
+      "color_rose": "Rose",
+      "color_amber": "Amber",
+      "color_emerald": "Emerald",
+      "color_sky": "Sky",
+      "color_violet": "Violet",
+      "color_slate": "Slate"
+    },
+    "timeline": {
+      "empty": "No activities on this booking yet"
+    },
+    "c360": {
+      "total": "Total bookings",
+      "completed": "Completed",
+      "first_seen": "Customer since",
+      "past_bookings": "Past bookings",
+      "no_bookings": "No past bookings",
+      "complaints": "Complaints",
+      "price_quotes": "Price quotes",
+      "last_interaction": "Last interaction"
+    }
   },
   "clinic_quotes": {
     "title": "Price quotes",

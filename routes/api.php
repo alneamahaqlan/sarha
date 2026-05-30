@@ -337,6 +337,31 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
+
+        // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
+        Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
+        Route::get('bookings/kanban-stats', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'stats'])->name('clinic.bookings.kanban-stats');
+        Route::get('bookings/assignees',    [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'index'])->name('clinic.bookings.assignees');
+        Route::get('bookings/{booking}/detail', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'show'])->name('clinic.bookings.detail');
+
+        // Per-booking activity timeline + quick actions.
+        Route::get('bookings/{booking}/activities',  [\App\Http\Controllers\Api\V1\Clinic\BookingActivityController::class, 'index'])->name('clinic.bookings.activities.index');
+        Route::post('bookings/{booking}/activities', [\App\Http\Controllers\Api\V1\Clinic\BookingActivityController::class, 'store'])->name('clinic.bookings.activities.store');
+
+        // Tags (booking + customer scope share the same controller).
+        Route::post('bookings/{booking}/tags',  [\App\Http\Controllers\Api\V1\Clinic\BookingTagController::class, 'store'])->name('clinic.bookings.tags.store');
+        Route::delete('bookings/{booking}/tags/{scope}/{tagId}', [\App\Http\Controllers\Api\V1\Clinic\BookingTagController::class, 'destroy'])
+            ->where('scope', 'booking|customer')
+            ->name('clinic.bookings.tags.destroy');
+
+        // Assignment.
+        Route::patch('bookings/{booking}/assignee', [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'update'])->name('clinic.bookings.assignee.update');
+
+        // Customer 360 — keyed by phone, clinic-scoped.
+        Route::get('customers/by-phone/{phone}', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'show'])
+            ->where('phone', '[0-9+]+')
+            ->name('clinic.customers.profile');
+
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'show', 'update'])
             ->names('clinic.bookings');
