@@ -32,6 +32,24 @@ return [
             'body'  => 'العميل :customer يَطلب عرض سعر لـ :service.',
         ],
 
+        // ── Subscription lifecycle ────────────────────────────────────
+        'subscription_expiring_soon' => [
+            'title' => 'اشتراكك يَنتهي قريباً',
+            'body'  => 'باقتك ":package" تَنتهي خلال :days يوم — تَواصل مع الإدارة للتجديد.',
+        ],
+        'subscription_expired' => [
+            'title' => 'انتهى اشتراكك',
+            'body'  => 'باقتك ":package" انتهت. لديك :grace أيام مهلة سماح قبل تعليق المزايا — تَواصل لتجديد الاشتراك.',
+        ],
+        'subscription_activated' => [
+            'title' => 'تم تَفعيل اشتراكك',
+            'body'  => 'تم تَفعيل باقة ":package" حتى :ends_at. شكراً لاختيارك المنصة.',
+        ],
+        'subscription_cancelled' => [
+            'title' => 'تم إلغاء اشتراكك',
+            'body'  => 'تم إلغاء اشتراكك في باقة ":package". لِأي استفسار تواصل مع الإدارة.',
+        ],
+
         // ── User-side ─────────────────────────────────────────────────
         'booking_confirmed' => [
             'title' => 'تم تأكيد حجزك',
@@ -70,5 +88,9 @@ return [
         'quote_replied'             => 'تم الرد على طلب سعرك',
         'clinic_pending_approval'   => 'تسجيل مجمع جديد ينتظر الموافقة',
         'ai_emergency'              => 'تنبيه: محادثة طوارئ من المساعد الذكي',
+        'subscription_expiring_soon'=> 'اشتراكك يَنتهي قريباً',
+        'subscription_expired'      => 'انتهى اشتراكك',
+        'subscription_activated'    => 'تم تَفعيل اشتراك جديد',
+        'subscription_cancelled'    => 'تم إلغاء اشتراكك',
     ],
 ];

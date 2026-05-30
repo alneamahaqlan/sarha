@@ -27,6 +27,7 @@ const ClinicStatsPage     = lazy(() => import('@/features/clinics/pages/ClinicSt
 const ClinicStructurePage = lazy(() => import('@/features/clinics/pages/ClinicStructurePage').then(m => ({ default: m.ClinicStructurePage })));
 const AnalyticsPage       = lazy(() => import('@/features/analytics/pages/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const SubscriptionsIndex  = lazy(() => import('@/features/subscriptions/pages/SubscriptionsIndex').then(m => ({ default: m.SubscriptionsIndex })));
+const PackagesIndex       = lazy(() => import('@/features/subscription-packages/pages/PackagesIndex').then(m => ({ default: m.PackagesIndex })));
 const PriceQuotesIndex    = lazy(() => import('@/features/price-quotes/pages/PriceQuotesIndex').then(m => ({ default: m.PriceQuotesIndex })));
 const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/AuditLogsIndex').then(m => ({ default: m.AuditLogsIndex })));
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
@@ -110,6 +111,7 @@ export function AppRoutes() {
               <Route path="homepage-sections" element={<HomepageSectionsIndex />} />
               <Route path="admins" element={<AdminsIndex />} />
               <Route path="subscriptions" element={<SubscriptionsIndex />} />
+              <Route path="subscription-packages" element={<PackagesIndex />} />
               <Route path="price-quotes" element={<PriceQuotesIndex />} />
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />

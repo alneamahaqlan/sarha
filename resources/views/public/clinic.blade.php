@@ -111,6 +111,12 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-2xl font-bold text-gray-900">{{ $clinic->name }}</h1>
+                        {{-- Verified badge — package-driven, set in ClinicController::show via FeatureGate. --}}
+                        @if($clinic->is_verified_badge ?? false)
+                            <span class="inline-flex items-center gap-1 bg-sage-mist text-sage-deep px-2 py-0.5 rounded-full text-xs font-semibold" title="@lang('site.verified_badge_tooltip')">
+                                <x-icon name="check-circle" class="w-3.5 h-3.5" /> @lang('site.verified_badge')
+                            </span>
+                        @endif
                         @if($clinic->is_featured)
                             <span class="inline-flex items-center gap-1 bg-gold-whisper text-gold-deep px-2 py-0.5 rounded-full text-xs font-semibold"><x-icon name="star-solid" class="w-3.5 h-3.5" /> @lang('site.featured')</span>
                         @endif

@@ -63,6 +63,12 @@ class DatabaseSeeder extends Seeder
             $this->call(EdgeCaseScenarioSeeder::class);
         }
 
+        // Subscription packages (Free/Standard/Premium) + back-fill of
+        // existing clinics & subscriptions to the new package FKs.
+        // Idempotent — re-running upserts the 3 rows on slug + only
+        // touches clinics whose package is still null.
+        $this->call(SubscriptionPackagesSeeder::class);
+
         // Saved relatives + a few proxy bookings so the "حجز لأحد أقاربي"
         // filter and the clinic-side "بالنيابة" badge have data to render.
         // Lives outside the heavy block — light, idempotent, always wanted.
@@ -145,6 +151,8 @@ class DatabaseSeeder extends Seeder
             ['key' => 'premium_subscription_price', 'value' => '400', 'type' => 'decimal', 'group' => 'subscriptions', 'label' => 'سعر الاشتراك المميز'],
             ['key' => 'subscription_duration_days', 'value' => '90', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'مدة الاشتراك (أيام)'],
             ['key' => 'subscription_reminder_days', 'value' => '10', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'أيام التذكير قبل انتهاء الاشتراك'],
+            ['key' => 'subscription_grace_period_days', 'value' => '7', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'مدة فترة السماح بعد الانتهاء (أيام)', 'description' => 'عدد الأيام بعد انتهاء الاشتراك التي يبقى فيها المجمع مرئياً قبل تعليقه تلقائياً. الافتراضي 7 أيام.'],
+            ['key' => 'subscription_auto_suspend_enabled', 'value' => '1', 'type' => 'boolean', 'group' => 'subscriptions', 'label' => 'تفعيل التعليق التلقائي بعد مهلة السماح', 'description' => 'عند التفعيل، يُعلَّق المجمع تلقائياً (status=suspended) بعد انقضاء مهلة السماح. عند الإيقاف، يبقى نشطاً حتى يتدخل الأدمن يدوياً.'],
             ['key' => 'basic_articles_limit', 'value' => '5', 'type' => 'integer', 'group' => 'limits', 'label' => 'حد المقالات (أساسي/شهر)'],
             ['key' => 'otp_expiry_minutes', 'value' => '5', 'type' => 'integer', 'group' => 'auth', 'label' => 'مدة صلاحية OTP (دقائق)'],
             ['key' => 'platform_name', 'value' => 'دليل المجمعات الطبية', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],

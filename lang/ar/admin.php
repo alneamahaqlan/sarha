@@ -412,9 +412,9 @@ return [
         'impersonated_body'  => 'الأدمن :admin يدير لوحتك حالياً للمراجعة',
 
         'limit_warn_title' => 'قاربت على حد المقالات',
-        'limit_warn_body'  => 'نشرت :used من 5 مقالات هذا الشهر. ترقّى للمميزة لمقالات غير محدودة.',
+        'limit_warn_body'  => 'نشرت :used من :limit مقالات هذا الشهر. ترقّى للباقة الأعلى لمقالات غير محدودة.',
         'limit_hit_title' => 'تجاوزت الحد الشهري',
-        'limit_hit_body'  => 'تم حفظ مقالتك كمسودة لأن باقتك الأساسية تسمح بـ 5 مقالات شهرياً.',
+        'limit_hit_body'  => 'تم حفظ مقالتك كمسودة لأن باقتك الحالية تسمح بـ :limit مقالات شهرياً.',
 
         'article_published_title' => 'تم نشر مقال جديد',
         'article_published_body'  => 'نشر :clinic مقال ":article" — راجع المحتوى.',
@@ -508,5 +508,14 @@ return [
             'favorite_added'     => 'إضافة :clinic للمفضلة',
             'quote_request'      => 'طلب عرض سعر — :service',
         ],
+    ],
+
+    'packages' => [
+        'cannot_delete_with_clinics' => 'لا يمكن حذف باقة عليها :count مجمع. غيّر باقتهم أولاً ثم أعد المحاولة.',
+    ],
+
+    'subscriptions' => [
+        'renewal_note' => 'تجديد تلقائي للاشتراك السابق #:ref',
+        'approval_trial_note' => 'فترة تجريبية عند اعتماد المجمع (:days يوم).',
     ],
 ];

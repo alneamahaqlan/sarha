@@ -26,3 +26,21 @@ export function useUpdateSubscription(id: number) {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+/** One-click renew — chains a new sub on the same package + cycle. */
+export function useRenewSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => subscriptionsApi.renew(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
+/** Cancel today; the row stays in history with status='cancelled'. */
+export function useCancelSubscription() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => subscriptionsApi.cancel(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

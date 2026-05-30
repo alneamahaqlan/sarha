@@ -8,8 +8,8 @@ use App\Http\Requests\Api\V1\Clinic\StoreArticleRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateArticleRequest;
 use App\Http\Resources\Api\V1\ArticleResource as ArticleApiResource;
 use App\Models\Article;
-use App\Observers\ArticleObserver;
 use App\Services\AiContentService;
+use App\Services\FeatureGate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -40,24 +40,23 @@ class ArticleController extends Controller
     }
 
     /**
-     * Monthly publish-quota usage for the article counter widget. Mirrors
-     * ArticleObserver's basic-plan limit (premium is unlimited → limit null).
+     * Monthly publish-quota usage for the article counter widget.
+     * Driven entirely by FeatureGate so the limit reflects whatever
+     * the clinic's package row has (null = unlimited).
+     * `is_premium` is kept for legacy front-end consumers — true means
+     * "unlimited", which is what the old name implied anyway.
      */
     private function monthlyUsage(): array
     {
         $clinic = auth('clinic')->user();
-        $isPremium = $clinic->subscription_type === 'premium';
+        $gate = app(FeatureGate::class);
 
-        $publishedThisMonth = Article::where('clinic_id', $this->clinicId())
-            ->where('is_published', true)
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->count();
+        $limit = $gate->articlesLimit($clinic);
 
         return [
-            'published_this_month' => $publishedThisMonth,
-            'monthly_limit'        => $isPremium ? null : ArticleObserver::BASIC_MONTHLY_LIMIT,
-            'is_premium'           => $isPremium,
+            'published_this_month' => $gate->articlesUsedThisMonth($clinic),
+            'monthly_limit'        => $limit,
+            'is_premium'           => $limit === null,
         ];
     }
 

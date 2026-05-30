@@ -46,6 +46,7 @@
     "sales_leads": "العملاء المحتملون",
     "clinics": "المجمعات",
     "subscriptions": "الاشتراكات",
+    "subscription_packages": "باقات الاشتراك",
     "price_quotes": "طلبات التسعير",
     "audit_logs": "سجل التدقيق",
     "system_settings": "إعدادات النظام",
@@ -602,12 +603,15 @@
     "title": "الاشتراكات",
     "subtitle": "اشتراكات المجمعات وحالاتها",
     "clinic": "المجمع",
+    "package_label": "الباقة",
+    "cycle_label": "الدورة",
     "type_label": "الباقة",
     "amount": "المبلغ",
     "starts_at": "البداية",
     "ends_at": "النهاية",
     "status_label": "الحالة",
     "filter_all_types": "كل الباقات",
+    "filter_all_packages": "كل الباقات",
     "filter_all_statuses": "كل الحالات",
     "tab_all": "الكل",
     "expiring_soon": "تنتهي قريباً",
@@ -615,15 +619,35 @@
     "edit": "تعديل الاشتراك",
     "created": "تم إنشاء الاشتراك",
     "updated": "تم تحديث الاشتراك",
+    "renewed": "تم التجديد",
+    "cancelled": "تم الإلغاء",
+    "renew": "تجديد",
+    "cancel_sub": "إلغاء الاشتراك",
+    "cancel_confirm_title": "إلغاء الاشتراك؟",
+    "cancel_confirm_body": "سيتم إنهاء اشتراك \"{{clinic}}\" اليوم وتحويل حالته إلى ملغي.",
+    "days_remaining": "{{count}} يوم متبقي",
+    "expired_days_ago": "منتهٍ منذ {{count}} يوم",
     "form": {
       "clinic": "المجمع",
+      "package": "الباقة",
+      "billing_cycle": "دورة الفوترة",
+      "bonus_months": "أشهر مَجانية (للسنوي)",
+      "bonus_months_hint": "أشهر إضافية تَهديها للعميل بدون مقابل (مَفعّل فقط مع الدورة السنوية)",
       "type": "الباقة",
       "amount": "المبلغ (ر.س)",
       "starts_at": "تاريخ البداية",
       "ends_at": "تاريخ النهاية",
       "status": "الحالة",
       "moyasar_payment_id": "معرّف دفعة Moyasar",
-      "notes": "ملاحظات"
+      "notes": "ملاحظات",
+      "preview_package": "الباقة المختارة",
+      "preview_months": "إجمالي الأشهر",
+      "preview_bonus_label": "{{n}} مجاناً",
+      "preview_total": "الإجمالي المدفوع"
+    },
+    "cycle": {
+      "quarterly": "ربع سنوي (3 أشهر)",
+      "annual": "سنوي (12 شهر)"
     },
     "type": {
       "basic": "أساسي",
@@ -1325,12 +1349,72 @@
   },
   "clinic_subscription": {
     "title": "الاشتراك",
-    "subtitle": "باقتك الحالية والخيارات المتاحة",
+    "subtitle": "باقتك الحالية، استهلاكك، والمزايا المتاحة",
     "current_plan": "الباقة الحالية",
     "your_plan": "باقتك",
+    "no_active": "لا يوجد اشتراك فعّال",
     "ends_at": "ينتهي في {{date}}",
     "days_remaining": "متبقٍ {{count}} يوم",
+    "days_expired": "منتهٍ منذ {{count}} يوم",
+    "expired_warning": "انتهى اشتراكك. تواصل مع إدارة المنصة للتجديد.",
+    "expires_soon_warning": "اشتراكك ينتهي خلال {{days}} يوم — يُرجى التجديد قبل التعليق.",
     "per_year": "سنة",
+    "per_month": "شهر",
+    "starts_at_label": "تاريخ البدء",
+    "ends_at_label": "تاريخ الانتهاء",
+    "cycle_label": "دورة الفوترة",
+    "bonus_months_label": "أشهر مجانية",
+    "status": {
+      "active": "فعّال",
+      "expired": "منتهٍ",
+      "cancelled": "ملغى",
+      "pending_payment": "بانتظار الدفع"
+    },
+    "cycle": {
+      "quarterly": "ربع سنوي",
+      "annual": "سنوي"
+    },
+    "usage": {
+      "title": "استهلاكك هذا الشهر",
+      "subtitle": "كم استخدمت من حدود باقتك حتى الآن",
+      "services": "الخدمات",
+      "articles": "المقالات المنشورة",
+      "replies": "ردود طلبات الأسعار",
+      "remaining": "متبقي {{n}}",
+      "reached_limit": "وصلت إلى الحد الأقصى",
+      "unlimited_hint": "بدون حد أقصى"
+    },
+    "features": {
+      "title": "ميزات باقتك",
+      "subtitle": "ما هو مفعّل في باقتك الحالية، وما يحتاج ترقية",
+      "ai_article_generation": "توليد المقالات بالذكاء الاصطناعي",
+      "featured_in_search": "ظهور مميز في نتائج البحث",
+      "ai_assistant_priority_0": "أولوية عادية في المساعد الذكي",
+      "ai_assistant_priority_1": "أولوية مرفوعة في المساعد الذكي",
+      "ai_assistant_priority_2": "أولوية قصوى في المساعد الذكي",
+      "google_reviews_sync": "مزامنة تقييمات Google تلقائيًا",
+      "verified_badge": "شارة الموثوقية",
+      "analytics_full": "لوحة تحليلات متقدمة",
+      "analytics_basic": "لوحة تحليلات أساسية",
+      "allow_offers_packages": "العروض والباقات",
+      "allow_doctors_before_after": "الأطباء وصور قبل/بعد",
+      "banner_slots": "{{n}} بنر إعلاني"
+    },
+    "packages": {
+      "title": "مقارنة الباقات",
+      "subtitle": "كل الباقات المتاحة — للتغيير تواصل مع إدارة المنصة",
+      "current_badge": "باقتك الحالية"
+    },
+    "h": {
+      "unlimited_services": "خدمات غير محدودة",
+      "services_count": "حتى {{n}} خدمة",
+      "unlimited_articles_month": "مقالات شهرية غير محدودة",
+      "articles_count": "{{n}} مقالة شهريًا"
+    },
+    "contact_cta": {
+      "title": "تريد التجديد أو الترقية؟",
+      "body": "بعد التحويل البنكي، تقوم إدارة المنصة بتفعيل الباقة وتحديد مدتها. تواصل معنا للبدء."
+    },
     "upgrade_title": "الترقية إلى الباقة المميزة",
     "upgrade_body": "احصل على ظهور مميز في القوائم، ومقالات غير محدودة، ودعم بأولوية لتنمية مجمعك.",
     "contact_admin": "لتغيير باقتك، يرجى التواصل مع إدارة المنصة.",
@@ -1339,8 +1423,8 @@
     "contact_whatsapp": "واتساب",
     "contact_call": "اتصال",
     "contact_email": "بريد إلكتروني",
-    "contact_message": "مرحبًا، أرغب في تجديد اشتراك مجمعي.",
-    "upgrade_message": "مرحبًا، أرغب في ترقية مجمعي إلى الباقة المميزة.",
+    "contact_message": "مرحبًا، أرغب في تجديد/تغيير اشتراك مجمعي (باقتي الحالية: {{plan}}).",
+    "upgrade_message": "مرحبًا، أرغب في ترقية مجمعي إلى باقة أعلى.",
     "feature": {
       "services": "إدارة الخدمات والأسعار",
       "bookings": "استقبال حجوزات العملاء",
@@ -1619,5 +1703,76 @@
     "turns_count": "{{count}} رد",
     "ai_emergency": "طوارئ",
     "ai_blocked": "مرفوض"
+  },
+  "packages": {
+    "title": "باقات الاشتراك",
+    "subtitle": "أنشئ وعدّل الباقات، أسعارها، والميزات المتاحة في كل واحدة",
+    "create": "باقة جديدة",
+    "edit": "تعديل الباقة",
+    "updated": "تم تحديث الباقة",
+    "created": "تم إنشاء الباقة",
+    "deleted": "تم حذف الباقة",
+    "dialog_description": "كل التعديلات تَسري فوراً على كل المجمعات",
+    "active": "مُفعَّلة",
+    "inactive": "مُعطَّلة",
+    "free": "مجانية",
+    "sar_per_month": "ر.س/شهر",
+    "unlimited": "بدون حد",
+    "clinics_count": "{{count}} مجمع",
+    "cannot_delete_has_clinics": "لا يمكن حذف باقة عليها مجمعات",
+    "delete_confirm_title": "حذف الباقة؟",
+    "delete_confirm_body": "سيتم حذف باقة \"{{name}}\" نهائياً. هذا الإجراء لا يمكن التراجع عنه.",
+    "section": {
+      "identity": "البيانات الأساسية",
+      "limits": "الحدود",
+      "features": "الميزات",
+      "tier": "المستوى"
+    },
+    "field": {
+      "name_ar": "الاسم بالعربي",
+      "name_en": "الاسم بالإنجليزي",
+      "tagline_ar": "وصف قصير بالعربي",
+      "tagline_en": "وصف قصير بالإنجليزي",
+      "slug": "المعرّف (slug)",
+      "color": "اللون",
+      "monthly_price": "السعر الشهري (ر.س)",
+      "sort_order": "ترتيب العرض",
+      "is_active": "مُفعَّلة (يَظهر للمجمعات الجدد)",
+      "services_limit": "عدد الخدمات",
+      "articles_monthly_limit": "مقالات شَهرياً",
+      "quote_replies_monthly_limit": "ردود طلبات الأسعار شَهرياً",
+      "banner_slots": "بانرات الإعلان",
+      "ai_article_generation": "توليد مقال بالذكاء الاصطناعي",
+      "featured_in_search": "ظهور مميّز في البحث",
+      "google_reviews_sync": "مزامنة تقييمات Google",
+      "verified_badge": "شارة موثّق",
+      "allow_offers_packages": "العروض والباقات الطبية",
+      "allow_doctors_before_after": "الأطباء ومعرض قبل/بعد",
+      "ai_assistant_priority": "أولوية في ترشيحات المساعد الذكي",
+      "analytics_level": "مستوى التحليلات"
+    },
+    "priority": {
+      "none": "بدون أولوية",
+      "medium": "متوسطة",
+      "top": "قصوى"
+    },
+    "analytics": {
+      "basic": "أساسية",
+      "full": "كاملة"
+    },
+    "q": {
+      "services": "خدمات",
+      "articles": "مقالات/شهر",
+      "replies": "ردود/شهر",
+      "banners": "بانرات"
+    },
+    "f": {
+      "ai_article_generation": "توليد مقال بـAI",
+      "featured_in_search": "مميّز في البحث",
+      "google_reviews_sync": "مزامنة Google",
+      "verified_badge": "شارة موثّق",
+      "allow_offers_packages": "عروض وباقات",
+      "allow_doctors_before_after": "أطباء وقبل/بعد"
+    }
   }
 }

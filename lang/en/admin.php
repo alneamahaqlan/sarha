@@ -412,9 +412,9 @@ return [
         'impersonated_body'  => 'Admin :admin is managing your panel for review',
 
         'limit_warn_title' => 'Article limit approaching',
-        'limit_warn_body'  => 'You have published :used of 5 articles this month. Upgrade to Premium for unlimited.',
+        'limit_warn_body'  => 'You have published :used of :limit articles this month. Upgrade for unlimited articles.',
         'limit_hit_title' => 'Monthly limit reached',
-        'limit_hit_body'  => 'Your article was saved as a draft because the Basic plan allows 5 published articles per month.',
+        'limit_hit_body'  => 'Your article was saved as a draft because your current plan allows :limit published articles per month.',
 
         'article_published_title' => 'New article published',
         'article_published_body'  => ':clinic published ":article" — review the content.',
@@ -505,5 +505,14 @@ return [
             'favorite_added'     => 'Favorited :clinic',
             'quote_request'      => 'Quote request for :service',
         ],
+    ],
+
+    'packages' => [
+        'cannot_delete_with_clinics' => 'Cannot delete a package with :count clinic(s) on it. Move them to another package first.',
+    ],
+
+    'subscriptions' => [
+        'renewal_note' => 'Auto-renewal of previous subscription #:ref',
+        'approval_trial_note' => 'Trial period granted on clinic approval (:days days).',
     ],
 ];

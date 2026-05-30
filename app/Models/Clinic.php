@@ -18,6 +18,7 @@ class Clinic extends Authenticatable
         'address', 'district', 'latitude', 'longitude', 'google_place_id', 'maps_url',
         'description', 'logo', 'gallery', 'website', 'instagram',
         'twitter', 'snapchat', 'tiktok', 'status', 'subscription_type',
+        'subscription_package_id',
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
     ];
@@ -64,12 +65,51 @@ class Clinic extends Authenticatable
             ->where('subscription_ends_at', '>=', now());
     }
 
+    /**
+     * Left-join the clinic's subscription package and project its
+     * relevant flags as scalar columns on the result row. Used by
+     * public ranking + section gating so a single query reads both
+     * the clinic and what its package permits, without needing to
+     * eager-load the relation or call FeatureGate per row.
+     *
+     * Adds: pkg_featured_in_search, pkg_ai_assistant_priority,
+     *       pkg_verified_badge, pkg_allow_offers_packages,
+     *       pkg_allow_doctors_before_after.
+     * Clinics without a package fall to 0 (Free defaults) via COALESCE.
+     */
+    public function scopeWithPackageFeatures(Builder $query): Builder
+    {
+        // Guard against double-joining when the scope is composed twice.
+        $alreadyJoined = collect($query->getQuery()->joins ?? [])
+            ->contains(fn ($j) => $j->table === 'subscription_packages as pkg');
+        if ($alreadyJoined) {
+            return $query;
+        }
+
+        return $query
+            ->leftJoin('subscription_packages as pkg', 'pkg.id', '=', 'clinics.subscription_package_id')
+            ->select('clinics.*')
+            ->selectRaw('COALESCE(pkg.featured_in_search, 0) AS pkg_featured_in_search')
+            ->selectRaw('COALESCE(pkg.ai_assistant_priority, 0) AS pkg_ai_assistant_priority')
+            ->selectRaw('COALESCE(pkg.verified_badge, 0) AS pkg_verified_badge')
+            ->selectRaw('COALESCE(pkg.allow_offers_packages, 0) AS pkg_allow_offers_packages')
+            ->selectRaw('COALESCE(pkg.allow_doctors_before_after, 0) AS pkg_allow_doctors_before_after');
+    }
+
+    /**
+     * Public listing rank — package signals first, then admin manual
+     * boost, then tier priority, then recency. The package join is
+     * mandatory; `is_featured` stays as a per-clinic escalation an
+     * admin can flip without changing the whole package's tier.
+     */
     public function scopeRankedForListing(Builder $query): Builder
     {
         return $query
-            ->orderByDesc('is_featured')
-            ->orderByRaw("CASE WHEN subscription_type = 'premium' THEN 0 ELSE 1 END")
-            ->latest('created_at');
+            ->withPackageFeatures()
+            ->orderByDesc('pkg_featured_in_search')
+            ->orderByDesc('clinics.is_featured')
+            ->orderByDesc('pkg_ai_assistant_priority')
+            ->latest('clinics.created_at');
     }
 
     public function city()
@@ -110,6 +150,16 @@ class Clinic extends Authenticatable
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * The package currently in force for the clinic. Direct FK
+     * (subscription_package_id) — kept on the clinic row itself so
+     * gates can resolve in one query without hitting subscriptions.
+     */
+    public function package()
+    {
+        return $this->belongsTo(SubscriptionPackage::class, 'subscription_package_id');
     }
 
     public function stats()

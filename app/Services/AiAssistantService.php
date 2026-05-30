@@ -1661,7 +1661,13 @@ MSG;
 
     private function matchByKeyword(string $query, ?int $cityId, array $history = [], array $context = []): Collection
     {
-        $base = Clinic::publiclyVisible()->with(['city', 'categories']);
+        // Project package signals onto each row so every sort branch
+        // below can break ties by pkg_ai_assistant_priority, ensuring
+        // higher-tier clinics bubble to the top of equally-relevant
+        // results.
+        $base = Clinic::publiclyVisible()
+            ->withPackageFeatures()
+            ->with(['city', 'categories']);
 
         $tokens = $this->tokenize($query);
         // Service-name phrase: whatever's left after we've claimed the
@@ -1745,13 +1751,16 @@ MSG;
 
         if ($cheap) {
             $base->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
-                ->orderBy('min_price');
+                ->orderBy('min_price')
+                ->orderByDesc('pkg_ai_assistant_priority');
         } elseif ($best) {
             $base->withAvg('googleReviews', 'rating')
-                ->orderByDesc('google_reviews_avg_rating');
+                ->orderByDesc('google_reviews_avg_rating')
+                ->orderByDesc('pkg_ai_assistant_priority');
         } elseif ($serviceQuery !== null && ! empty($serviceTokens ?? [])) {
             // For service searches: rank by the cheapest matching service so
             // the customer sees the best price options first across clinics.
+            // Package priority breaks ties at equal price.
             $tokensForOrder = $serviceTokens;
             $base->withMin(['services as min_price' => function ($q) use ($tokensForOrder) {
                 $q->where('is_active', true)->whereNotNull('price');
@@ -1759,7 +1768,8 @@ MSG;
                     $q->where('name', 'like', "%{$t}%");
                 }
             }], 'price')
-                ->orderByRaw('min_price IS NULL, min_price ASC');
+                ->orderByRaw('min_price IS NULL, min_price ASC')
+                ->orderByDesc('pkg_ai_assistant_priority');
         } else {
             $base->rankedForListing();
         }

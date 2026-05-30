@@ -166,7 +166,14 @@ class HomepageRenderService
             ->withMin(['services as min_price' => $minPrice], 'price');
 
         $clinics = match ($source) {
-            'featured'    => $base->where('is_featured', true)->rankedForListing()->take($limit)->get(),
+            // "Featured" now means either an admin manual boost OR a
+            // package whose featured_in_search flag is on. rankedForListing
+            // applies its own package-driven sort on top.
+            'featured'    => $base
+                ->withPackageFeatures()
+                ->where(fn ($q) => $q->where('clinics.is_featured', true)->orWhereRaw('COALESCE(pkg.featured_in_search, 0) = 1'))
+                ->rankedForListing()
+                ->take($limit)->get(),
             'top_rated'   => $base->whereHas('googleReviews')->withCount('googleReviews')->orderByDesc('google_reviews_avg_rating')->take($limit)->get(),
             'best_priced' => $base->whereHas('services', fn ($q) => $q->where('is_active', true)->whereNotNull('price'))->orderBy('min_price')->take($limit)->get(),
             default       => $base->rankedForListing()->take($limit)->get(),
@@ -177,12 +184,16 @@ class HomepageRenderService
 
     private function mapClinics(int $limit): Collection
     {
+        // Note: rankedForListing replaces the legacy is_featured sort
+        // with the package-driven one. The 5-column ->get() projection
+        // becomes clinics.* once the scope joins subscription_packages,
+        // which is fine — these markers only need a handful of fields.
         return Clinic::publiclyVisible()
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
-            ->orderByDesc('is_featured')
+            ->rankedForListing()
             ->take($limit)
-            ->get(['id', 'name', 'slug', 'latitude', 'longitude'])
+            ->get()
             ->map(fn (Clinic $c) => [
                 'id'   => $c->id,
                 'name' => $c->name,

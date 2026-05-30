@@ -46,6 +46,7 @@
     "sales_leads": "Sales leads",
     "clinics": "Complexes",
     "subscriptions": "Subscriptions",
+    "subscription_packages": "Packages",
     "price_quotes": "Price quotes",
     "audit_logs": "Audit log",
     "system_settings": "System settings",
@@ -602,12 +603,15 @@
     "title": "Subscriptions",
     "subtitle": "Complex subscriptions and their statuses",
     "clinic": "Complex",
+    "package_label": "Package",
+    "cycle_label": "Cycle",
     "type_label": "Plan",
     "amount": "Amount",
     "starts_at": "Starts",
     "ends_at": "Ends",
     "status_label": "Status",
     "filter_all_types": "All plans",
+    "filter_all_packages": "All packages",
     "filter_all_statuses": "All statuses",
     "tab_all": "All",
     "expiring_soon": "Expiring soon",
@@ -615,15 +619,35 @@
     "edit": "Edit subscription",
     "created": "Subscription created",
     "updated": "Subscription updated",
+    "renewed": "Subscription renewed",
+    "cancelled": "Subscription cancelled",
+    "renew": "Renew",
+    "cancel_sub": "Cancel",
+    "cancel_confirm_title": "Cancel subscription?",
+    "cancel_confirm_body": "Subscription for \"{{clinic}}\" will end today and be marked cancelled.",
+    "days_remaining": "{{count}} days left",
+    "expired_days_ago": "expired {{count}} days ago",
     "form": {
       "clinic": "Complex",
+      "package": "Package",
+      "billing_cycle": "Billing cycle",
+      "bonus_months": "Bonus months (annual only)",
+      "bonus_months_hint": "Free months you grant on top of the paid period (only applies on annual cycle)",
       "type": "Plan",
       "amount": "Amount (SAR)",
       "starts_at": "Starts at",
       "ends_at": "Ends at",
       "status": "Status",
       "moyasar_payment_id": "Moyasar payment ID",
-      "notes": "Notes"
+      "notes": "Notes",
+      "preview_package": "Selected package",
+      "preview_months": "Total months",
+      "preview_bonus_label": "{{n}} free",
+      "preview_total": "Total charged"
+    },
+    "cycle": {
+      "quarterly": "Quarterly (3 months)",
+      "annual": "Annual (12 months)"
     },
     "type": {
       "basic": "Basic",
@@ -1325,12 +1349,72 @@
   },
   "clinic_subscription": {
     "title": "Subscription",
-    "subtitle": "Your current plan and available options",
+    "subtitle": "Your current plan, usage, and available features",
     "current_plan": "Current plan",
     "your_plan": "Your plan",
+    "no_active": "No active subscription",
     "ends_at": "Ends {{date}}",
     "days_remaining": "{{count}} days remaining",
+    "days_expired": "Expired {{count}} days ago",
+    "expired_warning": "Your subscription has expired. Contact the platform administration to renew.",
+    "expires_soon_warning": "Your subscription expires in {{days}} days — please renew before suspension.",
     "per_year": "year",
+    "per_month": "month",
+    "starts_at_label": "Start date",
+    "ends_at_label": "End date",
+    "cycle_label": "Billing cycle",
+    "bonus_months_label": "Bonus months",
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "pending_payment": "Pending payment"
+    },
+    "cycle": {
+      "quarterly": "Quarterly",
+      "annual": "Annual"
+    },
+    "usage": {
+      "title": "This month's usage",
+      "subtitle": "How much of your plan's limits you've used so far",
+      "services": "Services",
+      "articles": "Published articles",
+      "replies": "Quote replies",
+      "remaining": "{{n}} remaining",
+      "reached_limit": "Limit reached",
+      "unlimited_hint": "No limit"
+    },
+    "features": {
+      "title": "Your plan features",
+      "subtitle": "What's enabled in your current plan, and what needs an upgrade",
+      "ai_article_generation": "AI article generation",
+      "featured_in_search": "Featured placement in search",
+      "ai_assistant_priority_0": "Standard AI assistant priority",
+      "ai_assistant_priority_1": "Boosted AI assistant priority",
+      "ai_assistant_priority_2": "Top AI assistant priority",
+      "google_reviews_sync": "Auto-sync Google reviews",
+      "verified_badge": "Verified badge",
+      "analytics_full": "Advanced analytics dashboard",
+      "analytics_basic": "Basic analytics dashboard",
+      "allow_offers_packages": "Offers & packages",
+      "allow_doctors_before_after": "Doctors & before/after gallery",
+      "banner_slots": "{{n}} banner slots"
+    },
+    "packages": {
+      "title": "Compare packages",
+      "subtitle": "All available tiers — contact the admin to switch",
+      "current_badge": "Your plan"
+    },
+    "h": {
+      "unlimited_services": "Unlimited services",
+      "services_count": "Up to {{n}} services",
+      "unlimited_articles_month": "Unlimited monthly articles",
+      "articles_count": "{{n}} articles per month"
+    },
+    "contact_cta": {
+      "title": "Want to renew or upgrade?",
+      "body": "After bank transfer, the admin activates your plan and sets its duration. Message us to begin."
+    },
     "upgrade_title": "Upgrade to Premium",
     "upgrade_body": "Get featured placement, unlimited articles, and priority support to grow your complex.",
     "contact_admin": "To change your plan, please contact the platform administration.",
@@ -1339,8 +1423,8 @@
     "contact_whatsapp": "WhatsApp",
     "contact_call": "Call",
     "contact_email": "Email",
-    "contact_message": "Hello, I would like to renew my complex's subscription.",
-    "upgrade_message": "Hello, I would like to upgrade my complex to the Premium plan.",
+    "contact_message": "Hello, I would like to renew/change my complex's subscription (current plan: {{plan}}).",
+    "upgrade_message": "Hello, I would like to upgrade my complex to a higher plan.",
     "feature": {
       "services": "Manage services and pricing",
       "bookings": "Receive customer bookings",
@@ -1619,5 +1703,76 @@
     "turns_count": "{{count}} turns",
     "ai_emergency": "Emergency",
     "ai_blocked": "Blocked"
+  },
+  "packages": {
+    "title": "Subscription packages",
+    "subtitle": "Create and edit packages, prices, and features available in each",
+    "create": "New package",
+    "edit": "Edit package",
+    "updated": "Package updated",
+    "created": "Package created",
+    "deleted": "Package deleted",
+    "dialog_description": "Changes take effect immediately for all clinics",
+    "active": "Active",
+    "inactive": "Disabled",
+    "free": "Free",
+    "sar_per_month": "SAR/mo",
+    "unlimited": "Unlimited",
+    "clinics_count": "{{count}} clinics",
+    "cannot_delete_has_clinics": "Cannot delete a package with clinics on it",
+    "delete_confirm_title": "Delete package?",
+    "delete_confirm_body": "Package \"{{name}}\" will be permanently deleted. This cannot be undone.",
+    "section": {
+      "identity": "Identity",
+      "limits": "Limits",
+      "features": "Features",
+      "tier": "Tier"
+    },
+    "field": {
+      "name_ar": "Arabic name",
+      "name_en": "English name",
+      "tagline_ar": "Arabic tagline",
+      "tagline_en": "English tagline",
+      "slug": "Slug",
+      "color": "Color",
+      "monthly_price": "Monthly price (SAR)",
+      "sort_order": "Sort order",
+      "is_active": "Active (visible to new clinics)",
+      "services_limit": "Services limit",
+      "articles_monthly_limit": "Articles per month",
+      "quote_replies_monthly_limit": "Quote replies per month",
+      "banner_slots": "Banner slots",
+      "ai_article_generation": "AI article generation",
+      "featured_in_search": "Featured in search",
+      "google_reviews_sync": "Google reviews sync",
+      "verified_badge": "Verified badge",
+      "allow_offers_packages": "Offers + medical packages",
+      "allow_doctors_before_after": "Doctors + before/after gallery",
+      "ai_assistant_priority": "AI assistant priority",
+      "analytics_level": "Analytics level"
+    },
+    "priority": {
+      "none": "None",
+      "medium": "Medium",
+      "top": "Top"
+    },
+    "analytics": {
+      "basic": "Basic",
+      "full": "Full"
+    },
+    "q": {
+      "services": "Services",
+      "articles": "Articles/mo",
+      "replies": "Replies/mo",
+      "banners": "Banners"
+    },
+    "f": {
+      "ai_article_generation": "AI articles",
+      "featured_in_search": "Featured in search",
+      "google_reviews_sync": "Google reviews",
+      "verified_badge": "Verified badge",
+      "allow_offers_packages": "Offers + packages",
+      "allow_doctors_before_after": "Doctors + before/after"
+    }
   }
 }

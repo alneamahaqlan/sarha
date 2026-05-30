@@ -126,6 +126,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::apiResource('categories', CategoryController::class);
 
+        // Subscription packages catalogue — full CRUD for the super-admin.
+        // Deletion is rejected at controller level if any clinic is on the package.
+        Route::apiResource('subscription-packages', \App\Http\Controllers\Api\V1\Admin\SubscriptionPackageController::class);
+
         // UserResource has no Delete in Filament — restrict to index/show/store/update only.
         Route::apiResource('users', UserController::class)->except(['destroy']);
 
@@ -204,6 +208,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('clinics', ClinicController::class);
 
         // Subscription — Filament has no Delete action; restrict to index/show/store/update.
+        // Lifecycle actions (one-click renew + cancel) wired before the resource so
+        // {subscription} binding picks them up first.
+        Route::post('subscriptions/{subscription}/renew',  [SubscriptionController::class, 'renew'])->name('subscriptions.renew');
+        Route::post('subscriptions/{subscription}/cancel', [SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
         Route::apiResource('subscriptions', SubscriptionController::class)->except(['destroy']);
 
         // Price quote requests — clinic route param renamed to avoid conflict with /price-quotes.

@@ -20,6 +20,24 @@ return [
             'body'  => ':customer is asking for a quote on :service.',
         ],
 
+        // ── Subscription lifecycle ────────────────────────────────────
+        'subscription_expiring_soon' => [
+            'title' => 'Your subscription expires soon',
+            'body'  => 'Your ":package" plan expires in :days days — contact admin to renew.',
+        ],
+        'subscription_expired' => [
+            'title' => 'Your subscription has expired',
+            'body'  => 'Your ":package" plan has ended. You have :grace grace days before features are suspended — contact admin to renew.',
+        ],
+        'subscription_activated' => [
+            'title' => 'Your subscription is active',
+            'body'  => 'Your ":package" plan is active until :ends_at. Thank you for choosing the platform.',
+        ],
+        'subscription_cancelled' => [
+            'title' => 'Your subscription was cancelled',
+            'body'  => 'Your ":package" subscription has been cancelled. Contact admin for any questions.',
+        ],
+
         // ── User-side ─────────────────────────────────────────────────
         'booking_confirmed' => [
             'title' => 'Booking confirmed',
@@ -55,5 +73,9 @@ return [
         'quote_replied'             => 'Your quote request got a reply',
         'clinic_pending_approval'   => 'A new complex is awaiting approval',
         'ai_emergency'              => 'Alert: AI emergency conversation',
+        'subscription_expiring_soon'=> 'Your subscription expires soon',
+        'subscription_expired'      => 'Your subscription has expired',
+        'subscription_activated'    => 'A new subscription is active',
+        'subscription_cancelled'    => 'Your subscription was cancelled',
     ],
 ];

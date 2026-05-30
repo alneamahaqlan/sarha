@@ -40,7 +40,11 @@ class SearchController extends Controller
             $request->session()->put('search_filters', $active);
         }
 
+        // withPackageFeatures() joins subscription_packages once so every
+        // sort branch + the map-markers payload reads pkg_* on the row
+        // instead of re-hitting FeatureGate per clinic.
         $query = Clinic::publiclyVisible()
+            ->withPackageFeatures()
             ->with(['city', 'categories'])
             ->withAvg('googleReviews', 'rating')
             ->withCount('bookings')
@@ -70,8 +74,13 @@ class SearchController extends Controller
             );
         }
 
+        // "Featured" filter — checks the package flag OR a manual admin
+        // boost. Either source qualifies a clinic for the featured ribbon.
         if ($request->filled('featured')) {
-            $query->where('is_featured', true);
+            $query->where(function ($q) {
+                $q->where('clinics.is_featured', true)
+                  ->orWhereRaw('COALESCE(pkg.featured_in_search, 0) = 1');
+            });
         }
 
         // "Open now" — clinics whose today's working hours include the current time.
@@ -118,15 +127,18 @@ class SearchController extends Controller
         match ($sort) {
             'top_rated' => $query
                 ->withAvg('googleReviews', 'rating')
-                ->orderByDesc('is_featured')
+                ->orderByDesc('pkg_featured_in_search')
+                ->orderByDesc('clinics.is_featured')
                 ->orderByDesc('google_reviews_avg_rating'),
             'cheapest' => $query
                 ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
-                ->orderByDesc('is_featured')
+                ->orderByDesc('pkg_featured_in_search')
+                ->orderByDesc('clinics.is_featured')
                 ->orderBy('min_price'),
             'most_booked' => $query
                 ->withCount('bookings')
-                ->orderByDesc('is_featured')
+                ->orderByDesc('pkg_featured_in_search')
+                ->orderByDesc('clinics.is_featured')
                 ->orderByDesc('bookings_count'),
             'nearest' => $query
                 // Haversine distance (km); clinics with null coords sort last.
@@ -191,7 +203,8 @@ class SearchController extends Controller
                     'categories'    => $c->categories->take(2)->map(fn ($cat) => $cat->display_name)->values(),
                     'min_price'     => $c->min_price !== null ? (float) $c->min_price : null,
                     'directions'    => $c->directionsUrl(),
-                    'featured'      => (bool) $c->is_featured,
+                    // Either source (admin manual OR package) lights the ribbon.
+                    'featured'      => (bool) $c->is_featured || (int) ($c->pkg_featured_in_search ?? 0) === 1,
                     'distance_km'   => $distanceKm,
                 ];
             })

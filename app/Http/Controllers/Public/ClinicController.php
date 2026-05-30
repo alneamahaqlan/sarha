@@ -12,6 +12,7 @@ use App\Models\OtpCode;
 use App\Models\PriceQuoteRequest;
 use App\Models\Relative;
 use App\Services\ClinicPageBuilderService;
+use App\Services\FeatureGate;
 use App\Services\ImpressionTrackerService;
 use App\Services\SmsService;
 use App\Services\UserActivityLogger;
@@ -21,7 +22,7 @@ class ClinicController extends Controller
 {
     use IdentifiesCustomer;
 
-    public function show(string $slug, ClinicPageBuilderService $builder)
+    public function show(string $slug, ClinicPageBuilderService $builder, FeatureGate $gate)
     {
         $clinic = Clinic::publiclyVisible()
             ->where('slug', $slug)
@@ -99,6 +100,39 @@ class ClinicController extends Controller
         // active, their order, and any title/limit overrides. Lazy-seeds
         // defaults on first visit so the X existing clinics keep working.
         $pageSections = $builder->forPublic($clinic->id);
+
+        // Package-driven section gating: even if an admin enabled a
+        // section, the clinic's current package can lock it. Filter
+        // here so both the tabs row and the tab content drop out.
+        $allowOffers  = $gate->canPublishOffers($clinic);
+        $allowDoctors = $gate->canShowDoctorsAndBeforeAfter($clinic);
+        $pageSections = $pageSections->reject(function ($section) use ($allowOffers, $allowDoctors) {
+            return match ($section->key) {
+                'offers', 'packages'         => ! $allowOffers,
+                'doctors', 'before_after'    => ! $allowDoctors,
+                default                      => false,
+            };
+        });
+
+        // Zero-out the relations the package forbids so any leftover
+        // partial that reads $clinic->doctors / etc. sees an empty
+        // collection (defence-in-depth — the @if on $pageSections
+        // already hides the tab, but stale code that bypasses it
+        // still won't leak premium-only content).
+        if (! $allowOffers) {
+            $clinic->setRelation('offers', collect());
+            $clinic->setRelation('packages', collect());
+        }
+        if (! $allowDoctors) {
+            $clinic->setRelation('doctors', collect());
+            $clinic->setRelation('beforeAfterPhotos', collect());
+        }
+
+        // Verified badge — purely package-driven; rendered in the
+        // clinic header next to the name. Stored as a flat attribute
+        // so Blade reads it as `$clinic->is_verified_badge` without
+        // resolving the package relation per request.
+        $clinic->setAttribute('is_verified_badge', $gate->hasVerifiedBadge($clinic));
 
         return view('public.clinic', compact('clinic', 'similarServices', 'pageSections', 'builder'));
     }

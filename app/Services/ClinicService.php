@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Clinic;
 use App\Models\Subscription;
+use App\Models\SubscriptionPackage;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -16,42 +17,68 @@ use Illuminate\Support\Facades\DB;
 class ClinicService
 {
     public const TRIAL_DAYS         = 90;
-    public const PLAN_BASIC_PRICE   = 300;
-    public const PLAN_PREMIUM_PRICE = 400;
 
-    public function __construct(private readonly NotificationService $notifications) {}
+    public function __construct(
+        private readonly NotificationService $notifications,
+        private readonly SubscriptionService $subscriptions,
+    ) {}
 
     /**
-     * Approve a pending clinic: activates it, creates Subscription, logs audit,
-     * fires clinicApproved notification.
-     * Mirrors ClinicResource 'approve' action body exactly.
+     * Approve a pending clinic. The new flow routes through
+     * SubscriptionService::activate() so the clinic ends up with a
+     * proper subscription_package_id FK + the 12 feature flags from
+     * FeatureGate work from day one. Prior implementation seeded only
+     * the legacy `subscription_type` string and left package_id null,
+     * which silently demoted every newly-approved clinic to Free.
+     *
+     * Selects the package by matching legacy `subscription_type` to
+     * slug (basic→standard fallback, premium→premium). Falls back to
+     * the lowest-priced active package if nothing matches.
      */
     public function approve(Clinic $clinic): Clinic
     {
         return DB::transaction(function () use ($clinic) {
-            $plan = $clinic->subscription_type ?? 'basic';
+            $clinic->update(['status' => 'active']);
 
-            $clinic->update([
-                'status'                 => 'active',
-                'subscription_type'      => $plan,
-                'subscription_starts_at' => now(),
-                'subscription_ends_at'   => now()->addDays(self::TRIAL_DAYS),
-            ]);
-
-            Subscription::create([
-                'clinic_id' => $clinic->id,
-                'type'      => $plan,
-                'amount'    => $plan === 'premium' ? self::PLAN_PREMIUM_PRICE : self::PLAN_BASIC_PRICE,
-                'starts_at' => now(),
-                'ends_at'   => now()->addDays(self::TRIAL_DAYS),
-                'status'    => 'active',
-            ]);
+            $package = $this->resolveApprovalPackage($clinic);
+            // 90-day trial = 1 quarterly cycle with 0 bonus months; the
+            // service computes ends_at + amount from the package.
+            $this->subscriptions->activate(
+                clinic: $clinic,
+                package: $package,
+                cycle: Subscription::CYCLE_QUARTERLY,
+                bonusMonths: 0,
+                adminId: auth('admin')->id(),
+                notes: __('admin.subscriptions.approval_trial_note', ['days' => self::TRIAL_DAYS]),
+            );
 
             AuditLogService::log('clinic.approved', $clinic);
             $this->notifications->clinicApproved($clinic);
 
             return $clinic->fresh();
         });
+    }
+
+    /**
+     * Pick which package an approval should activate. Legacy values
+     * 'premium' / 'basic' map onto the seeded `premium` / `standard`
+     * slugs; anything else (or null) falls back to the lowest-priced
+     * active package — usually `free`.
+     */
+    private function resolveApprovalPackage(Clinic $clinic): SubscriptionPackage
+    {
+        $legacy = $clinic->subscription_type;
+        $slug = match ($legacy) {
+            'premium' => SubscriptionPackage::SLUG_PREMIUM,
+            'basic'   => SubscriptionPackage::SLUG_STANDARD,
+            default   => $legacy, // pass-through for already-correct slugs
+        };
+
+        $pkg = SubscriptionPackage::active()->where('slug', $slug)->first();
+        if ($pkg) return $pkg;
+
+        // Last-resort fallback — never leave approval without a package.
+        return SubscriptionPackage::active()->ordered()->firstOrFail();
     }
 
     /**

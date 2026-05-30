@@ -1,5 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -41,6 +41,7 @@ const adminNav = [
     items: [
       { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
       { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
+      { to: '/admin/subscription-packages', label: 'nav.subscription_packages', icon: Package },
     ],
   },
   {

@@ -220,6 +220,7 @@ return [
     'no_articles_yet' => 'No published articles yet',
     'view_more_services' => 'View all services',
     'verified_badge' => 'Verified',
+    'verified_badge_tooltip' => 'Complex verified by the platform administration',
     'premium_badge' => 'Premium',
 
     // Smart badges (search results)

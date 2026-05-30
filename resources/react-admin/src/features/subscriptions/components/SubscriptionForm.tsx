@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -10,27 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
-import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { usePackages } from '@/features/subscription-packages/hooks';
 
 import { useCreateSubscription, useUpdateSubscription } from '../hooks';
-import {
-  SUBSCRIPTION_STATUSES, SUBSCRIPTION_TYPES,
-  type Subscription, type SubscriptionStatus, type SubscriptionType,
-} from '../types';
-
-const schema = z.object({
-  clinic_id: z.coerce.number().int().positive(),
-  type: z.enum(['basic', 'premium']),
-  amount: z.coerce.number().min(0),
-  starts_at: z.string().min(1),
-  ends_at: z.string().min(1),
-  status: z.enum(['active', 'expired', 'cancelled', 'pending_payment']),
-  moyasar_payment_id: z.string().nullish(),
-  notes: z.string().nullish(),
-});
-type FormValues = z.infer<typeof schema>;
+import type { BillingCycle, Subscription, SubscriptionFormValues } from '../types';
 
 interface Props {
   subscription?: Subscription | null;
@@ -38,142 +21,193 @@ interface Props {
   onCancel?: () => void;
 }
 
-function toLocal(iso?: string | null): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
+/**
+ * The admin recorded a bank transfer — type the four inputs that the
+ * server can't derive on its own, and let SubscriptionService figure
+ * out amount + dates from the chosen package + cycle. Renew / cancel
+ * have dedicated row actions on the index page, so this form is the
+ * "add subscription" + "edit notes" path only.
+ */
 export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const { data: clinics } = useClinicLookup();
+  const { data: packages } = usePackages();
   const create = useCreateSubscription();
   const update = useUpdateSubscription(subscription?.id ?? 0);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      clinic_id: 0,
-      type: 'basic',
-      amount: 300,
-      starts_at: '',
-      ends_at: '',
-      status: 'active',
-      moyasar_payment_id: '',
-      notes: '',
-    },
+  const [values, setValues] = useState<SubscriptionFormValues>({
+    clinic_id: 0,
+    subscription_package_id: 0,
+    billing_cycle: 'quarterly',
+    bonus_months: 0,
+    notes: '',
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (subscription) {
-      form.reset({
+      setValues({
         clinic_id: subscription.clinic_id,
-        type: subscription.type,
-        amount: subscription.amount,
-        starts_at: toLocal(subscription.starts_at),
-        ends_at: toLocal(subscription.ends_at),
-        status: subscription.status,
-        moyasar_payment_id: subscription.moyasar_payment_id ?? '',
+        subscription_package_id: subscription.subscription_package_id ?? 0,
+        billing_cycle: (subscription.billing_cycle ?? 'quarterly'),
+        bonus_months: subscription.bonus_months ?? 0,
         notes: subscription.notes ?? '',
       });
+    } else if (packages?.length) {
+      // Default the package picker to the first non-free entry so the
+      // common case (admin recording a paid transfer) is one-tap less.
+      const firstPaid = packages.find((p) => p.monthly_price > 0) ?? packages[0];
+      setValues((v) => ({ ...v, subscription_package_id: firstPaid.id }));
     }
-  }, [subscription, form]);
+  }, [subscription, packages]);
 
-  const onSubmit = async (v: FormValues) => {
+  const set = <K extends keyof SubscriptionFormValues>(key: K, val: SubscriptionFormValues[K]) =>
+    setValues((v) => ({ ...v, [key]: val }));
+
+  /** Live preview of the amount derived from package × cycle. */
+  const preview = useMemo(() => {
+    const pkg = packages?.find((p) => p.id === values.subscription_package_id);
+    if (!pkg) return null;
+    const paidMonths = values.billing_cycle === 'annual' ? 12 : 3;
+    const months = paidMonths + (values.bonus_months ?? 0);
+    return {
+      pkgName: locale === 'ar' ? pkg.name_ar : pkg.name_en,
+      monthly: pkg.monthly_price,
+      months,
+      paidMonths,
+      total: pkg.monthly_price * paidMonths,
+    };
+  }, [packages, values.subscription_package_id, values.billing_cycle, values.bonus_months, locale]);
+
+  const onSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setErrors({});
+    const payload: SubscriptionFormValues = {
+      ...values,
+      notes: (values.notes ?? '').trim() || null,
+    };
     try {
-      const payload: Record<string, unknown> = { ...v };
-      if (payload.moyasar_payment_id === '') payload.moyasar_payment_id = null;
-      if (payload.notes === '') payload.notes = null;
-
       if (subscription) {
-        await update.mutateAsync(payload as Partial<FormValues>);
+        await update.mutateAsync(payload as Partial<SubscriptionFormValues>);
         toast.success(t('subscriptions.updated'));
       } else {
-        await create.mutateAsync(payload as FormValues);
+        await create.mutateAsync(payload);
         toast.success(t('subscriptions.created'));
       }
       onSuccess?.();
     } catch (err) {
       const ve = extractValidationErrors(err);
-      if (ve) Object.entries(ve).forEach(([f, m]) => form.setError(f as keyof FormValues, { message: m[0] }));
-      else toast.error(extractMessage(err, t('errors.generic')));
+      if (ve) {
+        const flat: Record<string, string> = {};
+        Object.entries(ve).forEach(([k, msgs]) => { flat[k] = msgs[0]; });
+        setErrors(flat);
+      } else {
+        toast.error(extractMessage(err, t('errors.generic')));
+      }
     }
   };
 
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_id">{t('subscriptions.form.clinic')}</Label>
           <Select
             id="clinic_id"
-            value={form.watch('clinic_id') || ''}
-            onChange={(e) => form.setValue('clinic_id', Number(e.target.value), { shouldDirty: true, shouldValidate: true })}
+            value={values.clinic_id || ''}
+            onChange={(e) => set('clinic_id', Number(e.target.value))}
+            disabled={Boolean(subscription)}
           >
             <option value="">—</option>
             {clinics?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </Select>
-          {form.formState.errors.clinic_id && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.clinic_id.message}</p>}
+          {errors.clinic_id && <p className="text-xs text-[var(--color-destructive)]">{errors.clinic_id}</p>}
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="subscription_package_id">{t('subscriptions.form.package')}</Label>
+          <Select
+            id="subscription_package_id"
+            value={values.subscription_package_id || ''}
+            onChange={(e) => set('subscription_package_id', Number(e.target.value))}
+          >
+            <option value="">—</option>
+            {packages?.map((p) => {
+              const name = locale === 'ar' ? p.name_ar : p.name_en;
+              const price = p.monthly_price === 0 ? t('packages.free') : `${p.monthly_price} ${t('packages.sar_per_month')}`;
+              return <option key={p.id} value={p.id}>{`${name} — ${price}`}</option>;
+            })}
+          </Select>
+          {errors.subscription_package_id && <p className="text-xs text-[var(--color-destructive)]">{errors.subscription_package_id}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="type">{t('subscriptions.form.type')}</Label>
+          <Label htmlFor="billing_cycle">{t('subscriptions.form.billing_cycle')}</Label>
           <Select
-            id="type"
-            value={form.watch('type')}
+            id="billing_cycle"
+            value={values.billing_cycle}
             onChange={(e) => {
-              const v = e.target.value as SubscriptionType;
-              form.setValue('type', v, { shouldDirty: true });
-              form.setValue('amount', v === 'premium' ? 400 : 300, { shouldDirty: true });
+              const cycle = e.target.value as BillingCycle;
+              // Quarterly disables the bonus_months input — zero the
+              // underlying value too so a previously-typed bonus from
+              // "annual" doesn't get silently POSTed.
+              setValues((v) => ({
+                ...v,
+                billing_cycle: cycle,
+                bonus_months: cycle === 'quarterly' ? 0 : v.bonus_months,
+              }));
             }}
           >
-            {SUBSCRIPTION_TYPES.map((s) => <option key={s} value={s}>{t(`subscriptions.type.${s}`)}</option>)}
+            <option value="quarterly">{t('subscriptions.cycle.quarterly')}</option>
+            <option value="annual">{t('subscriptions.cycle.annual')}</option>
           </Select>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="amount">{t('subscriptions.form.amount')}</Label>
-          <Input id="amount" type="number" step="0.01" min={0} {...form.register('amount', { valueAsNumber: true })} />
-          {form.formState.errors.amount && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.amount.message}</p>}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="starts_at">{t('subscriptions.form.starts_at')}</Label>
-          <Input id="starts_at" type="datetime-local" {...form.register('starts_at')} />
-          {form.formState.errors.starts_at && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.starts_at.message}</p>}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="ends_at">{t('subscriptions.form.ends_at')}</Label>
-          <Input id="ends_at" type="datetime-local" {...form.register('ends_at')} />
-          {form.formState.errors.ends_at && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.ends_at.message}</p>}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="status">{t('subscriptions.form.status')}</Label>
-          <Select
-            id="status"
-            value={form.watch('status')}
-            onChange={(e) => form.setValue('status', e.target.value as SubscriptionStatus, { shouldDirty: true })}
-          >
-            {SUBSCRIPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`subscriptions.status.${s}`)}</option>)}
-          </Select>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="moyasar_payment_id">{t('subscriptions.form.moyasar_payment_id')}</Label>
-          <Input id="moyasar_payment_id" dir="ltr" {...form.register('moyasar_payment_id')} />
+          <Label htmlFor="bonus_months">{t('subscriptions.form.bonus_months')}</Label>
+          <Input
+            id="bonus_months"
+            type="number" min={0} max={24}
+            value={values.bonus_months}
+            onChange={(e) => set('bonus_months', Number(e.target.value))}
+            disabled={values.billing_cycle === 'quarterly'}
+          />
+          <p className="text-xs text-[var(--color-muted-foreground)]">{t('subscriptions.form.bonus_months_hint')}</p>
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="notes">{t('subscriptions.form.notes')}</Label>
-          <Textarea id="notes" rows={3} {...form.register('notes')} />
+          <Textarea id="notes" rows={2} value={values.notes ?? ''} onChange={(e) => set('notes', e.target.value)} />
         </div>
       </div>
+
+      {/* Live total preview — what gets stored as `amount`. */}
+      {preview && !subscription && (
+        <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-muted)]/30 px-3 py-2 text-sm space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[var(--color-muted-foreground)]">{t('subscriptions.form.preview_package')}</span>
+            <span className="font-medium">{preview.pkgName}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[var(--color-muted-foreground)]">{t('subscriptions.form.preview_months')}</span>
+            <span className="font-medium">
+              {preview.months}
+              {preview.months > preview.paidMonths && (
+                <span className="ms-2 text-xs text-emerald-600">
+                  ({t('subscriptions.form.preview_bonus_label', { n: preview.months - preview.paidMonths })})
+                </span>
+              )}
+            </span>
+          </div>
+          <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-1 mt-1">
+            <span className="font-medium">{t('subscriptions.form.preview_total')}</span>
+            <span className="font-bold">{preview.total.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')} {t('packages.sar_per_month').replace('/mo', '').replace('/شهر', '')}</span>
+          </div>
+        </div>
+      )}
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

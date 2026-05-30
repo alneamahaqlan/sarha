@@ -220,6 +220,7 @@ return [
     'no_articles_yet' => 'لا توجد مقالات منشورة بعد',
     'view_more_services' => 'عرض كل الخدمات',
     'verified_badge' => 'موثّق',
+    'verified_badge_tooltip' => 'مجمع تم توثيقه من قبل إدارة المنصة',
     'premium_badge' => 'مميز',
 
     // Smart badges (search results)

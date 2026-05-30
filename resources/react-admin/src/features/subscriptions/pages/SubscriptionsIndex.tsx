@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Pencil, Plus, Search } from 'lucide-react';
+import { Pencil, Plus, RotateCcw, Search, XCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,18 +10,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { cn } from '@/lib/utils';
+import { extractMessage } from '@/lib/api-client';
 import { useAdminNavBadges } from '@/features/nav-badges/hooks';
+import { usePackages } from '@/features/subscription-packages/hooks';
 
-import { useSubscriptions } from '../hooks';
+import { useCancelSubscription, useRenewSubscription, useSubscriptions } from '../hooks';
 import { SubscriptionForm } from '../components/SubscriptionForm';
-import {
-  SUBSCRIPTION_STATUSES, SUBSCRIPTION_TYPES,
-  type Subscription, type SubscriptionStatus, type SubscriptionType,
-} from '../types';
+import { type Subscription, type SubscriptionStatus } from '../types';
 
 const STATUS_VARIANT: Record<SubscriptionStatus, 'success' | 'danger' | 'warning' | 'muted'> = {
   active: 'success',
@@ -29,10 +33,20 @@ const STATUS_VARIANT: Record<SubscriptionStatus, 'success' | 'danger' | 'warning
   pending_payment: 'warning',
 };
 
-const TYPE_VARIANT: Record<SubscriptionType, 'info' | 'gold'> = {
-  basic: 'info',
-  premium: 'gold',
+/**
+ * Maps the package's abstract color token to a Tailwind Badge variant
+ * so the package chip on each row matches the palette the cards page uses.
+ */
+const PACKAGE_VARIANT: Record<string, 'muted' | 'success' | 'gold' | 'ai' | 'info' | 'warning'> = {
+  gray:    'muted',
+  sage:    'success',
+  gold:    'gold',
+  plum:    'ai',
+  info:    'info',
+  warning: 'warning',
 };
+
+type TabKey = 'all' | 'active' | 'expiring' | 'expired' | 'pending_payment';
 
 export function SubscriptionsIndex() {
   const { t } = useTranslation();
@@ -41,55 +55,87 @@ export function SubscriptionsIndex() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
-  const [typeFilter, setTypeFilter] = useState<SubscriptionType | undefined>();
-  const [statusFilter, setStatusFilter] = useState<SubscriptionStatus | undefined>();
-  const [expiringOnly, setExpiringOnly] = useState(false);
+  const [packageFilter, setPackageFilter] = useState<number | undefined>();
+  const [tab, setTab] = useState<TabKey>('all');
   const [editing, setEditing] = useState<Subscription | null>(null);
   const [creating, setCreating] = useState(false);
+  const [cancelling, setCancelling] = useState<Subscription | null>(null);
 
-  const queryParams = useMemo(
-    () => ({
+  const { data: packages } = usePackages();
+  const { data: navBadges } = useAdminNavBadges();
+  const renew = useRenewSubscription();
+  const cancel = useCancelSubscription();
+
+  // Tab → server filters. `expiring` is a custom flag the controller
+  // handles; the other tabs map straight to the status filter.
+  const queryParams = useMemo(() => {
+    const filter: Record<string, unknown> = { subscription_package_id: packageFilter };
+    if (tab === 'expiring') filter.expiring = true;
+    else if (tab !== 'all') filter.status = tab;
+    return {
       page,
       per_page: 15,
       search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
-      filter: { type: typeFilter, status: statusFilter, expiring: expiringOnly || undefined },
-    }),
-    [page, debouncedSearch, typeFilter, statusFilter, expiringOnly],
-  );
-  const { data, isLoading, isFetching } = useSubscriptions(queryParams);
-  const { data: navBadges } = useAdminNavBadges();
+      filter,
+    };
+  }, [page, debouncedSearch, packageFilter, tab]);
 
-  // Row tint mirrors Filament: red for expired/cancelled, amber when active but
-  // ending within 10 days, transparent otherwise.
+  const { data, isLoading, isFetching } = useSubscriptions(queryParams);
+
   const rowTint = (sub: Subscription): string => {
-    if (sub.status === 'expired' || sub.status === 'cancelled') return 'bg-red-50';
+    if (sub.status === 'expired' || sub.status === 'cancelled') return 'bg-red-50/40';
     if (sub.status === 'active' && sub.ends_at) {
       const days = Math.ceil((new Date(sub.ends_at).getTime() - Date.now()) / 86_400_000);
-      if (days >= 0 && days <= 10) return 'bg-amber-50';
+      if (days >= 0 && days <= 10) return 'bg-amber-50/40';
     }
     return '';
   };
 
   const fmtCurrency = (n: number) =>
     new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
-      maximumFractionDigits: 0,
+      style: 'currency', currency: 'SAR', maximumFractionDigits: 0,
     }).format(n);
+  const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
 
-  const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+  const handleRenew = async (sub: Subscription) => {
+    try {
+      await renew.mutateAsync(sub.id);
+      toast.success(t('subscriptions.renewed'));
+    } catch (e) {
+      toast.error(extractMessage(e, t('errors.generic')));
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!cancelling) return;
+    try {
+      await cancel.mutateAsync(cancelling.id);
+      toast.success(t('subscriptions.cancelled'));
+      setCancelling(null);
+    } catch (e) {
+      toast.error(extractMessage(e, t('errors.generic')));
+      setCancelling(null);
+    }
+  };
+
+  const TABS: { key: TabKey; label: string; badge?: number }[] = [
+    { key: 'all', label: t('subscriptions.tab_all') },
+    { key: 'active', label: t('subscriptions.status.active') },
+    { key: 'expiring', label: t('subscriptions.expiring_soon'), badge: navBadges?.subscriptions_expiring },
+    { key: 'pending_payment', label: t('subscriptions.status.pending_payment') },
+    { key: 'expired', label: t('subscriptions.status.expired') },
+  ];
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{t('subscriptions.title')}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">{t('subscriptions.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('subscriptions.subtitle')}</p>
         </div>
         {can('subscriptions.create') && (
-          <Button onClick={() => setCreating(true)}>
+          <Button onClick={() => setCreating(true)} className="self-start sm:self-auto">
             <Plus className="h-4 w-4" />
             {t('subscriptions.create')}
           </Button>
@@ -97,34 +143,30 @@ export function SubscriptionsIndex() {
       </div>
 
       <div className="flex flex-wrap items-center gap-1 border-b border-[var(--color-border)]">
-        {[false, true].map((expiring) => {
-          const active = expiringOnly === expiring;
-          const showCount = expiring && (navBadges?.subscriptions_expiring ?? 0) > 0;
-          return (
-            <button
-              key={expiring ? 'expiring' : 'all'}
-              type="button"
-              onClick={() => { setExpiringOnly(expiring); setPage(1); }}
-              className={cn(
-                '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
-                active
-                  ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
-                  : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
-              )}
-            >
-              {expiring ? t('subscriptions.expiring_soon') : t('subscriptions.tab_all')}
-              {showCount && (
-                <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
-                  {(navBadges?.subscriptions_expiring ?? 0) > 99 ? '99+' : navBadges?.subscriptions_expiring}
-                </span>
-              )}
-            </button>
-          );
-        })}
+        {TABS.map((tabDef) => (
+          <button
+            key={tabDef.key}
+            type="button"
+            onClick={() => { setTab(tabDef.key); setPage(1); }}
+            className={cn(
+              '-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2 text-sm font-medium transition-colors',
+              tab === tabDef.key
+                ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
+                : 'border-transparent text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]',
+            )}
+          >
+            {tabDef.label}
+            {tabDef.badge && tabDef.badge > 0 ? (
+              <span className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-amber-500 px-1.5 text-xs font-medium text-white">
+                {tabDef.badge > 99 ? '99+' : tabDef.badge}
+              </span>
+            ) : null}
+          </button>
+        ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative max-w-sm flex-1">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+        <div className="relative w-full md:max-w-sm md:flex-1">
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
           <Input
             className="ps-9"
@@ -134,20 +176,14 @@ export function SubscriptionsIndex() {
           />
         </div>
         <Select
-          value={typeFilter ?? ''}
-          onChange={(e) => { setTypeFilter((e.target.value || undefined) as SubscriptionType | undefined); setPage(1); }}
-          className="w-36"
+          value={packageFilter ?? ''}
+          onChange={(e) => { setPackageFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
+          className="w-44"
         >
-          <option value="">{t('subscriptions.filter_all_types')}</option>
-          {SUBSCRIPTION_TYPES.map((s) => <option key={s} value={s}>{t(`subscriptions.type.${s}`)}</option>)}
-        </Select>
-        <Select
-          value={statusFilter ?? ''}
-          onChange={(e) => { setStatusFilter((e.target.value || undefined) as SubscriptionStatus | undefined); setPage(1); }}
-          className="w-40"
-        >
-          <option value="">{t('subscriptions.filter_all_statuses')}</option>
-          {SUBSCRIPTION_STATUSES.map((s) => <option key={s} value={s}>{t(`subscriptions.status.${s}`)}</option>)}
+          <option value="">{t('subscriptions.filter_all_packages')}</option>
+          {packages?.map((p) => (
+            <option key={p.id} value={p.id}>{locale === 'ar' ? p.name_ar : p.name_en}</option>
+          ))}
         </Select>
       </div>
 
@@ -155,9 +191,10 @@ export function SubscriptionsIndex() {
         <TableHeader>
           <TableRow>
             <TableHead>{t('subscriptions.clinic')}</TableHead>
-            <TableHead>{t('subscriptions.type_label')}</TableHead>
+            <TableHead>{t('subscriptions.package_label')}</TableHead>
+            <TableHead className="hidden md:table-cell">{t('subscriptions.cycle_label')}</TableHead>
             <TableHead>{t('subscriptions.amount')}</TableHead>
-            <TableHead>{t('subscriptions.starts_at')}</TableHead>
+            <TableHead className="hidden lg:table-cell">{t('subscriptions.starts_at')}</TableHead>
             <TableHead>{t('subscriptions.ends_at')}</TableHead>
             <TableHead>{t('subscriptions.status_label')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
@@ -165,69 +202,111 @@ export function SubscriptionsIndex() {
         </TableHeader>
         <TableBody>
           {isLoading ? (
-            <TableRow>
-              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
-                {t('common.loading')}
-              </TableCell>
-            </TableRow>
+            <TableRow><TableCell colSpan={8} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
           ) : !data || data.data.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} className="py-8 text-center text-[var(--color-muted-foreground)]">
-                {t('common.no_data')}
-              </TableCell>
-            </TableRow>
+            <TableRow><TableCell colSpan={8} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
           ) : (
-            data.data.map((sub) => (
-              <TableRow key={sub.id} className={rowTint(sub)}>
-                <TableCell className="font-medium">{sub.clinic?.name ?? '—'}</TableCell>
-                <TableCell>
-                  <Badge variant={TYPE_VARIANT[sub.type]}>{t(`subscriptions.type.${sub.type}`)}</Badge>
-                </TableCell>
-                <TableCell className="font-medium">{fmtCurrency(sub.amount)}</TableCell>
-                <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(sub.starts_at)}</TableCell>
-                <TableCell className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(sub.ends_at)}</TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_VARIANT[sub.status]}>{t(`subscriptions.status.${sub.status}`)}</Badge>
-                </TableCell>
-                <TableCell className="text-end">
-                  {can('subscriptions.update') && (
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(sub)} aria-label={t('common.edit')}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
+            data.data.map((sub) => {
+              const pkgVariant = sub.package ? PACKAGE_VARIANT[sub.package.color_token] ?? 'muted' : 'muted';
+              const pkgName = sub.package ? (locale === 'ar' ? sub.package.name_ar : sub.package.name_en) : '—';
+              return (
+                <TableRow key={sub.id} className={rowTint(sub)}>
+                  <TableCell className="font-medium">{sub.clinic?.name ?? '—'}</TableCell>
+                  <TableCell>
+                    <Badge variant={pkgVariant}>{pkgName}</Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {sub.billing_cycle ? t(`subscriptions.cycle.${sub.billing_cycle}`) : '—'}
+                    {sub.bonus_months > 0 && (
+                      <span className="ms-1 text-[10px] text-emerald-600">+{sub.bonus_months}m</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="font-medium">{fmtCurrency(sub.amount)}</TableCell>
+                  <TableCell className="hidden lg:table-cell text-xs text-[var(--color-muted-foreground)]">{fmtDate(sub.starts_at)}</TableCell>
+                  <TableCell className="text-xs">
+                    <div>{fmtDate(sub.ends_at)}</div>
+                    {/* Only show countdown for genuinely-active rows that
+                        haven't passed their ends_at yet. A row with
+                        status='active' AND days<0 is a stale pre-cron
+                        state — surface it via the badge below, not a
+                        contradictory countdown line. */}
+                    {sub.days_remaining !== null && sub.status === 'active' && sub.days_remaining >= 0 && (
+                      <div className={cn('text-[10px]', sub.days_remaining <= 10 ? 'text-amber-700' : 'text-[var(--color-muted-foreground)]')}>
+                        {t('subscriptions.days_remaining', { count: sub.days_remaining })}
+                      </div>
+                    )}
+                    {sub.status !== 'active' && sub.days_remaining !== null && sub.days_remaining < 0 && (
+                      <div className="text-[10px] text-red-600">
+                        {t('subscriptions.expired_days_ago', { count: -sub.days_remaining })}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {/* Visual truth: an "active" row whose ends_at is in
+                        the past is effectively expired until the daily
+                        lifecycle cron flips its status. Render it as
+                        expired so the admin doesn't see green + "expired
+                        N days ago" together. */}
+                    {(() => {
+                      const effective = sub.status === 'active' && sub.days_remaining !== null && sub.days_remaining < 0
+                        ? 'expired'
+                        : sub.status;
+                      return <Badge variant={STATUS_VARIANT[effective]}>{t(`subscriptions.status.${effective}`)}</Badge>;
+                    })()}
+                  </TableCell>
+                  <TableCell className="text-end">
+                    <div className="flex justify-end gap-0.5">
+                      {can('subscriptions.update') && (
+                        <>
+                          <Button
+                            variant="ghost" size="icon"
+                            onClick={() => handleRenew(sub)}
+                            disabled={renew.isPending || sub.status === 'cancelled'}
+                            aria-label={t('subscriptions.renew')}
+                            title={t('subscriptions.renew')}
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost" size="icon"
+                            onClick={() => setCancelling(sub)}
+                            disabled={sub.status === 'cancelled' || sub.status === 'expired'}
+                            aria-label={t('subscriptions.cancel_sub')}
+                            title={t('subscriptions.cancel_sub')}
+                            className="text-[var(--color-destructive)]"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setEditing(sub)} aria-label={t('common.edit')}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
 
       {data && data.meta.last_page > 1 && (
         <div className="flex items-center justify-between text-sm">
-          <span className="text-[var(--color-muted-foreground)]">
-            {data.meta.from}–{data.meta.to} / {data.meta.total}
-          </span>
+          <span className="text-[var(--color-muted-foreground)]">{data.meta.from}–{data.meta.to} / {data.meta.total}</span>
           <div className="flex gap-1">
             <Button variant="outline" size="sm" disabled={page === 1 || isFetching} onClick={() => setPage((p) => p - 1)}>
               {t('common.back')}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= data.meta.last_page || isFetching}
-              onClick={() => setPage((p) => p + 1)}
-            >
+            <Button variant="outline" size="sm" disabled={page >= data.meta.last_page || isFetching} onClick={() => setPage((p) => p + 1)}>
               ›
             </Button>
           </div>
         </div>
       )}
 
-      <Dialog
-        open={creating || editing !== null}
-        onOpenChange={(open) => { if (!open) { setCreating(false); setEditing(null); } }}
-      >
-        <DialogContent className="max-w-2xl">
+      <Dialog open={creating || editing !== null} onOpenChange={(o) => { if (!o) { setCreating(false); setEditing(null); } }}>
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editing ? t('subscriptions.edit') : t('subscriptions.create')}</DialogTitle>
             <DialogDescription className="sr-only">{t('subscriptions.subtitle')}</DialogDescription>
@@ -239,6 +318,21 @@ export function SubscriptionsIndex() {
           />
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={cancelling !== null} onOpenChange={(o) => !o && setCancelling(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('subscriptions.cancel_confirm_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('subscriptions.cancel_confirm_body', { clinic: cancelling?.clinic?.name ?? '' })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancel} disabled={cancel.isPending}>{t('subscriptions.cancel_sub')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

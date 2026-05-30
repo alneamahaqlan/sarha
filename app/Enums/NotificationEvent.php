@@ -26,6 +26,15 @@ enum NotificationEvent: string
     case COMPLAINT_CREATED          = 'complaint_created';
     case QUOTE_CREATED              = 'quote_created';
 
+    // ── Clinic-side subscription lifecycle ─────────────────────────
+    // Fired by the daily lifecycle command + SubscriptionService so
+    // the clinic owner sees activation receipts, renewal reminders,
+    // and the grace-period countdown without checking the admin.
+    case SUBSCRIPTION_EXPIRING_SOON = 'subscription_expiring_soon';
+    case SUBSCRIPTION_EXPIRED       = 'subscription_expired';
+    case SUBSCRIPTION_ACTIVATED     = 'subscription_activated';
+    case SUBSCRIPTION_CANCELLED     = 'subscription_cancelled';
+
     // ── User-side events ───────────────────────────────────────────
     case BOOKING_CONFIRMED          = 'booking_confirmed';
     case COMPLAINT_REPLIED          = 'complaint_replied';
@@ -45,7 +54,11 @@ enum NotificationEvent: string
             self::BOOKING_CREATED,
             self::BOOKING_CANCELLED_BY_USER,
             self::COMPLAINT_CREATED,
-            self::QUOTE_CREATED => Clinic::class,
+            self::QUOTE_CREATED,
+            self::SUBSCRIPTION_EXPIRING_SOON,
+            self::SUBSCRIPTION_EXPIRED,
+            self::SUBSCRIPTION_ACTIVATED,
+            self::SUBSCRIPTION_CANCELLED => Clinic::class,
 
             self::BOOKING_CONFIRMED,
             self::COMPLAINT_REPLIED,
@@ -59,17 +72,21 @@ enum NotificationEvent: string
     public function priority(): NotificationPriority
     {
         return match ($this) {
-            self::AI_EMERGENCY => NotificationPriority::URGENT,
+            self::AI_EMERGENCY,
+            self::SUBSCRIPTION_EXPIRED => NotificationPriority::URGENT,
 
             self::BOOKING_CREATED,
             self::BOOKING_CANCELLED_BY_USER,
             self::COMPLAINT_CREATED,
             self::BOOKING_CONFIRMED,
-            self::CLINIC_PENDING_APPROVAL => NotificationPriority::HIGH,
+            self::CLINIC_PENDING_APPROVAL,
+            self::SUBSCRIPTION_EXPIRING_SOON => NotificationPriority::HIGH,
 
             self::QUOTE_CREATED,
             self::COMPLAINT_REPLIED,
-            self::QUOTE_REPLIED => NotificationPriority::NORMAL,
+            self::QUOTE_REPLIED,
+            self::SUBSCRIPTION_ACTIVATED,
+            self::SUBSCRIPTION_CANCELLED => NotificationPriority::NORMAL,
         };
     }
 
@@ -83,6 +100,10 @@ enum NotificationEvent: string
             self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
             self::CLINIC_PENDING_APPROVAL                    => 'building-2',
             self::AI_EMERGENCY                               => 'siren',
+            self::SUBSCRIPTION_EXPIRING_SOON                 => 'clock',
+            self::SUBSCRIPTION_EXPIRED                       => 'alert-octagon',
+            self::SUBSCRIPTION_ACTIVATED                     => 'check-circle',
+            self::SUBSCRIPTION_CANCELLED                     => 'x-circle',
         };
     }
 
@@ -124,6 +145,14 @@ enum NotificationEvent: string
             self::AI_EMERGENCY => isset($data['conversation_id'])
                 ? '/app/admin/ai-center?conversation=' . urlencode((string) $data['conversation_id'])
                 : '/app/admin/ai-center',
+
+            // Subscription lifecycle — all four land the clinic owner on
+            // their subscription page so they see status + the "تواصل
+            // للترقية" button without an extra click.
+            self::SUBSCRIPTION_EXPIRING_SOON,
+            self::SUBSCRIPTION_EXPIRED,
+            self::SUBSCRIPTION_ACTIVATED,
+            self::SUBSCRIPTION_CANCELLED => '/app/clinic/subscription',
         };
     }
 

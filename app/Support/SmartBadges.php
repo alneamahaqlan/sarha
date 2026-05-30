@@ -39,8 +39,12 @@ class SmartBadges
             $badges[] = ['label_key' => 'site.badge_most_booked', 'color' => 'red'];
         }
 
-        // Featured shorthand (always last so it doesn't crowd)
-        if ($clinic->is_featured) {
+        // Featured shorthand — admin manual flag OR package featured_in_search.
+        // The pkg_featured_in_search column comes from Clinic::scopeWithPackageFeatures
+        // (set on the search/listing queries), but we still fall back to the
+        // legacy is_featured boolean for backwards compatibility.
+        $packageFeatured = (int) ($clinic->pkg_featured_in_search ?? 0) === 1;
+        if ($clinic->is_featured || $packageFeatured) {
             $badges[] = ['label_key' => 'site.badge_featured_short', 'color' => 'amber'];
         }
 
