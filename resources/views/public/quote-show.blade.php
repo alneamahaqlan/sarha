@@ -45,9 +45,22 @@
             @foreach($replies as $reply)
                 <div class="bg-white rounded-xl shadow-sm p-5">
                     <div class="flex items-center justify-between gap-3 mb-2">
-                        <a href="{{ route('clinic.show', $reply->clinic->slug) }}" class="font-bold text-gray-800 hover:text-sage-600">
-                            {{ $reply->clinic->name }}
-                        </a>
+                        <div class="min-w-0">
+                            <a href="{{ route('clinic.show', $reply->clinic->slug) }}" class="font-bold text-gray-800 hover:text-sage-600">
+                                {{ $reply->clinic->name }}
+                            </a>
+                            {{-- Team-member attribution (Phase: team members). Snapshot
+                                 fields carry the member name/role even after the member
+                                 is soft-deleted, so the customer-facing string is stable. --}}
+                            @if($reply->replied_by_name_snapshot && $reply->replied_by_member_id)
+                                <div class="mt-0.5 text-xs text-gray-500">
+                                    @lang('site.reply_by_member', [
+                                        'member' => $reply->replied_by_name_snapshot,
+                                        'role'   => __('site.role_' . ($reply->replied_by_role_snapshot ?? 'owner')),
+                                    ])
+                                </div>
+                            @endif
+                        </div>
                         <div class="flex items-center gap-2">
                             @if($reply->price)
                                 <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>

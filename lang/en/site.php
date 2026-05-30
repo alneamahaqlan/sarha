@@ -223,6 +223,13 @@ return [
     'verified_badge_tooltip' => 'Complex verified by the platform administration',
     'premium_badge' => 'Premium',
 
+    // Team-member attribution on customer-facing replies (price quote / complaint).
+    'reply_by_member' => 'Reply from the complex team — :member (:role)',
+    'reply_by_clinic_team' => 'Reply from :clinic team',
+    'role_owner' => 'Owner',
+    'role_coordinator' => 'Coordinator',
+    'role_reception' => 'Reception',
+
     // Smart badges (search results)
     'badge_top_rated' => 'Top rated',
     'badge_best_price' => 'Best price',

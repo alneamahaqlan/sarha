@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\StoreQuoteReplyRequest;
 use App\Http\Resources\Api\V1\QuoteRequestResource;
+use App\Models\ClinicTeamMember;
 use App\Models\PriceQuoteReply;
 use App\Models\PriceQuoteRequest;
+use App\Services\ClinicActivityLogger;
+use App\Support\ActingClinicUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -18,6 +21,10 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
  */
 class PriceQuoteRequestController extends Controller
 {
+    public function __construct(
+        private readonly ClinicActivityLogger $activity,
+    ) {}
+
     private function clinic()
     {
         return auth('clinic')->user();
@@ -70,19 +77,34 @@ class PriceQuoteRequestController extends Controller
         );
 
         $data = $request->validated();
+        $actor = ActingClinicUser::actor();
+        $role  = ActingClinicUser::role();
 
-        PriceQuoteReply::updateOrCreate(
+        // Snapshot the member identity onto the reply so the customer-
+        // facing view can attribute the answer even after the member
+        // is soft-deleted. Owner replies leave the FK null and only
+        // carry the name snapshot.
+        $reply = PriceQuoteReply::updateOrCreate(
             ['price_quote_request_id' => $priceQuote->id, 'clinic_id' => $clinic->id],
             [
-                'body'      => $data['body'],
-                'price'     => $data['price'] ?? null,
-                'is_public' => (bool) ($data['is_public'] ?? false),
+                'body'                       => $data['body'],
+                'price'                      => $data['price'] ?? null,
+                'is_public'                  => (bool) ($data['is_public'] ?? false),
+                'replied_by_member_id'       => $actor instanceof ClinicTeamMember ? $actor->id : null,
+                'replied_by_name_snapshot'   => ActingClinicUser::actorName(),
+                'replied_by_role_snapshot'   => $role->value,
             ],
         );
 
         if ($priceQuote->status === 'new') {
             $priceQuote->update(['status' => 'replied']);
         }
+
+        $this->activity->log('price_quote.replied', $priceQuote, [
+            'customer'   => $priceQuote->customer_name,
+            'service'    => $priceQuote->service_name,
+            'reply_id'   => $reply->id,
+        ]);
 
         $priceQuote->load([
             'cities:id,name,name_en',

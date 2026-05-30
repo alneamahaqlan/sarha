@@ -28,6 +28,14 @@ class ComplaintResource extends JsonResource
             'assigned_admin_id' => $this->assigned_admin_id,
             'resolved_at'       => $this->resolved_at?->toIso8601String(),
             'clinic_notified'   => (bool) $this->clinic_notified,
+            // Clinic-side reply (Phase: team members). Snapshot fields
+            // survive soft-deletion of the member so the customer-facing
+            // view always has a name to render.
+            'clinic_reply_text'                => $this->clinic_reply_text,
+            'clinic_replied_by_member_id'      => $this->clinic_replied_by_member_id,
+            'clinic_replied_by_name_snapshot'  => $this->clinic_replied_by_name_snapshot,
+            'clinic_replied_by_role_snapshot'  => $this->clinic_replied_by_role_snapshot,
+            'clinic_replied_at'                => $this->clinic_replied_at?->toIso8601String(),
             'clinic'            => $this->whenLoaded('clinic', fn() => $this->clinic ? [
                 'id'   => $this->clinic->id,
                 'name' => $this->clinic->name,

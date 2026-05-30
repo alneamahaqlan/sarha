@@ -515,4 +515,13 @@ return [
         'renewal_note' => 'Auto-renewal of previous subscription #:ref',
         'approval_trial_note' => 'Trial period granted on clinic approval (:days days).',
     ],
+
+    'team' => [
+        'forbidden_role'        => 'Your role is not allowed to access this page.',
+        'phone_taken'           => 'This phone number is already a member of your team.',
+        'phone_in_use_by_owner' => 'This phone number belongs to another clinic owner account.',
+        'role_invalid'          => 'Invalid role. Choose coordinator or reception.',
+        'removed_ok'            => 'Member removed. Their past activity history is preserved.',
+        'no_package'            => 'No package',
+    ],
 ];

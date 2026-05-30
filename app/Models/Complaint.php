@@ -26,14 +26,27 @@ class Complaint extends Model
         'subject', 'description',
         'admin_notes', 'resolution',
         'assigned_admin_id', 'resolved_at', 'clinic_notified',
+        // Clinic-side reply (Phase: team members)
+        'clinic_reply_text',
+        'clinic_replied_by_member_id',
+        'clinic_replied_by_name_snapshot',
+        'clinic_replied_by_role_snapshot',
+        'clinic_replied_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'resolved_at'     => 'datetime',
-            'clinic_notified' => 'boolean',
+            'resolved_at'       => 'datetime',
+            'clinic_notified'   => 'boolean',
+            'clinic_replied_at' => 'datetime',
         ];
+    }
+
+    /** The team member who replied on behalf of the clinic (nullable). */
+    public function clinicRepliedByMember()
+    {
+        return $this->belongsTo(ClinicTeamMember::class, 'clinic_replied_by_member_id');
     }
 
     protected static function booted(): void

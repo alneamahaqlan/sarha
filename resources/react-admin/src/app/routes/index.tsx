@@ -1,11 +1,33 @@
-import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense, type ReactNode, useEffect } from 'react';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { AdminLayout } from '@/app/layouts/AdminLayout';
 import { ClinicLayout } from '@/app/layouts/ClinicLayout';
 import { apiClient } from '@/lib/api-client';
 import { queryClient } from '@/lib/query-client';
+
+/**
+ * Route-level guard for clinic-side pages that require a specific
+ * ability. If the active user lacks it, redirect to the dashboard
+ * with a toast instead of rendering the page. Mirrors the backend's
+ * `clinic.role:` middleware so hand-typing a forbidden URL behaves
+ * the same as hitting it from a hidden nav item.
+ */
+function RoleGuard({ ability, children }: { ability: string; children: ReactNode }) {
+  const { can } = useAuth();
+  const navigate = useNavigate();
+  const allowed = can(ability);
+  useEffect(() => {
+    if (!allowed) {
+      toast.error('ليس لديك صلاحية للوصول لهذه الصفحة.');
+      navigate('/app/clinic/dashboard', { replace: true });
+    }
+  }, [allowed, navigate]);
+  if (!allowed) return null;
+  return <>{children}</>;
+}
 
 // All resource pages are lazy-loaded so the initial bundle stays small.
 // Layouts + auth provider stay eager (they're needed for the shell).
@@ -55,6 +77,8 @@ const ClinicSubscriptionPage = lazy(() => import('@/features/clinic/subscription
 const ImportServicesPage  = lazy(() => import('@/features/clinic/import-services/pages/ImportServicesPage').then(m => ({ default: m.ImportServicesPage })));
 const ClinicPageBuilderIndex = lazy(() => import('@/features/clinic/page-builder/pages/ClinicPageBuilderIndex').then(m => ({ default: m.ClinicPageBuilderIndex })));
 const ClinicOffersIndex = lazy(() => import('@/features/clinic/offers/pages/ClinicOffersIndex').then(m => ({ default: m.ClinicOffersIndex })));
+const ClinicTeamIndex = lazy(() => import('@/features/clinic/team/pages/ClinicTeamIndex').then(m => ({ default: m.ClinicTeamIndex })));
+const ClinicTeamActivityPage = lazy(() => import('@/features/clinic/team/pages/ClinicTeamActivityPage').then(m => ({ default: m.ClinicTeamActivityPage })));
 
 function PageFallback() {
   return (
@@ -138,23 +162,25 @@ export function AppRoutes() {
             <Route path="clinic">
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<ClinicDashboardPage />} />
-              <Route path="stats" element={<ClinicMyStatsPage />} />
-              <Route path="services" element={<ClinicServicesIndex />} />
-              <Route path="sub-clinics" element={<ClinicSubClinicsIndex />} />
-              <Route path="doctors" element={<ClinicDoctorsIndex />} />
-              <Route path="packages" element={<ClinicPackagesIndex />} />
-              <Route path="offers" element={<ClinicOffersIndex />} />
-              <Route path="before-after" element={<ClinicBeforeAfterIndex />} />
-              <Route path="category-requests" element={<ClinicCategoryRequestsIndex />} />
-              <Route path="bookings" element={<ClinicBookingsIndex />} />
-              <Route path="price-quotes" element={<ClinicQuotesIndex />} />
-              <Route path="complaints" element={<ClinicComplaintsIndex />} />
-              <Route path="reports" element={<ClinicReportsIndex />} />
-              <Route path="articles" element={<ClinicArticlesIndex />} />
-              <Route path="import-services" element={<ImportServicesPage />} />
-              <Route path="page-builder" element={<ClinicPageBuilderIndex />} />
-              <Route path="subscription" element={<ClinicSubscriptionPage />} />
+              <Route path="stats" element={<RoleGuard ability="stats.view"><ClinicMyStatsPage /></RoleGuard>} />
+              <Route path="services" element={<RoleGuard ability="services.view"><ClinicServicesIndex /></RoleGuard>} />
+              <Route path="sub-clinics" element={<RoleGuard ability="sub_clinics.view"><ClinicSubClinicsIndex /></RoleGuard>} />
+              <Route path="doctors" element={<RoleGuard ability="doctors.view"><ClinicDoctorsIndex /></RoleGuard>} />
+              <Route path="packages" element={<RoleGuard ability="packages.view"><ClinicPackagesIndex /></RoleGuard>} />
+              <Route path="offers" element={<RoleGuard ability="offers.view"><ClinicOffersIndex /></RoleGuard>} />
+              <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
+              <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
+              <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsIndex /></RoleGuard>} />
+              <Route path="price-quotes" element={<RoleGuard ability="price_quotes.view"><ClinicQuotesIndex /></RoleGuard>} />
+              <Route path="complaints" element={<RoleGuard ability="complaints.view"><ClinicComplaintsIndex /></RoleGuard>} />
+              <Route path="reports" element={<RoleGuard ability="complaints.view"><ClinicReportsIndex /></RoleGuard>} />
+              <Route path="articles" element={<RoleGuard ability="articles.view"><ClinicArticlesIndex /></RoleGuard>} />
+              <Route path="import-services" element={<RoleGuard ability="services.manage"><ImportServicesPage /></RoleGuard>} />
+              <Route path="page-builder" element={<RoleGuard ability="page_builder.view"><ClinicPageBuilderIndex /></RoleGuard>} />
+              <Route path="subscription" element={<RoleGuard ability="subscription.view"><ClinicSubscriptionPage /></RoleGuard>} />
               <Route path="profile" element={<ClinicProfilePage />} />
+              <Route path="team" element={<RoleGuard ability="team.view"><ClinicTeamIndex /></RoleGuard>} />
+              <Route path="team-activity" element={<RoleGuard ability="team_activity.view"><ClinicTeamActivityPage /></RoleGuard>} />
             </Route>
           </Route>
           <Route path="/login" element={<Navigate to="/clinic/dashboard" replace />} />

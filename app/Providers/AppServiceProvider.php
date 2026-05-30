@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Observers\ArticleObserver;
 use App\Observers\AuditObserver;
 use App\Observers\BookingObserver;
+use App\Observers\ClinicActivityObserver;
 use App\Observers\ComplaintObserver;
 use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
@@ -66,5 +67,25 @@ class AppServiceProvider extends ServiceProvider
 
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);
+
+        // Clinic-team activity log — auto-records create/update/delete
+        // for catalog models. Only fires when there's an acting clinic
+        // user (skipped during seeders / artisan jobs). Each entry
+        // includes the actor (owner or team member) so the clinic-owner
+        // can answer "who edited this?" from one place.
+        $clinicActivityModels = [
+            \App\Models\Service::class,
+            \App\Models\Doctor::class,
+            \App\Models\Package::class, // clinic-side service bundles
+            \App\Models\Offer::class,
+            \App\Models\BeforeAfterPhoto::class,
+            \App\Models\SubClinic::class,
+            Article::class,
+        ];
+        foreach ($clinicActivityModels as $model) {
+            if (class_exists($model)) {
+                $model::observe(ClinicActivityObserver::class);
+            }
+        }
     }
 }

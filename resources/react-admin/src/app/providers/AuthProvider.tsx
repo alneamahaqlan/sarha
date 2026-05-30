@@ -2,13 +2,15 @@ import { createContext, useContext, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { apiClient } from '@/lib/api-client';
-import type { CurrentUserResponse } from '@/types/api';
+import type { ClinicActing, CurrentUserResponse } from '@/types/api';
 
 interface AuthContextValue {
   user: CurrentUserResponse['data'] | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   can: (perm: string) => boolean;
+  /** Acting overlay (clinic-side only); null for non-clinic sessions. */
+  acting: ClinicActing | null;
   refetch: () => Promise<unknown>;
 }
 
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!data,
     can: (perm) => !!data?.permissions?.[perm],
+    acting: data?.acting ?? null,
     refetch,
   };
 
@@ -46,4 +49,13 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');
   return ctx;
+}
+
+/**
+ * Convenience hook — checks an ability against the current user's
+ * permissions map. Equivalent to `useAuth().can(ability)` but reads
+ * cleaner at call sites that only need the check.
+ */
+export function useCan(ability: string): boolean {
+  return useAuth().can(ability);
 }

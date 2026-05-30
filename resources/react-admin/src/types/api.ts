@@ -27,6 +27,20 @@ export interface ErrorResponse {
 
 export type Guard = 'admin' | 'clinic' | 'web';
 
+/**
+ * Acting overlay shipped only for `guard === 'clinic'`. Describes who
+ * is currently using the panel — owner (Clinic itself) or a team
+ * member acting on its behalf. The clinic's identity stays in `user`
+ * so older callers that read `user.id` / `user.name` are not broken.
+ */
+export interface ClinicActing {
+  type: 'owner' | 'member';
+  id: number | null;
+  name: string | null;
+  role: 'owner' | 'coordinator' | 'reception';
+  is_owner: boolean;
+}
+
 export interface CurrentUserResponse {
   data: {
     guard: Guard;
@@ -41,5 +55,7 @@ export interface CurrentUserResponse {
     };
     permissions: Record<string, boolean>;
     impersonating: boolean;
+    /** Only present when guard === 'clinic'. */
+    acting?: ClinicActing;
   };
 }

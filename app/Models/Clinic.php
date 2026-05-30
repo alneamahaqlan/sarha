@@ -153,6 +153,34 @@ class Clinic extends Authenticatable
     }
 
     /**
+     * Non-owner team accounts (coordinator / reception). The owner is
+     * NOT in this collection — they live on the Clinic row itself.
+     */
+    public function teamMembers()
+    {
+        return $this->hasMany(ClinicTeamMember::class);
+    }
+
+    /**
+     * Activity log entries scoped to this clinic — both owner-driven
+     * and team-member-driven events land here.
+     */
+    public function activityLogs()
+    {
+        return $this->hasMany(ClinicActivityLog::class);
+    }
+
+    /**
+     * The owner-as-actor side of the activity log polymorphic relation.
+     * Lets us write `$clinic->ownerActivityLogs` to fetch only what the
+     * owner did, separate from team-member entries.
+     */
+    public function ownerActivityLogs()
+    {
+        return $this->morphMany(ClinicActivityLog::class, 'actor');
+    }
+
+    /**
      * The package currently in force for the clinic. Direct FK
      * (subscription_package_id) — kept on the clinic row itself so
      * gates can resolve in one query without hitting subscriptions.

@@ -283,47 +283,57 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Lookup for sub-clinics (clinic-owned, used in the service form).
         Route::get('lookups/sub-clinics', [ClinicSubClinicController::class, 'lookup'])->name('clinic.lookups.sub-clinics');
 
-        // Services (clinic-owned) + reorder.
-        Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');
-        // Explicit name prefix — the same path lives under /admin/services with the
-        // same auto-generated names, so route:cache refuses to serialize duplicates.
-        Route::apiResource('services', ClinicServiceController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->names('clinic.services');
+        // Catalog & content routes — coordinator + owner only.
+        // Reception is blocked because their daily job covers bookings/
+        // complaints/quotes; editing services, doctors, etc. is out of
+        // their lane per spec.
+        Route::middleware('clinic.role:services.manage')->group(function () {
+            Route::post('services/reorder', [ClinicServiceController::class, 'reorder'])->name('clinic.services.reorder');
+            Route::apiResource('services', ClinicServiceController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.services');
 
-        // Sub-clinics (the "clinic" middle level) + reorder + delete guard.
-        Route::post('sub-clinics/reorder', [ClinicSubClinicController::class, 'reorder'])->name('clinic.sub-clinics.reorder');
-        Route::apiResource('sub-clinics', ClinicSubClinicController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->parameters(['sub-clinics' => 'subClinic']);
+            Route::post('import-services/analyze', [ClinicImportServicesController::class, 'analyze'])->name('clinic.import-services.analyze');
+            Route::post('import-services/execute', [ClinicImportServicesController::class, 'execute'])->name('clinic.import-services.execute');
+        });
 
-        // Doctors (showcase) — clinic-owned CRUD.
-        Route::apiResource('doctors', ClinicDoctorController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->names('clinic.doctors');
+        Route::middleware('clinic.role:sub_clinics.manage')->group(function () {
+            Route::post('sub-clinics/reorder', [ClinicSubClinicController::class, 'reorder'])->name('clinic.sub-clinics.reorder');
+            Route::apiResource('sub-clinics', ClinicSubClinicController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->parameters(['sub-clinics' => 'subClinic']);
+        });
 
-        // Packages (bundles of services) — clinic-owned CRUD.
-        Route::apiResource('packages', ClinicPackageController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->names('clinic.packages');
+        Route::middleware('clinic.role:doctors.manage')->group(function () {
+            Route::apiResource('doctors', ClinicDoctorController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.doctors');
+        });
 
-        // Offers (standalone promo entity, replaced the legacy
-        // old_price/is_featured_offer fields on services). "extend" is a
-        // quick-action bump on ends_at — called by the "تمديد" button.
-        Route::post('offers/{offer}/extend', [ClinicOfferController::class, 'extend'])->name('clinic.offers.extend');
-        Route::apiResource('offers', ClinicOfferController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->names('clinic.offers');
+        Route::middleware('clinic.role:packages.manage')->group(function () {
+            Route::apiResource('packages', ClinicPackageController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.packages');
+        });
 
-        // Before/after photo gallery — clinic-owned CRUD.
-        Route::apiResource('before-after', ClinicBeforeAfterController::class)
-            ->only(['index', 'store', 'update', 'destroy'])
-            ->parameters(['before-after' => 'beforeAfter'])
-            ->names('clinic.before-after');
+        Route::middleware('clinic.role:offers.manage')->group(function () {
+            Route::post('offers/{offer}/extend', [ClinicOfferController::class, 'extend'])->name('clinic.offers.extend');
+            Route::apiResource('offers', ClinicOfferController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.offers');
+        });
 
-        // Specialty (category) requests submitted to the admins.
-        Route::get('category-requests', [ClinicCategoryRequestController::class, 'index'])->name('clinic.category-requests.index');
-        Route::post('category-requests', [ClinicCategoryRequestController::class, 'store'])->name('clinic.category-requests.store');
+        Route::middleware('clinic.role:before_after.manage')->group(function () {
+            Route::apiResource('before-after', ClinicBeforeAfterController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->parameters(['before-after' => 'beforeAfter'])
+                ->names('clinic.before-after');
+        });
+
+        Route::middleware('clinic.role:category_requests.view')->group(function () {
+            Route::get('category-requests', [ClinicCategoryRequestController::class, 'index'])->name('clinic.category-requests.index');
+            Route::post('category-requests', [ClinicCategoryRequestController::class, 'store'])->name('clinic.category-requests.store');
+        });
 
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
@@ -339,9 +349,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Records a complex's outreach to a customer (WhatsApp/call) → stats + visibility.
         Route::post('outreach', [ClinicOutreachController::class, 'store'])->name('clinic.outreach');
 
-        // Customer complaints filed AGAINST this complex — read-only here
-        // (the complex sees what was raised against them; admins resolve).
+        // Customer complaints filed AGAINST this complex. List is
+        // read-only; the new `reply` endpoint lets the complex respond
+        // once per complaint (the customer-facing view shows the team
+        // member's name + role per spec).
         Route::get('complaints', [ClinicComplaintController::class, 'index'])->name('clinic.complaints.index');
+        Route::middleware('clinic.role:complaints.reply')->group(function () {
+            Route::post('complaints/{complaint}/reply', [ClinicComplaintController::class, 'reply'])->name('clinic.complaints.reply');
+        });
 
         // Reports raised BY the complex to platform admins (the old
         // "clinic complaint" surface, redesigned with proper report types:
@@ -349,36 +364,52 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('reports', [ClinicReportController::class, 'index'])->name('clinic.reports.index');
         Route::post('reports', [ClinicReportController::class, 'store'])->name('clinic.reports.store');
 
-        // Articles — CRUD + AI generate (excerpt/article). ArticleObserver enforces
-        // the basic-plan monthly publish limit; preserved as-is via Model events.
-        Route::post('articles/generate-ai', [ClinicArticleController::class, 'generateAi'])->name('clinic.articles.generate-ai');
-        Route::apiResource('articles', ClinicArticleController::class)->names('clinic.articles');
+        // Articles — coordinator + owner only.
+        Route::middleware('clinic.role:articles.manage')->group(function () {
+            Route::post('articles/generate-ai', [ClinicArticleController::class, 'generateAi'])->name('clinic.articles.generate-ai');
+            Route::apiResource('articles', ClinicArticleController::class)->names('clinic.articles');
+        });
 
-        // Profile — self-update of the authenticated clinic.
+        // Profile read — anyone authenticated; write — owner only.
         Route::get('profile', [ClinicProfileController::class, 'show'])->name('clinic.profile.show');
-        Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
-        Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
-        Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
         Route::get('reviews', [ClinicProfileController::class, 'reviews'])->name('clinic.reviews');
+        Route::middleware('clinic.role:profile.manage')->group(function () {
+            Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
+            Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
+            Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
+        });
 
-        // Subscription — display-only current plan + platform plan prices.
-        Route::get('subscription', [ClinicProfileController::class, 'subscription'])->name('clinic.subscription');
+        // Subscription — owner only (sensitive financial data per spec).
+        Route::middleware('clinic.role:subscription.view')->group(function () {
+            Route::get('subscription', [ClinicProfileController::class, 'subscription'])->name('clinic.subscription');
+        });
 
-        // Working hours — 7-day schedule (creates defaults on first read).
-        Route::get('working-hours', [ClinicWorkingHoursController::class, 'index'])->name('clinic.working-hours.index');
-        Route::put('working-hours', [ClinicWorkingHoursController::class, 'update'])->name('clinic.working-hours.update');
+        // Working hours — coordinator + owner (catalog management).
+        Route::middleware('clinic.role:services.manage')->group(function () {
+            Route::get('working-hours', [ClinicWorkingHoursController::class, 'index'])->name('clinic.working-hours.index');
+            Route::put('working-hours', [ClinicWorkingHoursController::class, 'update'])->name('clinic.working-hours.update');
+        });
 
-        // Import services — 2-step flow (analyze CSV → execute import) using
-        // the same ImportServicesService that the Filament page now calls.
-        Route::post('import-services/analyze', [ClinicImportServicesController::class, 'analyze'])->name('clinic.import-services.analyze');
-        Route::post('import-services/execute', [ClinicImportServicesController::class, 'execute'])->name('clinic.import-services.execute');
+        // Page Builder — coordinator + owner.
+        Route::middleware('clinic.role:page_builder.manage')->group(function () {
+            Route::get('page-sections', [ClinicPageSectionController::class, 'index'])->name('clinic.page-sections.index');
+            Route::post('page-sections/reorder', [ClinicPageSectionController::class, 'reorder'])->name('clinic.page-sections.reorder');
+            Route::patch('page-sections/{section}', [ClinicPageSectionController::class, 'update'])
+                ->name('clinic.page-sections.update');
+        });
 
-        // Page Builder — clinic-scoped CMS for the public /clinic/{slug}
-        // page. Lazy-seeded on first index() call; reorder via the same
-        // {id, sort_order} array pattern used by Homepage CMS.
-        Route::get('page-sections', [ClinicPageSectionController::class, 'index'])->name('clinic.page-sections.index');
-        Route::post('page-sections/reorder', [ClinicPageSectionController::class, 'reorder'])->name('clinic.page-sections.reorder');
-        Route::patch('page-sections/{section}', [ClinicPageSectionController::class, 'update'])
-            ->name('clinic.page-sections.update');
+        // Team management — owner only.
+        Route::middleware('clinic.role:team.manage')->group(function () {
+            Route::get('team', [\App\Http\Controllers\Api\V1\Clinic\TeamController::class, 'index'])->name('clinic.team.index');
+            Route::post('team', [\App\Http\Controllers\Api\V1\Clinic\TeamController::class, 'store'])->name('clinic.team.store');
+            Route::patch('team/{member}', [\App\Http\Controllers\Api\V1\Clinic\TeamController::class, 'update'])->name('clinic.team.update');
+            Route::post('team/{member}/regenerate-password', [\App\Http\Controllers\Api\V1\Clinic\TeamController::class, 'regeneratePassword'])->name('clinic.team.regenerate-password');
+            Route::delete('team/{member}', [\App\Http\Controllers\Api\V1\Clinic\TeamController::class, 'destroy'])->name('clinic.team.destroy');
+        });
+
+        // Team activity log — owner only.
+        Route::middleware('clinic.role:team_activity.view')->group(function () {
+            Route::get('team-activity', [\App\Http\Controllers\Api\V1\Clinic\TeamActivityController::class, 'index'])->name('clinic.team-activity.index');
+        });
     });
 });

@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Api\V1\Shared;
 
+use App\Enums\ClinicRole;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Clinic;
+use App\Models\ClinicTeamMember;
+use App\Services\ClinicActivityLogger;
+use App\Support\ActingClinicUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -34,25 +38,70 @@ class AuthController extends Controller
             }
             Auth::guard('admin')->login($admin, remember: true);
         } else {
-            $clinic = Clinic::where('phone', $data['phone'])->first();
-            if (! $clinic || ! Hash::check($data['password'], $clinic->password)) {
-                throw ValidationException::withMessages(['phone' => __('auth.failed')]);
-            }
-            Auth::guard('clinic')->login($clinic, remember: true);
+            $this->loginClinic($data['phone'], $data['password']);
         }
 
         $request->session()->regenerate();
 
+        // Activity log: clinic logins (both owner + member) only —
+        // admin sessions are tracked separately via AuditLogService.
+        if ($guard === 'clinic') {
+            app(ClinicActivityLogger::class)->log('auth.login');
+        }
+
         return response()->json(['data' => $this->currentUserPayload($guard)]);
+    }
+
+    /**
+     * Two-stage clinic login: try the Clinic owner row first (existing
+     * behaviour), fall back to a team-member row keyed by the same
+     * phone. Members are logged in as their owning Clinic via the
+     * `clinic` guard, then the session is stamped with the member id
+     * so ActingClinicUser can resolve the acting identity.
+     */
+    private function loginClinic(string $phone, string $password): void
+    {
+        // 1. Owner-as-clinic path (unchanged).
+        $clinic = Clinic::where('phone', $phone)->first();
+        if ($clinic && Hash::check($password, $clinic->password)) {
+            Auth::guard('clinic')->login($clinic, remember: true);
+            ActingClinicUser::clearActingMember();
+            return;
+        }
+
+        // 2. Team-member path. Only active, non-soft-deleted members
+        // can authenticate; their owning clinic must also be active.
+        $member = ClinicTeamMember::active()
+            ->where('phone', $phone)
+            ->first();
+        if (! $member || ! Hash::check($password, $member->password)) {
+            throw ValidationException::withMessages(['phone' => __('auth.failed')]);
+        }
+
+        $owner = $member->clinic;
+        if (! $owner || $owner->status !== 'active') {
+            throw ValidationException::withMessages(['phone' => __('auth.failed')]);
+        }
+
+        Auth::guard('clinic')->login($owner, remember: true);
+        ActingClinicUser::setActingMember($member);
+        $member->forceFill(['last_login_at' => now()])->saveQuietly();
     }
 
     public function logout(Request $request): JsonResponse
     {
+        // Capture activity BEFORE we tear down the session — the
+        // logger reads the actor from there.
+        if (Auth::guard('clinic')->check()) {
+            app(ClinicActivityLogger::class)->log('auth.logout');
+        }
+
         foreach (['admin', 'clinic', 'web'] as $g) {
             if (Auth::guard($g)->check()) {
                 Auth::guard($g)->logout();
             }
         }
+        ActingClinicUser::clearActingMember();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -82,16 +131,39 @@ class AuthController extends Controller
                 'email' => $user->email ?? null,
                 'phone' => $user->phone ?? null,
                 'role'  => $user->role ?? null,
-                // Only meaningful for clinic users — surfaces the public
-                // page slug so the Clinic SPA can deep-link to
-                // /clinic/{slug} (e.g. the Page Builder's "view my page").
                 'slug'  => $guard === 'clinic' ? ($user->slug ?? null) : null,
             ],
             'permissions' => $this->permissionMap($guard, $user),
             'impersonating' => session()->has(\App\Services\ImpersonationService::SESSION_KEY),
         ];
 
+        // Acting overlay — surfaces the team-member identity to the
+        // React layer so the header can show the member's name + role
+        // badge without breaking any caller that reads `user.id` /
+        // `user.name` (which still describe the clinic).
+        if ($guard === 'clinic') {
+            $payload['acting'] = $this->actingPayload();
+        }
+
         return $payload;
+    }
+
+    /**
+     * Describes WHO is currently using the clinic panel: the owner
+     * (Clinic itself) or a team member acting on its behalf.
+     */
+    private function actingPayload(): array
+    {
+        $actor = ActingClinicUser::actor();
+        $role = ActingClinicUser::role();
+
+        return [
+            'type'  => $actor instanceof ClinicTeamMember ? 'member' : 'owner',
+            'id'    => $actor?->getKey(),
+            'name'  => ActingClinicUser::actorName(),
+            'role'  => $role->value,
+            'is_owner' => $actor instanceof Clinic,
+        ];
     }
 
     private function permissionMap(string $guard, $user): array
@@ -142,26 +214,36 @@ class AuthController extends Controller
         }
 
         if ($guard === 'clinic') {
-            return [
-                'services.viewAny'         => true,
-                'services.create'          => true,
-                'services.update'          => true,
-                'services.delete'          => true,
-                'bookings.viewAny'         => true,
-                'bookings.update'          => true,
-                'articles.viewAny'         => true,
-                'articles.create'          => true,
-                'articles.update'          => true,
-                'articles.delete'          => true,
-                'custom_categories.viewAny'=> true,
-                'custom_categories.create' => true,
-                'custom_categories.update' => true,
-                'custom_categories.delete' => true,
-                'price_quotes.viewAny'     => true,
-                'price_quotes.update'      => true,
-                'profile.update'           => true,
-                'import_services.execute'  => true,
-            ];
+            // Role-based map driven by the ClinicRole enum so the
+            // sidebar filter + route middleware + admin badge all
+            // read from one source. Owner gets `*`, members get the
+            // pattern list defined in the enum.
+            $role = ActingClinicUser::role();
+            $payload = $role->permissionMap();
+
+            // Legacy keys still consumed by older clinic-side code
+            // paths. Mapped from the new ability set so behaviour is
+            // unchanged for owner sessions; restricted for members.
+            $payload['services.viewAny']         = $role->can('services.view');
+            $payload['services.create']          = $role->can('services.manage');
+            $payload['services.update']          = $role->can('services.manage');
+            $payload['services.delete']          = $role->can('services.manage');
+            $payload['bookings.viewAny']         = $role->can('bookings.view');
+            $payload['bookings.update']          = $role->can('bookings.update');
+            $payload['articles.viewAny']         = $role->can('articles.view');
+            $payload['articles.create']          = $role->can('articles.manage');
+            $payload['articles.update']          = $role->can('articles.manage');
+            $payload['articles.delete']          = $role->can('articles.manage');
+            $payload['custom_categories.viewAny']= $role->can('category_requests.view');
+            $payload['custom_categories.create'] = $role->can('category_requests.view');
+            $payload['custom_categories.update'] = $role->can('category_requests.view');
+            $payload['custom_categories.delete'] = $role->can('category_requests.view');
+            $payload['price_quotes.viewAny']     = $role->can('price_quotes.view');
+            $payload['price_quotes.update']      = $role->can('price_quotes.reply');
+            $payload['profile.update']           = $role->can('profile.manage');
+            $payload['import_services.execute']  = $role->can('services.manage');
+
+            return $payload;
         }
 
         return [];

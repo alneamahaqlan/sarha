@@ -78,6 +78,11 @@ class DatabaseSeeder extends Seeder
         // "comprehensive user profile" screen has realistic timelines,
         // visit histories, and risk-flag triggers on a fresh seed.
         $this->call(UserActivityPatternsSeeder::class);
+
+        // Team members + activity-log rows for a sample of clinics so
+        // the new "فريقي" + "نشاط الفريق" screens have content on a
+        // fresh seed. Lightweight & idempotent (skips if rows exist).
+        $this->call(ClinicTeamSeeder::class);
     }
 
     private function seedAdmins(): void

@@ -86,6 +86,24 @@
                                 <span class="font-semibold">@lang('site.complaint_resolution'):</span> {{ $complaint->resolution }}
                             </div>
                         @endif
+                        {{-- Clinic-side reply (Phase: team members) with member
+                             attribution. Falls back to clinic name + "team"
+                             when no member is recorded (owner reply). --}}
+                        @if($complaint->clinic_reply_text)
+                            <div class="mt-3 bg-sage-50 border border-sage-100 rounded-lg p-3 text-sm text-sage-900">
+                                <div class="text-xs text-sage-700 mb-1">
+                                    @if($complaint->clinic_replied_by_name_snapshot && $complaint->clinic_replied_by_member_id)
+                                        @lang('site.reply_by_member', [
+                                            'member' => $complaint->clinic_replied_by_name_snapshot,
+                                            'role'   => __('site.role_' . ($complaint->clinic_replied_by_role_snapshot ?? 'owner')),
+                                        ])
+                                    @elseif($complaint->clinic)
+                                        @lang('site.reply_by_clinic_team', ['clinic' => $complaint->clinic->name])
+                                    @endif
+                                </div>
+                                {{ $complaint->clinic_reply_text }}
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400">@lang('site.complaint_none')</div>

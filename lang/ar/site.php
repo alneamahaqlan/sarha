@@ -223,6 +223,13 @@ return [
     'verified_badge_tooltip' => 'مجمع تم توثيقه من قبل إدارة المنصة',
     'premium_badge' => 'مميز',
 
+    // Team-member attribution on customer-facing replies (price quote / complaint).
+    'reply_by_member' => 'ردّ من فريق المجمع — :member (:role)',
+    'reply_by_clinic_team' => 'ردّ من فريق :clinic',
+    'role_owner' => 'المدير',
+    'role_coordinator' => 'منسّق',
+    'role_reception' => 'استقبال',
+
     // Smart badges (search results)
     'badge_top_rated' => 'الأعلى تقييماً',
     'badge_best_price' => 'الأفضل سعراً',

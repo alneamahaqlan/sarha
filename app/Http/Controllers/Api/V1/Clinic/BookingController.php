@@ -6,12 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\UpdateBookingRequest;
 use App\Http\Resources\Api\V1\BookingResource as BookingApiResource;
 use App\Models\Booking;
+use App\Services\ClinicActivityLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class BookingController extends Controller
 {
+    public function __construct(
+        private readonly ClinicActivityLogger $activity,
+    ) {}
+
     public function index(Request $request): AnonymousResourceCollection
     {
         $this->authorize('viewAny', Booking::class);
@@ -68,7 +73,21 @@ class BookingController extends Controller
 
     public function update(UpdateBookingRequest $request, Booking $booking): BookingApiResource
     {
+        $oldStatus = $booking->status;
         $booking->update($request->validated());
+
+        // Explicit activity entry for status transitions — more
+        // meaningful than the generic "booking.updated" the observer
+        // would emit. We only fire when status actually changed.
+        $newStatus = $booking->status;
+        if ($oldStatus !== $newStatus) {
+            $this->activity->log("booking.{$newStatus}", $booking, [
+                'reference' => $booking->reference_code,
+                'customer'  => $booking->customer_name,
+                'from'      => $oldStatus,
+                'to'        => $newStatus,
+            ]);
+        }
 
         return new BookingApiResource($booking->fresh()->load(['service:id,name', 'relative', 'booker:id,name,phone']));
     }
