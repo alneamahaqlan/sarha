@@ -28,3 +28,36 @@ Thumbs.db
 !resources/**/*.png
 !public/**/*.png
 /storage/vapid-backup.txt
+
+# Playwright / E2E test artifacts (generated — never commit)
+/test-results
+/playwright-report
+/blob-report
+/e2e/.cache
+.last-run.json
+/scripts/_screenshots
+
+# Local env overrides & secrets
+.env.*.local
+.env.local
+.env.testing
+/storage/*.pem
+*.local.php
+
+# OS / editor extras
+desktop.ini
+*.swp
+*~
+.cursor/
+
+# Node / JS tooling caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+/.vite
+
+# PHP tooling caches
+/.php-cs-fixer.cache
+/.psalm
+/.phpstan.cache
