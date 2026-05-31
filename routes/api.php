@@ -191,6 +191,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('category-requests/{categoryRequest}/approve', [AdminCategoryRequestController::class, 'approve'])->name('category-requests.approve');
         Route::post('category-requests/{categoryRequest}/reject', [AdminCategoryRequestController::class, 'reject'])->name('category-requests.reject');
 
+        // Unified service catalog — review queue for clinic-proposed canonical
+        // services. Approve flips the entry active + un-hides linked services.
+        Route::get('catalog-services', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'index'])->name('catalog-services.index');
+        Route::post('catalog-services/{catalogService}/approve', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'approve'])->name('catalog-services.approve');
+        Route::post('catalog-services/{catalogService}/reject', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'reject'])->name('catalog-services.reject');
+
         // Clinic — 6 action endpoints (approve/reject/activate/suspend/extend/impersonate)
         // each delegates to ClinicService. Soft-deleted rows reachable via {clinic_trashed}.
         Route::bind('clinic_trashed', fn ($id) => Clinic::withTrashed()->findOrFail($id));
@@ -293,7 +299,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
                 ->only(['index', 'store', 'update', 'destroy'])
                 ->names('clinic.services');
 
+            // Unified-catalog typeahead for the service form.
+            Route::get('catalog-services/suggest', [\App\Http\Controllers\Api\V1\Clinic\CatalogServiceController::class, 'suggest'])->name('clinic.catalog-services.suggest');
+
             Route::post('import-services/analyze', [ClinicImportServicesController::class, 'analyze'])->name('clinic.import-services.analyze');
+            Route::post('import-services/extract-text', [ClinicImportServicesController::class, 'extractText'])->name('clinic.import-services.extract-text');
+            Route::post('import-services/confirm', [ClinicImportServicesController::class, 'confirm'])->name('clinic.import-services.confirm');
             Route::post('import-services/execute', [ClinicImportServicesController::class, 'execute'])->name('clinic.import-services.execute');
         });
 

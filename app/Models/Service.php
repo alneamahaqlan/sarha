@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -11,11 +13,14 @@ class Service extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const APPROVAL_APPROVED = 'approved';
+    public const APPROVAL_PENDING  = 'pending';
+
     protected $fillable = [
-        'clinic_id', 'sub_clinic_id',
+        'clinic_id', 'sub_clinic_id', 'catalog_service_id',
         'name', 'description',
         'price', 'image',
-        'is_active', 'sort_order',
+        'is_active', 'approval_status', 'sort_order',
     ];
 
     protected function casts(): array
@@ -29,6 +34,23 @@ class Service extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    /** The canonical catalog entry this service is an instance of (nullable). */
+    public function catalogService(): BelongsTo
+    {
+        return $this->belongsTo(CatalogService::class);
+    }
+
+    /**
+     * Public visibility gate: a service shows to customers only when it is
+     * active AND its catalog request (if any) was approved. Apply this on
+     * every public-facing query alongside the existing is_active filter.
+     */
+    public function scopeApprovedPublic(Builder $q): Builder
+    {
+        return $q->where('is_active', true)
+            ->where('approval_status', self::APPROVAL_APPROVED);
     }
 
     public function subClinic()

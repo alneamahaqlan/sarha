@@ -29,13 +29,13 @@ class ClinicController extends Controller
             ->with([
                 'city',
                 'categories',
-                'services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
                 // Sub-clinics + their active services for the nested services tab.
                 'subClinics.category',
-                'subClinics.services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
+                'subClinics.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
                 // Doctors showcase + packages (with their services) for their tabs.
                 'doctors.subClinic',
-                'packages.services' => fn($q) => $q->where('is_active', true),
+                'packages.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved'),
                 // Promotional offers — model filter further narrows to the
                 // running window in the blade so the relation hands back
                 // the full list (active+scheduled+expired) and the view
@@ -63,6 +63,7 @@ class ClinicController extends Controller
             ? \App\Models\Service::query()
                 ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'categories:id,name,emoji'])
                 ->where('is_active', true)
+                ->where('approval_status', 'approved')
                 ->whereNotNull('price')
                 ->where('clinic_id', '!=', $clinic->id)
                 ->whereHas('clinic', fn ($q) => $q->publiclyVisible()->where('city_id', $clinic->city_id))
@@ -141,7 +142,7 @@ class ClinicController extends Controller
     {
         $clinic = Clinic::publiclyVisible()
             ->where('slug', $slug)
-            ->with(['services' => fn($q) => $q->where('is_active', true)->orderBy('sort_order')])
+            ->with(['services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order')])
             ->firstOrFail();
 
         $service = $request->filled('service')

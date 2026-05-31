@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\AnalyzeCsvRequest;
+use App\Http\Requests\Api\V1\Clinic\AnalyzeTextRequest;
+use App\Http\Requests\Api\V1\Clinic\ConfirmImportRequest;
 use App\Http\Requests\Api\V1\Clinic\ImportServicesRequest;
 use App\Services\ImportServicesService;
 use Illuminate\Http\JsonResponse;
@@ -33,6 +35,56 @@ class ImportServicesController extends Controller
                 'rows'     => $parsed['rows'],
                 'analysis' => $analysis,
             ],
+        ]);
+    }
+
+    /**
+     * Free-text path: the clinic pastes a price list / .txt and the AI extracts
+     * a draft catalog (services + offers) for on-screen review. Nothing is
+     * saved here — the confirmed rows come back through confirm().
+     */
+    public function extractText(AnalyzeTextRequest $request): JsonResponse
+    {
+        if (! $this->importer->aiAvailable()) {
+            return response()->json(['message' => __('admin.import_ai_unavailable')], 422);
+        }
+
+        try {
+            $catalog = $this->importer->extractCatalogFromText(
+                (int) auth('clinic')->id(),
+                $request->validated()['text'],
+            );
+        } catch (\Throwable) {
+            return response()->json(['message' => __('admin.import_ai_failed')], 422);
+        }
+
+        if (empty($catalog['services']) && empty($catalog['offers'])) {
+            return response()->json(['message' => __('admin.import_empty')], 422);
+        }
+
+        return response()->json(['data' => $catalog]);
+    }
+
+    /**
+     * Persist the catalog rows the clinic ticked in the review table. Services
+     * and offers are saved together in one transaction; returns the counts.
+     */
+    public function confirm(ConfirmImportRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+
+        $result = $this->importer->confirmCatalog(
+            (int) auth('clinic')->id(),
+            $data['services'] ?? [],
+            $data['offers'] ?? [],
+        );
+
+        return response()->json([
+            'data'    => $result,
+            'message' => __('admin.import_confirm_success', [
+                'services' => $result['services_created'],
+                'offers'   => $result['offers_created'],
+            ]),
         ]);
     }
 

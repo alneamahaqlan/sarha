@@ -24,7 +24,7 @@ class CompareController extends Controller
             ->take(3)
             ->values();
 
-        $minPrice = fn ($q) => $q->where('is_active', true)->whereNotNull('price');
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
 
         $clinics = collect();
         if ($ids->isNotEmpty()) {
@@ -33,7 +33,7 @@ class CompareController extends Controller
                 ->with(['city', 'categories'])
                 ->withAvg('googleReviews', 'rating')
                 ->withCount(['googleReviews', 'bookings'])
-                ->withCount(['services as active_services_count' => fn ($q) => $q->where('is_active', true)])
+                ->withCount(['services as active_services_count' => fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')])
                 ->withMin(['services as min_price' => $minPrice], 'price')
                 ->get()
                 // Preserve the order the user selected them in.

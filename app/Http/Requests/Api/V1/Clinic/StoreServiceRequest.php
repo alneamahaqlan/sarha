@@ -18,6 +18,10 @@ class StoreServiceRequest extends FormRequest
 
         return [
             'name'               => ['required', 'string', 'max:255'],
+            // Optional: the clinic picked an existing canonical service from
+            // the catalog typeahead. Must be an active catalog entry; the
+            // resolver re-checks and falls back to name-matching if stale.
+            'catalog_service_id' => ['nullable', 'integer', Rule::exists('catalog_services', 'id')->where('status', 'active')],
             // Every service must be tagged with 1–5 active admin-managed
             // specialties (same lookup the clinic itself uses). Only ACTIVE
             // rows are valid picks so a deprecated specialty can't be

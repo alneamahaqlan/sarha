@@ -20,6 +20,11 @@ export interface Service {
   price: number;
   image: string | null;
   is_active: boolean;
+  /** 'approved' shows publicly; 'pending' is hidden until an admin approves
+   *  the catalog request this service belongs to. */
+  approval_status?: 'approved' | 'pending';
+  catalog_service_id?: number | null;
+  catalog_service?: { id: number; name: string; status: string } | null;
   sort_order: number;
   clinic?: { id: number; name: string };
   created_at: string | null;

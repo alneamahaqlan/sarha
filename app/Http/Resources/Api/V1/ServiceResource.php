@@ -31,6 +31,15 @@ class ServiceResource extends JsonResource
             'price'              => (float) $this->price,
             'image'              => $this->image,
             'is_active'          => (bool) $this->is_active,
+            // Moderation gate: 'approved' shows publicly; 'pending' is hidden
+            // until an admin approves the catalog request it belongs to.
+            'approval_status'    => $this->approval_status,
+            'catalog_service_id' => $this->catalog_service_id,
+            'catalog_service'    => $this->whenLoaded('catalogService', fn () => $this->catalogService ? [
+                'id'     => $this->catalogService->id,
+                'name'   => $this->catalogService->name,
+                'status' => $this->catalogService->status,
+            ] : null),
             'sort_order'         => (int) $this->sort_order,
             'clinic'             => $this->whenLoaded('clinic', fn() => [
                 'id'   => $this->clinic->id,

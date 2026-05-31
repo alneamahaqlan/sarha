@@ -465,6 +465,12 @@ return [
         'already_reviewed' => 'This request has already been reviewed',
     ],
 
+    'catalog_services' => [
+        'already_reviewed' => 'This catalog request has already been reviewed',
+        'approved' => 'Service added to the catalog',
+        'rejected' => 'Catalog request rejected',
+    ],
+
     // ============================================
     // Widget strings
     // ============================================

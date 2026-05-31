@@ -13,6 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -232,7 +233,11 @@ export function ClinicServicesIndex() {
       <TableCell>
         <span className="font-medium">{fmtCurrency(s.price)}</span>
       </TableCell>
-      <TableCell>{s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>
+      <TableCell>
+        {s.approval_status === 'pending'
+          ? <Badge variant="warning">{t('clinic_services.pending_review')}</Badge>
+          : s.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}
+      </TableCell>
       <TableCell className="text-end">
         <div className="flex justify-end gap-1">
           {clinicSlug && (

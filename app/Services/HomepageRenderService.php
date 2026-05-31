@@ -157,7 +157,7 @@ class HomepageRenderService
     {
         $source = data_get($s->config, 'source', 'featured');
         $limit  = $s->item_limit ?? 8;
-        $minPrice = fn ($q) => $q->where('is_active', true)->whereNotNull('price');
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
 
         $base = Clinic::publiclyVisible()
             ->with(['city', 'categories'])
@@ -175,7 +175,7 @@ class HomepageRenderService
                 ->rankedForListing()
                 ->take($limit)->get(),
             'top_rated'   => $base->whereHas('googleReviews')->withCount('googleReviews')->orderByDesc('google_reviews_avg_rating')->take($limit)->get(),
-            'best_priced' => $base->whereHas('services', fn ($q) => $q->where('is_active', true)->whereNotNull('price'))->orderBy('min_price')->take($limit)->get(),
+            'best_priced' => $base->whereHas('services', fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price'))->orderBy('min_price')->take($limit)->get(),
             default       => $base->rankedForListing()->take($limit)->get(),
         };
 

@@ -8,6 +8,7 @@ use App\Http\Requests\Api\V1\Clinic\StoreServiceRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateServiceRequest;
 use App\Http\Resources\Api\V1\ServiceResource as ServiceApiResource;
 use App\Models\Service;
+use App\Services\CatalogServiceResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -15,6 +16,8 @@ use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
+    public function __construct(private readonly CatalogServiceResolver $catalog) {}
+
     private function clinicId(): int
     {
         return (int) auth('clinic')->id();
@@ -25,7 +28,7 @@ class ServiceController extends Controller
         $this->authorize('viewAny', Service::class);
 
         $query = Service::query()
-            ->with('categories:id,name,name_en,slug,emoji')
+            ->with('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status')
             ->where('clinic_id', $this->clinicId());
 
         if ($search = $request->string('search')->toString()) {
@@ -49,15 +52,30 @@ class ServiceController extends Controller
     public function store(StoreServiceRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $data['clinic_id'] = $this->clinicId();
+        $clinicId = $this->clinicId();
+        $data['clinic_id'] = $clinicId;
         $categoryIds = $data['category_ids'] ?? [];
         unset($data['category_ids']);
+
+        // Unified-catalog resolution: link to an existing canonical service
+        // (→ approved, shows immediately) or file a new catalog request
+        // (→ pending, hidden until an admin approves). An explicit
+        // catalog_service_id from the picker skips matching.
+        $resolution = $this->catalog->resolveForCreate(
+            clinicId: $clinicId,
+            name: $data['name'],
+            explicitCatalogServiceId: $data['catalog_service_id'] ?? null,
+            categoryIds: $categoryIds,
+        );
+        $data['catalog_service_id'] = $resolution['catalog_service_id'];
+        $data['approval_status'] = $resolution['approval_status'];
 
         $service = Service::create($data);
         $service->categories()->sync($categoryIds);
 
-        return (new ServiceApiResource($service->load('categories:id,name,name_en,slug,emoji')))
-            ->response()->setStatusCode(201);
+        return (new ServiceApiResource($service->load('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status')))
+            ->response()->setStatusCode(201)
+            ->header('X-Catalog-Status', $resolution['approval_status']);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): ServiceApiResource

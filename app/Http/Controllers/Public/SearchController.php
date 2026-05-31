@@ -48,7 +48,7 @@ class SearchController extends Controller
             ->with(['city', 'categories'])
             ->withAvg('googleReviews', 'rating')
             ->withCount('bookings')
-            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price');
+            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price')], 'price');
 
         if ($request->filled('city')) {
             $query->where('city_id', $request->city);
@@ -66,7 +66,7 @@ class SearchController extends Controller
                 ->where('name', 'like', $like)
                 ->orWhere('description', 'like', $like)
                 ->orWhere('address', 'like', $like)
-                ->orWhereHas('services', fn($s) => $s->where('is_active', true)->where('name', 'like', $like))
+                ->orWhereHas('services', fn($s) => $s->where('is_active', true)->where('approval_status', 'approved')->where('name', 'like', $like))
                 ->orWhereHas('doctors', fn($d) => $d->where('name', 'like', $like))
                 ->orWhereHas('categories', fn($c) => $c
                     ->where('categories.name', 'like', $like)
@@ -131,7 +131,7 @@ class SearchController extends Controller
                 ->orderByDesc('clinics.is_featured')
                 ->orderByDesc('google_reviews_avg_rating'),
             'cheapest' => $query
-                ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
+                ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price')], 'price')
                 ->orderByDesc('pkg_featured_in_search')
                 ->orderByDesc('clinics.is_featured')
                 ->orderBy('min_price'),
@@ -167,7 +167,7 @@ class SearchController extends Controller
             ->with(['city:id,name,name_en', 'categories:id,name,name_en'])
             ->withAvg('googleReviews', 'rating')
             ->withCount('googleReviews')
-            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->whereNotNull('price')], 'price')
+            ->withMin(['services as min_price' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price')], 'price')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->take(200)
@@ -277,6 +277,7 @@ class SearchController extends Controller
             ->values();
 
         $services = \App\Models\Service::where('is_active', true)
+            ->where('approval_status', 'approved')
             ->where('name', 'like', $like)
             ->whereHas('clinic', fn ($q) => $q->publiclyVisible())
             ->with('clinic:id,name,slug')
