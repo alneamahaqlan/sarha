@@ -65,21 +65,6 @@ class CustomersBackfillSeeder extends Seeder
                     }
                 });
         }
-
-        // booking_customer_tags is keyed by phone — keep it in sync so
-        // the existing Kanban tag-matching keeps working after backfill.
-        DB::table('booking_customer_tags')
-            ->orderBy('id')
-            ->chunk(500, function ($rows) {
-                foreach ($rows as $r) {
-                    $normalized = PhoneNormalizer::normalizeOrSelf($r->customer_phone);
-                    if ($normalized !== $r->customer_phone) {
-                        DB::table('booking_customer_tags')
-                            ->where('id', $r->id)
-                            ->update(['customer_phone' => $normalized]);
-                    }
-                }
-            });
     }
 
     /**
