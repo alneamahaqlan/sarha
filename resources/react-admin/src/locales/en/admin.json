@@ -498,6 +498,8 @@
       "rejected": "Rejected"
     },
     "plan": {
+      "free": "Free",
+      "standard": "Standard",
       "basic": "Basic",
       "premium": "Premium"
     },

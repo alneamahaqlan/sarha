@@ -38,7 +38,9 @@ const schema = z.object({
   longitude: z.string().nullish().or(z.literal('')),
   description: z.string().nullish(),
   status: z.enum(['pending', 'active', 'suspended', 'rejected']),
-  subscription_type: z.enum(['basic', 'premium']).nullish().or(z.literal('')),
+  // Dropdown offers free/standard/premium (CLINIC_PLANS); 'basic' is accepted
+  // only so a legacy clinic can load + save without a type error.
+  subscription_type: z.enum(['free', 'standard', 'basic', 'premium']).nullish().or(z.literal('')),
   subscription_starts_at: z.string().nullish().or(z.literal('')),
   subscription_ends_at: z.string().nullish().or(z.literal('')),
   is_featured: z.boolean(),
@@ -318,7 +320,16 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
                 onChange={(e) => form.setValue('subscription_type', (e.target.value || '') as FormValues['subscription_type'], { shouldDirty: true })}
               >
                 <option value="">—</option>
-                {CLINIC_PLANS.map((p) => <option key={p} value={p}>{t(`clinics.plan.${p}`)}</option>)}
+                {(() => {
+                  // Offer the live plans, plus the clinic's current value if it's
+                  // a legacy slug (e.g. 'basic') so editing it doesn't blank out.
+                  const current = form.watch('subscription_type');
+                  const opts: string[] = [...CLINIC_PLANS];
+                  if (current && !opts.includes(current)) opts.push(current);
+                  return opts.map((p) => (
+                    <option key={p} value={p}>{t(`clinics.plan.${p}`, { defaultValue: p })}</option>
+                  ));
+                })()}
               </Select>
             </div>
             <div className="space-y-1.5">

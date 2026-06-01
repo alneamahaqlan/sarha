@@ -1,8 +1,12 @@
 export type ClinicStatus = 'pending' | 'active' | 'suspended' | 'rejected';
-export type ClinicPlan = 'basic' | 'premium';
+// 'free' | 'standard' | 'premium' are the current package slugs (see
+// SubscriptionPackagesSeeder); 'basic' is a legacy value still stored on
+// older clinics, kept here so their badge renders a translated label.
+export type ClinicPlan = 'free' | 'standard' | 'basic' | 'premium';
 
 export const CLINIC_STATUSES: ClinicStatus[] = ['pending', 'active', 'suspended', 'rejected'];
-export const CLINIC_PLANS: ClinicPlan[] = ['basic', 'premium'];
+// Selectable plans in forms/filters — the live offering, no legacy 'basic'.
+export const CLINIC_PLANS: ClinicPlan[] = ['free', 'standard', 'premium'];
 
 export interface Clinic {
   id: number;

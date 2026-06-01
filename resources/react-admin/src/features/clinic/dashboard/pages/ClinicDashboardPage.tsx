@@ -207,7 +207,7 @@ export function ClinicDashboardPage() {
           label={t('clinic_dashboard.subscription')}
           value={
             stats?.subscription_type
-              ? t(`clinics.plan.${stats.subscription_type}`)
+              ? t(`clinics.plan.${stats.subscription_type}`, { defaultValue: stats.subscription_type })
               : t('common.no_data')
           }
           hint={
