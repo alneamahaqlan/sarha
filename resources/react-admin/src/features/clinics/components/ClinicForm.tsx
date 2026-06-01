@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -42,18 +42,42 @@ const schema = z.object({
   subscription_ends_at: z.string().nullish().or(z.literal('')),
   is_featured: z.boolean(),
   rejection_reason: z.string().nullish(),
-  website: z.string().url().nullish().or(z.literal('')),
+  website: z.string().max(2048).nullish().or(z.literal('')),
   instagram: z.string().max(255).nullish(),
   twitter: z.string().max(255).nullish(),
   snapchat: z.string().max(255).nullish(),
   tiktok: z.string().max(255).nullish(),
   google_place_id: z.string().max(255).nullish(),
-  maps_url: z.string().url().nullish().or(z.literal('')),
+  maps_url: z.string().max(2048).nullish().or(z.literal('')),
   logo: z.string().nullish(),
   gallery: z.array(z.string()).default([]),
   categories: z.array(z.coerce.number()).default([]),
 });
 type FormValues = z.infer<typeof schema>;
+
+// Each field's home tab — lets us jump to (and reveal) the tab holding the
+// first validation error when a submit is rejected, instead of failing silently.
+const FIELD_TAB: Record<string, string> = {
+  name: 'basic', slug: 'basic', phone: 'basic', email: 'basic', license_number: 'basic',
+  password: 'basic', city_id: 'basic', district: 'basic', address: 'basic',
+  latitude: 'basic', longitude: 'basic', description: 'basic',
+  status: 'subscription', subscription_type: 'subscription',
+  subscription_starts_at: 'subscription', subscription_ends_at: 'subscription',
+  is_featured: 'subscription', rejection_reason: 'subscription',
+  categories: 'categories',
+  website: 'social', instagram: 'social', twitter: 'social', snapchat: 'social',
+  tiktok: 'social', maps_url: 'social', google_place_id: 'social',
+  logo: 'images', gallery: 'images',
+};
+
+// The backend (and zod) require a full URL. Users routinely enter bare domains
+// ("golden-smile.sa") — and existing rows hold them too — so prepend https://
+// when no scheme is present rather than rejecting the value.
+function normalizeUrl(value: unknown): string | null {
+  const s = typeof value === 'string' ? value.trim() : '';
+  if (!s) return null;
+  return /^https?:\/\//i.test(s) ? s : `https://${s}`;
+}
 
 interface Props {
   clinic?: Clinic | null;
@@ -75,6 +99,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
   const { data: categories } = useCategoryLookup();
   const create = useCreateClinic();
   const update = useUpdateClinic(clinic?.id ?? 0);
+  const [tab, setTab] = useState('basic');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -134,6 +159,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
       if (payload.subscription_starts_at === '') payload.subscription_starts_at = null;
       if (payload.subscription_ends_at === '') payload.subscription_ends_at = null;
       if (payload.status !== 'rejected') delete payload.rejection_reason;
+      payload.website = normalizeUrl(payload.website);
+      payload.maps_url = normalizeUrl(payload.maps_url);
 
       if (clinic) {
         await update.mutateAsync(payload as Partial<FormValues>);
@@ -148,6 +175,14 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
       if (ve) Object.entries(ve).forEach(([f, m]) => form.setError(f as keyof FormValues, { message: m[0] }));
       else toast.error(extractMessage(err, t('errors.generic')));
     }
+  };
+
+  // Surface client-side validation failures instead of letting the submit
+  // abort silently — reveal the tab with the first error and flag it.
+  const onError = (errors: Record<string, unknown>) => {
+    const first = Object.keys(errors)[0];
+    if (first && FIELD_TAB[first]) setTab(FIELD_TAB[first]);
+    toast.error(t('errors.validation'));
   };
 
   const submitting = create.isPending || update.isPending;
@@ -181,8 +216,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <Tabs defaultValue="basic">
+    <form onSubmit={form.handleSubmit(onSubmit, onError)} noValidate className="space-y-4">
+      <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full overflow-x-auto">
           <TabsTrigger value="basic">{t('clinics.form.tab_basic')}</TabsTrigger>
           <TabsTrigger value="subscription">{t('clinics.form.tab_subscription')}</TabsTrigger>
@@ -210,6 +245,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="email">{t('clinics.form.email')}</Label>
               <Input id="email" type="email" dir="ltr" {...form.register('email')} />
+              {form.formState.errors.email && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="license_number">{t('clinics.form.license_number')}</Label>
@@ -327,6 +363,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="website">{t('clinics.form.website')}</Label>
               <Input id="website" type="url" dir="ltr" {...form.register('website')} />
+              {form.formState.errors.website && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.website.message}</p>}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="instagram">{t('clinics.form.instagram')}</Label>
@@ -347,6 +384,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="maps_url">{t('clinics.form.maps_url')}</Label>
               <Input id="maps_url" type="url" dir="ltr" placeholder="https://maps.app.goo.gl/…" {...form.register('maps_url')} />
+              {form.formState.errors.maps_url && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.maps_url.message}</p>}
               <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.maps_url_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
