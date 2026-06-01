@@ -457,6 +457,16 @@ return [
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
     ],
 
+    // WhatsApp sender numbers (OTP delivery via Wappi)
+    'whatsapp_senders' => [
+        'phone_invalid'  => 'Invalid phone number. Use a Saudi format like 05XXXXXXXX.',
+        'max_reached'    => 'You cannot add more than :max sender numbers.',
+        'no_credentials' => 'This number has no credentials (profile id + token) yet.',
+        'test_message'   => 'Test message from the Medical Complexes Directory — this number is connected successfully ✅',
+        'test_sent'      => 'Test message sent successfully.',
+        'test_failed'    => 'Failed to send the test message. Check the credentials and connection status.',
+    ],
+
     // Specialty (category) requests submitted by complexes
     'category_requests' => [
         'submitted' => 'Your specialty request was sent to the admins for review',

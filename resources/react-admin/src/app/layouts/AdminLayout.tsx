@@ -1,5 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -54,6 +54,7 @@ const adminNav = [
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
       { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
       { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/whatsapp-senders', label: 'nav.whatsapp_senders', icon: MessageCircle },
       { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
     ],
   },

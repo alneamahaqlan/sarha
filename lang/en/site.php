@@ -419,6 +419,9 @@ return [
     'otp_label' => 'Verification code',
     'otp_sent_to' => 'A code has been sent to :phone',
     'otp_sms' => 'Your Medical Complexes Directory verification code: :code',
+    'otp_whatsapp' => 'Your Medical Complexes Directory verification code is: :code
+
+Do not share this code with anyone. Valid for 5 minutes.',
     'email_view_details' => 'View details',
 
     // Compare complexes

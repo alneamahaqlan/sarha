@@ -457,6 +457,16 @@ return [
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
     ],
 
+    // WhatsApp sender numbers (OTP delivery via Wappi)
+    'whatsapp_senders' => [
+        'phone_invalid'  => 'رقم الجوال غير صحيح. استخدم صيغة سعودية مثل 05XXXXXXXX.',
+        'max_reached'    => 'لا يمكن إضافة أكثر من :max أرقام مرسِلة.',
+        'no_credentials' => 'هذا الرقم لا يملك بيانات اعتماد (معرّف الملف والتوكن) بعد.',
+        'test_message'   => 'رسالة اختبار من دليل المجمعات الطبية — تم ربط هذا الرقم بنجاح ✅',
+        'test_sent'      => 'تم إرسال رسالة الاختبار بنجاح.',
+        'test_failed'    => 'فشل إرسال رسالة الاختبار. تحقّق من بيانات الاعتماد وحالة الاتصال.',
+    ],
+
     // Specialty (category) requests submitted by complexes
     'category_requests' => [
         'submitted' => 'تم إرسال طلب التخصص للإدارة للمراجعة',

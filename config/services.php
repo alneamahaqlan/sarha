@@ -67,6 +67,14 @@ return [
         'sender_id' => env('UNIFONIC_SENDER_ID'),
     ],
 
+    // WhatsApp OTP gateway (Wappi — https://wappi.pro). Per-number credentials
+    // (profile_id + token) live in the whatsapp_senders table, managed from the
+    // admin panel. Only the base URL is configurable here so the endpoint can
+    // be repointed without code changes.
+    'wappi' => [
+        'base_url' => env('WAPPI_BASE_URL', 'https://wappi.pro'),
+    ],
+
     'moyasar' => [
         'secret_key'  => env('MOYASAR_SECRET_KEY'),
         'publishable' => env('MOYASAR_PUBLISHABLE_KEY'),

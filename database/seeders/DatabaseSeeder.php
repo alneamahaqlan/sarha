@@ -44,6 +44,7 @@ class DatabaseSeeder extends Seeder
         $this->seedCities();
         $this->seedCategories();
         $this->seedSystemSettings();
+        $this->seedWhatsAppSenders();
         $this->seedClinics();
 
         // Fill out every other table (users, services, articles, bookings,
@@ -173,6 +174,16 @@ class DatabaseSeeder extends Seeder
             ['key' => 'subscription_auto_suspend_enabled', 'value' => '1', 'type' => 'boolean', 'group' => 'subscriptions', 'label' => 'تفعيل التعليق التلقائي بعد مهلة السماح', 'description' => 'عند التفعيل، يُعلَّق المجمع تلقائياً (status=suspended) بعد انقضاء مهلة السماح. عند الإيقاف، يبقى نشطاً حتى يتدخل الأدمن يدوياً.'],
             ['key' => 'basic_articles_limit', 'value' => '5', 'type' => 'integer', 'group' => 'limits', 'label' => 'حد المقالات (أساسي/شهر)'],
             ['key' => 'otp_expiry_minutes', 'value' => '5', 'type' => 'integer', 'group' => 'auth', 'label' => 'مدة صلاحية OTP (دقائق)'],
+
+            // ----- OTP delivery channels (SMS + WhatsApp) -----
+            // The dispatcher tries the primary channel first, then the other
+            // one when fallback is on — but only channels enabled here. WhatsApp
+            // sender numbers live in the whatsapp_senders table (managed at
+            // /app/admin/whatsapp-senders).
+            ['key' => 'otp_whatsapp_enabled', 'value' => '1',        'type' => 'boolean', 'group' => 'auth', 'label' => 'تفعيل إرسال OTP عبر واتساب', 'description' => 'عند التفعيل، يُرسَل كود التحقق عبر واتساب باستخدام الأرقام المُضافة في صفحة "أرقام واتساب". يتطلب وجود رقم مرسِل واحد نشط على الأقل مع بيانات اعتماد صحيحة.'],
+            ['key' => 'otp_sms_enabled',      'value' => '1',        'type' => 'boolean', 'group' => 'auth', 'label' => 'تفعيل إرسال OTP عبر SMS',     'description' => 'عند التفعيل، يُرسَل كود التحقق عبر الرسائل النصية (Unifonic).'],
+            ['key' => 'otp_primary_channel',  'value' => 'whatsapp', 'type' => 'string',  'group' => 'auth', 'label' => 'القناة الأساسية لإرسال OTP',  'description' => 'القناة التي تُجرَّب أولاً. القيمة المسموحة: whatsapp أو sms. الافتراضي whatsapp.'],
+            ['key' => 'otp_fallback_enabled', 'value' => '1',        'type' => 'boolean', 'group' => 'auth', 'label' => 'التحويل التلقائي للقناة الأخرى عند الفشل', 'description' => 'عند التفعيل، إذا فشلت القناة الأساسية يُعاد الإرسال عبر القناة الأخرى (إن كانت مُفعّلة). عند الإيقاف، تُستخدم القناة الأساسية فقط.'],
             ['key' => 'platform_name', 'value' => 'دليل المجمعات الطبية', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],
             ['key' => 'platform_email', 'value' => 'info@saerha.sa', 'type' => 'string', 'group' => 'general', 'label' => 'البريد الرسمي'],
             ['key' => 'platform_phone', 'value' => '+966XXXXXXXXX', 'type' => 'string', 'group' => 'general', 'label' => 'رقم الهاتف الرسمي'],
@@ -250,6 +261,24 @@ class DatabaseSeeder extends Seeder
                 SystemSetting::updateOrCreate(['key' => $setting['key']], $setting);
             }
         }
+    }
+
+    /**
+     * Register the primary WhatsApp sender number. The Wappi profile_id +
+     * token are secrets the super-admin adds from the panel, so we only seed
+     * the number itself (idempotent — never clobbers credentials on re-run).
+     */
+    private function seedWhatsAppSenders(): void
+    {
+        \App\Models\WhatsAppSender::firstOrCreate(
+            ['phone' => '966564844382'],
+            [
+                'label'     => 'الرقم الرئيسي',
+                'provider'  => 'wappi',
+                'is_active' => true,
+                'priority'  => 0,
+            ],
+        );
     }
 
     /**

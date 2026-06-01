@@ -235,6 +235,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             ->only(['index', 'show', 'update'])
             ->parameters(['system-settings' => 'systemSetting']);
 
+        // WhatsApp sender numbers (Wappi profiles) used for OTP delivery.
+        // Full CRUD (capped at 5 in the request) + an end-to-end test send.
+        Route::post('whatsapp-senders/{whatsappSender}/test', [\App\Http\Controllers\Api\V1\Admin\WhatsAppSenderController::class, 'test'])
+            ->name('whatsapp-senders.test');
+        Route::apiResource('whatsapp-senders', \App\Http\Controllers\Api\V1\Admin\WhatsAppSenderController::class)
+            ->parameters(['whatsapp-senders' => 'whatsappSender']);
+
         // AI Center — admin-managed safety net for the public assistant.
         // The "Settings" tab is built on top of /system-settings?filter[group]=ai
         // (so the existing edit dialog handles encrypted API keys for free).
