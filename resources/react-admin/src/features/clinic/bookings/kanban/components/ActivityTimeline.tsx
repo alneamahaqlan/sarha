@@ -12,7 +12,7 @@ function relativeTime(iso: string, locale: string): string {
   if (h < 24)  return locale === 'ar' ? `قبل ${h} س` : `${h}h ago`;
   const d = Math.round(h / 24);
   if (d < 30)  return locale === 'ar' ? `قبل ${d} ي` : `${d}d ago`;
-  return new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-GB');
+  return new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB');
 }
 
 function actionLabel(a: BookingActivity, t: (k: string, v?: any) => string): string {

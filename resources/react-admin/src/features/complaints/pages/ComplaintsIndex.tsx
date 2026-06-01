@@ -64,7 +64,7 @@ export function ComplaintsIndex() {
   const { data, isLoading, isFetching } = useComplaints(queryParams);
 
   const fmt = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
   return (
     <div className="space-y-4">

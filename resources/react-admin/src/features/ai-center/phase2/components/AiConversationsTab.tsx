@@ -21,8 +21,8 @@ type StatusFilter = '' | 'normal' | 'blocked' | 'emergency';
 export function AiConversationsTab() {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
-  const dateFmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', {
+  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
+  const dateFmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
     dateStyle: 'short', timeStyle: 'short',
   });
 

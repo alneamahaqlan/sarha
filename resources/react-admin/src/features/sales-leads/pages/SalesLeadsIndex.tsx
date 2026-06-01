@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { ArrowRightCircle, Pencil, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { ArrowRightCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ import { extractMessage } from '@/lib/api-client';
 import { useDeleteSalesLead, useSalesLeads } from '../hooks';
 import { ConvertDialog } from '../components/ConvertDialog';
 import { SalesLeadForm } from '../components/SalesLeadForm';
-import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus, type SubscriptionPlan } from '../types';
+import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus } from '../types';
 
 const STATUS_VARIANT: Record<SalesLeadStatus, 'default' | 'warning' | 'success' | 'danger' | 'muted'> = {
   new: 'default',
@@ -41,7 +41,7 @@ export function SalesLeadsIndex() {
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<SalesLeadStatus | undefined>(undefined);
-  const [convert, setConvert] = useState<{ lead: SalesLead; plan: SubscriptionPlan } | null>(null);
+  const [convert, setConvert] = useState<SalesLead | null>(null);
   const [editing, setEditing] = useState<SalesLead | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<SalesLead | null>(null);
@@ -61,7 +61,7 @@ export function SalesLeadsIndex() {
   const { data, isLoading, isFetching } = useSalesLeads(queryParams);
 
   const fmt = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
   // Follow-up urgency badge — mirrors the sales pipeline "overdue/today/upcoming" cue.
   const followUp = (iso: string | null): { variant: 'danger' | 'warning' | 'muted'; key: string } | null => {
@@ -172,24 +172,14 @@ export function SalesLeadsIndex() {
                   <TableCell className="text-end">
                     <div className="flex justify-end gap-1">
                       {canConvert && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title={t('sales_leads.actions.convert_to_basic')}
-                            onClick={() => setConvert({ lead, plan: 'basic' })}
-                          >
-                            <ArrowRightCircle className="h-4 w-4 text-amber-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title={t('sales_leads.actions.convert_to_premium')}
-                            onClick={() => setConvert({ lead, plan: 'premium' })}
-                          >
-                            <Star className="h-4 w-4 text-emerald-600" />
-                          </Button>
-                        </>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title={t('sales_leads.actions.convert')}
+                          onClick={() => setConvert(lead)}
+                        >
+                          <ArrowRightCircle className="h-4 w-4 text-emerald-600" />
+                        </Button>
                       )}
                       {can('sales_leads.update') && (
                         <Button variant="ghost" size="icon" onClick={() => setEditing(lead)} aria-label={t('common.edit')}>
@@ -238,7 +228,7 @@ export function SalesLeadsIndex() {
       )}
 
       {convert && (
-        <ConvertDialog lead={convert.lead} plan={convert.plan} onClose={() => setConvert(null)} />
+        <ConvertDialog lead={convert} onClose={() => setConvert(null)} />
       )}
 
       <Dialog

@@ -11,7 +11,7 @@ import { useAiDashboardWidget } from '../hooks';
 export function AiDashboardWidget() {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
+  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
   const { data, isLoading } = useAiDashboardWidget();
 
   return (

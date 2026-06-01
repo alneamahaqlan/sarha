@@ -87,12 +87,13 @@ class SubscriptionController extends Controller
         $package = SubscriptionPackage::findOrFail($data['subscription_package_id']);
 
         $sub = $this->service->activate(
-            clinic:      $clinic,
-            package:     $package,
-            cycle:       $data['billing_cycle'],
-            bonusMonths: (int) ($data['bonus_months'] ?? 0),
-            adminId:     $request->user('admin')?->getKey(),
-            notes:       $data['notes'] ?? null,
+            clinic:         $clinic,
+            package:        $package,
+            cycle:          $data['billing_cycle'],
+            bonusMonths:    (int) ($data['bonus_months'] ?? 0),
+            adminId:        $request->user('admin')?->getKey(),
+            notes:          $data['notes'] ?? null,
+            amountOverride: isset($data['amount']) ? (float) $data['amount'] : null,
         );
 
         return (new SubscriptionApiResource($sub->load(['clinic:id,name', 'package'])))

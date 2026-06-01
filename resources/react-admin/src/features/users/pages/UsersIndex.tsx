@@ -155,7 +155,7 @@ export function UsersIndex() {
                   )}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell text-xs text-[var(--color-muted-foreground)]">
-                  {user.created_at ? new Date(user.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—'}
+                  {user.created_at ? new Date(user.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—'}
                 </TableCell>
                 <TableCell className="text-end">
                   {can('users.update') && (

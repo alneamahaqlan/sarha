@@ -53,7 +53,7 @@ export function PriceQuotesIndex() {
   const del = useDeletePriceQuote();
 
   const fmt = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
   const handleDelete = async () => {
     if (!deleting) return;

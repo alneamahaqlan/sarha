@@ -106,7 +106,7 @@ export function ClinicsIndex() {
   const selectedCount = selectedIds.size;
 
   const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   // Whole days until the subscription ends — negative once expired. Drives the
   // colour-coded "days remaining" column (green > 10, amber ≤ 10, red expired).

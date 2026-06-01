@@ -334,6 +334,7 @@ return [
     'register_clinic_submit' => 'Submit registration request',
     'register_clinic_success_title' => 'Request received!',
     'register_clinic_success' => 'Thank you — our team will contact you soon to complete your complex listing.',
+    'register_clinic_contact' => 'Contact: :name',
 
     'booking_status' => [
         'new' => 'Request sent',

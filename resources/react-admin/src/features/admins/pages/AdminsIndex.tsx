@@ -136,7 +136,7 @@ export function AdminsIndex() {
                 </TableCell>
                 <TableCell className="text-xs text-[var(--color-muted-foreground)]">
                   {admin.created_at
-                    ? new Date(admin.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US')
+                    ? new Date(admin.created_at).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')
                     : '—'}
                 </TableCell>
                 <TableCell className="text-end">

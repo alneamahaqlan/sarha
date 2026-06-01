@@ -12,7 +12,11 @@ export function StatsFilterBar({ range, onChange }: { range: StatsRange; onChang
   const [showCustom, setShowCustom] = useState(isCustom);
   const [from, setFrom] = useState(isCustom ? range.from : '');
   const [to, setTo] = useState(isCustom ? range.to : '');
-  const today = new Date().toISOString().slice(0, 10);
+  // Local "today" (NOT toISOString, which is UTC and lags behind local
+  // time after midnight — it would block selecting today's date for
+  // users ahead of UTC, e.g. Asia/Riyadh just past midnight).
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const pill = (active: boolean) =>
     cn(

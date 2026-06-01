@@ -275,7 +275,7 @@ export function ClinicArticlesIndex() {
     catch (err) { toast.error(extractMessage(err, t('errors.generic'))); }
   };
 
-  const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+  const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   return (
     <div className="space-y-4">

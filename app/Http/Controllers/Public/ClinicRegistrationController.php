@@ -4,14 +4,17 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
-use App\Models\SalesLead;
+use App\Models\Clinic;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /**
- * Public "List your complex" form. Submissions create a SalesLead (status=new)
- * that lands in the admin sales pipeline — the admin then converts it into an
- * active clinic via the existing SalesLeadService::convertLead flow.
+ * Public "List your complex" form. Submissions create a Clinic with
+ * status=pending so the complex lands directly in the admin "Awaiting
+ * approval" (بانتظار الاعتماد) list. The admin then approves it via
+ * ClinicService::approve, which assigns the subscription package and
+ * flips the status to active.
  */
 class ClinicRegistrationController extends Controller
 {
@@ -37,12 +40,42 @@ class ClinicRegistrationController extends Controller
             'phone.regex' => __('site.phone_invalid'),
         ]);
 
-        $lead = SalesLead::create(array_merge($validated, ['status' => 'new']));
+        $clinic = Clinic::create([
+            'name'           => $validated['clinic_name'],
+            'slug'           => Str::slug($validated['clinic_name']) . '-' . Str::lower(Str::random(4)),
+            'phone'          => $validated['phone'],
+            'email'          => $validated['email'] ?? null,
+            'license_number' => $validated['license_number'] ?? null,
+            // Random password: the complex cannot sign in until the admin
+            // approves it and issues real credentials.
+            'password'       => bcrypt(Str::random(16)),
+            'city_id'        => $validated['city_id'],
+            'district'       => $validated['district'] ?? null,
+            // The clinics table has no contact_name/notes columns, so the
+            // person + free-text note from the form are stashed in the
+            // (admin-only while pending) description and overwritten with
+            // real marketing copy on approval.
+            'description'    => $this->registrationNote($validated),
+            'status'         => 'pending',
+        ]);
 
-        $notifications->newSalesLead($lead);
+        $notifications->newClinicRegistration($clinic);
 
         return redirect()
             ->route('clinic.register')
             ->with('success', __('site.register_clinic_success'));
+    }
+
+    /**
+     * Build a short admin-facing note from the submitter's name and any
+     * free-text they left, so neither is lost on a status=pending clinic
+     * that has no dedicated columns for them.
+     */
+    private function registrationNote(array $data): string
+    {
+        return trim(implode("\n", array_filter([
+            __('site.register_clinic_contact', ['name' => $data['contact_name']]),
+            ! empty($data['notes']) ? $data['notes'] : null,
+        ])));
     }
 }

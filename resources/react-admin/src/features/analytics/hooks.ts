@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import { analyticsApi } from './api';
+import { analyticsApi, type StatsRange } from './api';
 
 const KEY = ['admin', 'analytics'] as const;
 
-export function useAnalytics(period = 30) {
+export function useAnalytics(range: StatsRange) {
   return useQuery({
-    queryKey: [...KEY, period],
-    queryFn: () => analyticsApi.get(period),
+    queryKey: [...KEY, range],
+    queryFn: () => analyticsApi.get(range),
     staleTime: 60_000,
   });
 }

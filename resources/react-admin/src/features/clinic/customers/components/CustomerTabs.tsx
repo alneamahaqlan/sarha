@@ -13,7 +13,7 @@ interface Props {
 
 function fmtDate(iso: string | null, locale: string) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-GB', {
+  return new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
     year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }

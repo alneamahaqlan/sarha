@@ -383,6 +383,9 @@ return [
         'new_lead_title' => 'New complex registration',
         'new_lead_body'  => ':clinic requested to join — review in the sales pipeline',
 
+        'new_clinic_reg_title' => 'New complex awaiting approval',
+        'new_clinic_reg_body'  => ':clinic registered via the site — review it in the clinics list',
+
         'new_quote_title' => 'New price quote request',
         'new_quote_body'  => 'Service: :service',
         'broadcast_quote_title' => 'New price quote request in your city',
@@ -530,6 +533,7 @@ return [
     'subscriptions' => [
         'renewal_note' => 'Auto-renewal of previous subscription #:ref',
         'approval_trial_note' => 'Trial period granted on clinic approval (:days days).',
+        'lead_conversion_note' => 'Converted from sales lead #:lead',
     ],
 
     'team' => [

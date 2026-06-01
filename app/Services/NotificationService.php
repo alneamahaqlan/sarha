@@ -53,6 +53,24 @@ class NotificationService
         );
     }
 
+    /**
+     * A complex registered itself via the public "List your complex" form
+     * and is now sitting in the admin "Awaiting approval" list as a
+     * status=pending clinic. Points admins straight at the clinics list.
+     */
+    public function newClinicRegistration(Clinic $clinic): void
+    {
+        $this->broadcastToAdmins(
+            type: 'new_clinic_registration',
+            title: __('admin.notif.new_clinic_reg_title'),
+            body:  __('admin.notif.new_clinic_reg_body', ['clinic' => $clinic->name]),
+            icon: 'heroicon-o-building-office-2',
+            url: '/app/admin/clinics',
+            priority: 'normal',
+            data: ['clinic_id' => $clinic->id],
+        );
+    }
+
     public function newComplaint(Complaint $complaint): void
     {
         $this->broadcastToAdmins(

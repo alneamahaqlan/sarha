@@ -334,6 +334,7 @@ return [
     'register_clinic_submit' => 'إرسال طلب التسجيل',
     'register_clinic_success_title' => 'تم استلام طلبك!',
     'register_clinic_success' => 'شكراً لك — سيتواصل معك فريقنا قريباً لإكمال إدراج مجمعك.',
+    'register_clinic_contact' => 'جهة التواصل: :name',
 
     'booking_status' => [
         'new' => 'تم إرسال الطلب',

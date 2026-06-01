@@ -166,8 +166,9 @@ class DatabaseSeeder extends Seeder
     private function seedSystemSettings(): void
     {
         $settings = [
-            ['key' => 'basic_subscription_price', 'value' => '300', 'type' => 'decimal', 'group' => 'subscriptions', 'label' => 'سعر الاشتراك الأساسي'],
-            ['key' => 'premium_subscription_price', 'value' => '400', 'type' => 'decimal', 'group' => 'subscriptions', 'label' => 'سعر الاشتراك المميز'],
+            // NOTE: basic/premium_subscription_price removed — package prices
+            // now live solely in the subscription_packages catalogue (the
+            // single source of truth). Nothing reads these keys anymore.
             ['key' => 'subscription_duration_days', 'value' => '90', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'مدة الاشتراك (أيام)'],
             ['key' => 'subscription_reminder_days', 'value' => '10', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'أيام التذكير قبل انتهاء الاشتراك'],
             ['key' => 'subscription_grace_period_days', 'value' => '7', 'type' => 'integer', 'group' => 'subscriptions', 'label' => 'مدة فترة السماح بعد الانتهاء (أيام)', 'description' => 'عدد الأيام بعد انتهاء الاشتراك التي يبقى فيها المجمع مرئياً قبل تعليقه تلقائياً. الافتراضي 7 أيام.'],

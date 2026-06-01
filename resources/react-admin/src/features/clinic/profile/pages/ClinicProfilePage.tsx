@@ -259,7 +259,7 @@ function ClinicReviewsSection() {
   const { data, isLoading } = useClinicReviews();
 
   const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString('ar-SA') : '';
+    iso ? new Date(iso).toLocaleDateString('ar-SA-u-nu-latn') : '';
 
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-6">

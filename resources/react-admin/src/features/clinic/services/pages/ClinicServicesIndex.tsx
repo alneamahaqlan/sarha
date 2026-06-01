@@ -199,7 +199,7 @@ export function ClinicServicesIndex() {
   const [view, setView] = useState<'list' | 'grouped'>('list');
 
   const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   const handleDelete = async () => {
     if (!deleting) return;

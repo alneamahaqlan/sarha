@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
-use App\Models\ClinicStat;
 use App\Models\GoogleReview;
 use App\Models\Offer;
 use App\Models\PriceQuoteRequest;
 use App\Models\Service;
 use App\Models\SystemSetting;
+use App\Services\ClinicStatsService;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -18,7 +18,7 @@ use Illuminate\Http\JsonResponse;
  */
 class DashboardController extends Controller
 {
-    public function stats(): JsonResponse
+    public function stats(ClinicStatsService $stats): JsonResponse
     {
         $clinic = auth('clinic')->user();
         $clinicId = $clinic->id;
@@ -36,13 +36,18 @@ class DashboardController extends Controller
         $reviewsCount = (clone $reviews)->count();
         $googleRating = $reviewsCount > 0 ? round((clone $reviews)->avg('rating'), 1) : null;
 
-        // Visibility performance — summed over the trailing 30 days from clinic_stats.
-        $since = now()->subDays(30)->toDateString();
-        $window = ClinicStat::where('clinic_id', $clinicId)->where('date', '>=', $since);
+        // Visibility performance — trailing 30 days, sourced through
+        // ClinicStatsService so the "impressions" number is guaranteed
+        // identical to the "My stats" page (same clinic_impressions source,
+        // same code path). Previously this read the legacy
+        // clinic_stats.search_appearances column directly, which diverged
+        // from the stats page's multi-source total. See TC-001.
+        [$from, $to] = ClinicStatsService::resolveRange(null, null, 30);
+        $v = $stats->visibility($clinicId, $from->toDateString(), $to->toDateString());
         $visibility = [
-            'impressions' => (int) (clone $window)->sum('search_appearances'),
-            'visits'      => (int) (clone $window)->sum('page_views'),
-            'requests'    => (int) ((clone $window)->sum('bookings_count') + (clone $window)->sum('quote_requests_count')),
+            'impressions' => $v['impressions'],
+            'visits'      => $v['page_views'],
+            'requests'    => $v['bookings'] + $v['quote_requests'],
         ];
 
         // Latest 3 services added — mirrors the "recently added" spec section.
