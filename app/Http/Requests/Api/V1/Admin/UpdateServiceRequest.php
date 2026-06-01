@@ -21,6 +21,8 @@ class UpdateServiceRequest extends FormRequest
             'name'         => ['sometimes', 'required', 'string', 'max:255'],
             'description'  => ['nullable', 'string'],
             'price'        => ['sometimes', 'required', 'numeric', 'min:0'],
+            // Relative path returned by the /uploads endpoint (e.g. services/x.jpg).
+            'image'        => ['nullable', 'string', 'max:2048'],
             'is_active'    => ['nullable', 'boolean'],
         ];
     }

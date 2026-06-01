@@ -31,6 +31,7 @@ import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
+import { assetUrl } from '@/lib/assets';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useClinic, useClinics, useRestoreClinic, useBulkClinic, useImportClinicsSheet } from '../hooks';
@@ -336,7 +337,7 @@ export function ClinicsIndex() {
                 <TableCell>
                   {clinic.logo ? (
                     <img
-                      src={`/storage/${clinic.logo}`}
+                      src={assetUrl(clinic.logo) ?? undefined}
                       alt=""
                       className="h-9 w-9 rounded-full object-cover"
                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}

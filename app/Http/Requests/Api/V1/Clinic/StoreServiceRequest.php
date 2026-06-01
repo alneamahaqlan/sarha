@@ -32,6 +32,8 @@ class StoreServiceRequest extends FormRequest
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],
             'price'              => ['required', 'numeric', 'min:0'],
+            // Relative path returned by the /uploads endpoint (e.g. services/x.jpg).
+            'image'              => ['nullable', 'string', 'max:2048'],
             'is_active'          => ['nullable', 'boolean'],
             'sort_order'         => ['nullable', 'integer'],
         ];

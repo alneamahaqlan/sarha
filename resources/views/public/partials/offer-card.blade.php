@@ -7,7 +7,7 @@
 --}}
 @php
     $imageUrl  = $offer->effectiveImage()
-        ? \Illuminate\Support\Facades\Storage::disk('public')->url($offer->effectiveImage())
+        ? \Illuminate\Support\Facades\Storage::url($offer->effectiveImage())
         : null;
     $discount  = $offer->discountPercentage();
     // Countdown payload — rendered by Alpine on the client so it ticks

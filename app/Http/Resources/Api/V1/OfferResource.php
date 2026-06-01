@@ -47,6 +47,6 @@ class OfferResource extends JsonResource
     private function resolveImageUrl(): ?string
     {
         $path = $this->effectiveImage();
-        return $path ? Storage::disk('public')->url($path) : null;
+        return $path ? Storage::url($path) : null;
     }
 }

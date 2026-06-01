@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { useClinicLookup } from '@/features/lookups/hooks';
 
 import { serviceFormSchema, type ServiceFormSchema } from '../schemas/service.schema';
@@ -35,6 +36,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
     },
   });
@@ -45,6 +47,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
     });
   }, [service, form]);
@@ -103,6 +106,15 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="description">{t('services.description')}</Label>
           <Textarea id="description" rows={2} {...form.register('description')} />
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label>{t('services.image', 'صورة الخدمة')}</Label>
+          <FileUpload
+            value={form.watch('image')}
+            onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
+            directory="services"
+          />
         </div>
 
         <div className="space-y-1.5">

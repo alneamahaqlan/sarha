@@ -19,6 +19,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useCategoryLookup, useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { apiClient } from '@/lib/api-client';
+import { assetUrl } from '@/lib/assets';
 
 import { useCreateClinic, useUpdateClinic } from '../hooks';
 import { CLINIC_PLANS, CLINIC_STATUSES, type Clinic } from '../types';
@@ -200,7 +201,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
   const uploadGallery = async (file: File) => {
     const fd = new FormData();
     fd.append('file', file);
-    fd.append('directory', 'clinics/gallery');
+    fd.append('directory', 'gallery');
     try {
       const res = await apiClient.post<{ data: { path: string } }>('/uploads', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -400,14 +401,14 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
               label={t('clinics.form.logo')}
               value={form.watch('logo')}
               onChange={(p) => form.setValue('logo', p, { shouldDirty: true })}
-              directory="clinics/logos"
+              directory="logos"
             />
             <div className="space-y-2">
               <Label>{t('clinics.form.gallery')}</Label>
               <div className="grid grid-cols-3 gap-2 md:grid-cols-5">
                 {gallery.map((path) => (
                   <div key={path} className="relative aspect-square overflow-hidden rounded-md border border-[var(--color-border)]">
-                    <img src={`/storage/${path}`} alt="" className="h-full w-full object-cover" />
+                    <img src={assetUrl(path) ?? undefined} alt="" className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeGalleryItem(path)}

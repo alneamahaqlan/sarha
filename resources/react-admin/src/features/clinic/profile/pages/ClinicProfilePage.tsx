@@ -179,7 +179,7 @@ export function ClinicProfilePage() {
               label={t('clinic_profile.logo')}
               value={form.watch('logo')}
               onChange={(p) => form.setValue('logo', p, { shouldDirty: true })}
-              directory="clinics/logos"
+              directory="logos"
             />
           </div>
 

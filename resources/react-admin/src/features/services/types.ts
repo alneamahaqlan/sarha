@@ -37,5 +37,6 @@ export interface ServiceFormValues {
   name: string;
   description?: string | null;
   price: number;
+  image?: string | null;
   is_active: boolean;
 }

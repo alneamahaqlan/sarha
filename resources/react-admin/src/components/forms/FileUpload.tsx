@@ -4,12 +4,13 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { apiClient, extractMessage } from '@/lib/api-client';
+import { assetUrl } from '@/lib/assets';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 
 interface Props {
   value: string | null | undefined;
   onChange: (path: string | null) => void;
-  directory: 'clinics/logos' | 'clinics/gallery' | 'articles' | 'doctors' | 'before-after' | 'homepage/banners';
+  directory: 'logos' | 'gallery' | 'doctors' | 'services' | 'offers' | 'before-after' | 'articles' | 'banners';
   disabled?: boolean;
   label?: string;
 }
@@ -23,7 +24,7 @@ export function FileUpload({ value, onChange, directory, disabled, label }: Prop
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const previewUrl = value ? `/storage/${value}` : null;
+  const previewUrl = assetUrl(value);
 
   const onSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

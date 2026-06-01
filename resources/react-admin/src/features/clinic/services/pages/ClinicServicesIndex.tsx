@@ -13,7 +13,6 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -24,6 +23,7 @@ import {
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FileUpload } from '@/components/forms/FileUpload';
 import type { Service } from '@/features/services/types';
 import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { useClinicProfile } from '@/features/clinic/profile/hooks';
@@ -46,6 +46,7 @@ const schema = z
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
+    image: z.string().nullish(),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
   });
@@ -69,6 +70,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
       sort_order: service?.sort_order ?? 0,
     },
@@ -142,6 +144,14 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinic_services.description')}</Label>
               <Textarea id="description" rows={2} {...form.register('description')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label>{t('clinic_services.image', 'صورة الخدمة')}</Label>
+              <FileUpload
+                value={form.watch('image')}
+                onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
+                directory="services"
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="price">{t('clinic_services.price')}</Label>

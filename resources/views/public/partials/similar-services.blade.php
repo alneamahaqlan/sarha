@@ -23,7 +23,7 @@
             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg hover:ring-sage-200 transition-all overflow-hidden flex flex-col">
                 <div class="relative aspect-[4/3] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
                     @if($svc->image)
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($svc->image) }}"
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($svc->image) }}"
                              alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                     @elseif($emoji)
                         <span aria-hidden="true">{{ $emoji }}</span>

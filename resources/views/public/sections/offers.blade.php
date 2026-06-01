@@ -30,7 +30,7 @@
                         $clinic   = $offer->clinic;
                         $service  = $offer->service;
                         $imagePath = $offer->effectiveImage();
-                        $imageUrl  = $imagePath ? \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath) : null;
+                        $imageUrl  = $imagePath ? \Illuminate\Support\Facades\Storage::url($imagePath) : null;
                         // Service-linked → booking form for that service;
                         // general → the clinic landing page (visitor picks
                         // a way to contact from there).

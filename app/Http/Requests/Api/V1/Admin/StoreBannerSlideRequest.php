@@ -16,7 +16,7 @@ class StoreBannerSlideRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // `image` is the relative storage path produced by /uploads (e.g. "homepage/banners/abc.gif").
+            // `image` is the relative storage path produced by /uploads (e.g. "banners/abc.gif").
             'image'      => ['required', 'string', 'max:500'],
             'link_url'   => ['nullable', 'string', 'max:500', 'url'],
             'is_active'  => ['sometimes', 'boolean'],
