@@ -100,9 +100,12 @@ class CustomerLinker
      * shares the normalized phone. Refreshes name/email when callers
      * provide new values (the latest interaction wins).
      */
-    private function findOrCreate(int $clinicId, ?string $phone, string $name, ?string $email, ?int $userId): ?Customer
+    private function findOrCreate(?int $clinicId, ?string $phone, string $name, ?string $email, ?int $userId): ?Customer
     {
-        if (! $phone) return null;
+        // General complaints / broadcast price-quotes carry no clinic, and a
+        // Customer is keyed by (clinic_id, phone) — there's nothing to link to.
+        // Skip silently instead of blowing up the create with a TypeError.
+        if (! $clinicId || ! $phone) return null;
 
         // Auto-link to platform User if the caller didn't already pass
         // one — phone match is the only signal we have at this layer.
