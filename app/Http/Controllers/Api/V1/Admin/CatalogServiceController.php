@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Admin\UpdateCatalogServiceRequest;
 use App\Models\CatalogService;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
@@ -41,6 +42,7 @@ class CatalogServiceController extends Controller
                 'id'             => $c->id,
                 'name'           => $c->name,
                 'name_en'        => $c->name_en,
+                'aliases'        => $c->aliases ?? [],
                 'status'         => $c->status,
                 'category'       => $c->category ? ['id' => $c->category->id, 'name' => $c->category->name] : null,
                 'requested_by'   => $c->requestedByClinic ? ['id' => $c->requestedByClinic->id, 'name' => $c->requestedByClinic->name] : null,
@@ -53,6 +55,40 @@ class CatalogServiceController extends Controller
                 'total'        => $page->total(),
                 'from'         => $page->firstItem(),
                 'to'           => $page->lastItem(),
+            ],
+        ]);
+    }
+
+    /**
+     * Edit a canonical catalog entry — primarily its alternative names
+     * (aliases), which widen matching and cross-clinic search. Also allows
+     * fixing the display name(s) and re-categorising.
+     */
+    public function update(UpdateCatalogServiceRequest $request, CatalogService $catalogService): JsonResponse
+    {
+        $data = $request->validated();
+
+        if (array_key_exists('aliases', $data)) {
+            // Trim, drop blanks + duplicates, and never let an alias equal the
+            // canonical name itself.
+            $data['aliases'] = collect($data['aliases'] ?? [])
+                ->map(fn ($a) => trim((string) $a))
+                ->filter()
+                ->reject(fn (string $a) => $a === trim((string) ($data['name'] ?? $catalogService->name)))
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        $catalogService->update($data);
+
+        return response()->json([
+            'message' => __('admin.catalog_services.updated'),
+            'data'    => [
+                'id'      => $catalogService->id,
+                'name'    => $catalogService->name,
+                'name_en' => $catalogService->name_en,
+                'aliases' => $catalogService->aliases ?? [],
             ],
         ]);
     }

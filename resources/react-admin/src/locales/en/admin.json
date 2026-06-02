@@ -1168,7 +1168,13 @@
     "reject": "Reject",
     "empty": "No requests",
     "approved": "Service added to the catalog",
-    "rejected": "Catalog request rejected"
+    "rejected": "Catalog request rejected",
+    "updated": "Service updated",
+    "edit_title": "Edit catalog service",
+    "name_en": "English name (optional)",
+    "aliases": "Alternative names",
+    "aliases_ph": "One alias per line — used for search and matching",
+    "aliases_hint": "Type one alias per line. Helps link services and power search/comparison."
   },
   "clinic_services": {
     "title": "My services",

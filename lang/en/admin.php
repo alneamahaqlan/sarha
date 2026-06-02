@@ -482,6 +482,7 @@ return [
         'already_reviewed' => 'This catalog request has already been reviewed',
         'approved' => 'Service added to the catalog',
         'rejected' => 'Catalog request rejected',
+        'updated' => 'Service updated',
     ],
 
     // ============================================

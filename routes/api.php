@@ -194,6 +194,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Unified service catalog — review queue for clinic-proposed canonical
         // services. Approve flips the entry active + un-hides linked services.
         Route::get('catalog-services', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'index'])->name('catalog-services.index');
+        Route::patch('catalog-services/{catalogService}', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'update'])->name('catalog-services.update');
         Route::post('catalog-services/{catalogService}/approve', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'approve'])->name('catalog-services.approve');
         Route::post('catalog-services/{catalogService}/reject', [\App\Http\Controllers\Api\V1\Admin\CatalogServiceController::class, 'reject'])->name('catalog-services.reject');
 
@@ -211,6 +212,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('clinics/{clinic}/impersonate', [ClinicController::class, 'impersonate'])->name('clinics.impersonate');
         Route::get('clinics/{clinic}/stats', [AdminDashboardController::class, 'clinicStats'])->name('clinics.stats');
         Route::get('clinics/{clinic}/structure', [ClinicController::class, 'structure'])->name('clinics.structure');
+        // Login-password reveal + regenerate (super-admin only, audit-logged).
+        Route::get('clinics/{clinic}/password', [ClinicController::class, 'password'])->name('clinics.password');
+        Route::post('clinics/{clinic}/regenerate-password', [ClinicController::class, 'regeneratePassword'])->name('clinics.regenerate-password');
         Route::apiResource('clinics', ClinicController::class);
 
         // Subscription — Filament has no Delete action; restrict to index/show/store/update.
