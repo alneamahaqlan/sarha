@@ -70,7 +70,10 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => {
+                  // onMouseDown + preventDefault: select before the input's
+                  // blur fires, so the option click isn't swallowed.
+                  onMouseDown={(e) => {
+                    e.preventDefault();
                     onChange(s.name, s.id);
                     setOpen(false);
                   }}

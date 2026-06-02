@@ -131,7 +131,13 @@ export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Pr
               <li key={c.id}>
                 <button
                   type="button"
-                  onClick={() => add(c.id)}
+                  // onMouseDown + preventDefault: select before the input's
+                  // blur fires, so the option click isn't swallowed by the
+                  // dropdown closing.
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    add(c.id);
+                  }}
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-[var(--color-muted)]"
                 >
                   {c.emoji ? <span>{c.emoji}</span> : null}
