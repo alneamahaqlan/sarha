@@ -14,26 +14,47 @@ class Clinic extends Authenticatable
     use HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'name', 'slug', 'phone', 'email', 'license_number', 'password', 'city_id',
+        'name', 'slug', 'phone', 'email', 'license_number', 'tax_number',
+        'commercial_registration', 'password', 'password_plaintext', 'city_id',
         'address', 'district', 'latitude', 'longitude', 'google_place_id', 'maps_url',
         'description', 'logo', 'gallery', 'website', 'instagram',
         'twitter', 'snapchat', 'tiktok', 'status', 'subscription_type',
         'subscription_package_id',
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
+        'booking_stage_labels',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'password_plaintext', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'password' => 'hashed',
+            // Reversible copy of the login password (super-admin reveal +
+            // approval email). Encrypted at rest with the app key.
+            'password_plaintext' => 'encrypted',
             'gallery' => 'array',
+            'booking_stage_labels' => 'array',
             'is_featured' => 'boolean',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Set a new login password: stores the bcrypt hash (for auth) and the
+     * encrypted plaintext (for super-admin reveal + the credentials email).
+     * Does NOT persist — caller saves. Returns the generated/!given plaintext.
+     */
+    public function issuePassword(?string $plain = null): string
+    {
+        $plain ??= Str::password(10, letters: true, numbers: true, symbols: false);
+
+        $this->password = $plain;            // hashed by the cast
+        $this->password_plaintext = $plain;  // encrypted by the cast
+
+        return $plain;
     }
 
     protected static function booted(): void

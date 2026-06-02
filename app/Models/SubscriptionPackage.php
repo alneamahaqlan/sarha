@@ -40,7 +40,12 @@ class SubscriptionPackage extends Model
         'featured_in_search', 'ai_assistant_priority', 'google_reviews_sync',
         'verified_badge', 'analytics_level', 'quote_replies_monthly_limit',
         'banner_slots', 'allow_offers_packages', 'allow_doctors_before_after',
+        // Per-package config for the public "similar / related" strips.
+        'similar_config',
     ];
+
+    /** The five "similar" section types a package can configure. */
+    public const SIMILAR_SECTIONS = ['complex', 'service', 'offer', 'subClinic', 'doctor'];
 
     protected function casts(): array
     {
@@ -59,7 +64,54 @@ class SubscriptionPackage extends Model
             'banner_slots'                 => 'integer',
             'allow_offers_packages'        => 'boolean',
             'allow_doctors_before_after'   => 'boolean',
+            'similar_config'               => 'array',
         ];
+    }
+
+    /**
+     * Default "similar sections" config — applied when a package has none
+     * stored (NULL column) or for keys an older config omits. Conservative:
+     * everything on, match by city + specialty, 6 cards. The doctor section
+     * adds `match_subclinic` (match the doctor's sub-clinic category too).
+     */
+    public static function defaultSimilarConfig(): array
+    {
+        $section = ['show' => true, 'match_city' => true, 'match_specialty' => true];
+
+        $sections = [];
+        foreach (self::SIMILAR_SECTIONS as $key) {
+            $sections[$key] = $key === 'doctor'
+                ? $section + ['match_subclinic' => true]
+                : $section;
+        }
+
+        return ['limit' => 6, 'sections' => $sections];
+    }
+
+    /**
+     * Stored config merged over the defaults so callers always get a full,
+     * well-typed structure regardless of what (if anything) was saved.
+     */
+    public function similarConfig(): array
+    {
+        $defaults = self::defaultSimilarConfig();
+        $stored   = is_array($this->similar_config) ? $this->similar_config : [];
+
+        $limit = isset($stored['limit']) ? max(1, (int) $stored['limit']) : $defaults['limit'];
+
+        $sections = [];
+        foreach (self::SIMILAR_SECTIONS as $key) {
+            $sections[$key] = array_merge($defaults['sections'][$key], $stored['sections'][$key] ?? []);
+        }
+
+        return ['limit' => $limit, 'sections' => $sections];
+    }
+
+    /** Normalised config for one section type (falls back to defaults). */
+    public function similarSection(string $type): array
+    {
+        return $this->similarConfig()['sections'][$type]
+            ?? self::defaultSimilarConfig()['sections']['complex'];
     }
 
     public function clinics()

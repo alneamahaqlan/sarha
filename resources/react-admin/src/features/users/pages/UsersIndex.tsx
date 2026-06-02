@@ -138,7 +138,7 @@ export function UsersIndex() {
             data.data.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="font-medium">
-                  <Link to={`/app/admin/users/${user.id}`} className="text-[var(--color-primary)] hover:underline">
+                  <Link to={`/admin/users/${user.id}`} className="text-[var(--color-primary)] hover:underline">
                     {user.name}
                   </Link>
                 </TableCell>

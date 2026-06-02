@@ -126,6 +126,13 @@ class BookingKanbanService
             $q->where('service_id', (int) $svc);
         }
 
+        // Sub-clinic filter — bookings have no direct column, so we
+        // constrain through the booked service (services belong to a
+        // sub_clinic). Bookings without a service drop out, as expected.
+        if ($subClinic = $filters['sub_clinic_id'] ?? null) {
+            $q->whereHas('service', fn ($w) => $w->where('sub_clinic_id', (int) $subClinic));
+        }
+
         if ($assignee = $filters['assignee_id'] ?? null) {
             // assignee=mine handled separately (controller injects actor type/id)
             $q->where('assignee_id', (int) $assignee);

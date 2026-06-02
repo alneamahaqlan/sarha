@@ -51,6 +51,16 @@ class SubscriptionPackageRequest extends FormRequest
             'banner_slots'                => 'required|integer|min:0|max:20',
             'allow_offers_packages'       => 'required|boolean',
             'allow_doctors_before_after'  => 'required|boolean',
+
+            // Per-package config for the public "similar / related" strips.
+            // Nullable → falls back to SubscriptionPackage::defaultSimilarConfig().
+            'similar_config'                          => 'nullable|array',
+            'similar_config.limit'                    => 'nullable|integer|min:1|max:24',
+            'similar_config.sections'                 => 'nullable|array',
+            'similar_config.sections.*.show'          => 'boolean',
+            'similar_config.sections.*.match_city'    => 'boolean',
+            'similar_config.sections.*.match_specialty' => 'boolean',
+            'similar_config.sections.*.match_subclinic' => 'boolean',
         ];
     }
 }

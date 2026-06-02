@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Standalone promotional offer. Two flavours:
@@ -20,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class Offer extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public const TYPE_SERVICE = 'service';
     public const TYPE_GENERAL = 'general';

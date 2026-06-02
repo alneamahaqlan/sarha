@@ -31,6 +31,16 @@ class Booking extends Model
         'cancelled' => [self::STATUS_CANCELLED],
     ];
 
+    /** Arabic status labels — used by server-side CSV exports. */
+    public const STATUS_LABELS_AR = [
+        self::STATUS_NEW             => 'جديد',
+        self::STATUS_CONTACTED       => 'تم التواصل',
+        self::STATUS_APPOINTMENT_SET => 'موعد مؤكد',
+        self::STATUS_COMPLETED       => 'مكتمل',
+        self::STATUS_NO_SHOW         => 'لم يحضر',
+        self::STATUS_CANCELLED       => 'ملغي',
+    ];
+
     protected $fillable = [
         'reference_code', 'clinic_id', 'customer_id',
         'user_id', 'booker_user_id', 'relative_id',

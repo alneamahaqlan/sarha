@@ -21,7 +21,9 @@ import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { apiClient } from '@/lib/api-client';
 import { assetUrl } from '@/lib/assets';
 
+import { useAuth } from '@/app/providers/AuthProvider';
 import { useCreateClinic, useUpdateClinic } from '../hooks';
+import { ClinicPasswordReveal } from './ClinicPasswordReveal';
 import { CLINIC_PLANS, CLINIC_STATUSES, type Clinic } from '../types';
 
 const schema = z.object({
@@ -30,6 +32,8 @@ const schema = z.object({
   phone: z.string().min(1).max(20),
   email: z.string().email().nullish().or(z.literal('')),
   license_number: z.string().max(255).nullish().or(z.literal('')),
+  tax_number: z.string().max(255).nullish().or(z.literal('')),
+  commercial_registration: z.string().max(255).nullish().or(z.literal('')),
   password: z.string().min(8).optional().or(z.literal('')),
   city_id: z.coerce.number().int().positive(),
   address: z.string().nullish(),
@@ -62,6 +66,7 @@ type FormValues = z.infer<typeof schema>;
 // first validation error when a submit is rejected, instead of failing silently.
 const FIELD_TAB: Record<string, string> = {
   name: 'basic', slug: 'basic', phone: 'basic', email: 'basic', license_number: 'basic',
+  tax_number: 'basic', commercial_registration: 'basic',
   password: 'basic', city_id: 'basic', district: 'basic', address: 'basic',
   latitude: 'basic', longitude: 'basic', description: 'basic',
   status: 'subscription', subscription_type: 'subscription',
@@ -102,12 +107,15 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
   const { data: categories } = useCategoryLookup();
   const create = useCreateClinic();
   const update = useUpdateClinic(clinic?.id ?? 0);
+  const { user } = useAuth();
+  const isSuperAdmin = user?.user?.role === 'super_admin';
   const [tab, setTab] = useState('basic');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: '', slug: '', phone: '', email: '', license_number: '', password: '',
+      name: '', slug: '', phone: '', email: '', license_number: '', tax_number: '',
+      commercial_registration: '', password: '',
       city_id: 0, address: '', district: '', latitude: '', longitude: '', description: '',
       status: 'pending', subscription_type: '',
       subscription_starts_at: '', subscription_ends_at: '',
@@ -126,6 +134,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
         phone: clinic.phone ?? '',
         email: clinic.email ?? '',
         license_number: clinic.license_number ?? '',
+        tax_number: clinic.tax_number ?? '',
+        commercial_registration: clinic.commercial_registration ?? '',
         password: '',
         city_id: clinic.city_id ?? 0,
         address: clinic.address ?? '',
@@ -158,6 +168,8 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
       const payload: Record<string, unknown> = { ...v };
       if (!payload.password) delete payload.password;
       if (payload.license_number === '') payload.license_number = null;
+      if (payload.tax_number === '') payload.tax_number = null;
+      if (payload.commercial_registration === '') payload.commercial_registration = null;
       if (payload.subscription_type === '') payload.subscription_type = null;
       if (payload.subscription_starts_at === '') payload.subscription_starts_at = null;
       if (payload.subscription_ends_at === '') payload.subscription_ends_at = null;
@@ -255,11 +267,23 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
               <Input id="license_number" dir="ltr" {...form.register('license_number')} />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="tax_number">{t('clinics.form.tax_number')}</Label>
+              <Input id="tax_number" dir="ltr" {...form.register('tax_number')} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="commercial_registration">{t('clinics.form.commercial_registration')}</Label>
+              <Input id="commercial_registration" dir="ltr" {...form.register('commercial_registration')} />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="password">{clinic ? t('clinics.form.new_password') : t('clinics.form.password')}</Label>
               <Input id="password" type="password" autoComplete="new-password" {...form.register('password')} />
               {clinic && <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.password_hint')}</p>}
               {form.formState.errors.password && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.password.message}</p>}
             </div>
+            {/* Reveal / regenerate the login password — super-admin only. */}
+            {clinic && isSuperAdmin && (
+              <ClinicPasswordReveal clinicId={clinic.id} available={clinic.password_available} />
+            )}
             <div className="space-y-1.5">
               <Label htmlFor="city_id">{t('clinics.form.city')}</Label>
               <Select

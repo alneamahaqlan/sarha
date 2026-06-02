@@ -36,6 +36,7 @@ const schema = z.object({
   is_active: z.boolean(),
   sort_order: z.number().int().min(0),
   service_ids: z.array(z.number()).min(1),
+  service_notes: z.record(z.string(), z.string().max(255)).optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -56,16 +57,32 @@ function PackageDialog({ pkg, onClose }: { pkg: ClinicPackage | null; onClose: (
       is_active: pkg?.is_active ?? true,
       sort_order: pkg?.sort_order ?? 0,
       service_ids: pkg?.service_ids ?? [],
+      service_notes: pkg?.service_notes
+        ? Object.fromEntries(Object.entries(pkg.service_notes).map(([k, val]) => [k, val ?? '']))
+        : {},
     },
   });
 
   const selectedIds = form.watch('service_ids');
+  const notes = form.watch('service_notes') ?? {};
   const toggleService = (id: number) => {
     const next = selectedIds.includes(id) ? selectedIds.filter((x) => x !== id) : [...selectedIds, id];
     form.setValue('service_ids', next, { shouldDirty: true, shouldValidate: true });
+    if (!next.includes(id)) {
+      const { [String(id)]: _removed, ...rest } = form.getValues('service_notes') ?? {};
+      form.setValue('service_notes', rest, { shouldDirty: true });
+    }
+  };
+  const setNote = (id: number, value: string) => {
+    form.setValue('service_notes', { ...(form.getValues('service_notes') ?? {}), [String(id)]: value }, { shouldDirty: true });
   };
 
   const onSubmit = async (v: FormValues) => {
+    // Keep only notes for selected services that actually have text.
+    const cleanedNotes = Object.fromEntries(
+      Object.entries(v.service_notes ?? {}).filter(([k, val]) => v.service_ids.includes(Number(k)) && val.trim() !== ''),
+    );
+    v = { ...v, service_notes: cleanedNotes };
     try {
       if (pkg) { await update.mutateAsync(v); toast.success(t('clinic_packages.updated')); }
       else { await create.mutateAsync(v); toast.success(t('clinic_packages.created')); }
@@ -115,16 +132,28 @@ function PackageDialog({ pkg, onClose }: { pkg: ClinicPackage | null; onClose: (
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label>{t('clinic_packages.services')}</Label>
-              <div className="max-h-44 space-y-1 overflow-auto rounded-md border border-[var(--color-border)] p-2">
+              <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_packages.services_hint')}</p>
+              <div className="max-h-56 space-y-1 overflow-auto rounded-md border border-[var(--color-border)] p-2">
                 {!services || services.data.length === 0 ? (
                   <p className="py-3 text-center text-xs text-[var(--color-muted-foreground)]">{t('common.no_data')}</p>
                 ) : (
                   services.data.map((s) => (
-                    <label key={s.id} className="flex cursor-pointer items-center gap-2 rounded-md p-1.5 hover:bg-[var(--color-muted)]">
-                      <input type="checkbox" checked={selectedIds.includes(s.id)} onChange={() => toggleService(s.id)} className="h-4 w-4" />
-                      <span className="text-sm">{s.name}</span>
-                      {s.sub_clinic && <span className="text-xs text-[var(--color-muted-foreground)]">· {s.sub_clinic.name}</span>}
-                    </label>
+                    <div key={s.id} className="rounded-md p-1.5 hover:bg-[var(--color-muted)]">
+                      <label className="flex cursor-pointer items-center gap-2">
+                        <input type="checkbox" checked={selectedIds.includes(s.id)} onChange={() => toggleService(s.id)} className="h-4 w-4" />
+                        <span className="text-sm">{s.name}</span>
+                        {s.sub_clinic && <span className="text-xs text-[var(--color-muted-foreground)]">· {s.sub_clinic.name}</span>}
+                      </label>
+                      {selectedIds.includes(s.id) && (
+                        <Input
+                          value={notes[String(s.id)] ?? ''}
+                          onChange={(e) => setNote(s.id, e.target.value)}
+                          placeholder={t('clinic_packages.service_note_placeholder')}
+                          maxLength={255}
+                          className="mt-1 ms-6 h-8 text-xs"
+                        />
+                      )}
+                    </div>
                   ))
                 )}
               </div>

@@ -218,8 +218,87 @@
             'articles'       => $clinic->articles->count(),
             'about'          => null,
         ];
+
+        // Flat search index for the in-complex search box — services,
+        // doctors, offers, packages. Filtered client-side by Alpine. Each
+        // row: type, typeLabel, name, sub(caption), url (null → switch tab).
+        $subNames = $clinic->subClinics->keyBy('id');
+        $searchItems = [];
+        foreach ($activeOffers as $o) {
+            $searchItems[] = [
+                'type' => 'offer', 'typeLabel' => __('site.search_type_offer'),
+                'name' => $o->title, 'sub' => $o->service?->name,
+                'url' => route('offer.show', ['slug' => $clinic->slug, 'offer' => $o->id]),
+            ];
+        }
+        foreach ($clinic->packages as $p) {
+            $searchItems[] = [
+                'type' => 'package', 'typeLabel' => __('site.search_type_package'),
+                'name' => $p->name, 'sub' => null, 'url' => null, 'tab' => 'packages',
+            ];
+        }
+        foreach ($clinic->services as $svc) {
+            $searchItems[] = [
+                'type' => 'service', 'typeLabel' => __('site.search_type_service'),
+                'name' => $svc->name,
+                'sub'  => $svc->sub_clinic_id ? optional($subNames->get($svc->sub_clinic_id))->display_name : null,
+                'url'  => route('service.show', ['slug' => $clinic->slug, 'service' => $svc->id]),
+            ];
+        }
+        foreach ($clinic->doctors as $d) {
+            $searchItems[] = [
+                'type' => 'doctor', 'typeLabel' => __('site.search_type_doctor'),
+                'name' => $d->name, 'sub' => $d->specialty,
+                'url' => route('doctor.show', ['slug' => $clinic->slug, 'doctor' => $d->id]),
+            ];
+        }
     @endphp
-    <div x-data="{ tab: '{{ $firstTabKey }}' }" class="mb-8">
+    <div x-data="{
+            tab: '{{ $firstTabKey }}',
+            q: '',
+            items: @js($searchItems),
+            results() {
+                const t = this.q.trim().toLowerCase();
+                if (!t) return [];
+                return this.items.filter(i =>
+                    (i.name || '').toLowerCase().includes(t) ||
+                    (i.sub || '').toLowerCase().includes(t)
+                ).slice(0, 50);
+            }
+         }" class="mb-8">
+
+        {{-- In-complex search: filters services / doctors / offers / packages
+             instantly (client-side). Empty query → normal tabs. --}}
+        <div class="relative mb-5">
+            <span class="absolute inset-y-0 start-3 flex items-center text-gray-400">
+                <x-icon name="search" class="w-5 h-5" />
+            </span>
+            <input type="search" x-model="q"
+                   placeholder="@lang('site.clinic_search_placeholder')"
+                   class="w-full ps-11 pe-4 py-3 rounded-xl border border-gray-200 focus:border-sage-400 focus:ring-2 focus:ring-sage-100 outline-none text-sm">
+        </div>
+
+        {{-- Search results (only while typing). --}}
+        <div x-show="q.trim()" x-cloak class="mb-6">
+            <template x-if="results().length === 0">
+                <p class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400">@lang('site.clinic_search_no_results')</p>
+            </template>
+            <div class="space-y-2" x-show="results().length > 0">
+                <template x-for="(item, idx) in results()" :key="item.type + '-' + idx">
+                    <a :href="item.url || '#'"
+                       @click="if (!item.url) { $event.preventDefault(); tab = item.tab; q = ''; }"
+                       class="flex items-center justify-between gap-3 bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-md hover:ring-sage-200 transition-all p-4">
+                        <span class="min-w-0">
+                            <span class="font-semibold text-gray-800 line-clamp-1" x-text="item.name"></span>
+                            <span class="text-xs text-gray-500 line-clamp-1" x-show="item.sub" x-text="item.sub"></span>
+                        </span>
+                        <span class="shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-sage-50 text-sage-700" x-text="item.typeLabel"></span>
+                    </a>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="!q.trim()">
         <div class="border-b border-gray-200 mb-6 overflow-x-auto">
             <div class="flex gap-1 min-w-max">
                 @foreach($activeTabs as $tabSection)
@@ -378,12 +457,23 @@
                 @endforeach
             </aside>
         </div>
+        </div>{{-- /x-show !q (tabs hidden while searching) --}}
     </div>
     @endif
 
-    @if($pageSections->has('similar_services'))
-        @include('public.partials.similar-services')
-    @endif
+    {{-- One "similar" section only: the complex page (and other non-detail
+         pages) shows similar COMPLEXES. Service/offer/sub-clinic/doctor detail
+         pages each show their own matching type. Gated + sized by the
+         super-admin's similarity settings. --}}
+    @include('public.partials.similar-cards', [
+        'items' => $similarClinics ?? collect(),
+        'type' => 'clinic',
+        'title' => __('site.similar_clinics'),
+        'subtitle' => null,
+    ])
+
+    {{-- Complaint (to this clinic) / platform-report call-to-action --}}
+    @include('public.partials.feedback-cta', ['clinic' => $clinic])
 </div>
 
 {{-- Floating buttons (desktop) + sticky action bar (mobile) — protected

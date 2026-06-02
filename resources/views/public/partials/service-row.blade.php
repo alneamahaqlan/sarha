@@ -8,7 +8,11 @@
 --}}
 <div class="py-3 flex items-start justify-between gap-4">
     <div class="flex-1 min-w-0">
-        <p class="font-medium text-gray-800">{{ $service->name }}</p>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('service.show', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
+               class="font-medium text-gray-800 hover:text-sage-700 transition-colors">{{ $service->name }}</a>
+            <x-save-button :model="$service" type="service" class="flex-shrink-0" />
+        </div>
         @if($service->description)
             <p class="text-sm text-gray-500 mt-0.5">{{ $service->description }}</p>
         @endif

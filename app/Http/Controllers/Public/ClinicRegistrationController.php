@@ -35,6 +35,8 @@ class ClinicRegistrationController extends Controller
             'city_id'        => ['required', 'integer', 'exists:cities,id'],
             'district'       => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255'],
+            'tax_number'     => ['nullable', 'string', 'max:255'],
+            'commercial_registration' => ['nullable', 'string', 'max:255'],
             'notes'          => ['nullable', 'string', 'max:2000'],
         ], [
             'phone.regex' => __('site.phone_invalid'),
@@ -46,8 +48,10 @@ class ClinicRegistrationController extends Controller
             'phone'          => $validated['phone'],
             'email'          => $validated['email'] ?? null,
             'license_number' => $validated['license_number'] ?? null,
+            'tax_number'     => $validated['tax_number'] ?? null,
+            'commercial_registration' => $validated['commercial_registration'] ?? null,
             // Random password: the complex cannot sign in until the admin
-            // approves it and issues real credentials.
+            // approves it and issues real credentials (ClinicService::approve).
             'password'       => bcrypt(Str::random(16)),
             'city_id'        => $validated['city_id'],
             'district'       => $validated['district'] ?? null,

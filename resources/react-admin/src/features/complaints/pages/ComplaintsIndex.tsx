@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, CheckCircle2, Eye, Megaphone, Plus, Search, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Eye, Megaphone, MessageSquareReply, Plus, RotateCcw, Search, Trash2, XCircle } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,21 +15,27 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useComplaints } from '../hooks';
 import {
+  DeleteComplaintDialog,
   MarkInReviewDialog,
   NotifyClinicDialog,
   RejectDialog,
+  ReopenDialog,
+  ReplyToCustomerDialog,
   ResolveDialog,
 } from '../components/ActionDialogs';
 import { CopyBadge } from '@/components/ui/copy-badge';
 import { ComplaintForm } from '../components/ComplaintForm';
 import { ComplaintPriorityBadge, ComplaintStatusBadge } from '../components/ComplaintBadges';
-import { COMPLAINT_PRIORITIES, COMPLAINT_SOURCES, COMPLAINT_STATUSES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintSource, type ComplaintStatus, type ComplaintType } from '../types';
+import { COMPLAINT_PRIORITIES, COMPLAINT_SOURCES, COMPLAINT_TYPES, type Complaint, type ComplaintPriority, type ComplaintSource, type ComplaintStatus, type ComplaintType } from '../types';
 
 type ActionDialog =
   | { kind: 'mark_in_review'; complaint: Complaint }
   | { kind: 'resolve'; complaint: Complaint }
   | { kind: 'reject'; complaint: Complaint }
   | { kind: 'notify_clinic'; complaint: Complaint }
+  | { kind: 'reply'; complaint: Complaint }
+  | { kind: 'reopen'; complaint: Complaint }
+  | { kind: 'delete'; complaint: Complaint }
   | null;
 
 type StatusTab = 'all' | ComplaintStatus;
@@ -234,6 +240,37 @@ export function ComplaintsIndex() {
                         <Megaphone className="h-4 w-4 text-blue-600" />
                       </Button>
                     )}
+                    {c.source === 'customer' && c.user_id && can('complaints.reply') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('complaints.actions.reply')}
+                        onClick={() => setActionDialog({ kind: 'reply', complaint: c })}
+                      >
+                        <MessageSquareReply className={`h-4 w-4 ${c.admin_reply_text ? 'text-emerald-600' : 'text-[var(--color-primary)]'}`} />
+                      </Button>
+                    )}
+                    {(c.status === 'resolved' || c.status === 'rejected') && can('complaints.reopen') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('complaints.actions.reopen')}
+                        onClick={() => setActionDialog({ kind: 'reopen', complaint: c })}
+                      >
+                        <RotateCcw className="h-4 w-4 text-amber-600" />
+                      </Button>
+                    )}
+                    {can('complaints.delete') && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('common.delete')}
+                        onClick={() => setActionDialog({ kind: 'delete', complaint: c })}
+                        className="text-[var(--color-destructive)]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -274,6 +311,15 @@ export function ComplaintsIndex() {
       )}
       {actionDialog?.kind === 'notify_clinic' && (
         <NotifyClinicDialog complaint={actionDialog.complaint} onClose={() => setActionDialog(null)} />
+      )}
+      {actionDialog?.kind === 'reply' && (
+        <ReplyToCustomerDialog complaint={actionDialog.complaint} onClose={() => setActionDialog(null)} />
+      )}
+      {actionDialog?.kind === 'reopen' && (
+        <ReopenDialog complaint={actionDialog.complaint} onClose={() => setActionDialog(null)} />
+      )}
+      {actionDialog?.kind === 'delete' && (
+        <DeleteComplaintDialog complaint={actionDialog.complaint} onClose={() => setActionDialog(null)} />
       )}
 
       <Dialog open={creating} onOpenChange={(o) => { if (!o) setCreating(false); }}>

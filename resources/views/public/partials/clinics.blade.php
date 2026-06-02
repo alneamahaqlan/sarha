@@ -17,7 +17,8 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->subClinics as $sub)
-            <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-md transition-shadow p-5 flex flex-col">
+            <a href="{{ route('subclinic.show', ['slug' => $clinic->slug, 'subClinic' => $sub->id]) }}"
+               class="group bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-md hover:ring-sage-200 transition-all p-5 flex flex-col">
                 <div class="flex items-start gap-3 mb-2">
                     @if($sub->category)
                         <div class="shrink-0 w-11 h-11 rounded-xl bg-sage-mist text-sage-primary flex items-center justify-center">
@@ -25,7 +26,7 @@
                         </div>
                     @endif
                     <div class="min-w-0 flex-1">
-                        <h3 class="font-bold text-gray-800 leading-snug">{{ $sub->display_name }}</h3>
+                        <h3 class="font-bold text-gray-800 leading-snug group-hover:text-sage-700 transition-colors">{{ $sub->display_name }}</h3>
                         @if($sub->category)
                             <p class="text-xs text-gray-500 mt-0.5">{{ $sub->category->display_name }}</p>
                         @endif
@@ -46,7 +47,7 @@
                         </span>
                     @endif
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 @endif

@@ -3,6 +3,10 @@
     (compact). The visitor sees the same information either way; size
     differs because featured slots want to "earn the click".
 
+    Clicking anywhere on the card (image, title, button) lands on the offer
+    DETAIL page — never straight to booking. The booking deep-link lives on
+    that page's CTA. The save (favourite) button stays an independent target.
+
     Expects: $offer (App\Models\Offer), $clinic, $large (bool)
 --}}
 @php
@@ -13,19 +17,16 @@
     // Countdown payload — rendered by Alpine on the client so it ticks
     // without a refresh. JS gets the ISO timestamp directly.
     $endsAtIso = $offer->ends_at->toIso8601String();
-    // CTA is type-conditional: service-linked → deep-link to the booking
-    // form for that specific service; general → call/whatsapp the clinic.
+    $offerHref = route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]);
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
-    $ctaHref = $isServiceLinked
-        ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $offer->service_id])
-        : ($clinic->whatsappLink() ?: ($clinic->phone ? 'tel:' . $clinic->phone : '#'));
-    $ctaLabel = $isServiceLinked
-        ? __('site.book_this_service')
-        : __('site.contact_for_inquiry');
 @endphp
 
-<div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition-all overflow-hidden flex flex-col">
-    <div class="relative {{ $large ? 'aspect-[16/9]' : 'aspect-[4/3]' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
+<div class="relative bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+    {{-- Save button is a sibling of (not nested in) the navigation links so
+         tapping the heart never triggers a page change. --}}
+    <x-save-button :model="$offer" type="offer" class="absolute bottom-3 end-3 z-20" />
+
+    <a href="{{ $offerHref }}" class="relative block {{ $large ? 'aspect-[16/9]' : 'aspect-[4/3]' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
         @if($imageUrl)
             <img src="{{ $imageUrl }}" alt="{{ $offer->title }}" loading="lazy"
                  class="absolute inset-0 w-full h-full object-cover">
@@ -40,10 +41,12 @@
                 <x-icon name="star-solid" class="w-3 h-3" /> @lang('site.featured')
             </span>
         @endif
-    </div>
+    </a>
 
     <div class="p-4 flex-1 flex flex-col">
-        <h3 class="{{ $large ? 'text-base' : 'text-sm' }} font-bold text-gray-800 line-clamp-2">{{ $offer->title }}</h3>
+        <a href="{{ $offerHref }}" class="group">
+            <h3 class="{{ $large ? 'text-base' : 'text-sm' }} font-bold text-gray-800 line-clamp-2 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
+        </a>
 
         @if($isServiceLinked)
             <p class="text-xs text-gray-500 mt-1 line-clamp-1">
@@ -71,7 +74,7 @@
             </div>
         @endif
 
-        {{-- Countdown — Alpine ticks every second. Shows "ينتهي خلال
+        {{-- Countdown — Alpine ticks every minute. Shows "ينتهي خلال
              N أيام / H ساعات" or a red warning under 24h. --}}
         <div class="mt-3 text-xs"
              x-data="offerCountdown('{{ $endsAtIso }}')"
@@ -82,12 +85,10 @@
             </span>
         </div>
 
-        <a href="{{ $ctaHref }}"
-           @if(! $isServiceLinked) target="_blank" rel="noopener" @endif
-           data-track="{{ $isServiceLinked ? 'booking' : 'contact' }}" data-clinic="{{ $clinic->id }}"
+        <a href="{{ $offerHref }}"
            class="mt-4 inline-flex items-center justify-center gap-2 min-h-touch bg-sage-600 hover:bg-sage-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
-            <x-icon name="{{ $isServiceLinked ? 'calendar' : 'phone' }}" class="w-4 h-4" />
-            {{ $ctaLabel }}
+            <x-icon name="eye" class="w-4 h-4" />
+            @lang('site.home_view_offer')
         </a>
     </div>
 </div>

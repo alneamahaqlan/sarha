@@ -73,4 +73,12 @@ export const complaintsApi = {
     const res = await apiClient.post<SingleResponse<Complaint>>(`/admin/complaints/${id}/notify-clinic`);
     return res.data.data;
   },
+  reply: async (id: number, reply: string) => {
+    const res = await apiClient.post<SingleResponse<Complaint>>(`/admin/complaints/${id}/reply`, { reply });
+    return res.data.data;
+  },
+  reopen: async (id: number) => {
+    const res = await apiClient.post<SingleResponse<Complaint>>(`/admin/complaints/${id}/reopen`);
+    return res.data.data;
+  },
 };

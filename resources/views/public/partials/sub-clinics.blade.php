@@ -19,16 +19,21 @@
         <div class="bg-white rounded-xl shadow-sm p-6">
             <div class="flex items-start justify-between gap-3 mb-1">
                 <div class="min-w-0">
-                    <h2 class="text-lg font-bold text-gray-800">{{ $sub->display_name }}</h2>
+                    <a href="{{ route('subclinic.show', ['slug' => $clinic->slug, 'subClinic' => $sub->id]) }}"
+                       class="group inline-flex items-center gap-1.5">
+                        <h2 class="text-lg font-bold text-gray-800 group-hover:text-sage-700 transition-colors">{{ $sub->display_name }}</h2>
+                        <x-icon name="search" class="w-0 h-4 opacity-0 group-hover:w-4 group-hover:opacity-60 transition-all rtl:rotate-90" />
+                    </a>
                     @if($sub->category)
                         <p class="inline-flex items-center gap-1 text-xs text-gray-500 mt-0.5">
                             <x-category-icon :emoji="$sub->category->emoji" class="w-3.5 h-3.5" /> {{ $sub->category->display_name }}
                         </p>
                     @endif
                 </div>
-                <span class="bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
-                    {{ __('site.services_count', ['count' => $sub->services->count()]) }}
-                </span>
+                <a href="{{ route('subclinic.show', ['slug' => $clinic->slug, 'subClinic' => $sub->id]) }}"
+                   class="text-xs font-semibold text-sage-600 hover:text-sage-700 whitespace-nowrap flex-shrink-0 inline-flex items-center gap-1">
+                    @lang('site.detail_subclinic_title') <span class="rtl:rotate-180">→</span>
+                </a>
             </div>
 
             @if($sub->description)

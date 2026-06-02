@@ -26,9 +26,12 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
 import {
+  useDeleteComplaint,
   useMarkComplaintInReview,
   useNotifyClinic,
   useRejectComplaint,
+  useReopenComplaint,
+  useReplyComplaint,
   useResolveComplaint,
 } from '../hooks';
 import type { Complaint } from '../types';
@@ -177,6 +180,115 @@ export function RejectDialog({ complaint, onClose }: CommonProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function ReplyToCustomerDialog({ complaint, onClose }: CommonProps) {
+  const { t } = useTranslation();
+  const [reply, setReply] = useState(complaint.admin_reply_text ?? '');
+  const [err, setErr] = useState<string | null>(null);
+  const mut = useReplyComplaint();
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('complaints.actions.reply_title')}</DialogTitle>
+          <DialogDescription>{t('complaints.actions.reply_body')}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="reply">{t('complaints.actions.reply_label')}</Label>
+          <Textarea id="reply" rows={4} value={reply} onChange={(e) => { setReply(e.target.value); setErr(null); }} />
+          {err && <p className="text-xs text-[var(--color-destructive)]">{err}</p>}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button
+            disabled={mut.isPending}
+            onClick={async () => {
+              if (reply.trim().length < 2) { setErr(t('errors.validation')); return; }
+              try {
+                await mut.mutateAsync({ id: complaint.id, reply: reply.trim() });
+                toast.success(t('complaints.actions.reply_done'));
+                onClose();
+              } catch (e) {
+                const v = extractValidationErrors(e);
+                if (v?.reply) setErr(v.reply[0]);
+                else toast.error(extractMessage(e, t('errors.generic')));
+              }
+            }}
+          >
+            {t('complaints.actions.reply_send')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function ReopenDialog({ complaint, onClose }: CommonProps) {
+  const { t } = useTranslation();
+  const mut = useReopenComplaint();
+
+  return (
+    <AlertDialog open onOpenChange={(o) => !o && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('complaints.actions.reopen_title')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('complaints.actions.reopen_body')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={mut.isPending}
+            onClick={async () => {
+              try {
+                await mut.mutateAsync(complaint.id);
+                toast.success(t('complaints.actions.reopen_done'));
+                onClose();
+              } catch (err) {
+                toast.error(extractMessage(err, t('errors.generic')));
+              }
+            }}
+          >
+            {t('common.confirm')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+export function DeleteComplaintDialog({ complaint, onClose }: CommonProps) {
+  const { t } = useTranslation();
+  const mut = useDeleteComplaint();
+
+  return (
+    <AlertDialog open onOpenChange={(o) => !o && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('complaints.actions.delete_title')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('complaints.actions.delete_body')}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={mut.isPending}
+            onClick={async () => {
+              try {
+                await mut.mutateAsync(complaint.id);
+                toast.success(t('complaints.actions.delete_done'));
+                onClose();
+              } catch (err) {
+                toast.error(extractMessage(err, t('errors.generic')));
+              }
+            }}
+          >
+            {t('common.delete')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 

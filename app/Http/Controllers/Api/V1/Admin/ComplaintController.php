@@ -120,4 +120,27 @@ class ComplaintController extends Controller
             $this->complaints->notifyClinic($complaint)->load(['clinic:id,name', 'assignedAdmin:id,name'])
         );
     }
+
+    public function replyToCustomer(Request $request, Complaint $complaint): ComplaintApiResource
+    {
+        $this->authorize('replyToCustomer', $complaint);
+
+        $data = $request->validate([
+            'reply' => ['required', 'string', 'min:2', 'max:2000'],
+        ]);
+
+        return new ComplaintApiResource(
+            $this->complaints->replyToCustomer($complaint, $data['reply'], (int) $request->user()->id)
+                ->load(['clinic:id,name', 'assignedAdmin:id,name'])
+        );
+    }
+
+    public function reopen(Complaint $complaint): ComplaintApiResource
+    {
+        $this->authorize('reopen', $complaint);
+
+        return new ComplaintApiResource(
+            $this->complaints->reopen($complaint)->load(['clinic:id,name', 'assignedAdmin:id,name'])
+        );
+    }
 }

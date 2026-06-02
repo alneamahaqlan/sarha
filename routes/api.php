@@ -94,6 +94,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/cities', [LookupController::class, 'cities']);
         Route::get('lookups/categories', [LookupController::class, 'categories']);
         Route::get('lookups/admins', [LookupController::class, 'admins']);
+        Route::get('lookups/sub-clinics', [LookupController::class, 'subClinics']);
+        Route::get('lookups/services', [LookupController::class, 'services']);
 
         // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
         Route::get('notifications', [NotificationController::class, 'index']);
@@ -158,6 +160,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // the {booking_trashed} param with withTrashed() instead of default scope.
         Route::bind('booking_trashed', fn ($id) => Booking::withTrashed()->findOrFail($id));
         Route::get('bookings/status-counts', [BookingController::class, 'statusCounts'])->name('bookings.status-counts');
+        Route::get('bookings/export', [BookingController::class, 'export'])->name('bookings.export');
         Route::post('bookings/{booking_trashed}/restore', [BookingController::class, 'restore'])->name('bookings.restore');
         Route::delete('bookings/{booking_trashed}/force', [BookingController::class, 'forceDestroy'])->name('bookings.force-destroy');
         Route::apiResource('bookings', BookingController::class);
@@ -167,6 +170,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])->name('complaints.resolve');
         Route::post('complaints/{complaint}/reject', [ComplaintController::class, 'reject'])->name('complaints.reject');
         Route::post('complaints/{complaint}/notify-clinic', [ComplaintController::class, 'notifyClinic'])->name('complaints.notify-clinic');
+        Route::post('complaints/{complaint}/reply', [ComplaintController::class, 'replyToCustomer'])->name('complaints.reply');
+        Route::post('complaints/{complaint}/reopen', [ComplaintController::class, 'reopen'])->name('complaints.reopen');
         Route::apiResource('complaints', ComplaintController::class);
 
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
@@ -360,6 +365,11 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
 
+        // CSV export + customisable Kanban stage labels.
+        Route::get('bookings/export', [\App\Http\Controllers\Api\V1\Clinic\BookingExportController::class, 'export'])->name('clinic.bookings.export');
+        Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'show'])->name('clinic.bookings.stages.show');
+        Route::put('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
+
         // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
         Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
         Route::get('bookings/kanban-stats', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'stats'])->name('clinic.bookings.kanban-stats');
@@ -393,7 +403,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::get('customers/{customer}',            [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'show'])->name('clinic.customers.show');
             Route::get('customers/{customer}/bookings',   [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'bookings'])->name('clinic.customers.bookings');
             Route::get('customers/{customer}/complaints', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'complaints'])->name('clinic.customers.complaints');
-            Route::get('customers/{customer}/price-quotes', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'priceQuotes'])->name('clinic.customers.price-quotes');
+            // NOTE: a customer's price-quote history is intentionally NOT exposed to the
+            // clinic — only the platform admin may view it (see UserProfileController).
             Route::get('customers/{customer}/timeline',   [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'timeline'])->name('clinic.customers.timeline');
             // Notes (read available to all roles with customers.view; write/edit/delete gated inside the controller).
             Route::get('customers/{customer}/notes',                 [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'index'])->name('clinic.customers.notes.index');

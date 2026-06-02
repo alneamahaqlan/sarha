@@ -7,6 +7,8 @@ use App\Models\Admin;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Service;
+use App\Models\SubClinic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -50,6 +52,40 @@ class LookupController extends Controller
         }
 
         return response()->json(['data' => $q->orderBy('sort_order')->orderBy('name')->limit(100)->get()]);
+    }
+
+    /** Sub-clinics of a given complex — powers cascading booking filters. */
+    public function subClinics(Request $request): JsonResponse
+    {
+        $clinicId = (int) $request->input('clinic_id');
+        if (! $clinicId) {
+            return response()->json(['data' => []]);
+        }
+
+        $q = SubClinic::query()->select(['id', 'name'])->where('clinic_id', $clinicId);
+
+        if ($search = $request->string('search')->toString()) {
+            $q->where('name', 'like', "%{$search}%");
+        }
+
+        return response()->json(['data' => $q->orderBy('name')->limit(100)->get()]);
+    }
+
+    /** Services of a given complex — powers cascading booking filters. */
+    public function services(Request $request): JsonResponse
+    {
+        $clinicId = (int) $request->input('clinic_id');
+        if (! $clinicId) {
+            return response()->json(['data' => []]);
+        }
+
+        $q = Service::query()->select(['id', 'name'])->where('clinic_id', $clinicId);
+
+        if ($search = $request->string('search')->toString()) {
+            $q->where('name', 'like', "%{$search}%");
+        }
+
+        return response()->json(['data' => $q->orderBy('name')->limit(100)->get()]);
     }
 
     public function admins(Request $request): JsonResponse

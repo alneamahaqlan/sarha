@@ -72,4 +72,25 @@ class User extends Authenticatable
     {
         return $this->favorites()->where('clinics.id', $clinic->id)->exists();
     }
+
+    /** Saved services + offers (polymorphic). */
+    public function savedItems()
+    {
+        return $this->hasMany(SavedItem::class);
+    }
+
+    /** Memoised "Type:id" set of the user's saved items — avoids N+1 in card lists. */
+    protected ?\Illuminate\Support\Collection $savedKeyCache = null;
+
+    public function savedKeySet(): \Illuminate\Support\Collection
+    {
+        return $this->savedKeyCache ??= $this->savedItems()
+            ->get(['favoritable_type', 'favoritable_id'])
+            ->map(fn ($s) => $s->favoritable_type . ':' . $s->favoritable_id);
+    }
+
+    public function hasSaved(\Illuminate\Database\Eloquent\Model $model): bool
+    {
+        return $this->savedKeySet()->contains($model->getMorphClass() . ':' . $model->getKey());
+    }
 }

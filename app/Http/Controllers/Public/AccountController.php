@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Complaint;
+use App\Models\Offer;
 use App\Models\Relative;
+use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -81,12 +83,57 @@ class AccountController extends Controller
 
     public function favorites()
     {
-        $favorites = auth('web')->user()
+        $user = auth('web')->user();
+
+        $favorites = $user
             ->favorites()
             ->with(['city', 'categories'])
             ->paginate(12);
 
-        return view('public.account.favorites', compact('favorites'));
+        // Saved services + offers (polymorphic). withTrashed so deleted
+        // items stay visible, labelled "محذوف"; expired offers are flagged
+        // from their date window in the view.
+        $saved = $user->savedItems()->with(['favoritable.clinic'])->latest()->get();
+        $savedServices = $saved->where('favoritable_type', Service::class)
+            ->pluck('favoritable')->filter()->values();
+        $savedOffers = $saved->where('favoritable_type', Offer::class)
+            ->pluck('favoritable')->filter()->values();
+
+        return view('public.account.favorites', compact('favorites', 'savedServices', 'savedOffers'));
+    }
+
+    /**
+     * Toggle a saved service/offer for the current customer. Resolves the
+     * target withTrashed so un-saving a since-deleted item still works.
+     */
+    public function toggleSaved(Request $request)
+    {
+        $data = $request->validate([
+            'type' => 'required|in:service,offer',
+            'id'   => 'required|integer',
+        ]);
+
+        $class = $data['type'] === 'service' ? Service::class : Offer::class;
+        $model = $class::withTrashed()->find($data['id']);
+        abort_unless($model, 404);
+
+        $user = auth('web')->user();
+        $existing = $user->savedItems()
+            ->where('favoritable_type', $model->getMorphClass())
+            ->where('favoritable_id', $model->getKey())
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            return back()->with('success', __('site.saved_removed'));
+        }
+
+        $user->savedItems()->create([
+            'favoritable_type' => $model->getMorphClass(),
+            'favoritable_id'   => $model->getKey(),
+        ]);
+
+        return back()->with('success', __('site.saved_added'));
     }
 
     public function quotes()

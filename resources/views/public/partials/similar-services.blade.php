@@ -30,7 +30,12 @@
                     @endif
                 </div>
                 <div class="p-4 flex-1 flex flex-col">
-                    <h3 class="font-semibold text-gray-800 line-clamp-1">{{ $svc->name }}</h3>
+                    @if($otherClinic)
+                        <a href="{{ route('service.show', ['slug' => $otherClinic->slug, 'service' => $svc->id]) }}"
+                           class="font-semibold text-gray-800 hover:text-sage-700 transition-colors line-clamp-1">{{ $svc->name }}</a>
+                    @else
+                        <h3 class="font-semibold text-gray-800 line-clamp-1">{{ $svc->name }}</h3>
+                    @endif
                     @if($otherClinic)
                         {{-- Secondary "go to clinic page" link — the primary
                              action is the booking button below. Vertical

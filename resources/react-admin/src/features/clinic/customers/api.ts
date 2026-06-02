@@ -6,7 +6,6 @@ import type {
   CustomerListRow,
   CustomerNote,
   CustomerProfile,
-  CustomerQuoteRow,
   CustomerStats,
   ListFilters,
   TimelineEvent,
@@ -54,11 +53,6 @@ export const customersApi = {
 
   complaints: async (id: number) => {
     const res = await apiClient.get<{ data: CustomerComplaintRow[] }>(`/clinic/customers/${id}/complaints`);
-    return res.data.data;
-  },
-
-  priceQuotes: async (id: number) => {
-    const res = await apiClient.get<{ data: CustomerQuoteRow[] }>(`/clinic/customers/${id}/price-quotes`);
     return res.data.data;
   },
 

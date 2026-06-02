@@ -33,6 +33,8 @@ class Complaint extends Model
         'clinic_replied_by_name_snapshot',
         'clinic_replied_by_role_snapshot',
         'clinic_replied_at',
+        // Admin → customer reply
+        'admin_reply_text', 'admin_replied_at', 'admin_replied_by_admin_id',
     ];
 
     protected function casts(): array
@@ -41,6 +43,7 @@ class Complaint extends Model
             'resolved_at'       => 'datetime',
             'clinic_notified'   => 'boolean',
             'clinic_replied_at' => 'datetime',
+            'admin_replied_at'  => 'datetime',
         ];
     }
 

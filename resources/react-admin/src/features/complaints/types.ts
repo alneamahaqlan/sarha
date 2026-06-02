@@ -28,6 +28,8 @@ export interface Complaint {
   assigned_admin_id: number | null;
   resolved_at: string | null;
   clinic_notified: boolean;
+  admin_reply_text: string | null;
+  admin_replied_at: string | null;
   clinic?: { id: number; name: string } | null;
   assigned_admin?: { id: number; name: string } | null;
   created_at: string | null;

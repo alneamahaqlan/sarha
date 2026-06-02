@@ -88,9 +88,13 @@ export interface KanbanStats {
   weekly_confirm_rate: number | null;
 }
 
+/** Per-clinic custom labels for the 4 Kanban columns (blank = default). */
+export type StageLabels = Partial<Record<KanbanColumn, string>>;
+
 export interface KanbanFilters {
   search?: string;
   service_id?: number;
+  sub_clinic_id?: number;
   assignee_id?: number;
   assignee_type?: AssigneeKind;
   date_from?: string;

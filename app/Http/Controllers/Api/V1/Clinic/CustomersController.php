@@ -239,22 +239,8 @@ class CustomersController extends Controller
         return response()->json(['data' => $rows]);
     }
 
-    public function priceQuotes(Customer $customer): JsonResponse
-    {
-        $this->ensureClinicOwns($customer);
-        $rows = PriceQuoteRequest::query()
-            ->where('customer_id', $customer->id)
-            ->orderByDesc('created_at')
-            ->limit(100)
-            ->get()
-            ->map(fn(PriceQuoteRequest $q) => [
-                'id'           => $q->id,
-                'service_name' => $q->service_name,
-                'status'       => $q->status,
-                'created_at'   => $q->created_at?->toIso8601String(),
-            ]);
-        return response()->json(['data' => $rows]);
-    }
+    // NOTE: priceQuotes() was removed — a customer's price-quote history is
+    // restricted to the platform admin and must not be exposed to clinics.
 
     // ---------- internal ----------
 

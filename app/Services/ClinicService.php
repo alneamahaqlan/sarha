@@ -38,7 +38,11 @@ class ClinicService
     public function approve(Clinic $clinic): Clinic
     {
         return DB::transaction(function () use ($clinic) {
-            $clinic->update(['status' => 'active']);
+            // Issue real login credentials on approval — until now the clinic
+            // held an unknown random password and could not sign in.
+            $password = $clinic->issuePassword();
+            $clinic->status = 'active';
+            $clinic->save();
 
             $package = $this->resolveApprovalPackage($clinic);
             // 90-day trial = 1 quarterly cycle with 0 bonus months; the
@@ -53,7 +57,9 @@ class ClinicService
             );
 
             AuditLogService::log('clinic.approved', $clinic);
-            $this->notifications->clinicApproved($clinic);
+            // In-app bell + a credentials email (password, approved phone,
+            // login link) so the clinic can sign in immediately.
+            $this->notifications->clinicApproved($clinic, $password, url('/app/login'));
 
             return $clinic->fresh();
         });

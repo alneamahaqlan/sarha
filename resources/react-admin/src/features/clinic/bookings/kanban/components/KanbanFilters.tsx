@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useSubClinicLookup, useClinicServices } from '@/features/clinic/services/hooks';
 import { useAssignees, useTagLabels } from '../hooks';
 import type { KanbanFilters as F } from '../types';
 
@@ -17,6 +18,8 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
   const { t } = useTranslation();
   const { data: assignees } = useAssignees();
   const { data: tagLabels } = useTagLabels();
+  const { data: subClinics } = useSubClinicLookup();
+  const { data: services } = useClinicServices({ per_page: 100 });
   const active = Object.values(filters).some((v) => v != null && v !== '' && v !== false);
 
   return (
@@ -30,6 +33,28 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
           className="ps-8"
         />
       </div>
+
+      <Select
+        value={filters.sub_clinic_id ?? ''}
+        onChange={(e) => onChange({ sub_clinic_id: e.target.value ? Number(e.target.value) : undefined })}
+        className="lg:max-w-[180px]"
+      >
+        <option value="">{t('clinic_bookings_kanban.filters.sub_clinic_any')}</option>
+        {subClinics?.map((sc) => (
+          <option key={sc.id} value={sc.id}>{sc.name}</option>
+        ))}
+      </Select>
+
+      <Select
+        value={filters.service_id ?? ''}
+        onChange={(e) => onChange({ service_id: e.target.value ? Number(e.target.value) : undefined })}
+        className="lg:max-w-[180px]"
+      >
+        <option value="">{t('clinic_bookings_kanban.filters.service_any')}</option>
+        {services?.data.map((s) => (
+          <option key={s.id} value={s.id}>{s.name}</option>
+        ))}
+      </Select>
 
       <Select
         value={filters.assignee_id ? `${filters.assignee_type}:${filters.assignee_id}` : ''}

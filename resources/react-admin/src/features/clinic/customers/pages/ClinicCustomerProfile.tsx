@@ -44,7 +44,8 @@ export function ClinicCustomerProfile() {
           value={customer.last_booking?.service_name ?? '—'}
           hint={customer.last_booking?.appointment_at ? fmtDate(customer.last_booking.appointment_at, locale) : '—'}
         />
-        <SummaryCard label={t('clinic_customers.summary.complaints')} value={String(customer.totals.complaints)} hint={t('clinic_customers.summary.quote_requests_value', { value: customer.totals.quote_requests })} />
+        {/* Price-quote count intentionally omitted — the clinic must not see the customer's quote-request history. */}
+        <SummaryCard label={t('clinic_customers.summary.complaints')} value={String(customer.totals.complaints)} />
         <SummaryCard label={t('clinic_customers.summary.service_value')} value={`${customer.totals.service_value.toFixed(0)} ر.س`} hint={t('clinic_customers.summary.first_seen', { date: fmtDate(customer.first_seen_at, locale) })} />
       </div>
 

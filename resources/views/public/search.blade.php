@@ -206,7 +206,26 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @foreach($clinics as $clinic)
-                @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $clinics->getCollection(), 'compare' => true])
+                <div class="relative">
+                    @auth('web')
+                        <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="absolute bottom-3 end-3 z-20">
+                            @csrf
+                            @php $fav = auth('web')->user()->hasFavorited($clinic); @endphp
+                            <button type="submit"
+                                    title="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
+                                    aria-label="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
+                                    class="inline-flex items-center justify-center w-9 h-9 rounded-full shadow-sm ring-1 ring-gray-100 transition-colors {{ $fav ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50' }}">
+                                <x-icon :name="$fav ? 'heart-solid' : 'heart'" class="w-4 h-4" />
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" title="{{ __('site.saved_login_prompt') }}"
+                           class="absolute bottom-3 end-3 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/95 text-gray-400 shadow-sm ring-1 ring-gray-100 hover:text-red-500 hover:bg-red-50 transition-colors">
+                            <x-icon name="heart" class="w-4 h-4" />
+                        </a>
+                    @endauth
+                    @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $clinics->getCollection(), 'compare' => true])
+                </div>
             @endforeach
         </div>
 

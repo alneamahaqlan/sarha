@@ -36,6 +36,9 @@ class ComplaintResource extends JsonResource
             'clinic_replied_by_name_snapshot'  => $this->clinic_replied_by_name_snapshot,
             'clinic_replied_by_role_snapshot'  => $this->clinic_replied_by_role_snapshot,
             'clinic_replied_at'                => $this->clinic_replied_at?->toIso8601String(),
+            // Admin → customer reply
+            'admin_reply_text'  => $this->admin_reply_text,
+            'admin_replied_at'  => $this->admin_replied_at?->toIso8601String(),
             'clinic'            => $this->whenLoaded('clinic', fn() => $this->clinic ? [
                 'id'   => $this->clinic->id,
                 'name' => $this->clinic->name,

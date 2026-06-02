@@ -26,6 +26,9 @@ class StorePackageRequest extends FormRequest
             'sort_order'   => ['nullable', 'integer', 'min:0'],
             'service_ids'  => ['nullable', 'array'],
             'service_ids.*' => ['integer', Rule::exists('services', 'id')->where('clinic_id', $clinicId)],
+            // Optional per-service note, keyed by service id (e.g. "includes a discount card").
+            'service_notes'   => ['nullable', 'array'],
+            'service_notes.*' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

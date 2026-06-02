@@ -2337,7 +2337,21 @@
       "identity": "Identity",
       "limits": "Limits",
       "features": "Features",
-      "tier": "Tier"
+      "tier": "Tier",
+      "similar": "Similar sections"
+    },
+    "similar": {
+      "hint": "Controls which \"similar\" card strips appear on pages of clinics on this package.",
+      "col_show": "Show",
+      "col_city": "City",
+      "col_specialty": "Specialty",
+      "col_subclinic": "Clinic",
+      "row_complex": "Similar complexes",
+      "row_service": "Similar services",
+      "row_offer": "Similar offers",
+      "row_subclinic": "Similar clinics",
+      "row_doctor": "Similar doctors",
+      "limit": "Cards per section"
     },
     "field": {
       "name_ar": "Arabic name",

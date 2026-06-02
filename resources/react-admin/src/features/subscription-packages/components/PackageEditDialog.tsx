@@ -12,7 +12,13 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
 import { useCreatePackage, useUpdatePackage } from '../hooks';
-import type { ColorToken, SubscriptionPackage, SubscriptionPackageFormValues } from '../types';
+import type {
+  ColorToken,
+  SimilarSectionConfig,
+  SimilarSectionKey,
+  SubscriptionPackage,
+  SubscriptionPackageFormValues,
+} from '../types';
 
 interface Props {
   open: boolean;
@@ -51,7 +57,26 @@ const EMPTY: SubscriptionPackageFormValues = {
   banner_slots: 0,
   allow_offers_packages: false,
   allow_doctors_before_after: false,
+  similar_config: {
+    limit: 6,
+    sections: {
+      complex:   { show: true, match_city: true, match_specialty: true },
+      service:   { show: true, match_city: true, match_specialty: true },
+      offer:     { show: true, match_city: true, match_specialty: true },
+      subClinic: { show: true, match_city: true, match_specialty: true },
+      doctor:    { show: true, match_city: true, match_specialty: true, match_subclinic: true },
+    },
+  },
 };
+
+/** Rows of the "similar sections" matrix, in display order. */
+const SIMILAR_ROWS: { key: SimilarSectionKey; labelKey: string; subclinic: boolean }[] = [
+  { key: 'complex',   labelKey: 'packages.similar.row_complex',   subclinic: false },
+  { key: 'service',   labelKey: 'packages.similar.row_service',   subclinic: false },
+  { key: 'offer',     labelKey: 'packages.similar.row_offer',     subclinic: false },
+  { key: 'subClinic', labelKey: 'packages.similar.row_subclinic', subclinic: false },
+  { key: 'doctor',    labelKey: 'packages.similar.row_doctor',    subclinic: true  },
+];
 
 export function PackageEditDialog({ open, pkg, onClose }: Props) {
   const { t } = useTranslation();
@@ -77,6 +102,22 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
 
   const set = <K extends keyof SubscriptionPackageFormValues>(key: K, val: SubscriptionPackageFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: val }));
+
+  /** Toggle one flag of one "similar" section. */
+  const setSim = (section: SimilarSectionKey, field: keyof SimilarSectionConfig, val: boolean) =>
+    setValues((v) => ({
+      ...v,
+      similar_config: {
+        ...v.similar_config,
+        sections: {
+          ...v.similar_config.sections,
+          [section]: { ...v.similar_config.sections[section], [field]: val },
+        },
+      },
+    }));
+
+  const setSimLimit = (val: number) =>
+    setValues((v) => ({ ...v, similar_config: { ...v.similar_config, limit: val } }));
 
   /** Unlimited toggle for the nullable INT columns — ♾ = null. */
   const limitInput = (key: 'services_limit' | 'articles_monthly_limit' | 'quote_replies_monthly_limit') => {
@@ -237,6 +278,64 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
                   <Switch checked={Boolean(values[key])} onCheckedChange={(c) => set(key, c)} />
                 </label>
               ))}
+            </div>
+          </section>
+
+          {/* Similar sections — per-package matrix controlling the public
+              "similar / related" card strips for this package's clinics. */}
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">{t('packages.section.similar')}</h3>
+            <p className="text-xs text-[var(--color-muted-foreground)]">{t('packages.similar.hint')}</p>
+            <div className="overflow-x-auto rounded-md border border-[var(--color-border)]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-[var(--color-border)] text-[var(--color-muted-foreground)]">
+                    <th className="px-3 py-2 text-start font-medium"></th>
+                    <th className="px-3 py-2 text-center font-medium">{t('packages.similar.col_show')}</th>
+                    <th className="px-3 py-2 text-center font-medium">{t('packages.similar.col_city')}</th>
+                    <th className="px-3 py-2 text-center font-medium">{t('packages.similar.col_specialty')}</th>
+                    <th className="px-3 py-2 text-center font-medium">{t('packages.similar.col_subclinic')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SIMILAR_ROWS.map((row) => {
+                    const cfg = values.similar_config.sections[row.key];
+                    return (
+                      <tr key={row.key} className="border-b border-[var(--color-border)] last:border-0">
+                        <td className="px-3 py-2 whitespace-nowrap">{t(row.labelKey)}</td>
+                        <td className="px-3 py-2 text-center">
+                          <Switch checked={cfg.show} onCheckedChange={(c) => setSim(row.key, 'show', c)} />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Switch checked={cfg.match_city} disabled={!cfg.show} onCheckedChange={(c) => setSim(row.key, 'match_city', c)} />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Switch checked={cfg.match_specialty} disabled={!cfg.show} onCheckedChange={(c) => setSim(row.key, 'match_specialty', c)} />
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {row.subclinic ? (
+                            <Switch checked={Boolean(cfg.match_subclinic)} disabled={!cfg.show} onCheckedChange={(c) => setSim(row.key, 'match_subclinic', c)} />
+                          ) : (
+                            <span className="text-[var(--color-muted-foreground)]">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="similar_limit">{t('packages.similar.limit')}</Label>
+              <Input
+                id="similar_limit"
+                type="number"
+                min={1}
+                max={24}
+                value={values.similar_config.limit}
+                onChange={(e) => setSimLimit(Math.max(1, Number(e.target.value) || 1))}
+                className="w-24"
+              />
             </div>
           </section>
 

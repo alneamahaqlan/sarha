@@ -8,7 +8,8 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->beforeAfterPhotos as $photo)
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <a href="{{ route('before-after.show', ['slug' => $clinic->slug, 'photo' => $photo->id]) }}"
+               class="group block bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden">
                 <div class="grid grid-cols-2">
                     <div class="relative">
                         <img src="{{ Storage::url($photo->before_image) }}" alt="@lang('site.before')" loading="lazy" class="h-44 w-full object-cover">
@@ -34,7 +35,7 @@
                         </div>
                     </div>
                 @endif
-            </div>
+            </a>
         @endforeach
     </div>
 @endif

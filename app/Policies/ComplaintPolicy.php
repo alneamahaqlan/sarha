@@ -29,7 +29,19 @@ class ComplaintPolicy
 
     public function delete(Admin $admin, Complaint $complaint): bool
     {
-        return $admin->is_active && $admin->isSuperAdmin();
+        // Any active admin may delete a complaint (was super-admin only).
+        return $admin->is_active;
+    }
+
+    public function replyToCustomer(Admin $admin, Complaint $complaint): bool
+    {
+        // Reply only makes sense for complaints that came from a customer account.
+        return $admin->is_active && $complaint->source === 'customer' && $complaint->user_id;
+    }
+
+    public function reopen(Admin $admin, Complaint $complaint): bool
+    {
+        return $admin->is_active && in_array($complaint->status, ['resolved', 'rejected'], true);
     }
 
     public function markInReview(Admin $admin, Complaint $complaint): bool

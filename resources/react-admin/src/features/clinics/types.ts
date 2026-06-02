@@ -15,6 +15,10 @@ export interface Clinic {
   phone: string;
   email: string | null;
   license_number: string | null;
+  tax_number: string | null;
+  commercial_registration: string | null;
+  /** True when a reversible password copy is stored (drives reveal vs regenerate). */
+  password_available?: boolean;
   city_id: number;
   address: string | null;
   district: string | null;
