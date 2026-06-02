@@ -1,5 +1,5 @@
 import { Link, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -32,6 +32,7 @@ const adminNav = [
     group: 'nav.group.content',
     items: [
       { to: '/admin/services', label: 'nav.services', icon: Sparkles },
+      { to: '/admin/catalog-services', label: 'nav.catalog_services', icon: ClipboardList, badge: 'catalog_requests' as keyof AdminNavBadges },
       { to: '/admin/articles', label: 'nav.articles', icon: FileText },
       { to: '/admin/homepage-sections', label: 'nav.homepage_sections', icon: Home },
     ],

@@ -7,6 +7,7 @@ export interface AdminNavBadges {
   clinics_pending: number;
   subscriptions_expiring: number;
   category_requests: number;
+  catalog_requests: number;
   clinic_reports: number;
   customer_reports: number;
 }
@@ -25,8 +26,11 @@ export function useAdminNavBadges() {
       const res = await apiClient.get<{ data: AdminNavBadges }>('/admin/dashboard/nav-badges');
       return res.data.data;
     },
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    // Keep nav badges live alongside the bell (see useNotifications).
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 10_000,
   });
 }
 
@@ -37,7 +41,9 @@ export function useClinicNavBadges() {
       const res = await apiClient.get<{ data: ClinicNavBadges }>('/clinic/dashboard/nav-badges');
       return res.data.data;
     },
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 10_000,
   });
 }

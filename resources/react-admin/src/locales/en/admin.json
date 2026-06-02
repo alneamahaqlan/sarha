@@ -26,7 +26,8 @@
     "logout_confirm_body": "You will need to sign in again to access your panel.",
     "expand_sidebar": "Expand sidebar",
     "collapse_sidebar": "Collapse sidebar",
-    "toggle_language": "Toggle language"
+    "toggle_language": "Toggle language",
+    "copy": "Copy"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -39,6 +40,7 @@
     "users": "Customers",
     "admins": "Administrators",
     "services": "Services",
+    "catalog_services": "Service catalog",
     "homepage_sections": "Homepage",
     "bookings": "Bookings",
     "complaints": "Complaints",
@@ -506,6 +508,17 @@
       "basic": "Basic",
       "premium": "Premium"
     },
+    "password": {
+      "title": "Clinic login password",
+      "hint": "Click \"Show\" to reveal the stored password.",
+      "none_stored": "No password is stored for this clinic. Use \"Regenerate password\".",
+      "not_available": "No revealable password copy exists for this clinic.",
+      "reveal": "Show password",
+      "regenerate": "Regenerate password",
+      "regenerated": "A new password was generated. Hand it to the clinic.",
+      "show": "Show",
+      "hide": "Hide"
+    },
     "trashed": {
       "without": "Without trashed",
       "with": "With trashed",
@@ -556,7 +569,9 @@
       "slug": "Slug",
       "phone": "Phone",
       "email": "Email",
-      "license_number": "License number",
+      "license_number": "Ministry of Health license",
+      "tax_number": "Tax (VAT) number",
+      "commercial_registration": "Commercial registration",
       "password": "Password",
       "new_password": "New password",
       "password_hint": "Leave blank to keep the current password",
