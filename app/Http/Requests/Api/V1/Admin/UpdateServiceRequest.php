@@ -23,6 +23,10 @@ class UpdateServiceRequest extends FormRequest
             'price'        => ['sometimes', 'required', 'numeric', 'min:0'],
             // Relative path returned by the /uploads endpoint (e.g. services/x.jpg).
             'image'        => ['nullable', 'string', 'max:2048'],
+            // When true the price is a "starting from" minimum.
+            'price_from'     => ['nullable', 'boolean'],
+            'price_includes' => ['nullable', 'string', 'max:2000'],
+            'price_excludes' => ['nullable', 'string', 'max:2000'],
             'is_active'    => ['nullable', 'boolean'],
         ];
     }

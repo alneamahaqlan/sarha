@@ -29,6 +29,9 @@ class ServiceResource extends JsonResource
             'name'               => $this->name,
             'description'        => $this->description,
             'price'              => (float) $this->price,
+            'price_from'         => (bool) $this->price_from,
+            'price_includes'     => $this->price_includes,
+            'price_excludes'     => $this->price_excludes,
             'image'              => $this->image,
             'is_active'          => (bool) $this->is_active,
             // Moderation gate: 'approved' shows publicly; 'pending' is hidden

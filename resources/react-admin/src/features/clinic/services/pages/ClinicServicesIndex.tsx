@@ -50,6 +50,9 @@ const schema = z
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
+    price_from: z.boolean().default(false),
+    price_includes: z.string().nullish(),
+    price_excludes: z.string().nullish(),
     image: z.string().nullish(),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
@@ -75,6 +78,9 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      price_from: service?.price_from ?? false,
+      price_includes: service?.price_includes ?? '',
+      price_excludes: service?.price_excludes ?? '',
       image: service?.image ?? '',
       is_active: service?.is_active ?? true,
       sort_order: service?.sort_order ?? 0,
@@ -173,6 +179,18 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="space-y-1.5">
               <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>
               <Input id="sort_order" type="number" min={0} step={1} {...form.register('sort_order', { valueAsNumber: true })} />
+            </div>
+            <div className="flex items-center gap-3 md:col-span-2">
+              <Switch checked={form.watch('price_from')} onCheckedChange={(c) => form.setValue('price_from', c, { shouldDirty: true })} />
+              <Label>{t('clinic_services.price_from', 'السعر يبدأ من (الحد الأدنى)')}</Label>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="price_includes">{t('clinic_services.price_includes', 'ما يشمله السعر (اختياري)')}</Label>
+              <Textarea id="price_includes" rows={2} placeholder={t('clinic_services.price_includes_ph', 'مثال: الكشف الأولي + استشارة الطبيب')} {...form.register('price_includes')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="price_excludes">{t('clinic_services.price_excludes', 'ما لا يشمله السعر (اختياري)')}</Label>
+              <Textarea id="price_excludes" rows={2} placeholder={t('clinic_services.price_excludes_ph', 'مثال: الأشعة والتحاليل')} {...form.register('price_excludes')} />
             </div>
             <div className="flex items-end gap-3 pb-2 md:col-span-2">
               <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />

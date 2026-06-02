@@ -11,6 +11,9 @@ export interface ClinicServiceFormValues {
   sub_clinic_id?: number | null;
   description?: string | null;
   price: number;
+  price_from?: boolean;
+  price_includes?: string | null;
+  price_excludes?: string | null;
   image?: string | null;
   is_active: boolean;
   sort_order?: number;
