@@ -34,11 +34,15 @@ import {
   useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
 import { MultiCategorySelect } from '../components/MultiCategorySelect';
+import { CatalogServicePicker } from '../components/CatalogServicePicker';
 import { RequestSpecialtyDialog } from '../components/RequestSpecialtyDialog';
 
 const schema = z
   .object({
     name: z.string().min(1).max(255),
+    // Set when the clinic picked an existing canonical service from the
+    // catalog typeahead (→ instant publish); null → backend files a request.
+    catalog_service_id: z.number().int().positive().nullable().optional(),
     // 1–5 specialties — mirrors StoreServiceRequest / UpdateServiceRequest.
     // Each service must belong to at least one specialty, up to five.
     category_ids: z.array(z.number().int().positive()).min(1).max(5),
@@ -63,6 +67,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: service?.name ?? '',
+      catalog_service_id: service?.catalog_service_id ?? null,
       // Edit mode: prefer category_ids (new API); fall back to the legacy
       // single category_id if the row hasn't been resaved since the
       // many-to-many migration. Create mode: empty list.
@@ -101,8 +106,15 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_services.name')}</Label>
-              <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <CatalogServicePicker
+                name={form.watch('name')}
+                catalogServiceId={form.watch('catalog_service_id') ?? null}
+                onChange={(n, id) => {
+                  form.setValue('name', n, { shouldDirty: true, shouldValidate: true });
+                  form.setValue('catalog_service_id', id, { shouldDirty: true });
+                }}
+                error={form.formState.errors.name?.message}
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label>
