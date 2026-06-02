@@ -1182,6 +1182,8 @@
     "categories_counter": "{{count}} of {{max}}",
     "no_categories_picked": "No specialty picked yet.",
     "pick_category": "Pick a specialty to add",
+    "search_category": "Search for a specialty to add…",
+    "no_category_match": "No matching specialty.",
     "request_specialty_link": "Specialty not listed? Suggest adding it",
     "request_specialty_title": "Suggest a new specialty",
     "request_specialty_desc": "Your request goes to the admins. Once approved, the specialty is auto-attached to your service.",

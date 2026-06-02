@@ -1182,6 +1182,8 @@
     "categories_counter": "{{count}} من {{max}}",
     "no_categories_picked": "لم تختر أي تخصص بعد.",
     "pick_category": "اختر تخصصاً للإضافة",
+    "search_category": "ابحث عن تخصص للإضافة…",
+    "no_category_match": "لا يوجد تخصص مطابق.",
     "request_specialty_link": "تخصصك غير موجود؟ اقترح إضافته",
     "request_specialty_title": "اقترح تخصصاً جديداً",
     "request_specialty_desc": "سيُراجع الطلب من الإدارة. عند الموافقة، يُضاف التخصص تلقائياً لخدمتك.",

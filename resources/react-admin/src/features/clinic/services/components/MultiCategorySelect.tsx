@@ -1,7 +1,6 @@
-import { useMemo, useState } from 'react';
-import { X, Plus } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { X } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import type { CategoryLookup } from '@/features/lookups/api';
 
@@ -16,29 +15,44 @@ interface Props {
 }
 
 /**
- * Multi-select for specialties used in the clinic "add service" form.
- * Renders selected items as removable chips above + a dropdown below for
- * adding more. Disables the "add" button once `max` is reached.
+ * Searchable multi-select for specialties used in the clinic "add service"
+ * form. Selected items render as removable chips; typing in the input filters
+ * the remaining specialties (by Arabic or English name) and the matches show
+ * in a dropdown — pick one to add it. Disabled once `max` is reached.
  */
 export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Props) {
   const { t } = useTranslation();
-  const [picking, setPicking] = useState('');
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selected = useMemo(
     () => (categories ?? []).filter((c) => value.includes(c.id)),
     [categories, value],
   );
-  const remaining = useMemo(
-    () => (categories ?? []).filter((c) => !value.includes(c.id)),
-    [categories, value],
-  );
 
   const atMax = value.length >= max;
+
+  // Remaining (unselected) specialties filtered by the typed query against
+  // both the Arabic and English names, case-insensitively.
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const remaining = (categories ?? []).filter((c) => !value.includes(c.id));
+    if (!q) return remaining.slice(0, 8);
+    return remaining
+      .filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          (c.name_en ?? '').toLowerCase().includes(q),
+      )
+      .slice(0, 8);
+  }, [categories, value, query]);
 
   const add = (id: number) => {
     if (atMax || value.includes(id)) return;
     onChange([...value, id]);
-    setPicking('');
+    setQuery('');
+    setOpen(false);
   };
 
   const remove = (id: number) => {
@@ -74,36 +88,68 @@ export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Pr
         </p>
       )}
 
-      {/* Add dropdown + button */}
-      <div className="flex items-stretch gap-2">
-        <select
-          value={picking}
-          onChange={(e) => setPicking(e.target.value)}
-          disabled={atMax || remaining.length === 0}
-          className="h-9 flex-1 rounded-md border border-[var(--color-border)] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:bg-[var(--color-muted)] disabled:opacity-60"
-        >
-          <option value="">
-            {atMax
+      {/* Search input + dropdown of matches */}
+      <div className="relative">
+        <input
+          type="text"
+          value={query}
+          disabled={atMax}
+          placeholder={
+            atMax
               ? t('clinic_services.categories_max_reached', 'وصلت للحد الأقصى من التخصصات')
-              : t('clinic_services.pick_category', 'اختر تخصصاً للإضافة')}
-          </option>
-          {remaining.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.emoji ? `${c.emoji} ` : ''}
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!picking || atMax}
-          onClick={() => add(Number(picking))}
-        >
-          <Plus className="h-4 w-4" />
-          {t('homepage_sections.add', 'إضافة')}
-        </Button>
+              : t('clinic_services.search_category', 'ابحث عن تخصص للإضافة…')
+          }
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => {
+            // Delay so a click on a dropdown row registers before we close.
+            blurTimer.current = setTimeout(() => setOpen(false), 120);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (matches[0]) add(matches[0].id);
+            } else if (e.key === 'Escape') {
+              setOpen(false);
+            }
+          }}
+          className="h-9 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:bg-[var(--color-muted)] disabled:opacity-60"
+        />
+
+        {open && !atMax && matches.length > 0 && (
+          <ul
+            className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-lg"
+            onMouseDown={() => {
+              // Cancel the input blur-close so the click below fires.
+              if (blurTimer.current) clearTimeout(blurTimer.current);
+            }}
+          >
+            {matches.map((c) => (
+              <li key={c.id}>
+                <button
+                  type="button"
+                  onClick={() => add(c.id)}
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-[var(--color-muted)]"
+                >
+                  {c.emoji ? <span>{c.emoji}</span> : null}
+                  <span>{c.name}</span>
+                  {c.name_en ? (
+                    <span className="text-xs text-[var(--color-muted-foreground)]">{c.name_en}</span>
+                  ) : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {open && !atMax && query.trim() !== '' && matches.length === 0 && (
+          <div className="absolute z-20 mt-1 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-xs text-[var(--color-muted-foreground)] shadow-lg">
+            {t('clinic_services.no_category_match', 'لا يوجد تخصص مطابق.')}
+          </div>
+        )}
       </div>
 
       {/* Counter */}
