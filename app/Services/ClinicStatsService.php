@@ -304,6 +304,39 @@ class ClinicStatsService
     }
 
     /**
+     * Trailing visibility summary for one clinic over a date range, sourced
+     * through the SAME path as the "My stats" page: impressions come from
+     * clinic_impressions via impressionBreakdown(), the rest from clinic_stats.
+     *
+     * Lets lighter surfaces (the clinic dashboard card) show an impressions
+     * number guaranteed identical to the stats page without running the full
+     * compute() payload. See TC-001 (impressions discrepancy).
+     *
+     * @return array{impressions:int, page_views:int, bookings:int, quote_requests:int}
+     */
+    public function visibility(int $clinicId, string $fromDate, string $toDate): array
+    {
+        $t = ClinicStat::where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw(
+                'COALESCE(SUM(page_views),0) pv, '
+                . 'COALESCE(SUM(bookings_count),0) bk, '
+                . 'COALESCE(SUM(quote_requests_count),0) qr'
+            )->first();
+
+        // total always sums EVERY source (AI included) — same number the
+        // stats page headline shows; showAi only affects the per-row split.
+        $impressions = $this->impressionBreakdown($clinicId, $fromDate, $toDate, false);
+
+        return [
+            'impressions'    => $impressions['total'],
+            'page_views'     => (int) $t->pv,
+            'bookings'       => (int) $t->bk,
+            'quote_requests' => (int) $t->qr,
+        ];
+    }
+
+    /**
      * Per-source impression breakdown for one clinic over the date range.
      *
      * Returns:

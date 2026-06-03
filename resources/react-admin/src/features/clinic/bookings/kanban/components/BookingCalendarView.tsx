@@ -22,7 +22,7 @@ function sameDate(a: Date, b: Date) {
 }
 
 function fmtDateHeader(d: Date, locale: string) {
-  return d.toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-GB', {
+  return d.toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
 }

@@ -10,6 +10,8 @@ interface Props {
   items: KanbanCard[];
   total: number;
   onOpen: (card: KanbanCard) => void;
+  /** Per-clinic custom column name; falls back to the default translation. */
+  label?: string;
 }
 
 const TONES: Record<Col, string> = {
@@ -26,7 +28,7 @@ const HEADER_TONES: Record<Col, string> = {
   cancelled: 'text-rose-700',
 };
 
-export function KanbanColumnView({ column, items, total, onOpen }: Props) {
+export function KanbanColumnView({ column, items, total, onOpen, label }: Props) {
   const { t } = useTranslation();
   const { setNodeRef, isOver } = useDroppable({ id: `column:${column}`, data: { column } });
 
@@ -34,7 +36,7 @@ export function KanbanColumnView({ column, items, total, onOpen }: Props) {
     <div className="flex h-full min-h-0 flex-col">
       <div className={`flex items-center justify-between rounded-t-lg border border-b-0 px-3 py-2 ${TONES[column]}`}>
         <div className={`text-sm font-semibold ${HEADER_TONES[column]}`}>
-          {t(`clinic_bookings_kanban.column.${column}`)}
+          {label?.trim() || t(`clinic_bookings_kanban.column.${column}`)}
         </div>
         <Badge variant="muted">{total}</Badge>
       </div>

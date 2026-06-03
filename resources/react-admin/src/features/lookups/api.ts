@@ -4,6 +4,8 @@ export interface ClinicLookup { id: number; name: string }
 export interface CityLookup { id: number; name: string; name_en: string | null }
 export interface CategoryLookup { id: number; name: string; name_en: string | null; slug: string; emoji: string | null }
 export interface AdminLookup { id: number; name: string; role: string | null }
+export interface SubClinicLookup { id: number; name: string }
+export interface ServiceLookup { id: number; name: string }
 
 export const lookupsApi = {
   clinics: async (search?: string): Promise<ClinicLookup[]> => {
@@ -23,6 +25,14 @@ export const lookupsApi = {
     if (role) params.role = role;
     if (search) params.search = search;
     const res = await apiClient.get<{ data: AdminLookup[] }>('/lookups/admins', { params });
+    return res.data.data;
+  },
+  subClinics: async (clinicId: number): Promise<SubClinicLookup[]> => {
+    const res = await apiClient.get<{ data: SubClinicLookup[] }>('/lookups/sub-clinics', { params: { clinic_id: clinicId } });
+    return res.data.data;
+  },
+  services: async (clinicId: number): Promise<ServiceLookup[]> => {
+    const res = await apiClient.get<{ data: ServiceLookup[] }>('/lookups/services', { params: { clinic_id: clinicId } });
     return res.data.data;
   },
 };

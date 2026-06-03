@@ -12,6 +12,8 @@ namespace App\Enums;
  *                    "similar services" deep-link
  * - AI             — clinic/service mentioned in an AI assistant reply
  * - COMPARE        — clinic shown in the /compare side-by-side view
+ * - PROFILE        — the clinic profile page was opened (ANY source: direct
+ *                    link, share, preview, etc.) — every view counts.
  *
  * The values are stored verbatim in `clinic_impressions.source` and
  * `service_impressions.source`. Don't rename without a data migration.
@@ -24,6 +26,7 @@ final class ImpressionSource
     public const SIMILAR  = 'similar_services';
     public const AI       = 'ai';
     public const COMPARE  = 'compare';
+    public const PROFILE  = 'profile';
 
     /** Every supported source, in canonical UI order. */
     public const ALL = [
@@ -32,6 +35,7 @@ final class ImpressionSource
         self::HOME,
         self::SIMILAR,
         self::COMPARE,
+        self::PROFILE,
         self::AI,
     ];
 
@@ -46,5 +50,6 @@ final class ImpressionSource
         self::HOME,
         self::SIMILAR,
         self::COMPARE,
+        self::PROFILE,
     ];
 }

@@ -188,9 +188,13 @@ class ProfileController extends Controller
                 'subscription_ends_at'   => $endsAt?->toIso8601String(),
                 'days_remaining'         => $daysRemaining,
                 'is_active'              => $clinic->isSubscriptionActive(),
+                // Legacy field, derived from the subscription_packages
+                // catalogue (the single source of truth) instead of the
+                // old basic/premium_subscription_price SystemSettings:
+                // basic→standard, premium→premium.
                 'plans'                  => [
-                    'basic'   => (float) SystemSetting::get('basic_subscription_price', 0),
-                    'premium' => (float) SystemSetting::get('premium_subscription_price', 0),
+                    'basic'   => (float) (collect($packages)->firstWhere('slug', SubscriptionPackage::SLUG_STANDARD)['monthly_price'] ?? 0),
+                    'premium' => (float) (collect($packages)->firstWhere('slug', SubscriptionPackage::SLUG_PREMIUM)['monthly_price'] ?? 0),
                 ],
                 'contact'                => [
                     'phone'    => $phone ?: null,

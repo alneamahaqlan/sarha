@@ -13,7 +13,9 @@ export interface ClinicPackage {
   is_active: boolean;
   sort_order: number;
   service_ids?: number[];
-  services?: { id: number; name: string }[];
+  /** Per-service note keyed by service id (e.g. "includes a discount card"). */
+  service_notes?: Record<string, string | null>;
+  services?: { id: number; name: string; note: string | null }[];
   created_at: string | null;
   updated_at: string | null;
 }
@@ -27,6 +29,7 @@ export interface ClinicPackageFormValues {
   is_active: boolean;
   sort_order?: number;
   service_ids: number[];
+  service_notes?: Record<string, string>;
 }
 
 export const clinicPackagesApi = {

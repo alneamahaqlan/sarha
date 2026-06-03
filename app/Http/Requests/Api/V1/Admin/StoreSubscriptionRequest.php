@@ -25,6 +25,9 @@ class StoreSubscriptionRequest extends FormRequest
             'subscription_package_id' => ['required', 'integer', 'exists:subscription_packages,id'],
             'billing_cycle'           => ['required', 'in:' . Subscription::CYCLE_QUARTERLY . ',' . Subscription::CYCLE_ANNUAL],
             'bonus_months'            => ['nullable', 'integer', 'min:0', 'max:24'],
+            // Manual per-subscription price. Optional: when omitted the
+            // package-derived default (monthly_price × cycle months) is used.
+            'amount'                  => ['nullable', 'numeric', 'min:0', 'max:9999999'],
             'notes'                   => ['nullable', 'string', 'max:2000'],
         ];
     }

@@ -18,7 +18,7 @@ import { extractMessage } from '@/lib/api-client';
 
 import { bookingKanbanApi } from '../api';
 import { useKanbanBoard } from '../hooks';
-import { KANBAN_COLUMNS, type KanbanCard, type KanbanColumn as Col, type KanbanFilters } from '../types';
+import { KANBAN_COLUMNS, type KanbanCard, type KanbanColumn as Col, type KanbanFilters, type StageLabels } from '../types';
 import { KanbanColumnView } from './KanbanColumn';
 import { BookingCard } from './BookingCard';
 import { MoveConfirmDialog, type MoveIntent, type MoveResult } from './MoveConfirmDialog';
@@ -26,6 +26,7 @@ import { MoveConfirmDialog, type MoveIntent, type MoveResult } from './MoveConfi
 interface Props {
   filters: KanbanFilters;
   onOpenCard: (card: KanbanCard) => void;
+  stageLabels?: StageLabels;
 }
 
 const COLUMN_TO_STATUS: Record<Col, string> = {
@@ -39,7 +40,7 @@ function colOf(card: KanbanCard): Col {
   return card.kanban_column;
 }
 
-export function KanbanBoard({ filters, onOpenCard }: Props) {
+export function KanbanBoard({ filters, onOpenCard, stageLabels }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const { data, isLoading, isError } = useKanbanBoard(filters);
@@ -136,6 +137,7 @@ export function KanbanBoard({ filters, onOpenCard }: Props) {
                 items={payload?.items ?? []}
                 total={payload?.total ?? 0}
                 onOpen={onOpenCard}
+                label={stageLabels?.[col]}
               />
             );
           })}

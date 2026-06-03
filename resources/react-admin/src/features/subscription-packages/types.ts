@@ -10,6 +10,21 @@
 export type ColorToken = 'gray' | 'sage' | 'gold' | 'plum' | 'info' | 'warning';
 export type AnalyticsLevel = 'basic' | 'full';
 
+/** The five public "similar / related" sections a package configures. */
+export type SimilarSectionKey = 'complex' | 'service' | 'offer' | 'subClinic' | 'doctor';
+
+export interface SimilarSectionConfig {
+  show: boolean;
+  match_city: boolean;
+  match_specialty: boolean;
+  match_subclinic?: boolean; // doctor section only
+}
+
+export interface SimilarConfig {
+  limit: number;
+  sections: Record<SimilarSectionKey, SimilarSectionConfig>;
+}
+
 export interface SubscriptionPackage {
   id: number;
   slug: string;
@@ -34,6 +49,7 @@ export interface SubscriptionPackage {
   banner_slots: number;
   allow_offers_packages: boolean;
   allow_doctors_before_after: boolean;
+  similar_config: SimilarConfig;
 
   clinics_count: number;
   created_at: string | null;

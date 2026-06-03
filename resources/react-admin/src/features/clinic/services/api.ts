@@ -4,12 +4,26 @@ import type { Service } from '@/features/services/types';
 
 export interface ClinicServiceFormValues {
   name: string;
+  /** Set when the clinic picked an existing canonical service from the catalog
+   *  typeahead → links + publishes instantly. Null → backend files a request. */
+  catalog_service_id?: number | null;
   category_ids: number[];
   sub_clinic_id?: number | null;
   description?: string | null;
   price: number;
+  price_from?: boolean;
+  price_includes?: string | null;
+  price_excludes?: string | null;
+  image?: string | null;
   is_active: boolean;
   sort_order?: number;
+}
+
+export interface CatalogSuggestion {
+  id: number;
+  name: string;
+  name_en: string | null;
+  category_id: number | null;
 }
 
 export interface ListParams {
@@ -48,5 +62,12 @@ export const clinicServicesApi = {
   },
   reorder: async (order: { id: number; sort_order: number }[]) => {
     await apiClient.post('/clinic/services/reorder', { order });
+  },
+  suggestCatalog: async (q: string): Promise<CatalogSuggestion[]> => {
+    const res = await apiClient.get<{ data: CatalogSuggestion[] }>(
+      '/clinic/catalog-services/suggest',
+      { params: { q } },
+    );
+    return res.data.data;
   },
 };

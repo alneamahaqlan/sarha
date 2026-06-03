@@ -54,14 +54,6 @@ export function useCustomerComplaints(id: number | null) {
   });
 }
 
-export function useCustomerPriceQuotes(id: number | null) {
-  return useQuery({
-    enabled: !!id,
-    queryKey: [...KEY, 'price-quotes', id],
-    queryFn: () => customersApi.priceQuotes(id!),
-  });
-}
-
 export function useCustomerTimeline(id: number | null) {
   return useQuery({
     enabled: !!id,

@@ -53,3 +53,16 @@ export function useDeleteComplaint() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: number) => complaintsApi.delete(id), onSuccess: invalidator(qc) });
 }
+
+export function useReplyComplaint() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reply }: { id: number; reply: string }) => complaintsApi.reply(id, reply),
+    onSuccess: invalidator(qc),
+  });
+}
+
+export function useReopenComplaint() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: number) => complaintsApi.reopen(id), onSuccess: invalidator(qc) });
+}

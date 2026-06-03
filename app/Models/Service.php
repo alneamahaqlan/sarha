@@ -19,15 +19,16 @@ class Service extends Model
     protected $fillable = [
         'clinic_id', 'sub_clinic_id', 'catalog_service_id',
         'name', 'description',
-        'price', 'image',
+        'price', 'price_from', 'price_includes', 'price_excludes', 'image',
         'is_active', 'approval_status', 'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'     => 'decimal:2',
-            'is_active' => 'boolean',
+            'price'      => 'decimal:2',
+            'price_from' => 'boolean',
+            'is_active'  => 'boolean',
         ];
     }
 

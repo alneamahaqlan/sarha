@@ -26,11 +26,11 @@
                     $clinic   = $offer->clinic;
                     $service  = $offer->service;
                 @endphp
-                <div class="reveal" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
-                    {{-- Service-linked offers in category_offers always go
-                         straight to booking — by definition this section is
-                         category-filtered, so the offer has a service. --}}
-                    <a href="{{ $clinic && $service ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) : '#' }}"
+                <div class="reveal relative" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
+                    <x-save-button :model="$offer" type="offer" class="absolute top-3 end-3 z-20" />
+                    {{-- Clicking an offer opens its detail page; the booking
+                         deep-link lives there, not on the card. --}}
+                    <a href="{{ $clinic ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]) : '#' }}"
                        class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-lg hover:ring-gold-soft transition-all overflow-hidden h-full">
                         <div class="p-5 flex items-start gap-4">
                             <div class="shrink-0 w-16 h-16 rounded-xl bg-sage-mist text-sage-primary flex items-center justify-center text-2xl">

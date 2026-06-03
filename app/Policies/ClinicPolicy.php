@@ -73,4 +73,14 @@ class ClinicPolicy
     {
         return $admin->is_active && $clinic->status === 'active';
     }
+
+    /**
+     * Reveal / regenerate the clinic's login password. Restricted to
+     * super-admins — it exposes a real credential, same bar as rotating an
+     * encrypted API key in SystemSettingPolicy.
+     */
+    public function viewPassword(Admin $admin, Clinic $clinic): bool
+    {
+        return $admin->is_active && $admin->isSuperAdmin();
+    }
 }

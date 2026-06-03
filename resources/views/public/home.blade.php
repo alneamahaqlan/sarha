@@ -31,6 +31,9 @@
     </div>
 @endforeach
 
+{{-- Complaint / platform-report call-to-action --}}
+@include('public.partials.feedback-cta')
+
 @push('scripts')
 <script>
     // Scroll-reveal + animated counters — preserved verbatim from the

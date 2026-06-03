@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\Admin\UpdateSalesLeadRequest;
 use App\Http\Resources\Api\V1\ClinicResource as ClinicApiResource;
 use App\Http\Resources\Api\V1\SalesLeadResource as SalesLeadApiResource;
 use App\Models\SalesLead;
+use App\Models\SubscriptionPackage;
 use App\Services\SalesLeadService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -86,7 +87,15 @@ class SalesLeadController extends Controller
     public function convert(ConvertSalesLeadRequest $request, SalesLead $salesLead): JsonResponse
     {
         // Authorization handled in ConvertSalesLeadRequest via SalesLeadPolicy@convert.
-        $clinic = $this->leads->convertLead($salesLead, $request->validated('plan'));
+        $package = SubscriptionPackage::findOrFail($request->validated('package_id'));
+        $amount  = $request->validated('amount');
+
+        $clinic = $this->leads->convertLead(
+            $salesLead,
+            $package,
+            $request->validated('billing_cycle'),
+            $amount !== null ? (float) $amount : null,
+        );
 
         return response()->json([
             'data' => [

@@ -4,6 +4,7 @@ export interface CatalogServiceRow {
   id: number;
   name: string;
   name_en: string | null;
+  aliases: string[];
   status: 'pending' | 'active' | 'rejected';
   category: { id: number; name: string } | null;
   requested_by: { id: number; name: string } | null;
@@ -31,6 +32,13 @@ export const catalogServicesApi = {
         ...(params.search ? { search: params.search } : {}),
       },
     });
+    return res.data;
+  },
+  update: async (
+    id: number,
+    payload: { name?: string; name_en?: string | null; aliases?: string[] },
+  ) => {
+    const res = await apiClient.patch(`/admin/catalog-services/${id}`, payload);
     return res.data;
   },
   approve: async (id: number) => {

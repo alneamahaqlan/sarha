@@ -34,6 +34,18 @@ class AppServiceProvider extends ServiceProvider
         // so the Kanban resource + the side-panel resource share the
         // same cache.
         $this->app->singleton(\App\Services\CustomerInsightService::class);
+
+        // OTP delivery — WhatsApp provider + sender-rotation strategy are
+        // bound to interfaces so either can be swapped without touching the
+        // channels or the dispatcher (Dependency Inversion).
+        $this->app->bind(
+            \App\Contracts\Messaging\WhatsAppGateway::class,
+            \App\Services\Messaging\Gateways\WappiGateway::class,
+        );
+        $this->app->bind(
+            \App\Contracts\Messaging\WhatsAppSenderSelector::class,
+            \App\Services\Messaging\Selectors\LeastRecentlyUsedSenderSelector::class,
+        );
     }
 
     public function boot(): void

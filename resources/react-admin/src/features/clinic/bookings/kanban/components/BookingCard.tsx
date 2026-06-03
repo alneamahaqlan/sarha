@@ -20,7 +20,7 @@ interface Props {
 function fmtAppt(iso: string | null, locale: string) {
   if (!iso) return null;
   const d = new Date(iso);
-  return d.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-GB', {
+  return d.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
     month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });

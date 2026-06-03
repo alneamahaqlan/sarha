@@ -213,7 +213,7 @@ function SummaryCardsRow({
     { label: t('user_profile.time_on_platform'), value: formatDuration(cards.time_on_platform_seconds, locale) },
     {
       label: t('user_profile.last_login'),
-      value: cards.last_login_at ? new Date(cards.last_login_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—',
+      value: cards.last_login_at ? new Date(cards.last_login_at).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—',
       sub: cards.last_login_user_agent ? cards.last_login_user_agent.slice(0, 40) : null,
     },
     { label: t('user_profile.avg_session'), value: formatDuration(cards.avg_session_seconds, locale) },
@@ -373,7 +373,7 @@ function ActivityTimeline({ userId }: { userId: number }) {
             <div className="min-w-0 flex-1">
               <p className="text-sm">{e.title}</p>
               <p className="text-[10px] text-[var(--color-muted-foreground)] mt-0.5">
-                {new Date(e.occurred_at).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')}
+                {new Date(e.occurred_at).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')}
               </p>
             </div>
             {e.related_url && (
@@ -438,7 +438,7 @@ function TabPanel({ userId, tab }: { userId: number; tab: TabKey }) {
   const meta = (data as Paginated<unknown>)?.meta;
   if (rows.length === 0) return <p className="text-sm text-[var(--color-muted-foreground)] py-4">{t('common.no_data')}</p>;
 
-  const dateStr = (s?: string | null) => s ? new Date(s).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+  const dateStr = (s?: string | null) => s ? new Date(s).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   const content = (() => {
     switch (tab) {

@@ -41,6 +41,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
     subscription_package_id: 0,
     billing_cycle: 'quarterly',
     bonus_months: 0,
+    amount: 0,
     notes: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,6 +53,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
         subscription_package_id: subscription.subscription_package_id ?? 0,
         billing_cycle: (subscription.billing_cycle ?? 'quarterly'),
         bonus_months: subscription.bonus_months ?? 0,
+        amount: subscription.amount ?? 0,
         notes: subscription.notes ?? '',
       });
     } else if (packages?.length) {
@@ -61,6 +63,17 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
       setValues((v) => ({ ...v, subscription_package_id: firstPaid.id }));
     }
   }, [subscription, packages]);
+
+  // Prefill `amount` from the package default (monthly_price × paid
+  // months) on create, and whenever the package/cycle changes. The
+  // admin can override it afterwards for a negotiated per-clinic price.
+  useEffect(() => {
+    if (subscription) return;
+    const pkg = packages?.find((p) => p.id === values.subscription_package_id);
+    if (!pkg) return;
+    const paidMonths = values.billing_cycle === 'annual' ? 12 : 3;
+    setValues((v) => ({ ...v, amount: pkg.monthly_price * paidMonths }));
+  }, [subscription, packages, values.subscription_package_id, values.billing_cycle]);
 
   const set = <K extends keyof SubscriptionFormValues>(key: K, val: SubscriptionFormValues[K]) =>
     setValues((v) => ({ ...v, [key]: val }));
@@ -179,6 +192,18 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="amount">{t('subscriptions.form.amount')}</Label>
+          <Input
+            id="amount"
+            type="number" min={0} step={1}
+            value={values.amount}
+            onChange={(e) => set('amount', Number(e.target.value))}
+          />
+          <p className="text-xs text-[var(--color-muted-foreground)]">{t('subscriptions.form.amount_hint')}</p>
+          {errors.amount && <p className="text-xs text-[var(--color-destructive)]">{errors.amount}</p>}
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="notes">{t('subscriptions.form.notes')}</Label>
           <Textarea id="notes" rows={2} value={values.notes ?? ''} onChange={(e) => set('notes', e.target.value)} />
         </div>
@@ -204,7 +229,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
           </div>
           <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-1 mt-1">
             <span className="font-medium">{t('subscriptions.form.preview_total')}</span>
-            <span className="font-bold">{preview.total.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')} {t('packages.sar_per_month').replace('/mo', '').replace('/شهر', '')}</span>
+            <span className="font-bold">{values.amount.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} {t('packages.sar_per_month').replace('/mo', '').replace('/شهر', '')}</span>
           </div>
         </div>
       )}

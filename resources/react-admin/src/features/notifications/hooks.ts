@@ -7,8 +7,16 @@ export function useNotifications() {
   return useQuery({
     queryKey: [...KEY, 'list'],
     queryFn: () => notificationsApi.list(),
-    refetchInterval: 30_000,
-    staleTime: 15_000,
+    // Live bell: poll every 15s AND keep polling while the tab is in the
+    // background, so unread count is already fresh when the admin returns.
+    // 'always' refetch on focus guarantees an immediate refresh on tab switch
+    // (overrides the global refetchOnWindowFocus: false). Previously polling
+    // paused in the background + focus never refetched, so the bell looked
+    // like it only updated on click.
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: 'always',
+    staleTime: 10_000,
   });
 }
 

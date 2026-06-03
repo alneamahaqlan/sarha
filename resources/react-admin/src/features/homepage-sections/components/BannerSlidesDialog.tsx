@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/switch';
 import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
+import { assetUrl } from '@/lib/assets';
 
 import {
   useBannerSlides,
@@ -118,7 +119,7 @@ export function BannerSlidesDialog({ section, onClose }: Props) {
             <FileUpload
               value={draft.image}
               onChange={(p) => setDraft({ ...draft, image: p })}
-              directory="homepage/banners"
+              directory="banners"
               label={t('homepage_sections.slide_image', 'الصورة (jpg/png/gif/webp)')}
             />
             <div className="space-y-1.5">
@@ -228,7 +229,7 @@ function SlideRow({ slide, sectionId, isFirst, isLast, onMoveUp, onMoveDown, onD
   return (
     <li className="flex items-center gap-3 rounded-md border border-[var(--color-border)] p-3">
       <img
-        src={slide.image_url ?? `/storage/${slide.image}`}
+        src={slide.image_url ?? assetUrl(slide.image) ?? undefined}
         alt=""
         className="h-16 w-28 rounded object-cover ring-1 ring-[var(--color-border)] bg-[var(--color-muted)]"
         onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}

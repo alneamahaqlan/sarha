@@ -10,6 +10,7 @@ use App\Models\Clinic;
 use App\Services\ImpressionTrackerService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class SearchController extends Controller
@@ -193,7 +194,7 @@ class SearchController extends Controller
                     'lat'           => (float) $c->latitude,
                     'lng'           => (float) $c->longitude,
                     'url'           => route('clinic.show', $c->slug),
-                    'logo'          => $c->logo ? asset('storage/' . $c->logo) : null,
+                    'logo'          => $c->logo ? Storage::url($c->logo) : null,
                     'city'          => $c->city?->display_name,
                     'snippet'       => Str::limit(trim(strip_tags((string) $c->description)), 110),
                     'rating'        => $c->google_reviews_avg_rating

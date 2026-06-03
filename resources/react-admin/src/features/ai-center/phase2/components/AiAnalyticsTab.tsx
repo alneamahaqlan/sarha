@@ -51,7 +51,7 @@ export function AiAnalyticsTab() {
   const [range, setRange] = useState<Range>(30);
   const { data, isLoading } = useAiAnalytics(range);
 
-  const fmt = useMemo(() => new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US'), [locale]);
+  const fmt = useMemo(() => new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US'), [locale]);
 
   const kinds = data?.kind_breakdown ?? [];
 

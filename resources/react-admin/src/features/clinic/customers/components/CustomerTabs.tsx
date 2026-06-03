@@ -2,7 +2,7 @@ import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import {
-  useCustomerBookings, useCustomerComplaints, useCustomerPriceQuotes,
+  useCustomerBookings, useCustomerComplaints,
 } from '../hooks';
 import { CustomerNotesThread } from './CustomerNotesThread';
 import { CustomerActivityFeed } from './CustomerActivityFeed';
@@ -13,7 +13,7 @@ interface Props {
 
 function fmtDate(iso: string | null, locale: string) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-GB', {
+  return new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
     year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 }
@@ -23,14 +23,14 @@ export function CustomerTabs({ customerId }: Props) {
   const { locale } = useLocale();
   const bookings = useCustomerBookings(customerId);
   const complaints = useCustomerComplaints(customerId);
-  const quotes = useCustomerPriceQuotes(customerId);
 
   return (
     <Tabs defaultValue="bookings" className="space-y-3">
-      <TabsList className="grid grid-cols-2 lg:grid-cols-5">
+      {/* Price quotes are intentionally NOT shown to the clinic — only the
+          platform admin may view a customer's quote-request history. */}
+      <TabsList className="grid grid-cols-2 lg:grid-cols-4">
         <TabsTrigger value="bookings">{t('clinic_customers.tabs.bookings')}</TabsTrigger>
         <TabsTrigger value="complaints">{t('clinic_customers.tabs.complaints')}</TabsTrigger>
-        <TabsTrigger value="quotes">{t('clinic_customers.tabs.quotes')}</TabsTrigger>
         <TabsTrigger value="notes">{t('clinic_customers.tabs.notes')}</TabsTrigger>
         <TabsTrigger value="timeline">{t('clinic_customers.tabs.timeline')}</TabsTrigger>
       </TabsList>
@@ -82,28 +82,6 @@ export function CustomerTabs({ customerId }: Props) {
                   <span dir="ltr">{c.reference_code}</span>
                   <span>{fmtDate(c.created_at, locale)}</span>
                 </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </TabsContent>
-
-      <TabsContent value="quotes">
-        {quotes.isLoading ? (
-          <div className="p-4 text-xs text-[var(--color-muted-foreground)]">{t('common.loading')}</div>
-        ) : !quotes.data?.length ? (
-          <div className="rounded-md border border-dashed border-[var(--color-border)] p-4 text-center text-xs text-[var(--color-muted-foreground)]">
-            {t('clinic_customers.tabs.empty_quotes')}
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {quotes.data.map((q) => (
-              <li key={q.id} className="rounded-md border border-[var(--color-border)] bg-white p-2.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="font-medium text-sm">{q.service_name}</div>
-                  <Badge variant="muted" className="text-[10px]">{q.status}</Badge>
-                </div>
-                <div className="mt-1 text-[11px] text-[var(--color-muted-foreground)]">{fmtDate(q.created_at, locale)}</div>
               </li>
             ))}
           </ul>

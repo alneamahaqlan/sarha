@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\SaudiPhone;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +17,7 @@ class SmsService
 
     public function send(string $phone, string $message): bool
     {
-        $recipient = $this->toInternational($phone);
+        $recipient = SaudiPhone::toInternational($phone);
         $appSid = config('services.unifonic.app_sid');
 
         // No credentials or local env → log instead of sending.
@@ -48,20 +49,5 @@ class SmsService
 
             return false;
         }
-    }
-
-    /** Normalise a Saudi number (05XXXXXXXX / 5XXXXXXXX) to 9665XXXXXXXX. */
-    private function toInternational(string $phone): string
-    {
-        $digits = preg_replace('/\D/', '', $phone);
-
-        if (str_starts_with($digits, '05')) {
-            return '966'.substr($digits, 1);
-        }
-        if (strlen($digits) === 9 && str_starts_with($digits, '5')) {
-            return '966'.$digits;
-        }
-
-        return $digits;
     }
 }

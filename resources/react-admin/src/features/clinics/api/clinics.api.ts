@@ -35,6 +35,9 @@ export interface ClinicFormValues {
   slug?: string | null;
   phone: string;
   email?: string | null;
+  license_number?: string | null;
+  tax_number?: string | null;
+  commercial_registration?: string | null;
   password?: string;
   city_id: number;
   address?: string | null;
@@ -158,6 +161,16 @@ export const clinicsApi = {
   structure: async (id: number) => {
     const res = await apiClient.get<{ data: ClinicStructureData }>(`/admin/clinics/${id}/structure`);
     return res.data.data;
+  },
+
+  // Login-password reveal + regenerate (super-admin only; server-enforced).
+  revealPassword: async (id: number) => {
+    const res = await apiClient.get<{ data: { password: string | null } }>(`/admin/clinics/${id}/password`);
+    return res.data.data.password;
+  },
+  regeneratePassword: async (id: number) => {
+    const res = await apiClient.post<{ data: { password: string } }>(`/admin/clinics/${id}/regenerate-password`);
+    return res.data.data.password;
   },
 };
 

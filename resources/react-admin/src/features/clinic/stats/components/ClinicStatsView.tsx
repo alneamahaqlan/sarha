@@ -15,9 +15,9 @@ const QUOTE_STATUSES = ['new', 'replied', 'closed'];
 export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
+  const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
   const cf = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   const s = data.summary;
   const c = data.comparison;
@@ -306,7 +306,7 @@ function ImpressionsCard({
 function TopServicesByImpressions({ rows }: { rows: ClinicStatsFull['top_services_by_views'] }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
+  const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
 
   // Derive the visible source set from the first row (server already
   // hides AI from clinic-facing payloads, so this list is correct

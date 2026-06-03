@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { useClinicServices } from '@/features/clinic/services/hooks';
 
 import { useCreateClinicOffer, useUpdateClinicOffer } from '../hooks';
@@ -267,8 +268,12 @@ export function OfferDialog({ offer, onClose }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="image">{t('clinic_offers.image_path', 'صورة العرض (مسار)')}</Label>
-            <Input id="image" {...form.register('image')} placeholder="offers/my-offer.jpg" />
+            <Label>{t('clinic_offers.image', 'صورة العرض')}</Label>
+            <FileUpload
+              value={form.watch('image')}
+              onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
+              directory="offers"
+            />
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {t('clinic_offers.image_hint', 'اتركها فارغة لاستخدام صورة الخدمة المرتبطة.')}
             </p>

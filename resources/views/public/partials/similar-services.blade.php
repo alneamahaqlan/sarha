@@ -23,14 +23,19 @@
             <div class="bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg hover:ring-sage-200 transition-all overflow-hidden flex flex-col">
                 <div class="relative aspect-[4/3] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
                     @if($svc->image)
-                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($svc->image) }}"
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($svc->image) }}"
                              alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                     @elseif($emoji)
                         <span aria-hidden="true">{{ $emoji }}</span>
                     @endif
                 </div>
                 <div class="p-4 flex-1 flex flex-col">
-                    <h3 class="font-semibold text-gray-800 line-clamp-1">{{ $svc->name }}</h3>
+                    @if($otherClinic)
+                        <a href="{{ route('service.show', ['slug' => $otherClinic->slug, 'service' => $svc->id]) }}"
+                           class="font-semibold text-gray-800 hover:text-sage-700 transition-colors line-clamp-1">{{ $svc->name }}</a>
+                    @else
+                        <h3 class="font-semibold text-gray-800 line-clamp-1">{{ $svc->name }}</h3>
+                    @endif
                     @if($otherClinic)
                         {{-- Secondary "go to clinic page" link — the primary
                              action is the booking button below. Vertical

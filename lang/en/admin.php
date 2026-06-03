@@ -383,6 +383,9 @@ return [
         'new_lead_title' => 'New complex registration',
         'new_lead_body'  => ':clinic requested to join — review in the sales pipeline',
 
+        'new_clinic_reg_title' => 'New complex awaiting approval',
+        'new_clinic_reg_body'  => ':clinic registered via the site — review it in the clinics list',
+
         'new_quote_title' => 'New price quote request',
         'new_quote_body'  => 'Service: :service',
         'broadcast_quote_title' => 'New price quote request in your city',
@@ -457,6 +460,16 @@ return [
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
     ],
 
+    // WhatsApp sender numbers (OTP delivery via Wappi)
+    'whatsapp_senders' => [
+        'phone_invalid'  => 'Invalid phone number. Use a Saudi format like 05XXXXXXXX.',
+        'max_reached'    => 'You cannot add more than :max sender numbers.',
+        'no_credentials' => 'This number has no credentials (profile id + token) yet.',
+        'test_message'   => 'Test message from the Medical Complexes Directory — this number is connected successfully ✅',
+        'test_sent'      => 'Test message sent successfully.',
+        'test_failed'    => 'Failed to send the test message. Check the credentials and connection status.',
+    ],
+
     // Specialty (category) requests submitted by complexes
     'category_requests' => [
         'submitted' => 'Your specialty request was sent to the admins for review',
@@ -469,6 +482,7 @@ return [
         'already_reviewed' => 'This catalog request has already been reviewed',
         'approved' => 'Service added to the catalog',
         'rejected' => 'Catalog request rejected',
+        'updated' => 'Service updated',
     ],
 
     // ============================================
@@ -520,6 +534,7 @@ return [
     'subscriptions' => [
         'renewal_note' => 'Auto-renewal of previous subscription #:ref',
         'approval_trial_note' => 'Trial period granted on clinic approval (:days days).',
+        'lead_conversion_note' => 'Converted from sales lead #:lead',
     ],
 
     'team' => [

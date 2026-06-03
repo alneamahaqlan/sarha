@@ -13,7 +13,7 @@ class HomepageBannerSlideResource extends JsonResource
             'id'                  => $this->id,
             'homepage_section_id' => $this->homepage_section_id,
             'image'               => $this->image,
-            'image_url'           => $this->image ? Storage::disk('public')->url($this->image) : null,
+            'image_url'           => $this->image ? Storage::url($this->image) : null,
             'link_url'            => $this->link_url,
             'is_active'           => (bool) $this->is_active,
             'sort_order'          => (int) $this->sort_order,

@@ -88,7 +88,7 @@ export function NotificationBell() {
   const items = data?.data ?? [];
 
   const fmt = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '';
 
   return (
     <DropdownMenu onOpenChange={handleOpenChange}>

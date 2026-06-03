@@ -70,6 +70,7 @@ class BookingKanbanController extends Controller
         $filters = [
             'search'        => $request->string('search')->toString(),
             'service_id'    => $request->input('service_id'),
+            'sub_clinic_id' => $request->input('sub_clinic_id'),
             'assignee_id'   => $request->input('assignee_id'),
             'assignee_type' => $request->input('assignee_type'),
             'date_from'     => $request->input('date_from'),

@@ -145,6 +145,8 @@ class ClinicController extends Controller
         $categories = $data['categories'] ?? null;
         unset($data['categories']);
 
+        // Keep a reversible copy so the super-admin can reveal it later.
+        $data['password_plaintext'] = $data['password'];
         $data['password'] = Hash::make($data['password']);
 
         $clinic = Clinic::create($data);
@@ -167,6 +169,7 @@ class ClinicController extends Controller
         if (empty($data['password'])) {
             unset($data['password']);
         } else {
+            $data['password_plaintext'] = $data['password'];
             $data['password'] = Hash::make($data['password']);
         }
 
@@ -185,6 +188,36 @@ class ClinicController extends Controller
         $clinic->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Reveal the stored login password to a super-admin. Returns null when no
+     * reversible copy exists (clinic predates the feature or was never issued
+     * one) — the UI then offers "regenerate". Every reveal is audit-logged.
+     */
+    public function password(Clinic $clinic): JsonResponse
+    {
+        $this->authorize('viewPassword', $clinic);
+
+        \App\Services\AuditLogService::log('clinic.password_revealed', $clinic);
+
+        return response()->json(['data' => ['password' => $clinic->password_plaintext]]);
+    }
+
+    /**
+     * Issue a fresh password for the clinic, store hash + reversible copy, and
+     * return the plaintext once for the super-admin to hand over.
+     */
+    public function regeneratePassword(Clinic $clinic): JsonResponse
+    {
+        $this->authorize('viewPassword', $clinic);
+
+        $password = $clinic->issuePassword();
+        $clinic->save();
+
+        \App\Services\AuditLogService::log('clinic.password_regenerated', $clinic);
+
+        return response()->json(['data' => ['password' => $password]]);
     }
 
     // ---- State-transition actions — all delegate to ClinicService. ----

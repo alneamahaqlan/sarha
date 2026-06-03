@@ -11,7 +11,7 @@ interface Props {
 
 function fmt(iso: string | null, locale: string) {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-GB', {
+  return new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 }

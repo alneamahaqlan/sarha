@@ -8,16 +8,32 @@
 --}}
 <div class="py-3 flex items-start justify-between gap-4">
     <div class="flex-1 min-w-0">
-        <p class="font-medium text-gray-800">{{ $service->name }}</p>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('service.show', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
+               class="font-medium text-gray-800 hover:text-sage-700 transition-colors">{{ $service->name }}</a>
+            <x-save-button :model="$service" type="service" class="flex-shrink-0" />
+        </div>
         @if($service->description)
             <p class="text-sm text-gray-500 mt-0.5">{{ $service->description }}</p>
+        @endif
+        @if($service->price_includes)
+            <p class="text-xs text-emerald-700 mt-1">
+                <span class="font-medium">@lang('site.price_includes'):</span> {{ $service->price_includes }}
+            </p>
+        @endif
+        @if($service->price_excludes)
+            <p class="text-xs text-gray-400 mt-0.5">
+                <span class="font-medium">@lang('site.price_excludes'):</span> {{ $service->price_excludes }}
+            </p>
         @endif
     </div>
     <div class="text-end flex-shrink-0 flex flex-col items-end gap-2 min-w-[8rem]">
         @if($service->price)
             <div>
                 <span class="text-sage-700 font-bold whitespace-nowrap">
-                    <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
+                    @if($service->price_from)
+                        <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
+                    @endif
                     {{ number_format($service->price) }}
                     <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                 </span>

@@ -41,15 +41,27 @@ class PackageController extends Controller
         return PackageResource::collection($query->paginate($perPage)->withQueryString());
     }
 
+    /**
+     * Build the belongsToMany sync map — each service id mapped to its
+     * pivot note, so the note rides along with the attachment.
+     */
+    private function syncMap(array $serviceIds, array $notes): array
+    {
+        return collect($serviceIds)
+            ->mapWithKeys(fn ($id) => [(int) $id => ['note' => $notes[$id] ?? $notes[(string) $id] ?? null]])
+            ->all();
+    }
+
     public function store(StorePackageRequest $request): JsonResponse
     {
         $data = $request->validated();
         $serviceIds = $data['service_ids'] ?? [];
-        unset($data['service_ids']);
+        $notes = $data['service_notes'] ?? [];
+        unset($data['service_ids'], $data['service_notes']);
         $data['clinic_id'] = $this->clinicId();
 
         $package = Package::create($data);
-        $package->services()->sync($serviceIds);
+        $package->services()->sync($this->syncMap($serviceIds, $notes));
 
         return (new PackageResource($package->load('services:id,name,sub_clinic_id')))
             ->response()->setStatusCode(201);
@@ -61,11 +73,12 @@ class PackageController extends Controller
 
         $data = $request->validated();
         $serviceIds = $data['service_ids'] ?? null;
-        unset($data['service_ids']);
+        $notes = $data['service_notes'] ?? [];
+        unset($data['service_ids'], $data['service_notes']);
 
         $package->update($data);
         if ($serviceIds !== null) {
-            $package->services()->sync($serviceIds);
+            $package->services()->sync($this->syncMap($serviceIds, $notes));
         }
 
         return new PackageResource($package->fresh()->load('services:id,name,sub_clinic_id'));

@@ -383,6 +383,9 @@ return [
         'new_lead_title' => 'طلب تسجيل مجمع جديد',
         'new_lead_body'  => ':clinic طلب الانضمام — راجعه في قائمة المبيعات',
 
+        'new_clinic_reg_title' => 'مجمع جديد بانتظار الاعتماد',
+        'new_clinic_reg_body'  => ':clinic سجّل عبر الموقع — راجعه في قائمة المجمعات',
+
         'new_quote_title' => 'طلب عرض سعر جديد',
         'new_quote_body'  => 'خدمة: :service',
         'broadcast_quote_title' => 'طلب عرض سعر جديد في مدينتك',
@@ -457,6 +460,16 @@ return [
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
     ],
 
+    // WhatsApp sender numbers (OTP delivery via Wappi)
+    'whatsapp_senders' => [
+        'phone_invalid'  => 'رقم الجوال غير صحيح. استخدم صيغة سعودية مثل 05XXXXXXXX.',
+        'max_reached'    => 'لا يمكن إضافة أكثر من :max أرقام مرسِلة.',
+        'no_credentials' => 'هذا الرقم لا يملك بيانات اعتماد (معرّف الملف والتوكن) بعد.',
+        'test_message'   => 'رسالة اختبار من دليل المجمعات الطبية — تم ربط هذا الرقم بنجاح ✅',
+        'test_sent'      => 'تم إرسال رسالة الاختبار بنجاح.',
+        'test_failed'    => 'فشل إرسال رسالة الاختبار. تحقّق من بيانات الاعتماد وحالة الاتصال.',
+    ],
+
     // Specialty (category) requests submitted by complexes
     'category_requests' => [
         'submitted' => 'تم إرسال طلب التخصص للإدارة للمراجعة',
@@ -469,6 +482,7 @@ return [
         'already_reviewed' => 'تمت مراجعة هذا الطلب مسبقاً',
         'approved' => 'تمت إضافة الخدمة إلى الكتالوغ',
         'rejected' => 'تم رفض طلب الخدمة',
+        'updated' => 'تم تحديث الخدمة',
     ],
 
     // ============================================
@@ -523,6 +537,7 @@ return [
     'subscriptions' => [
         'renewal_note' => 'تجديد تلقائي للاشتراك السابق #:ref',
         'approval_trial_note' => 'فترة تجريبية عند اعتماد المجمع (:days يوم).',
+        'lead_conversion_note' => 'تحويل من عميل محتمل #:lead',
     ],
 
     'team' => [

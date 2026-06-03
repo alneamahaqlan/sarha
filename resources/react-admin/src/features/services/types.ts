@@ -18,6 +18,10 @@ export interface Service {
   name: string;
   description: string | null;
   price: number;
+  /** When true the price is a "starting from" minimum. */
+  price_from?: boolean;
+  price_includes?: string | null;
+  price_excludes?: string | null;
   image: string | null;
   is_active: boolean;
   /** 'approved' shows publicly; 'pending' is hidden until an admin approves
@@ -37,5 +41,9 @@ export interface ServiceFormValues {
   name: string;
   description?: string | null;
   price: number;
+  price_from?: boolean;
+  price_includes?: string | null;
+  price_excludes?: string | null;
+  image?: string | null;
   is_active: boolean;
 }

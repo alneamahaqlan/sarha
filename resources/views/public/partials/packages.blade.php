@@ -11,9 +11,10 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->packages as $package)
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-sage-100">
+            <a href="{{ route('package.show', ['slug' => $clinic->slug, 'package' => $package->id]) }}"
+               class="group block bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-sage-100 hover:border-sage-300 transition-all">
                 <div class="flex items-start justify-between gap-3">
-                    <h3 class="font-bold text-gray-800">{{ $package->name }}</h3>
+                    <h3 class="font-bold text-gray-800 group-hover:text-sage-700 transition-colors">{{ $package->name }}</h3>
                     @if($package->discountPercentage())
                         <span class="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
                             -{{ $package->discountPercentage() }}%
@@ -26,9 +27,14 @@
                 @if($package->services->isNotEmpty())
                     <ul class="mt-3 space-y-1">
                         @foreach($package->services as $svc)
-                            <li class="flex items-center gap-2 text-sm text-gray-700">
-                                <x-icon name="check-circle" class="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                                {{ $svc->name }}
+                            <li class="flex items-start gap-2 text-sm text-gray-700">
+                                <x-icon name="check-circle" class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                <span>
+                                    {{ $svc->name }}
+                                    @if($svc->pivot->note)
+                                        <span class="block text-xs text-sage-600">{{ $svc->pivot->note }}</span>
+                                    @endif
+                                </span>
                             </li>
                         @endforeach
                     </ul>
@@ -45,16 +51,14 @@
                             <span class="text-xs font-normal">@lang('site.currency_sar')</span>
                         </span>
                     </div>
-                    <a href="{{ route('clinic.book.form', $clinic->slug) }}"
-                       data-track="booking" data-clinic="{{ $clinic->id }}"
-                       class="bg-sage-600 hover:bg-sage-700 text-white text-sm px-4 py-2 rounded-lg font-semibold transition-colors">
-                        @lang('site.book_appointment')
-                    </a>
+                    <span class="inline-flex items-center gap-1 text-sm font-semibold text-sage-600 group-hover:text-sage-700">
+                        @lang('site.home_view_offer') <span class="rtl:rotate-180">→</span>
+                    </span>
                 </div>
                 @if($package->expires_at)
                     <p class="mt-2 text-xs text-amber-600">{{ __('site.offer_until', ['date' => $package->expires_at->translatedFormat('d M Y')]) }}</p>
                 @endif
-            </div>
+            </a>
         @endforeach
     </div>
 @endif

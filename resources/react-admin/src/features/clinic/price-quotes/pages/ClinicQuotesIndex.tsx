@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { MessageSquareReply, Search } from 'lucide-react';
+import { CalendarPlus, Check, MessageSquareReply, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { extractMessage } from '@/lib/api-client';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { OutreachButtons } from '@/features/clinic/outreach/OutreachButtons';
 
+import { useCreateBooking } from '@/features/clinic/bookings/kanban/hooks';
 import { useClinicQuotes, useReplyClinicQuote } from '../hooks';
 import type { BroadcastQuote, ClinicQuoteFilter } from '../api';
 
@@ -90,6 +91,23 @@ export function ClinicQuotesIndex() {
   const [filter, setFilter] = useState<ClinicQuoteFilter | ''>('');
   const { data, isLoading } = useClinicQuotes({ search: debounced || undefined, filter: filter ? { status: filter } : undefined });
   const [replying, setReplying] = useState<BroadcastQuote | null>(null);
+  const [added, setAdded] = useState<Set<number>>(new Set());
+  const createBooking = useCreateBooking();
+
+  const addToBookings = async (q: BroadcastQuote) => {
+    try {
+      await createBooking.mutateAsync({
+        customer_name: q.customer_name,
+        customer_phone: q.customer_phone,
+        status: 'new',
+        notes: `${t('clinic_quotes.from_quote')}: ${q.service_name}${q.description ? ' — ' + q.description : ''}`,
+      });
+      setAdded((prev) => new Set(prev).add(q.id));
+      toast.success(t('clinic_quotes.added_to_bookings'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -154,6 +172,16 @@ export function ClinicQuotesIndex() {
                 <TableCell className="text-end">
                   <div className="flex items-center justify-end gap-1">
                     <OutreachButtons phone={q.customer_phone} context="quote" refId={q.id} />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={added.has(q.id) || createBooking.isPending}
+                      onClick={() => addToBookings(q)}
+                      title={t('clinic_quotes.add_to_bookings')}
+                    >
+                      {added.has(q.id) ? <Check className="h-4 w-4 text-emerald-600" /> : <CalendarPlus className="h-4 w-4" />}
+                      {added.has(q.id) ? t('clinic_quotes.in_bookings') : t('clinic_quotes.add_to_bookings')}
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => setReplying(q)}>
                       <MessageSquareReply className="h-4 w-4" />
                       {q.my_reply ? t('clinic_quotes.edit_reply') : t('clinic_quotes.reply')}

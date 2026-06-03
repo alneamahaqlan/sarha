@@ -53,5 +53,11 @@ export interface SubscriptionFormValues {
   subscription_package_id: number;
   billing_cycle: BillingCycle;
   bonus_months: number;
+  /**
+   * Manual per-subscription price. Prefilled from the package default
+   * (monthly_price × cycle months) but editable so an admin can charge
+   * a clinic a negotiated rate.
+   */
+  amount: number;
   notes?: string | null;
 }

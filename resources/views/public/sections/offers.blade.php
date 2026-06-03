@@ -30,17 +30,15 @@
                         $clinic   = $offer->clinic;
                         $service  = $offer->service;
                         $imagePath = $offer->effectiveImage();
-                        $imageUrl  = $imagePath ? \Illuminate\Support\Facades\Storage::disk('public')->url($imagePath) : null;
-                        // Service-linked → booking form for that service;
-                        // general → the clinic landing page (visitor picks
-                        // a way to contact from there).
+                        $imageUrl  = $imagePath ? \Illuminate\Support\Facades\Storage::url($imagePath) : null;
+                        // Clicking an offer goes to its detail page, where the
+                        // booking deep-link lives — never straight to booking.
                         $href = $clinic
-                            ? ($service
-                                ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id])
-                                : route('clinic.show', $clinic->slug))
+                            ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id])
                             : '#';
                     @endphp
-                    <div class="reveal" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">
+                    <div class="reveal relative" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">
+                        <x-save-button :model="$offer" type="offer" class="absolute top-3 end-3 z-20" />
                         <a href="{{ $href }}"
                            class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden h-full">
                             <div class="relative aspect-[16/10] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-5xl">
@@ -56,7 +54,7 @@
                                     </span>
                                 @endif
                                 @if($offer->is_featured)
-                                    <span class="absolute top-3 end-3 inline-flex items-center gap-1 bg-gold-deep text-white text-[11px] font-bold px-2 py-1 rounded-full shadow-md">
+                                    <span class="absolute bottom-3 start-3 inline-flex items-center gap-1 bg-gold-deep text-white text-[11px] font-bold px-2 py-1 rounded-full shadow-md">
                                         <x-icon name="star-solid" class="w-3 h-3" /> @lang('site.featured')
                                     </span>
                                 @endif

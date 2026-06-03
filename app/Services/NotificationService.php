@@ -12,6 +12,7 @@ use App\Models\PriceQuoteReply;
 use App\Models\PriceQuoteRequest;
 use App\Models\SalesLead;
 use App\Mail\CriticalAlertMail;
+use App\Mail\ClinicApprovedMail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -50,6 +51,24 @@ class NotificationService
             url: '/app/admin/sales-leads',
             priority: 'normal',
             data: ['lead_id' => $lead->id],
+        );
+    }
+
+    /**
+     * A complex registered itself via the public "List your complex" form
+     * and is now sitting in the admin "Awaiting approval" list as a
+     * status=pending clinic. Points admins straight at the clinics list.
+     */
+    public function newClinicRegistration(Clinic $clinic): void
+    {
+        $this->broadcastToAdmins(
+            type: 'new_clinic_registration',
+            title: __('admin.notif.new_clinic_reg_title'),
+            body:  __('admin.notif.new_clinic_reg_body', ['clinic' => $clinic->name]),
+            icon: 'heroicon-o-building-office-2',
+            url: '/app/admin/clinics',
+            priority: 'normal',
+            data: ['clinic_id' => $clinic->id],
         );
     }
 
@@ -249,17 +268,28 @@ class NotificationService
         );
     }
 
-    public function clinicApproved(Clinic $clinic): void
+    public function clinicApproved(Clinic $clinic, ?string $password = null, ?string $loginUrl = null): void
     {
+        // In-app bell. 'normal' priority so push() does NOT also fire the
+        // generic CriticalAlertMail — the credentials email below replaces it.
         $this->push(
             $clinic,
             type: 'clinic_approved',
             icon: 'heroicon-o-check-circle',
             url: null,
-            priority: 'high',
+            priority: 'normal',
             title: __('admin.notif.approved_title'),
             body:  __('admin.notif.approved_body'),
         );
+
+        // Credentials email — password + approved phone + login link.
+        if ($password && filled($clinic->email)) {
+            try {
+                Mail::to($clinic->email)->send(new ClinicApprovedMail($clinic, $password, $loginUrl));
+            } catch (\Throwable $e) {
+                Log::warning('Clinic approved credentials email failed: '.$e->getMessage());
+            }
+        }
     }
 
     public function clinicRejected(Clinic $clinic, string $reason): void

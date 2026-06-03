@@ -73,11 +73,11 @@ export function ClinicSubscriptionPage() {
   const { data, isLoading } = useClinicSubscription();
 
   const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', {
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
       style: 'currency', currency: 'SAR', maximumFractionDigits: 0,
     }).format(n);
   const fmtDate = (iso: string | null | undefined) =>
-    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   if (isLoading || !data) {
     return <div className="py-8 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</div>;

@@ -33,6 +33,13 @@ class SubscriptionService
      *     new one chains onto its ends_at (no overlap, no rollback)
      *   - otherwise, today
      */
+    /**
+     * @param ?float $amountOverride When provided, this exact amount is
+     *        charged instead of the package-derived default. This is the
+     *        per-subscription manual price: the package stays the source
+     *        of truth for features + the default price, but an admin can
+     *        negotiate a custom amount for a specific clinic/subscription.
+     */
     public function activate(
         Clinic $clinic,
         SubscriptionPackage $package,
@@ -40,10 +47,11 @@ class SubscriptionService
         int $bonusMonths = 0,
         ?int $adminId = null,
         ?string $notes = null,
+        ?float $amountOverride = null,
     ): Subscription {
         $bonusMonths = max(0, min($bonusMonths, 24));
 
-        return DB::transaction(function () use ($clinic, $package, $cycle, $bonusMonths, $adminId, $notes) {
+        return DB::transaction(function () use ($clinic, $package, $cycle, $bonusMonths, $adminId, $notes, $amountOverride) {
             // Pessimistic row lock so two concurrent activations (double-
             // click, or two admins clicking at once) serialise instead of
             // each computing the same starts_at and producing overlapping
@@ -58,7 +66,9 @@ class SubscriptionService
             // so they don't multiply into the price). Annual without
             // bonus → 12 × monthly_price.
             $paidMonths = $cycle === Subscription::CYCLE_ANNUAL ? 12 : 3;
-            $amount = (float) $package->monthly_price * $paidMonths;
+            $amount = $amountOverride !== null
+                ? max(0.0, $amountOverride)
+                : (float) $package->monthly_price * $paidMonths;
 
             $sub = Subscription::create([
                 'clinic_id'               => $clinic->id,
@@ -104,6 +114,10 @@ class SubscriptionService
             (int) ($previous->bonus_months ?? 0),
             $adminId,
             $notes ?? __('admin.subscriptions.renewal_note', ['ref' => $previous->id]),
+            // Carry the previous (possibly custom-negotiated) amount forward
+            // so a clinic on a manual price keeps it across renewals instead
+            // of snapping back to the package default.
+            amountOverride: $previous->amount !== null ? (float) $previous->amount : null,
         );
     }
 

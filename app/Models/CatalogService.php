@@ -24,8 +24,12 @@ class CatalogService extends Model
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
-        'name', 'name_en', 'slug', 'default_description',
+        'name', 'name_en', 'aliases', 'slug', 'default_description',
         'category_id', 'status', 'requested_by_clinic_id', 'reviewed_by',
+    ];
+
+    protected $casts = [
+        'aliases' => 'array',
     ];
 
     public function category(): BelongsTo

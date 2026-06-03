@@ -15,7 +15,18 @@ export const SALES_LEAD_STATUSES: SalesLeadStatus[] = [
   'lost',
 ];
 
-export type SubscriptionPlan = 'basic' | 'premium';
+export type BillingCycle = 'quarterly' | 'annual';
+
+/**
+ * Convert payload. The package carries the tier (features + default
+ * price); `amount` is the optional per-subscription manual price an
+ * admin can set for a clinic on a negotiated rate.
+ */
+export interface ConvertLeadPayload {
+  package_id: number;
+  billing_cycle: BillingCycle;
+  amount: number;
+}
 
 export interface SalesLead {
   id: number;

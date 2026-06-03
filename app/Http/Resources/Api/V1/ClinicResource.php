@@ -15,6 +15,11 @@ class ClinicResource extends JsonResource
             'phone'                  => $this->phone,
             'email'                  => $this->email,
             'license_number'         => $this->license_number,
+            'tax_number'             => $this->tax_number,
+            'commercial_registration' => $this->commercial_registration,
+            // Whether a reversible password copy exists (drives reveal vs
+            // regenerate in the UI). The value itself is never sent here.
+            'password_available'     => filled($this->getRawOriginal('password_plaintext')),
             'city_id'                => $this->city_id,
             'address'                => $this->address,
             'district'               => $this->district,

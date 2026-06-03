@@ -26,20 +26,25 @@ class CatalogMatchService
             return null;
         }
 
-        // 1. Exact match on the normalised name (case/space/diacritic-folded).
-        $candidates = CatalogService::active()->get(['id', 'name', 'name_en', 'slug', 'category_id']);
+        // 1. Exact match on the normalised name, English name, or any alias.
+        $candidates = CatalogService::active()->get(['id', 'name', 'name_en', 'aliases', 'slug', 'category_id']);
         foreach ($candidates as $c) {
             if ($this->normalize($c->name) === $normalized
-                || ($c->name_en && $this->normalize($c->name_en) === $normalized)) {
+                || ($c->name_en && $this->normalize($c->name_en) === $normalized)
+                || $this->aliasesMatch($c, fn (string $a) => $a === $normalized)) {
                 return $c;
             }
         }
 
         // 2. Substring containment either direction — handles "تنظيف اسنان"
         //    vs "تنظيف الأسنان" once both are normalised (ال + diacritics gone).
+        //    Checked against the canonical name and every alias.
         foreach ($candidates as $c) {
             $cn = $this->normalize($c->name);
             if ($cn !== '' && (str_contains($cn, $normalized) || str_contains($normalized, $cn))) {
+                return $c;
+            }
+            if ($this->aliasesMatch($c, fn (string $a) => str_contains($a, $normalized) || str_contains($normalized, $a))) {
                 return $c;
             }
         }
@@ -58,16 +63,37 @@ class CatalogMatchService
         $normalized = $this->normalize($query);
 
         return CatalogService::active()
-            ->get(['id', 'name', 'name_en', 'slug', 'category_id'])
+            ->get(['id', 'name', 'name_en', 'aliases', 'slug', 'category_id'])
             ->filter(function (CatalogService $c) use ($normalized) {
                 if ($normalized === '') {
                     return true;
                 }
                 $cn = $this->normalize($c->name);
-                return str_contains($cn, $normalized) || str_contains($normalized, $cn);
+                if (str_contains($cn, $normalized) || str_contains($normalized, $cn)) {
+                    return true;
+                }
+                return $this->aliasesMatch($c, fn (string $a) => str_contains($a, $normalized) || str_contains($normalized, $a));
             })
             ->take($limit)
             ->values();
+    }
+
+    /**
+     * True when any of the catalog entry's aliases (normalised) satisfies the
+     * given predicate. Safe when the column is null/empty.
+     *
+     * @param  callable(string):bool  $predicate  Receives the normalised alias.
+     */
+    private function aliasesMatch(CatalogService $c, callable $predicate): bool
+    {
+        foreach ((array) ($c->aliases ?? []) as $alias) {
+            $a = $this->normalize((string) $alias);
+            if ($a !== '' && $predicate($a)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

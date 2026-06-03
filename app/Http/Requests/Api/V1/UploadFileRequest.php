@@ -6,13 +6,18 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UploadFileRequest extends FormRequest
 {
+    // Flat, entity-based collections. Each uploadable kind in the system maps
+    // to exactly one top-level prefix in the bucket so files are easy to find,
+    // audit and clean up per type.
     private const ALLOWED_DIRECTORIES = [
-        'clinics/logos',
-        'clinics/gallery',
-        'articles',
-        'doctors',
-        'before-after',
-        'homepage/banners',
+        'logos',         // clinic logos
+        'gallery',       // clinic gallery images
+        'doctors',       // doctor photos
+        'services',      // service images
+        'offers',        // offer images
+        'before-after',  // before/after photos
+        'articles',      // article cover images
+        'banners',       // homepage banner slides
     ];
 
     public function authorize(): bool

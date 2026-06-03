@@ -21,9 +21,13 @@ class PackageResource extends JsonResource
             'is_active'           => (bool) $this->is_active,
             'sort_order'          => (int) $this->sort_order,
             'service_ids'         => $this->whenLoaded('services', fn () => $this->services->pluck('id')->values()),
+            // Per-service note keyed by service id — repopulates the edit form.
+            'service_notes'       => $this->whenLoaded('services', fn () => $this->services
+                ->mapWithKeys(fn ($s) => [(string) $s->id => $s->pivot->note])->all()),
             'services'            => $this->whenLoaded('services', fn () => $this->services->map(fn ($s) => [
                 'id'   => $s->id,
                 'name' => $s->name,
+                'note' => $s->pivot->note,
             ])->values()),
             'created_at'          => $this->created_at,
             'updated_at'          => $this->updated_at,

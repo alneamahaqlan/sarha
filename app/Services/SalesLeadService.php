@@ -4,67 +4,73 @@ namespace App\Services;
 
 use App\Models\Clinic;
 use App\Models\SalesLead;
-use App\Models\Subscription;
+use App\Models\SubscriptionPackage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
  * Single source of truth for SalesLead conversion.
  *
- * Extracted verbatim from SalesLeadResource::convertLead() so that Filament
- * and the API path execute the EXACT same DB::transaction + side effects.
- * No business-logic change.
+ * Conversion creates the Clinic shell then delegates ALL pricing to
+ * SubscriptionService::activate() — the one place that reads the
+ * subscription_packages catalogue. The package supplies the features +
+ * the default price; the admin may pass a per-subscription manual
+ * `amount` for clinics on a negotiated rate.
  */
 class SalesLeadService
 {
-    public const PLAN_BASIC_PRICE   = 300;
-    public const PLAN_PREMIUM_PRICE = 400;
-    public const TRIAL_DAYS         = 90;
+    public function __construct(
+        private readonly NotificationService $notifications,
+        private readonly SubscriptionService $subscriptions,
+    ) {}
 
-    public function __construct(private readonly NotificationService $notifications) {}
-
-    public function convertLead(SalesLead $lead, string $plan): Clinic
+    /**
+     * @param SubscriptionPackage $package Tier picked by the admin — the
+     *        source of truth for features + default price.
+     * @param string $cycle  Subscription::CYCLE_QUARTERLY | CYCLE_ANNUAL.
+     * @param ?float $amount  Manual per-subscription price; null = use the
+     *        package-derived default (monthly_price × cycle months).
+     */
+    public function convertLead(SalesLead $lead, SubscriptionPackage $package, string $cycle, ?float $amount = null): Clinic
     {
-        // Validate plan up front (was implicit via UI in Filament).
-        if (! in_array($plan, ['basic', 'premium'], true)) {
-            throw new \InvalidArgumentException("Unsupported plan: {$plan}");
-        }
-
-        $price = $plan === 'premium' ? self::PLAN_PREMIUM_PRICE : self::PLAN_BASIC_PRICE;
-        $days  = self::TRIAL_DAYS;
-
-        return DB::transaction(function () use ($lead, $plan, $price, $days) {
+        return DB::transaction(function () use ($lead, $package, $cycle, $amount) {
             $clinic = Clinic::create([
-                'name'                   => $lead->clinic_name,
-                'slug'                   => Str::slug($lead->clinic_name) . '-' . Str::random(4),
-                'phone'                  => $lead->phone,
-                'email'                  => $lead->email ?: ('lead-' . $lead->id . '@saerha.sa'),
-                'license_number'         => $lead->license_number,
-                'password'               => bcrypt(Str::random(12)),
-                'city_id'                => $lead->city_id,
-                'district'               => $lead->district,
-                'address'                => $lead->address,
-                'status'                 => 'active',
-                'subscription_type'      => $plan,
-                'subscription_starts_at' => now(),
-                'subscription_ends_at'   => now()->addDays($days),
+                'name'           => $lead->clinic_name,
+                'slug'           => Str::slug($lead->clinic_name) . '-' . Str::lower(Str::random(4)),
+                'phone'          => $lead->phone,
+                'email'          => $lead->email ?: ('lead-' . $lead->id . '@saerha.sa'),
+                'license_number' => $lead->license_number,
+                'password'       => bcrypt(Str::random(16)),
+                'city_id'        => $lead->city_id,
+                'district'       => $lead->district,
+                'address'        => $lead->address,
+                'status'         => 'active',
             ]);
 
-            Subscription::create([
-                'clinic_id' => $clinic->id,
-                'type'      => $plan,
-                'amount'    => $price,
-                'starts_at' => now(),
-                'ends_at'   => now()->addDays($days),
-                'status'    => 'active',
-            ]);
+            // Single pricing path: activate() sets subscription_package_id,
+            // the feature flags, the amount (default or manual override) and
+            // syncs the clinic's denormalised subscription_* columns.
+            $subscription = $this->subscriptions->activate(
+                clinic: $clinic,
+                package: $package,
+                cycle: $cycle,
+                bonusMonths: 0,
+                adminId: auth('admin')->id(),
+                notes: __('admin.subscriptions.lead_conversion_note', ['lead' => $lead->id]),
+                amountOverride: $amount,
+            );
 
             $lead->update(['status' => 'converted']);
 
             AuditLogService::log(
                 action: 'sales_lead.converted',
                 model: $clinic,
-                newValues: ['lead_id' => $lead->id, 'plan' => $plan, 'amount' => $price],
+                newValues: [
+                    'lead_id' => $lead->id,
+                    'package' => $package->slug,
+                    'cycle'   => $cycle,
+                    'amount'  => $subscription->amount,
+                ],
             );
 
             $this->notifications->leadConverted($lead, $clinic);

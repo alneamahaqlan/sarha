@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\OtpCode;
 use App\Models\User;
-use App\Services\SmsService;
+use App\Services\Otp\OtpDispatcher;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 
@@ -16,7 +16,7 @@ class OtpController extends Controller
         return view('auth.login');
     }
 
-    public function sendOtp(Request $request, SmsService $sms)
+    public function sendOtp(Request $request, OtpDispatcher $dispatcher)
     {
         $request->validate([
             'phone' => 'required|string|regex:/^05\d{8}$/',
@@ -33,10 +33,12 @@ class OtpController extends Controller
 
         $otp = OtpCode::generate($phone);
 
-        // Send via Unifonic (logs instead of sending in local / when unconfigured).
-        $sms->send($phone, __('site.otp_sms', ['code' => $otp->code]));
+        // Deliver over the admin-selected channel (WhatsApp / SMS) with
+        // automatic fallback. Each transport logs instead of sending in local
+        // / when unconfigured, so dev never blocks.
+        $dispatcher->send($phone, $otp->code);
 
-        // In development, also flash the code so testers can log in without SMS.
+        // In development, also flash the code so testers can log in without SMS/WhatsApp.
         if (app()->isLocal()) {
             return back()->with('otp_sent', true)->with('dev_code', $otp->code)->withInput();
         }

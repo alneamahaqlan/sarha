@@ -3,8 +3,8 @@ import { apiClient } from '@/lib/api-client';
 /** Quick period (days) or an explicit custom range. */
 export type StatsRange = { period: number } | { from: string; to: string };
 
-/** The 6 server-side impression sources. AI is excluded from the clinic view. */
-export type ImpressionSource = 'search' | 'filter' | 'home' | 'similar_services' | 'compare' | 'ai';
+/** Server-side impression sources. AI is excluded from the clinic view. */
+export type ImpressionSource = 'search' | 'filter' | 'home' | 'similar_services' | 'compare' | 'profile' | 'ai';
 
 export interface StatsSummary {
   /** Back-compat alias: equal to `impressions_total`. */

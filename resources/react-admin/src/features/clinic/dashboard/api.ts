@@ -19,7 +19,7 @@ export interface ClinicStats {
   new_bookings: number;
   month_bookings: number;
   active_services: number;
-  subscription_type: 'basic' | 'premium' | null;
+  subscription_type: 'free' | 'standard' | 'basic' | 'premium' | null;
   subscription_ends_at: string | null;
   is_subscription_active: boolean;
   google_rating: number | null;

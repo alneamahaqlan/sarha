@@ -27,7 +27,7 @@
                     <article class="reveal bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
                         <a href="{{ route('article.show', $article->slug) }}" class="block aspect-[16/9] bg-gradient-to-br from-sage-mist to-gold-whisper relative">
                             @if($article->cover_image ?? false)
-                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($article->cover_image) }}"
+                                <img src="{{ \Illuminate\Support\Facades\Storage::url($article->cover_image) }}"
                                      alt="{{ $article->title }}"
                                      class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                             @else

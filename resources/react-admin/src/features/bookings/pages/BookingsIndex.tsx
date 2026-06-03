@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
+import { Download, Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -26,12 +26,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
-import { useClinicLookup } from '@/features/lookups/hooks';
+import { useClinicLookup, useSubClinicLookup, useServiceLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
 
 import { useBookings, useBookingStatusCounts, useDeleteBooking, useRestoreBooking } from '../hooks';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingForm } from '../components/BookingForm';
+import { BookingExportDialog } from '../components/BookingExportDialog';
 import { BookingStatusBadge } from '../components/StatusBadge';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '../types';
 import type { TrashedFilter } from '../api/bookings.api';
@@ -43,10 +44,13 @@ export function BookingsIndex() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | undefined>(undefined);
   const [clinicFilter, setClinicFilter] = useState<number | undefined>(undefined);
+  const [subClinicFilter, setSubClinicFilter] = useState<number | undefined>(undefined);
+  const [serviceFilter, setServiceFilter] = useState<number | undefined>(undefined);
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
   const [editing, setEditing] = useState<Booking | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Booking | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const debouncedSearch = useDebouncedValue(search, 300);
 
@@ -56,13 +60,30 @@ export function BookingsIndex() {
       per_page: 15,
       search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
-      filter: { status: statusFilter, clinic_id: clinicFilter, trashed: trashedFilter },
+      filter: {
+        status: statusFilter,
+        clinic_id: clinicFilter,
+        sub_clinic_id: subClinicFilter,
+        service_id: serviceFilter,
+        trashed: trashedFilter,
+      },
     }),
-    [page, debouncedSearch, statusFilter, clinicFilter, trashedFilter],
+    [page, debouncedSearch, statusFilter, clinicFilter, subClinicFilter, serviceFilter, trashedFilter],
   );
   const { data, isLoading, isFetching } = useBookings(queryParams);
   const { data: statusCounts } = useBookingStatusCounts();
   const { data: clinics } = useClinicLookup();
+  const { data: subClinics } = useSubClinicLookup(clinicFilter);
+  const { data: services } = useServiceLookup(clinicFilter);
+
+  // Sub-clinic and service belong to a complex, so reset them whenever the
+  // selected clinic changes (or clears).
+  const handleClinicChange = (id: number | undefined) => {
+    setClinicFilter(id);
+    setSubClinicFilter(undefined);
+    setServiceFilter(undefined);
+    setPage(1);
+  };
   const del = useDeleteBooking();
   const restore = useRestoreBooking();
 
@@ -87,7 +108,7 @@ export function BookingsIndex() {
   };
 
   const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 
   return (
     <div className="space-y-4">
@@ -96,10 +117,16 @@ export function BookingsIndex() {
           <h1 className="text-2xl font-semibold">{t('bookings.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('bookings.subtitle')}</p>
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="h-4 w-4" />
-          {t('bookings.create')}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => setExporting(true)} className="gap-1.5">
+            <Download className="h-4 w-4" />
+            {t('bookings.export.cta')}
+          </Button>
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('bookings.create')}
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -142,7 +169,7 @@ export function BookingsIndex() {
         </div>
         <Select
           value={clinicFilter ?? ''}
-          onChange={(e) => { setClinicFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
+          onChange={(e) => handleClinicChange(e.target.value ? Number(e.target.value) : undefined)}
           className="w-44"
         >
           <option value="">{t('bookings.filter_all_clinics')}</option>
@@ -150,6 +177,30 @@ export function BookingsIndex() {
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </Select>
+        {clinicFilter && (
+          <>
+            <Select
+              value={subClinicFilter ?? ''}
+              onChange={(e) => { setSubClinicFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
+              className="w-44"
+            >
+              <option value="">{t('bookings.filter_all_sub_clinics')}</option>
+              {subClinics?.map((sc) => (
+                <option key={sc.id} value={sc.id}>{sc.name}</option>
+              ))}
+            </Select>
+            <Select
+              value={serviceFilter ?? ''}
+              onChange={(e) => { setServiceFilter(e.target.value ? Number(e.target.value) : undefined); setPage(1); }}
+              className="w-44"
+            >
+              <option value="">{t('bookings.filter_all_services')}</option>
+              {services?.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </Select>
+          </>
+        )}
         <Select
           value={trashedFilter}
           onChange={(e) => { setTrashedFilter(e.target.value as TrashedFilter); setPage(1); }}
@@ -286,6 +337,13 @@ export function BookingsIndex() {
           />
         </DialogContent>
       </Dialog>
+
+      {exporting && (
+        <BookingExportDialog
+          params={{ search: queryParams.search, filter: queryParams.filter }}
+          onClose={() => setExporting(false)}
+        />
+      )}
 
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>

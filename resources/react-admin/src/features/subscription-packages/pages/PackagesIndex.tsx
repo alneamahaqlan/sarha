@@ -89,7 +89,7 @@ export function PackagesIndex() {
                     <span className={`text-2xl font-bold ${c.price}`}>{t('packages.free')}</span>
                   ) : (
                     <>
-                      <span className={`text-2xl font-bold ${c.price}`}>{p.monthly_price.toLocaleString(locale === 'ar' ? 'ar-SA' : 'en-US')}</span>
+                      <span className={`text-2xl font-bold ${c.price}`}>{p.monthly_price.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')}</span>
                       <span className="text-xs text-[var(--color-muted-foreground)]">{t('packages.sar_per_month')}</span>
                     </>
                   )}

@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FileUpload } from '@/components/forms/FileUpload';
 import { useClinicLookup } from '@/features/lookups/hooks';
 
 import { serviceFormSchema, type ServiceFormSchema } from '../schemas/service.schema';
@@ -35,6 +36,10 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      price_from: service?.price_from ?? false,
+      price_includes: service?.price_includes ?? '',
+      price_excludes: service?.price_excludes ?? '',
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
     },
   });
@@ -45,6 +50,10 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
       name: service?.name ?? '',
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      price_from: service?.price_from ?? false,
+      price_includes: service?.price_includes ?? '',
+      price_excludes: service?.price_excludes ?? '',
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
     });
   }, [service, form]);
@@ -105,12 +114,39 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
           <Textarea id="description" rows={2} {...form.register('description')} />
         </div>
 
+        <div className="space-y-1.5 md:col-span-2">
+          <Label>{t('services.image', 'صورة الخدمة')}</Label>
+          <FileUpload
+            value={form.watch('image')}
+            onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
+            directory="services"
+          />
+        </div>
+
         <div className="space-y-1.5">
           <Label htmlFor="price">{t('services.price')}</Label>
           <Input id="price" type="number" step="0.01" min={0} {...form.register('price', { valueAsNumber: true })} />
           {form.formState.errors.price && (
             <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.price.message}</p>
           )}
+        </div>
+
+        <div className="flex items-center gap-3 md:col-span-2">
+          <Switch
+            checked={form.watch('price_from')}
+            onCheckedChange={(v) => form.setValue('price_from', v, { shouldDirty: true })}
+          />
+          <Label>{t('services.price_from', 'السعر يبدأ من (الحد الأدنى)')}</Label>
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="price_includes">{t('services.price_includes', 'ما يشمله السعر (اختياري)')}</Label>
+          <Textarea id="price_includes" rows={2} {...form.register('price_includes')} />
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="price_excludes">{t('services.price_excludes', 'ما لا يشمله السعر (اختياري)')}</Label>
+          <Textarea id="price_excludes" rows={2} {...form.register('price_excludes')} />
         </div>
 
         <div className="flex items-end gap-3 pb-2">

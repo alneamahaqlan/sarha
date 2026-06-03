@@ -53,9 +53,17 @@ return [
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
+            // When AWS_URL is set we serve assets straight from the bucket's
+            // virtual-hosted URL, e.g.
+            // https://daleel-sarha.s3.eu-north-1.amazonaws.com/{path}
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // NOTE: no per-object 'visibility' is set. The bucket has ACLs
+            // disabled (Object Ownership = Bucket owner enforced), so sending a
+            // public-read ACL would be rejected with AccessControlListNotSupported.
+            // Public read access is granted at the bucket level via a bucket
+            // policy instead.
             'throw' => false,
             'report' => false,
         ],

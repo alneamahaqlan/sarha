@@ -13,7 +13,6 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -24,6 +23,7 @@ import {
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FileUpload } from '@/components/forms/FileUpload';
 import type { Service } from '@/features/services/types';
 import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { useClinicProfile } from '@/features/clinic/profile/hooks';
@@ -34,11 +34,15 @@ import {
   useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
 import { MultiCategorySelect } from '../components/MultiCategorySelect';
+import { CatalogServicePicker } from '../components/CatalogServicePicker';
 import { RequestSpecialtyDialog } from '../components/RequestSpecialtyDialog';
 
 const schema = z
   .object({
     name: z.string().min(1).max(255),
+    // Set when the clinic picked an existing canonical service from the
+    // catalog typeahead (→ instant publish); null → backend files a request.
+    catalog_service_id: z.number().int().positive().nullable().optional(),
     // 1–5 specialties — mirrors StoreServiceRequest / UpdateServiceRequest.
     // Each service must belong to at least one specialty, up to five.
     category_ids: z.array(z.number().int().positive()).min(1).max(5),
@@ -46,6 +50,10 @@ const schema = z
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
+    price_from: z.boolean().default(false),
+    price_includes: z.string().nullish(),
+    price_excludes: z.string().nullish(),
+    image: z.string().nullish(),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
   });
@@ -62,6 +70,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
     resolver: zodResolver(schema) as never,
     defaultValues: {
       name: service?.name ?? '',
+      catalog_service_id: service?.catalog_service_id ?? null,
       // Edit mode: prefer category_ids (new API); fall back to the legacy
       // single category_id if the row hasn't been resaved since the
       // many-to-many migration. Create mode: empty list.
@@ -69,6 +78,10 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      price_from: service?.price_from ?? false,
+      price_includes: service?.price_includes ?? '',
+      price_excludes: service?.price_excludes ?? '',
+      image: service?.image ?? '',
       is_active: service?.is_active ?? true,
       sort_order: service?.sort_order ?? 0,
     },
@@ -99,8 +112,15 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_services.name')}</Label>
-              <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <CatalogServicePicker
+                name={form.watch('name')}
+                catalogServiceId={form.watch('catalog_service_id') ?? null}
+                onChange={(n, id) => {
+                  form.setValue('name', n, { shouldDirty: true, shouldValidate: true });
+                  form.setValue('catalog_service_id', id, { shouldDirty: true });
+                }}
+                error={form.formState.errors.name?.message}
+              />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label>
@@ -143,6 +163,14 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               <Label htmlFor="description">{t('clinic_services.description')}</Label>
               <Textarea id="description" rows={2} {...form.register('description')} />
             </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label>{t('clinic_services.image', 'صورة الخدمة')}</Label>
+              <FileUpload
+                value={form.watch('image')}
+                onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
+                directory="services"
+              />
+            </div>
             <div className="space-y-1.5">
               <Label htmlFor="price">{t('clinic_services.price')}</Label>
               <Input id="price" type="number" step="0.01" min={0} {...form.register('price', { valueAsNumber: true })} />
@@ -151,6 +179,18 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="space-y-1.5">
               <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>
               <Input id="sort_order" type="number" min={0} step={1} {...form.register('sort_order', { valueAsNumber: true })} />
+            </div>
+            <div className="flex items-center gap-3 md:col-span-2">
+              <Switch checked={form.watch('price_from')} onCheckedChange={(c) => form.setValue('price_from', c, { shouldDirty: true })} />
+              <Label>{t('clinic_services.price_from', 'السعر يبدأ من (الحد الأدنى)')}</Label>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="price_includes">{t('clinic_services.price_includes', 'ما يشمله السعر (اختياري)')}</Label>
+              <Textarea id="price_includes" rows={2} placeholder={t('clinic_services.price_includes_ph', 'مثال: الكشف الأولي + استشارة الطبيب')} {...form.register('price_includes')} />
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
+              <Label htmlFor="price_excludes">{t('clinic_services.price_excludes', 'ما لا يشمله السعر (اختياري)')}</Label>
+              <Textarea id="price_excludes" rows={2} placeholder={t('clinic_services.price_excludes_ph', 'مثال: الأشعة والتحاليل')} {...form.register('price_excludes')} />
             </div>
             <div className="flex items-end gap-3 pb-2 md:col-span-2">
               <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
@@ -189,7 +229,7 @@ export function ClinicServicesIndex() {
   const [view, setView] = useState<'list' | 'grouped'>('list');
 
   const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   const handleDelete = async () => {
     if (!deleting) return;

@@ -53,6 +53,7 @@ const PackagesIndex       = lazy(() => import('@/features/subscription-packages/
 const PriceQuotesIndex    = lazy(() => import('@/features/price-quotes/pages/PriceQuotesIndex').then(m => ({ default: m.PriceQuotesIndex })));
 const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/AuditLogsIndex').then(m => ({ default: m.AuditLogsIndex })));
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
+const WhatsAppSendersIndex = lazy(() => import('@/features/whatsapp-senders/pages/WhatsAppSendersIndex').then(m => ({ default: m.WhatsAppSendersIndex })));
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
 const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
 const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
@@ -142,6 +143,7 @@ export function AppRoutes() {
               <Route path="price-quotes" element={<PriceQuotesIndex />} />
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
+              <Route path="whatsapp-senders" element={<WhatsAppSendersIndex />} />
               <Route path="ai-center" element={<AiCenterPage />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />

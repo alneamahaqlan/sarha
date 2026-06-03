@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
-use App\Enums\ImpressionSource;
 use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
@@ -14,6 +14,7 @@ use App\Models\Relative;
 use App\Services\ClinicPageBuilderService;
 use App\Services\FeatureGate;
 use App\Services\ImpressionTrackerService;
+use App\Services\SimilarityService;
 use App\Services\SmsService;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class ClinicController extends Controller
 {
     use IdentifiesCustomer;
 
-    public function show(string $slug, ClinicPageBuilderService $builder, FeatureGate $gate)
+    public function show(string $slug, ClinicPageBuilderService $builder, FeatureGate $gate, SimilarityService $similarity)
     {
         $clinic = Clinic::publiclyVisible()
             ->where('slug', $slug)
@@ -53,41 +54,14 @@ class ClinicController extends Controller
             ->withCount('googleReviews')
             ->firstOrFail();
 
-        // "Similar services in the same city" — replaces the previous
-        // similar-clinics block. Aggregates services from OTHER clinics in
-        // this city whose category set overlaps the current clinic's
-        // specialty coverage, ordered cheapest-first so the customer can
-        // price-compare without leaving the page.
-        $thisCategoryIds = $clinic->categories->pluck('id');
-        $similarServices = $thisCategoryIds->isNotEmpty()
-            ? \App\Models\Service::query()
-                ->with(['clinic:id,name,slug,city_id', 'clinic.city:id,name', 'categories:id,name,emoji'])
-                ->where('is_active', true)
-                ->where('approval_status', 'approved')
-                ->whereNotNull('price')
-                ->where('clinic_id', '!=', $clinic->id)
-                ->whereHas('clinic', fn ($q) => $q->publiclyVisible()->where('city_id', $clinic->city_id))
-                ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $thisCategoryIds))
-                ->orderBy('price')
-                ->take(8)
-                ->get()
-            : collect();
-
         // Record a page view (never let stats break the page).
         try {
             ClinicStat::bump($clinic->id, 'page_views');
+            // Every profile open also counts as an impression, regardless of
+            // how the visitor arrived (direct link, share, preview, …).
+            app(ImpressionTrackerService::class)->trackClinic($clinic->id, ImpressionSource::PROFILE);
         } catch (\Throwable $e) {
             // swallow — analytics must not affect the visitor experience
-        }
-
-        // Multi-source impression tracking: every service surfaced in
-        // the "similar services" block counts as an impression for that
-        // service AND (via cascade) its owning clinic. The current
-        // clinic itself is NOT bumped — this is a direct page visit,
-        // already covered by `page_views` above.
-        if ($similarServices->isNotEmpty()) {
-            app(ImpressionTrackerService::class)
-                ->trackManyServices($similarServices->all(), ImpressionSource::SIMILAR);
         }
 
         // Feed the super-admin profile timeline.
@@ -135,7 +109,11 @@ class ClinicController extends Controller
         // resolving the package relation per request.
         $clinic->setAttribute('is_verified_badge', $gate->hasVerifiedBadge($clinic));
 
-        return view('public.clinic', compact('clinic', 'similarServices', 'pageSections', 'builder'));
+        // "Similar complexes" strip at the foot of the page (same city +
+        // overlapping specialties, other complexes).
+        $similarClinics = $similarity->similarClinics($clinic);
+
+        return view('public.clinic', compact('clinic', 'similarClinics', 'pageSections', 'builder'));
     }
 
     public function bookingForm(string $slug, Request $request)

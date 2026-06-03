@@ -51,7 +51,7 @@ export function ClinicTeamIndex() {
   const regen = useRegenerateTeamMemberPassword();
 
   const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   const handleDelete = async () => {
     if (!deleting) return;

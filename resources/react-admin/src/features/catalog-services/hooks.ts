@@ -10,6 +10,15 @@ export function useCatalogServices(params: { status?: string; page?: number; sea
   });
 }
 
+export function useUpdateCatalogService() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...payload }: { id: number; name?: string; name_en?: string | null; aliases?: string[] }) =>
+      catalogServicesApi.update(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useApproveCatalogService() {
   const qc = useQueryClient();
   return useMutation({

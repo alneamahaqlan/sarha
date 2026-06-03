@@ -10,6 +10,7 @@ import type {
   KanbanFilters,
   KanbanStats,
   QuickAction,
+  StageLabels,
   TagColor,
   TagDto,
   TagLabelOption,
@@ -20,6 +21,7 @@ function flattenFilters(f: KanbanFilters, cursors?: Record<string, string | null
   const out: Record<string, string | number | boolean> = {};
   if (f.search) out.search = f.search;
   if (f.service_id) out.service_id = f.service_id;
+  if (f.sub_clinic_id) out.sub_clinic_id = f.sub_clinic_id;
   if (f.assignee_id) out.assignee_id = f.assignee_id;
   if (f.assignee_type) out.assignee_type = f.assignee_type;
   if (f.date_from) out.date_from = f.date_from;
@@ -124,4 +126,38 @@ export const bookingKanbanApi = {
     const res = await apiClient.get<{ data: TagLabelOption[] }>('/clinic/bookings/tag-labels');
     return res.data.data;
   },
+
+  stages: async (): Promise<StageLabels> => {
+    const res = await apiClient.get<{ data: StageLabels }>('/clinic/bookings/stages');
+    return res.data.data ?? {};
+  },
+
+  updateStages: async (labels: StageLabels): Promise<StageLabels> => {
+    const res = await apiClient.put<{ data: StageLabels }>('/clinic/bookings/stages', { labels });
+    return res.data.data ?? {};
+  },
+
+  /**
+   * Streams a CSV export honouring the current filters. `columns` is an
+   * optional subset of Kanban columns (empty = all stages); `order` is
+   * the date sort direction. Triggers a browser download.
+   */
+  exportCsv: async (filters: KanbanFilters, opts: { columns?: string[]; order?: 'asc' | 'desc' }) => {
+    const params = { ...flattenFilters(filters), order: opts.order ?? 'desc' } as Record<string, unknown>;
+    if (opts.columns && opts.columns.length) params.columns = opts.columns;
+    const res = await apiClient.get('/clinic/bookings/export', { params, responseType: 'blob' });
+    triggerDownload(res.data as Blob, `bookings-${new Date().toISOString().slice(0, 10)}.csv`);
+  },
 };
+
+/** Saves a Blob as a file via a temporary anchor. */
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

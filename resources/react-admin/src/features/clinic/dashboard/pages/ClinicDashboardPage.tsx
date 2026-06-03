@@ -156,11 +156,11 @@ export function ClinicDashboardPage() {
   const { user } = useAuth();
   const { data: stats } = useClinicStats();
 
-  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
+  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
   const fmtDate = (iso: string | null) =>
-    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA' : 'en-US') : '—';
+    iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
   const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
+    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="space-y-4">
@@ -207,7 +207,7 @@ export function ClinicDashboardPage() {
           label={t('clinic_dashboard.subscription')}
           value={
             stats?.subscription_type
-              ? t(`clinics.plan.${stats.subscription_type}`)
+              ? t(`clinics.plan.${stats.subscription_type}`, { defaultValue: stats.subscription_type })
               : t('common.no_data')
           }
           hint={

@@ -45,6 +45,15 @@ export function useDeleteClinicService() {
   });
 }
 
+export function useCatalogSuggest(query: string) {
+  return useQuery({
+    queryKey: ['clinic', 'catalog-suggest', query],
+    queryFn: () => clinicServicesApi.suggestCatalog(query),
+    enabled: query.trim().length >= 1,
+    staleTime: 30_000,
+  });
+}
+
 export function useReorderClinicServices() {
   const qc = useQueryClient();
   return useMutation({

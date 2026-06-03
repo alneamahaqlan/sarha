@@ -104,6 +104,13 @@
                                 {{ $complaint->clinic_reply_text }}
                             </div>
                         @endif
+                        {{-- Platform admin reply to the customer --}}
+                        @if($complaint->admin_reply_text)
+                            <div class="mt-3 bg-plum-whisper border border-plum-soft/50 rounded-lg p-3 text-sm text-plum-deep">
+                                <div class="text-xs text-plum-primary mb-1">@lang('site.reply_by_platform')</div>
+                                {{ $complaint->admin_reply_text }}
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <div class="bg-white rounded-xl shadow-sm p-8 text-center text-gray-400">@lang('site.complaint_none')</div>

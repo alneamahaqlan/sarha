@@ -172,7 +172,7 @@ export function ClinicSubClinicsIndex() {
 
   const categoryName = (id: number | null) => (id ? categories?.find((c) => c.id === id)?.name ?? '—' : '—');
   const servicesFor = (subId: number) => services?.data.filter((s) => s.sub_clinic_id === subId) ?? [];
-  const cf = (n: number) => new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US').format(n);
+  const cf = (n: number) => new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US').format(n);
 
   const handleDelete = async () => {
     if (!deleting) return;

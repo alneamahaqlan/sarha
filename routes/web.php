@@ -6,10 +6,16 @@ use App\Http\Controllers\Public\AccountController;
 use App\Http\Controllers\Public\ArticleController;
 use App\Http\Controllers\Public\ClinicController;
 use App\Http\Controllers\Public\ClinicRegistrationController;
+use App\Http\Controllers\Public\BeforeAfterController;
 use App\Http\Controllers\Public\CompareController;
+use App\Http\Controllers\Public\DoctorController;
 use App\Http\Controllers\Public\HomeController;
+use App\Http\Controllers\Public\OfferController;
+use App\Http\Controllers\Public\PackageController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\SearchController;
+use App\Http\Controllers\Public\ServiceController;
+use App\Http\Controllers\Public\SubClinicController;
 use App\Http\Controllers\Public\TrackingController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
@@ -53,6 +59,16 @@ Route::get('/booking/{reference}', [ClinicController::class, 'bookingConfirmatio
     ->where('reference', '[A-Z0-9-]+')
     ->name('booking.confirmation');
 
+// Standalone detail pages, scoped under the complex slug for context.
+// Clicking an offer lands on its detail page (not booking) — the page's
+// own CTA deep-links to booking.
+Route::get('/clinic/{slug}/offer/{offer}', [OfferController::class, 'show'])->name('offer.show');
+Route::get('/clinic/{slug}/service/{service}', [ServiceController::class, 'show'])->name('service.show');
+Route::get('/clinic/{slug}/package/{package}', [PackageController::class, 'show'])->name('package.show');
+Route::get('/clinic/{slug}/c/{subClinic}', [SubClinicController::class, 'show'])->name('subclinic.show');
+Route::get('/clinic/{slug}/doctor/{doctor}', [DoctorController::class, 'show'])->name('doctor.show');
+Route::get('/clinic/{slug}/before-after/{photo}', [BeforeAfterController::class, 'show'])->name('before-after.show');
+
 // Broadcast price-quote requests (not tied to a single clinic).
 Route::get('/quotes', [QuoteController::class, 'board'])->name('quotes.board');
 Route::get('/quotes/new', [QuoteController::class, 'requestForm'])->name('quotes.request');
@@ -91,6 +107,8 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/reports', [AccountController::class, 'reports'])->name('account.reports');
     Route::post('/account/reports', [AccountController::class, 'storeReport'])->name('account.reports.store');
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
+    // Saved services + offers (polymorphic) — type + id in the body.
+    Route::post('/saved/toggle', [AccountController::class, 'toggleSaved'])->name('saved.toggle');
 
     // Saved relatives — managed inline from the booking form (no
     // dedicated /account/relatives page per the spec).

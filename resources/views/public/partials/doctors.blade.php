@@ -8,7 +8,8 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->doctors as $doctor)
-            <div class="bg-white rounded-xl shadow-sm p-5 flex gap-4 items-start">
+            <a href="{{ route('doctor.show', ['slug' => $clinic->slug, 'doctor' => $doctor->id]) }}"
+               class="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all p-5 flex gap-4 items-start">
                 @if($doctor->photo)
                     <img src="{{ Storage::url($doctor->photo) }}" alt="{{ $doctor->name }}" loading="lazy"
                          class="h-16 w-16 rounded-full object-cover flex-shrink-0">
@@ -18,7 +19,7 @@
                     </span>
                 @endif
                 <div class="min-w-0">
-                    <h3 class="font-bold text-gray-800">{{ $doctor->name }}</h3>
+                    <h3 class="font-bold text-gray-800 group-hover:text-sage-700 transition-colors">{{ $doctor->name }}</h3>
                     @if($doctor->specialty)
                         <p class="text-sm text-sage-700">{{ $doctor->specialty }}</p>
                     @endif
@@ -46,7 +47,7 @@
                         <p class="text-sm text-gray-600 mt-2 leading-relaxed">{{ Str::limit($doctor->bio, 140) }}</p>
                     @endif
                 </div>
-            </div>
+            </a>
         @endforeach
     </div>
 @endif

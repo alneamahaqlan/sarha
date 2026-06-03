@@ -56,8 +56,8 @@ export function UserAiInterestsSection({ userId }: Props) {
 function Body({ data }: { data: NonNullable<ReturnType<typeof useUserAiInterests>['data']> }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
-  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA' : 'en-US');
-  const dateFmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA' : 'en-US', { dateStyle: 'medium' });
+  const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
+  const dateFmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'medium' });
 
   return (
     <div className="space-y-4">
