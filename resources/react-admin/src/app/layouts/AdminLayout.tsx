@@ -1,4 +1,6 @@
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+
+import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
 import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
@@ -63,6 +65,7 @@ const adminNav = [
 
 export function AdminLayout() {
   const { user } = useAuth();
+  const location = useLocation();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
   const { data: badges } = useAdminNavBadges();
@@ -149,7 +152,9 @@ export function AdminLayout() {
             </div>
           </header>
           <main className="flex-1 p-3 sm:p-4 lg:p-6">
-            <Outlet />
+            <RouteErrorBoundary resetKey={location.pathname}>
+              <Outlet />
+            </RouteErrorBoundary>
           </main>
         </div>
       </div>

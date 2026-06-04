@@ -1,4 +1,6 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+
+import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
 import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
@@ -105,6 +107,7 @@ function filterNavByPermissions(nav: NavEntry[], can: (perm: string) => boolean)
 
 export function ClinicLayout() {
   const { user, can, acting } = useAuth();
+  const location = useLocation();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
   const { data: badges } = useClinicNavBadges();
@@ -199,7 +202,9 @@ export function ClinicLayout() {
             </div>
           </header>
           <main className="flex-1 p-3 sm:p-4 lg:p-6">
-            <Outlet />
+            <RouteErrorBoundary resetKey={location.pathname}>
+              <Outlet />
+            </RouteErrorBoundary>
           </main>
         </div>
       </div>
