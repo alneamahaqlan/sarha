@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Google Gemini provider — default for Saerha. Uses the v1beta REST endpoint
+ * Google Gemini provider — default for the platform. Uses the v1beta REST endpoint
  * with an API key (no OAuth). Models: gemini-2.5-flash (fast/cheap),
  * gemini-2.5-pro (smarter, slower).
  */

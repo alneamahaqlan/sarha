@@ -20,6 +20,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useClinicServices } from '@/features/clinic/services/hooks';
 
@@ -227,7 +228,7 @@ export function ClinicPackagesIndex() {
                 <TableCell className="font-medium">{p.name}</TableCell>
                 <TableCell>
                   {p.old_price && <span className="me-1 text-xs text-[var(--color-muted-foreground)] line-through">{p.old_price.toLocaleString()}</span>}
-                  <span className="font-semibold">{p.price.toLocaleString()}</span> {t('common.sar')}
+                  <span className="font-semibold">{p.price.toLocaleString()}</span> <RiyalSymbol />
                 </TableCell>
                 <TableCell><Badge variant="muted">{p.services?.length ?? 0}</Badge></TableCell>
                 <TableCell>{p.is_active ? <Check className="h-4 w-4 text-emerald-600" /> : <X className="h-4 w-4 text-[var(--color-muted-foreground)]" />}</TableCell>

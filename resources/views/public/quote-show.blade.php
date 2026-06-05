@@ -63,7 +63,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             @if($reply->price)
-                                <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                                <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal"><x-riyal /></span></span>
                             @endif
                             @if($isOwner && ! $reply->is_public)
                                 <span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">@lang('site.quote_reply_private')</span>

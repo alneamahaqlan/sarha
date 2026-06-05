@@ -93,7 +93,7 @@
         {{-- Starting price — shown whenever the list query loaded min_price --}}
         @if(! is_null($clinic->min_price ?? null))
             <p class="mt-3 text-sm font-semibold text-sage-700">
-                {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
+                {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }} <x-riyal />
             </p>
         @endif
     </div>

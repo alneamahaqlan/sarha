@@ -48,7 +48,7 @@
                         @endif
                         <span class="text-sage-700 font-bold text-lg">
                             {{ number_format($package->price) }}
-                            <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                            <span class="text-xs font-normal"><x-riyal /></span>
                         </span>
                     </div>
                     <span class="inline-flex items-center gap-1 text-sm font-semibold text-sage-600 group-hover:text-sage-700">

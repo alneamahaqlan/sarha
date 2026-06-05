@@ -35,7 +35,7 @@
                         <span class="text-xs font-normal text-gray-500">@lang('site.price_from')</span>
                     @endif
                     {{ number_format($service->price) }}
-                    <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                    <span class="text-xs font-normal"><x-riyal /></span>
                 </span>
             </div>
             <a href="{{ route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $service->id]) }}"

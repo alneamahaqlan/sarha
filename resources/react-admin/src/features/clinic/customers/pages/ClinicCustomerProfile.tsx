@@ -1,9 +1,11 @@
+import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useCustomer } from '../hooks';
 import { CustomerProfileHeader } from '../components/CustomerProfileHeader';
 import { CustomerTabs } from '../components/CustomerTabs';
+import { RiyalSymbol } from '@/lib/money';
 
 function fmtDate(iso: string | null, locale: string) {
   if (!iso) return '—';
@@ -46,7 +48,7 @@ export function ClinicCustomerProfile() {
         />
         {/* Price-quote count intentionally omitted — the clinic must not see the customer's quote-request history. */}
         <SummaryCard label={t('clinic_customers.summary.complaints')} value={String(customer.totals.complaints)} />
-        <SummaryCard label={t('clinic_customers.summary.service_value')} value={`${customer.totals.service_value.toFixed(0)} ر.س`} hint={t('clinic_customers.summary.first_seen', { date: fmtDate(customer.first_seen_at, locale) })} />
+        <SummaryCard label={t('clinic_customers.summary.service_value')} value={<>{customer.totals.service_value.toFixed(0)} <RiyalSymbol /></>} hint={t('clinic_customers.summary.first_seen', { date: fmtDate(customer.first_seen_at, locale) })} />
       </div>
 
       <CustomerTabs customerId={customer.id} />
@@ -54,7 +56,7 @@ export function ClinicCustomerProfile() {
   );
 }
 
-function SummaryCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function SummaryCard({ label, value, hint }: { label: string; value: ReactNode; hint?: string }) {
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
       <div className="text-[10px] uppercase text-[var(--color-muted-foreground)]">{label}</div>

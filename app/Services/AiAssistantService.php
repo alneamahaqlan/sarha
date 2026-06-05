@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Public AI assistant — full conversational chat for the Saerha platform.
+ * Public AI assistant — full conversational chat for the Medical Complexes Directory platform.
  *
  * Architecture
  * ------------

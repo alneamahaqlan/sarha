@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { usePackages } from '@/features/subscription-packages/hooks';
@@ -229,7 +230,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
           </div>
           <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-1 mt-1">
             <span className="font-medium">{t('subscriptions.form.preview_total')}</span>
-            <span className="font-bold">{values.amount.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} {t('packages.sar_per_month').replace('/mo', '').replace('/شهر', '')}</span>
+            <span className="font-bold">{values.amount.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} <RiyalSymbol /></span>
           </div>
         </div>
       )}

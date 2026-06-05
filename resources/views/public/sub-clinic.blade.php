@@ -45,7 +45,7 @@
                     <li class="bg-white rounded-xl ring-1 ring-gray-100 p-4 flex items-center justify-between">
                         <span class="font-semibold text-gray-800">{{ $package->name }}</span>
                         @if($package->price !== null)
-                            <span class="text-sage-700 font-bold">{{ number_format((float) $package->price) }} <span class="text-xs">@lang('site.currency_sar')</span></span>
+                            <span class="text-sage-700 font-bold">{{ number_format((float) $package->price) }} <span class="text-xs"><x-riyal /></span></span>
                         @endif
                     </li>
                 @endforeach
@@ -61,7 +61,7 @@
                     <div class="bg-white rounded-xl ring-1 ring-gray-100 p-4 flex items-center justify-between">
                         <span class="text-gray-800">{{ $service->name }}</span>
                         @if($service->price !== null)
-                            <span class="text-sage-700 font-semibold">{{ number_format((float) $service->price) }} <span class="text-xs">@lang('site.currency_sar')</span></span>
+                            <span class="text-sage-700 font-semibold">{{ number_format((float) $service->price) }} <span class="text-xs"><x-riyal /></span></span>
                         @endif
                     </div>
                 @endforeach

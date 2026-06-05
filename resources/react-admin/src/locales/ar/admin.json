@@ -1457,7 +1457,7 @@
     "expired_at": "انتهى في",
     "ends_in_days": "ينتهي خلال {{d}} أيام",
     "ends_in_hours": "ينتهي خلال {{h}} ساعة",
-    "discount_summary": "خصم {{pct}}% — وفّر {{amount}} ريال",
+    "discount_summary": "خصم {{pct}}% — وفّر {{amount}}",
     "dialog_subtitle": "إنشاء عرض ترويجي يظهر في تبويب \"العروض\" على صفحة مجمعك."
   },
   "clinic_packages": {

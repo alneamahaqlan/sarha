@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useClinicNavBadges } from '@/features/nav-badges/hooks';
 
@@ -159,9 +160,6 @@ export function ClinicDashboardPage() {
   const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
-  const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
-
   return (
     <div className="space-y-4">
       <div>
@@ -264,7 +262,7 @@ export function ClinicDashboardPage() {
                     <div className="truncate text-sm font-medium">{s.name}</div>
                     <div className="text-xs text-[var(--color-muted-foreground)]">{fmtDate(s.created_at)}</div>
                   </div>
-                  <span className="shrink-0 text-sm font-semibold">{fmtCurrency(s.price)}</span>
+                  <Money value={s.price} locale={locale} className="shrink-0 text-sm font-semibold" />
                 </div>
               ))
             )}

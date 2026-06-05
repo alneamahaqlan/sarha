@@ -109,7 +109,7 @@ return [
     'search_type_doctor' => 'Doctor',
     'reviews_count_label' => ':count reviews',
     'no_reviews_yet' => 'No reviews yet',
-    'starting_from' => 'from :amount SAR',
+    'starting_from' => 'from :amount', // currency symbol rendered separately via <x-riyal />
 
     // Booking page
     'booking_page_title' => 'Contact request to :clinic',

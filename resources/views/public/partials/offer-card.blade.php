@@ -66,7 +66,7 @@
             <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-sage-700 font-bold {{ $large ? 'text-xl' : 'text-base' }}">
                     {{ number_format((float) $offer->price) }}
-                    <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                    <span class="text-xs font-normal"><x-riyal /></span>
                 </span>
                 @if($offer->old_price !== null)
                     <span class="text-sm text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>

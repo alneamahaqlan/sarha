@@ -14,7 +14,7 @@ return [
     'title' => config('app.name').' API Documentation',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
-    'description' => 'REST API for Saerha — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).',
+    'description' => 'REST API for Medical Complexes Directory — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).',
 
     // Text to place in the "Introduction" section, right after the `description`. Markdown and HTML are supported.
     'intro_text' => <<<'INTRO'

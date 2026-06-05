@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { FileUpload } from '@/components/forms/FileUpload';
 import { useClinicServices } from '@/features/clinic/services/hooks';
@@ -238,10 +239,10 @@ export function OfferDialog({ offer, onClose }: Props) {
           </div>
           {discountPct !== null && (
             <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {t('clinic_offers.discount_summary', 'خصم {{pct}}% — وفّر {{amount}} ريال', {
+              {t('clinic_offers.discount_summary', 'خصم {{pct}}% — وفّر {{amount}}', {
                 pct: discountPct,
                 amount: savedAmount?.toLocaleString() ?? '',
-              })}
+              })} <RiyalSymbol />
             </div>
           )}
           {form.formState.errors.old_price && (

@@ -60,7 +60,7 @@
                         <span class="text-sm font-normal text-gray-500">@lang('site.price_from')</span>
                     @endif
                     <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $service->price) }}
-                        <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                        <span class="text-sm font-normal"><x-riyal /></span>
                     </span>
                 </div>
             @endif

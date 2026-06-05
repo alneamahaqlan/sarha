@@ -95,7 +95,7 @@
                             <div class="mt-2 flex items-baseline gap-1.5">
                                 <span class="text-sage-700 font-bold text-sm">
                                     {{ number_format((float) $item->price) }}
-                                    <span class="text-[10px] font-normal">@lang('site.currency_sar')</span>
+                                    <span class="text-[10px] font-normal"><x-riyal /></span>
                                 </span>
                                 @if($item->old_price !== null)
                                     <span class="text-xs text-gray-400 line-through">{{ number_format((float) $item->old_price) }}</span>

@@ -9,6 +9,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage } from '@/lib/api-client';
 
 import {
@@ -211,7 +212,7 @@ function OfferCard({ offer, onEdit, onDelete }: {
         {offer.price !== null && (
           <div className="mt-3 flex items-baseline gap-2">
             <span className="text-lg font-bold text-[var(--color-primary)]">
-              {Number(offer.price).toLocaleString()} {t('common.sar', 'ر.س')}
+              {Number(offer.price).toLocaleString()} <RiyalSymbol />
             </span>
             {offer.old_price !== null && (
               <span className="text-sm text-[var(--color-muted-foreground)] line-through">

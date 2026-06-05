@@ -52,7 +52,7 @@
             @if($offer->price !== null)
                 <div class="mt-4 flex items-baseline gap-3">
                     <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $offer->price) }}
-                        <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                        <span class="text-sm font-normal"><x-riyal /></span>
                     </span>
                     @if($offer->old_price !== null)
                         <span class="text-lg text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>

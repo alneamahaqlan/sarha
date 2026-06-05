@@ -1457,7 +1457,7 @@
     "expired_at": "Ended",
     "ends_in_days": "{{d}} days left",
     "ends_in_hours": "{{h}} hours left",
-    "discount_summary": "{{pct}}% off — save {{amount}} SAR",
+    "discount_summary": "{{pct}}% off — save {{amount}}",
     "dialog_subtitle": "Create a promotional offer that shows in the \"Offers\" tab on your complex page."
   },
   "clinic_packages": {

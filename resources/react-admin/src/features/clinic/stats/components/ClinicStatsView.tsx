@@ -3,6 +3,7 @@ import { Bell, Calendar, DollarSign, Eye, Info, MessageCircle, MousePointerClick
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
@@ -16,8 +17,6 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
-  const cf = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   const s = data.summary;
   const c = data.comparison;
@@ -138,7 +137,7 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
                       {row.name}
                       {i === 0 && row.bookings > 0 && <Badge variant="gold" className="ms-2 text-xs">{t('clinic_stats.top')}</Badge>}
                     </TableCell>
-                    <TableCell>{cf(row.price)}</TableCell>
+                    <TableCell><Money value={row.price} locale={locale} /></TableCell>
                     <TableCell>{nf.format(row.bookings)}</TableCell>
                     <TableCell>{nf.format(row.quote_requests)}</TableCell>
                   </TableRow>

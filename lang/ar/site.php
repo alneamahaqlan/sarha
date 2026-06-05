@@ -109,7 +109,7 @@ return [
     'search_type_doctor' => 'طبيب',
     'reviews_count_label' => ':count تقييم',
     'no_reviews_yet' => 'لا توجد تقييمات بعد',
-    'starting_from' => 'يبدأ من :amount ريال',
+    'starting_from' => 'يبدأ من :amount', // currency symbol rendered separately via <x-riyal />
 
     // Booking page
     'booking_page_title' => 'طلب تواصل مع :clinic',

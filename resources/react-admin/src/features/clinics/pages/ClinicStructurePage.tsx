@@ -5,6 +5,7 @@ import { ArrowLeft, ChevronDown, ChevronRight, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { useClinicStructure } from '../hooks';
 import type { StructureService, StructureSubClinic } from '../api/clinics.api';
 
@@ -22,7 +23,7 @@ function ServiceRow({ service }: { service: StructureService }) {
         {service.price != null ? (
           <>
             <span className="text-[var(--color-foreground)] font-medium">{service.price.toLocaleString()}</span>{' '}
-            <span className="text-[10px]">{t('common.sar')}</span>
+            <RiyalSymbol className="text-[10px]" />
           </>
         ) : (
           <span className="italic">{t('clinics.structure.no_price')}</span>

@@ -21,6 +21,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { FileUpload } from '@/components/forms/FileUpload';
@@ -228,9 +229,6 @@ export function ClinicServicesIndex() {
   const [deleting, setDeleting] = useState<Service | null>(null);
   const [view, setView] = useState<'list' | 'grouped'>('list');
 
-  const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
-
   const handleDelete = async () => {
     if (!deleting) return;
     try { await del.mutateAsync(deleting.id); toast.success(t('clinic_services.deleted')); setDeleting(null); }
@@ -271,7 +269,7 @@ export function ClinicServicesIndex() {
         </TableCell>
       )}
       <TableCell>
-        <span className="font-medium">{fmtCurrency(s.price)}</span>
+        <Money value={s.price} locale={locale} className="font-medium" />
       </TableCell>
       <TableCell>
         {s.approval_status === 'pending'

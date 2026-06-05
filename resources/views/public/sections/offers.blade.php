@@ -70,7 +70,7 @@
                                             <span class="block text-[11px] text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
                                         @endif
                                         @if($offer->price !== null)
-                                            <span class="text-sage-700 font-bold text-lg">{{ number_format((float) $offer->price) }}<span class="text-xs font-normal ms-1">@lang('site.currency_sar')</span></span>
+                                            <span class="text-sage-700 font-bold text-lg">{{ number_format((float) $offer->price) }}<span class="text-xs font-normal ms-1"><x-riyal /></span></span>
                                         @endif
                                     </div>
                                     <span class="inline-flex items-center gap-1 text-xs font-semibold text-sage-600 group-hover:text-sage-700">@lang('site.home_view_offer') <span class="rtl:rotate-180">→</span></span>

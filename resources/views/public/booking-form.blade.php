@@ -27,7 +27,7 @@
                 <p class="text-sm text-sage-900 mt-0.5">
                     {{ $service->name }}
                     @if($service->price)
-                        — <span class="font-semibold">{{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                        — <span class="font-semibold">{{ number_format($service->price) }} <span class="text-xs font-normal"><x-riyal /></span></span>
                     @endif
                 </p>
             </div>
@@ -567,7 +567,7 @@
                             <p class="font-medium text-gray-800">{{ $service->name }}</p>
                             @if($service->price)
                                 <p class="text-sage-700 font-bold mt-1">
-                                    {{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                                    {{ number_format($service->price) }} <span class="text-xs font-normal"><x-riyal /></span>
                                 </p>
                             @endif
                         </div>

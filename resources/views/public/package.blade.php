@@ -57,7 +57,7 @@
                 <span class="text-base text-gray-400 line-through">{{ number_format((float) $package->old_price) }}</span>
             @endif
             <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $package->price) }}
-                <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                <span class="text-sm font-normal"><x-riyal /></span>
             </span>
         </div>
 

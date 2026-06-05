@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CopyBadge } from '@/components/ui/copy-badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { fmtMoney, RiyalSymbol } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { BookingStatusBadge } from '@/features/bookings/components/StatusBadge';
 import type { BookingStatus } from '@/features/bookings/types';
@@ -20,7 +21,7 @@ import { AiDashboardWidget } from '@/features/ai-center/phase2/components/AiDash
 interface StatCardProps {
   label: string;
   value: string | number;
-  hint?: string;
+  hint?: React.ReactNode;
   icon: React.ComponentType<{ className?: string }>;
   tone: 'success' | 'primary' | 'warning' | 'info';
 }
@@ -58,7 +59,6 @@ export function DashboardPage() {
   const { data: sections } = useDashboardSections();
 
   const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
-  const fmtCurrency = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 });
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { dateStyle: 'short', timeStyle: 'short' }) : '—';
   const fmtDay = (iso: string | null) =>
@@ -89,7 +89,7 @@ export function DashboardPage() {
         <StatCard
           label={t('dashboard.active_subscriptions')}
           value={stats ? fmt.format(stats.active_subscriptions) : '—'}
-          hint={stats ? t('dashboard.month_revenue', { amount: fmtCurrency.format(stats.month_revenue) }) : undefined}
+          hint={stats ? <>{t('dashboard.month_revenue', { amount: fmtMoney(stats.month_revenue, locale) })} <RiyalSymbol /></> : undefined}
           icon={CreditCard}
           tone="warning"
         />
@@ -301,7 +301,7 @@ function KpiCard({
   icon: Icon, tone, label, value, delta, hint,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: StatCardProps['tone']; label: string; value: string | number; delta?: number | null; hint?: string;
+  tone: StatCardProps['tone']; label: string; value: string | number; delta?: number | null; hint?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   return (

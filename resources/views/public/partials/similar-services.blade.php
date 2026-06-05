@@ -55,7 +55,7 @@
                         <div>
                             <span class="text-sage-700 font-bold whitespace-nowrap">
                                 {{ number_format($svc->price) }}
-                                <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                                <span class="text-xs font-normal"><x-riyal /></span>
                             </span>
                         </div>
                     </div>

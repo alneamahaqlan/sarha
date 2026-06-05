@@ -10,6 +10,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { StatsFilterBar } from '@/features/clinic/stats/components/StatsFilterBar';
 import type { StatsRange, ImpressionSource } from '@/features/clinic/stats/api';
@@ -37,8 +38,6 @@ export function AnalyticsPage() {
   const { data, isLoading } = useAnalytics(range);
 
   const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
-  const cf = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="space-y-6">
@@ -52,13 +51,13 @@ export function AnalyticsPage() {
       {isLoading || !data ? (
         <div className="py-12 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</div>
       ) : (
-        <AnalyticsContent data={data} nf={nf} cf={cf} />
+        <AnalyticsContent data={data} nf={nf} locale={locale} />
       )}
     </div>
   );
 }
 
-function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.NumberFormat; cf: (n: number) => string }) {
+function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.NumberFormat; locale: string }) {
   const { t } = useTranslation();
   const s = data.summary;
   const d = data.deltas;
@@ -69,7 +68,7 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
       {/* Platform overview — revenue & growth */}
       <SectionTitle icon={Building2}>{t('analytics.platform_overview')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={DollarSign} tone="success" label={t('analytics.revenue')} value={cf(p.revenue)} delta={d.revenue} />
+        <Card icon={DollarSign} tone="success" label={t('analytics.revenue')} value={<Money value={p.revenue} locale={locale} />} delta={d.revenue} />
         <Card icon={CreditCard} tone="primary" label={t('analytics.active_subscriptions')} value={nf.format(p.active_subscriptions)}
           hint={t('analytics.new_subscriptions_hint', { count: p.new_subscriptions })} />
         <Card icon={Building2} tone="info" label={t('analytics.active_clinics')} value={nf.format(p.active_clinics)}
@@ -249,7 +248,7 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
                   <TableCell className="font-medium">{m.month}</TableCell>
                   <TableCell>{nf.format(m.clinics)}</TableCell>
                   <TableCell>{nf.format(m.bookings)}</TableCell>
-                  <TableCell>{cf(m.revenue)}</TableCell>
+                  <TableCell><Money value={m.revenue} locale={locale} /></TableCell>
                 </TableRow>
               ))
             )}
@@ -302,7 +301,7 @@ function Card({
   icon: Icon, tone, label, value, delta, hint,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: string | number; delta?: number | null; hint?: string;
+  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; hint?: string;
 }) {
   const { t } = useTranslation();
   return (

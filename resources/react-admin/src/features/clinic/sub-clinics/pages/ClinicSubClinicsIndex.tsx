@@ -21,6 +21,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors, isApiError } from '@/lib/api-client';
 import { useCategoryLookup } from '@/features/lookups/hooks';
 import { useClinicServices } from '@/features/clinic/services/hooks';
@@ -249,7 +250,7 @@ export function ClinicSubClinicsIndex() {
                         {rows.map((sv) => (
                           <li key={sv.id} className="flex items-center justify-between py-1.5 text-sm">
                             <span className={sv.is_active ? '' : 'text-[var(--color-muted-foreground)] line-through'}>{sv.name}</span>
-                            <span className="text-[var(--color-muted-foreground)]">{sv.price != null ? `${cf(sv.price)} ${t('common.sar')}` : '—'}</span>
+                            <span className="text-[var(--color-muted-foreground)]">{sv.price != null ? <>{cf(sv.price)} <RiyalSymbol /></> : '—'}</span>
                           </li>
                         ))}
                       </ul>

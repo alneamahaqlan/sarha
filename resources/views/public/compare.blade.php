@@ -73,7 +73,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 @if(! is_null($clinic->min_price))
-                                    <span class="font-semibold text-sage-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}</span>
+                                    <span class="font-semibold text-sage-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }} <x-riyal /></span>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
