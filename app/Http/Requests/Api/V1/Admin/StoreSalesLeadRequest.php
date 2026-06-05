@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Admin;
 
+use App\Models\SalesLead;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSalesLeadRequest extends FormRequest
 {
@@ -24,6 +26,9 @@ class StoreSalesLeadRequest extends FormRequest
             'district'          => ['nullable', 'string', 'max:255'],
             'address'           => ['nullable', 'string'],
             'status'            => ['required', 'in:new,contacted,interested,negotiating,converted,lost'],
+            'source'            => ['nullable', Rule::in(SalesLead::SOURCES)],
+            'lost_reason'       => ['nullable', Rule::in(SalesLead::LOST_REASONS)],
+            'lost_notes'        => ['nullable', 'string', 'max:1000'],
             'assigned_to'       => ['nullable', 'integer', 'exists:admins,id'],
             'next_follow_up_at' => ['nullable', 'date'],
             'last_contact_at'   => ['nullable', 'date'],

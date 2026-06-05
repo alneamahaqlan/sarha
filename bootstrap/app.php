@@ -18,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('saerha:notify-subscription-expiry')->dailyAt('06:00');
         $schedule->command('saerha:sync-google-reviews')->daily();
         $schedule->command('saerha:sync-clinics-sheet')->everySixHours();
+        // Contact reminders fire close to their scheduled minute (±10m).
+        $schedule->command('saerha:dispatch-contact-reminders')->everyTenMinutes();
+        // Overdue sales-lead follow-ups — hourly is plenty for date-based cues.
+        $schedule->command('saerha:notify-sales-followups')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
@@ -33,6 +37,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // row on every authenticated web request. Failures are
             // swallowed inside the middleware.
             \App\Http\Middleware\TrackUserVisit::class,
+            // Resolves the marketing-pixel TrackingContext for public
+            // clinic pages (inert unless the feature flag is on and the
+            // clinic's tracking is approved). Failures are swallowed.
+            \App\Http\Middleware\ResolveTrackingContext::class,
         ]);
 
         $middleware->statefulApi();

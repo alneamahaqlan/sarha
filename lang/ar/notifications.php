@@ -31,6 +31,10 @@ return [
             'title' => 'طلب سعر جديد',
             'body'  => 'العميل :customer يَطلب عرض سعر لـ :service.',
         ],
+        'contact_reminder_due' => [
+            'title' => 'تذكير بالتواصل مع عميل',
+            'body'  => 'حان وقت التواصل مع العميل :customer:note_suffix',
+        ],
 
         // ── Subscription lifecycle ────────────────────────────────────
         'subscription_expiring_soon' => [
@@ -73,6 +77,19 @@ return [
             'title' => '🚨 محادثة طوارئ من المساعد الذكي',
             'body'  => 'تم اكتشاف أعراض حرجة في محادثة المستخدم :customer.',
         ],
+        'sales_followup_due' => [
+            'title' => 'متابعة عميل محتمل متأخرة',
+            'body'  => 'حان وقت متابعة العميل المحتمل ":lead":assignee_suffix',
+        ],
+    ],
+
+    // Fragment appended to a sales-followup body when the lead is unassigned.
+    'sales_followup_unassigned' => '(غير مُسنَد)',
+
+    // Fragment appended to the contact-reminder body when it's assigned
+    // to a team member. Leading separator keeps it readable inline.
+    'reminder' => [
+        'assigned_to' => ' — مُسنَد إلى :name',
     ],
 
     // Privacy-safe preview text for Web Push lock-screen rendering —
@@ -83,11 +100,13 @@ return [
         'booking_cancelled_by_user' => 'العميل ألغى حجزاً',
         'complaint_created'         => 'شكوى جديدة بانتظار الرد',
         'quote_created'             => 'طلب سعر جديد',
+        'contact_reminder_due'      => 'لديك تذكير بالتواصل مع عميل',
         'booking_confirmed'         => 'تم تأكيد حجزك',
         'complaint_replied'         => 'تم الرد على شكواك',
         'quote_replied'             => 'تم الرد على طلب سعرك',
         'clinic_pending_approval'   => 'تسجيل مجمع جديد ينتظر الموافقة',
         'ai_emergency'              => 'تنبيه: محادثة طوارئ من المساعد الذكي',
+        'sales_followup_due'        => 'لديك متابعة عميل محتمل متأخرة',
         'subscription_expiring_soon'=> 'اشتراكك يَنتهي قريباً',
         'subscription_expired'      => 'انتهى اشتراكك',
         'subscription_activated'    => 'تم تَفعيل اشتراك جديد',

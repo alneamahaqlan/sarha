@@ -32,6 +32,11 @@
         h1, h2, h3, h4 { font-family: 'Readex Pro', 'IBM Plex Sans Arabic', sans-serif; }
     </style>
 
+    {{-- Marketing tracking foundation (Consent Mode + anonymized events).
+         Inert unless this clinic's pixels are approved + the feature is on. --}}
+    @include('partials.tracking.bootstrap')
+    @include('partials.tracking.pixels')
+
     @stack('head')
 </head>
 <body class="bg-cream antialiased">
@@ -248,16 +253,27 @@
     var TRACK_URL = @json(route('track.click'));
     document.addEventListener('click', function (e) {
         var el = e.target.closest('[data-track][data-clinic]');
-        if (!el || !navigator.sendBeacon) return;
-        try {
-            var fd = new FormData();
-            fd.append('type', el.dataset.track);
-            fd.append('clinic', el.dataset.clinic);
-            navigator.sendBeacon(TRACK_URL, fd);
-        } catch (err) {}
+        if (!el) return;
+        // First-party stat (sendBeacon).
+        if (navigator.sendBeacon) {
+            try {
+                var fd = new FormData();
+                fd.append('type', el.dataset.track);
+                fd.append('clinic', el.dataset.clinic);
+                navigator.sendBeacon(TRACK_URL, fd);
+            } catch (err) {}
+        }
+        // Anonymized marketing event (only fires when tracking is active).
+        if (window.sarhaTrack) {
+            var EVENTS = { booking: 'click_book', call: 'click_call', whatsapp: 'click_whatsapp' };
+            var ev = EVENTS[el.dataset.track];
+            if (ev) window.sarhaTrack(ev, { clinic_id: Number(el.dataset.clinic) });
+        }
     }, true);
 })();
 </script>
+
+@include('partials.tracking.consent-banner')
 
 @stack('scripts')
 

@@ -375,7 +375,31 @@ class ClinicController extends Controller
             ->where('reference_code', $reference)
             ->firstOrFail();
 
-        return view('public.booking-confirmation', compact('booking'));
+        // This is the conversion page but has no {slug} route param, so the
+        // tracking middleware can't resolve it — bind the context from the
+        // booking's clinic here (sensitive: URL is sanitised for pixels).
+        $trackingCtx = app(\App\Services\Tracking\TrackingContextResolver::class)
+            ->forClinic($booking->clinic, true);
+        app()->instance(\App\Services\Tracking\TrackingContext::class, $trackingCtx);
+
+        // Advanced matching (Layer B): a SHA-256 hashed phone for Meta, ONLY
+        // when the clinic opted in. Computed server-side so no raw value is
+        // added by us; the view fires it only after the visitor consents.
+        // Never includes the medical service — phone hash only.
+        $amMetaId = null;
+        $amPhoneHash = null;
+        if ($trackingCtx->advancedMatching && ($mid = $trackingCtx->metaPixelId())) {
+            $digits = preg_replace('/\D/', '', (string) $booking->customer_phone);
+            if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+                $digits = '966' . substr($digits, 1); // 05XXXXXXXX -> 9665XXXXXXXX
+            }
+            if ($digits !== '') {
+                $amMetaId = $mid;
+                $amPhoneHash = hash('sha256', $digits);
+            }
+        }
+
+        return view('public.booking-confirmation', compact('booking', 'amMetaId', 'amPhoneHash'));
     }
 
     public function priceQuote(Request $request, string $slug)

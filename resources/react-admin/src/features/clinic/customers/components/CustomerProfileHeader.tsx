@@ -9,6 +9,7 @@ import { useCan } from '@/app/providers/AuthProvider';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useUpdateCustomer } from '../hooks';
+import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
 import type { CustomerProfile } from '../types';
 
 interface Props {
@@ -105,6 +106,7 @@ export function CustomerProfileHeader({ customer }: Props) {
             <a href={waLink(customer.phone)} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 px-3 py-2 text-sm text-emerald-700 hover:bg-emerald-50">
               <MessageCircle className="h-4 w-4" />{t('outreach.whatsapp')}
             </a>
+            <ReminderButton customerId={customer.id} customerName={customer.name} />
           </div>
         )}
       </div>

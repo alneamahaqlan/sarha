@@ -129,7 +129,7 @@ export interface CustomerQuoteRow {
 
 export type TimelineEvent =
   | {
-      kind: 'booking' | 'complaint' | 'quote_request';
+      kind: 'booking' | 'complaint' | 'quote_request' | 'reminder';
       at: string;
       title_key: string;
       reference: string | null;

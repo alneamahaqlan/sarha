@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -42,7 +42,7 @@ const adminNav = [
   {
     group: 'nav.group.sales',
     items: [
-      { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
+      { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter, badge: 'sales_followups_overdue' as keyof AdminNavBadges },
       { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
       { to: '/admin/subscription-packages', label: 'nav.subscription_packages', icon: Package },
     ],
@@ -57,6 +57,7 @@ const adminNav = [
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
       { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
       { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/tracking', label: 'nav.tracking', icon: Radar, badge: 'tracking_pending' as keyof AdminNavBadges },
       { to: '/admin/whatsapp-senders', label: 'nav.whatsapp_senders', icon: MessageCircle },
       { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
     ],

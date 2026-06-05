@@ -1,5 +1,9 @@
 @extends('layouts.public')
 
+@push('scripts')
+<script>window.sarhaTrack && window.sarhaTrack('view_offer', { clinic_id: {{ (int) $clinic->id }}, offer_id: {{ (int) $offer->id }} });</script>
+@endpush
+
 @section('title', $offer->title)
 @section('description', Str::limit($offer->description ?? $clinic->name, 160))
 @section('og_type', 'product')

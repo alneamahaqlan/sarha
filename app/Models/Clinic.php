@@ -23,6 +23,10 @@ class Clinic extends Authenticatable
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
         'booking_stage_labels',
+        // Marketing tracking pixels (see docs/tracking/). Moderated:
+        // clinic edits pixels + requests, super-admin approves.
+        'tracking_status', 'tracking_pixels', 'advanced_matching_optin',
+        'tracking_rejection_reason', 'tracking_requested_at', 'tracking_reviewed_by',
     ];
 
     protected $hidden = ['password', 'password_plaintext', 'remember_token'];
@@ -39,6 +43,9 @@ class Clinic extends Authenticatable
             'is_featured' => 'boolean',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'tracking_pixels' => 'array',
+            'advanced_matching_optin' => 'boolean',
+            'tracking_requested_at' => 'datetime',
         ];
     }
 

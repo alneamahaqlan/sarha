@@ -176,6 +176,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
+        // Lead timeline — list + log a manual activity (call/whatsapp/note/...).
+        Route::get('sales-leads/{salesLead}/activities', [SalesLeadController::class, 'activities'])->name('sales-leads.activities.index');
+        Route::post('sales-leads/{salesLead}/activities', [SalesLeadController::class, 'storeActivity'])->name('sales-leads.activities.store');
         Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
 
         // Clinic-side platform reports — review queue. Kept separate from
@@ -243,6 +246,15 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('system-settings', SystemSettingController::class)
             ->only(['index', 'show', 'update'])
             ->parameters(['system-settings' => 'systemSetting']);
+
+        // Marketing tracking pixels — global feature toggle + the clinic
+        // activation request queue (approve/reject) + per-clinic kill-switch.
+        Route::get('tracking/settings',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'settings'])->name('admin.tracking.settings');
+        Route::put('tracking/settings',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'updateSettings'])->name('admin.tracking.settings.update');
+        Route::get('tracking/requests',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'requests'])->name('admin.tracking.requests');
+        Route::post('clinics/{clinic}/tracking/approve', [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'approve'])->name('admin.tracking.approve');
+        Route::post('clinics/{clinic}/tracking/reject',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'reject'])->name('admin.tracking.reject');
+        Route::post('clinics/{clinic}/tracking/disable', [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'disable'])->name('admin.tracking.disable');
 
         // WhatsApp sender numbers (Wappi profiles) used for OTP delivery.
         // Full CRUD (capped at 5 in the request) + an end-to-end test send.
@@ -416,6 +428,19 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::patch('customers/{customer}', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'update'])->name('clinic.customers.update');
         });
 
+        // Contact reminders — "call this patient at X". A scheduler rings
+        // the clinic bell when remind_at passes. Whole-clinic audience.
+        Route::middleware('clinic.role:reminders.view')->group(function () {
+            Route::get('reminders', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'index'])->name('clinic.reminders.index');
+        });
+        Route::middleware('clinic.role:reminders.create')->group(function () {
+            Route::post('reminders', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'store'])->name('clinic.reminders.store');
+        });
+        Route::middleware('clinic.role:reminders.manage')->group(function () {
+            Route::post('reminders/{reminder}/complete', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'complete'])->name('clinic.reminders.complete');
+            Route::post('reminders/{reminder}/cancel', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'cancel'])->name('clinic.reminders.cancel');
+        });
+
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'store', 'show', 'update'])
             ->names('clinic.bookings');
@@ -456,6 +481,16 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
             Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
             Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
+        });
+
+        // Marketing tracking pixels — owner only. Read to view the form,
+        // manage to save the draft + request activation.
+        Route::middleware('clinic.role:tracking.view')->group(function () {
+            Route::get('tracking', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'show'])->name('clinic.tracking.show');
+        });
+        Route::middleware('clinic.role:tracking.manage')->group(function () {
+            Route::put('tracking', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'update'])->name('clinic.tracking.update');
+            Route::post('tracking/request', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'requestActivation'])->name('clinic.tracking.request');
         });
 
         // Subscription — owner only (sensitive financial data per spec).

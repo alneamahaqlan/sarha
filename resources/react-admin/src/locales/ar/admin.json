@@ -28,7 +28,8 @@
     "expand_sidebar": "توسيع الشريط الجانبي",
     "collapse_sidebar": "طيّ الشريط الجانبي",
     "toggle_language": "تبديل اللغة",
-    "copy": "نسخ"
+    "copy": "نسخ",
+    "saved": "تم الحفظ"
   },
   "nav": {
     "dashboard": "لوحة المعلومات",
@@ -54,6 +55,7 @@
     "price_quotes": "طلبات التسعير",
     "audit_logs": "سجل التدقيق",
     "system_settings": "إعدادات النظام",
+    "tracking": "التتبّع والبكسلات",
     "whatsapp_senders": "أرقام واتساب",
     "ai_center": "مركز المساعد الذكي",
     "mass_notify": "إشعار جماعي",
@@ -462,6 +464,9 @@
       "assigned_to": "المسؤول",
       "next_follow_up_at": "موعد المتابعة التالي",
       "last_contact_at": "آخر تواصل",
+      "source": "مصدر الاكتساب",
+      "lost_reason": "سبب الخسارة",
+      "lost_notes": "تفاصيل الخسارة",
       "notes": "ملاحظات",
       "sales_notes": "ملاحظات المبيعات"
     },
@@ -473,7 +478,53 @@
       "converted": "تم التحويل",
       "lost": "خسارة"
     },
+    "score": "النقاط",
+    "score_tier": {
+      "hot": "ساخن",
+      "warm": "دافئ",
+      "cold": "بارد"
+    },
+    "source": {
+      "referral": "إحالة",
+      "website": "الموقع",
+      "whatsapp": "واتساب",
+      "instagram": "إنستغرام",
+      "snapchat": "سناب شات",
+      "tiktok": "تيك توك",
+      "cold_call": "اتصال بارد",
+      "event": "فعالية",
+      "walk_in": "زيارة مباشرة",
+      "other": "أخرى"
+    },
+    "lost_reason": {
+      "price": "السعر",
+      "no_response": "عدم الرد",
+      "chose_competitor": "اختار منافساً",
+      "not_interested": "غير مهتم",
+      "not_qualified": "غير مؤهل",
+      "bad_timing": "التوقيت غير مناسب",
+      "other": "أخرى"
+    },
+    "activity": {
+      "logged": "تم تسجيل النشاط",
+      "log_title": "تسجيل نشاط",
+      "log_button": "تسجيل",
+      "body_placeholder": "تفاصيل التواصل (اختياري)",
+      "timeline": "سجل الأنشطة",
+      "empty": "لا توجد أنشطة بعد.",
+      "status_changed": "تغيّرت الحالة من {{from}} إلى {{to}}",
+      "status_set": "الحالة: {{to}}",
+      "type": {
+        "call": "اتصال",
+        "whatsapp": "واتساب",
+        "email": "بريد",
+        "meeting": "اجتماع",
+        "note": "ملاحظة",
+        "status_change": "تغيير حالة"
+      }
+    },
     "actions": {
+      "details": "التفاصيل والسجل",
       "convert": "تحويل إلى مجمع",
       "convert_title": "تحويل العميل إلى مجمع",
       "convert_body": "سيتم إنشاء حساب مجمع جديد لـ {{clinic}}. اختر الباقة ودورة الفوترة، وعدّل السعر يدويًا إن لزم.",
@@ -939,11 +990,13 @@
     "reports": "بلاغاتي للإدارة",
     "bookings": "الحجوزات",
     "customers": "العملاء",
+    "reminders": "تذكيرات التواصل",
     "price_quotes": "طلبات التسعير",
     "complaints": "الشكاوى",
     "articles": "المقالات",
     "import_services": "استيراد خدمات",
     "page_builder": "تخصيص صفحتي",
+    "tracking": "التتبّع والبكسلات",
     "subscription": "الاشتراك",
     "profile": "ملف المجمع",
     "team": "فريقي",
@@ -954,6 +1007,109 @@
       "team": "إدارة الفريق",
       "settings": "الإعدادات"
     }
+  },
+  "clinic_reminders": {
+    "title": "تذكيرات التواصل",
+    "subtitle": "ذكّر فريقك بموعد التواصل مع عميل معيّن. يصلك تنبيه في اللوحة عند حلول الموعد.",
+    "add": "ذكّرني بالتواصل",
+    "assigned_to": "مُسنَد إلى: {{name}}",
+    "created": "تم حفظ التذكير",
+    "marked_done": "تم وضع التذكير كمنجز",
+    "cancelled": "تم إلغاء التذكير",
+    "empty": "لا توجد تذكيرات هنا.",
+    "due_at": "موعد التواصل: {{time}}",
+    "set_by": "أضافه: {{name}}",
+    "filter": {
+      "open": "المفتوحة",
+      "upcoming": "القادمة",
+      "overdue": "المتأخرة",
+      "done": "المنجزة",
+      "all": "الكل",
+      "mine": "مُسنَد إليّ"
+    },
+    "badge": {
+      "overdue": "متأخر",
+      "done": "منجز"
+    },
+    "action": {
+      "done": "تم",
+      "cancel": "إلغاء"
+    },
+    "dialog": {
+      "title": "تذكير بالتواصل مع العميل",
+      "subtitle": "حدّد موعداً ليصلك تنبيه بالتواصل مع هذا العميل.",
+      "subtitle_named": "حدّد موعداً ليصلك تنبيه بالتواصل مع {{name}}.",
+      "save": "حفظ التذكير"
+    },
+    "fields": {
+      "remind_at": "موعد التذكير",
+      "note": "ملاحظة (اختياري)",
+      "note_placeholder": "مثال: متابعة نتيجة الأشعة",
+      "assignee": "إسناد إلى عضو (اختياري)",
+      "assignee_none": "بدون إسناد — للعيادة كلها"
+    },
+    "presets": {
+      "in_1h": "بعد ساعة",
+      "in_3h": "بعد ٣ ساعات",
+      "tomorrow_morning": "صباح الغد",
+      "next_week": "الأسبوع القادم"
+    },
+    "errors": {
+      "no_time": "اختر موعد التذكير",
+      "past_time": "اختر وقتاً في المستقبل"
+    }
+  },
+  "tracking": {
+    "title": "التتبّع والبكسلات",
+    "subtitle": "تفعيل الميزة ومراجعة طلبات المجمعات",
+    "settings_title": "الإعدادات العامة",
+    "feature_enabled": "تفعيل ميزة التتبّع",
+    "feature_enabled_hint": "عند الإيقاف لا يُحمّل أي بكسل على الموقع نهائياً.",
+    "consent_enabled": "طلب موافقة الكوكيز",
+    "consent_enabled_hint": "إظهار بانر الموافقة قبل تشغيل أي بكسل (مطلوب قانونياً).",
+    "consent_text_ar": "نص الموافقة (عربي)",
+    "consent_text_en": "نص الموافقة (إنجليزي)",
+    "consent_text_placeholder": "اتركه فارغاً لاستخدام النص الافتراضي",
+    "privacy_url": "رابط سياسة الخصوصية",
+    "platform_pixels": "بكسلات الموقع الرئيسي",
+    "platform_pixels_hint": "تعمل على كل صفحات الموقع العام (لقياس تسويق المنصة نفسها).",
+    "requests_title": "طلبات المجمعات",
+    "tab_pending": "بانتظار المراجعة",
+    "tab_active": "المفعّلة",
+    "tab_all": "الكل",
+    "col_clinic": "المجمع",
+    "col_pixels": "البكسلات",
+    "col_status": "الحالة",
+    "advanced_matching": "مطابقة متقدّمة",
+    "status_pending": "بانتظار المراجعة",
+    "status_active": "مفعّل",
+    "status_rejected": "مرفوض",
+    "status_disabled": "موقوف",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "disable": "إيقاف",
+    "approved": "تم الاعتماد",
+    "rejected": "تم الرفض",
+    "disabled": "تم الإيقاف",
+    "reject_title": "رفض طلب التتبّع",
+    "reject_reason": "سبب الرفض (اختياري)"
+  },
+  "clinic_tracking": {
+    "title": "التتبّع والبكسلات",
+    "subtitle": "أضف بكسلات إعلاناتك واطلب تفعيلها من الإدارة",
+    "feature_off": "ميزة التتبّع غير مفعّلة من الإدارة حالياً. يمكنك تجهيز بكسلاتك الآن وطلب التفعيل.",
+    "status_pending": "طلبك قيد المراجعة من الإدارة.",
+    "status_active": "تتبّعك مفعّل ويعمل على صفحاتك العامة.",
+    "status_rejected": "تم رفض الطلب",
+    "pixels_title": "بكسلات التتبّع",
+    "add_pixel": "إضافة بكسل",
+    "empty": "لا توجد بكسلات بعد. اضغط «إضافة بكسل» للبدء.",
+    "invalid_id": "معرّف غير صالح — تحقّق من الصيغة.",
+    "advanced_matching": "المطابقة المتقدّمة",
+    "advanced_matching_hint": "إرسال جوال/بريد مُجزّأ لتحسين مطابقة الإعلانات. يتطلب موافقة الزائر. افتراضياً مطفأ.",
+    "save_draft": "حفظ المسودة",
+    "request_activation": "طلب التفعيل",
+    "requested": "تم إرسال طلب التفعيل"
   },
   "clinic_team": {
     "title": "فريقي",
@@ -1614,7 +1770,8 @@
     "timeline": {
       "booking_created": "حجز جديد",
       "complaint_filed": "شكوى جديدة",
-      "quote_requested": "طلب سعر جديد"
+      "quote_requested": "طلب سعر جديد",
+      "reminder_set": "تذكير تواصل"
     }
   },
   "clinic_bookings_kanban": {

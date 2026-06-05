@@ -28,7 +28,8 @@
     "expand_sidebar": "Expand sidebar",
     "collapse_sidebar": "Collapse sidebar",
     "toggle_language": "Toggle language",
-    "copy": "Copy"
+    "copy": "Copy",
+    "saved": "Saved"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -54,6 +55,7 @@
     "price_quotes": "Price quotes",
     "audit_logs": "Audit log",
     "system_settings": "System settings",
+    "tracking": "Tracking & Pixels",
     "whatsapp_senders": "WhatsApp numbers",
     "ai_center": "AI Assistant Center",
     "mass_notify": "Mass notify",
@@ -462,6 +464,9 @@
       "assigned_to": "Assigned to",
       "next_follow_up_at": "Next follow-up",
       "last_contact_at": "Last contact",
+      "source": "Acquisition source",
+      "lost_reason": "Loss reason",
+      "lost_notes": "Loss details",
       "notes": "Notes",
       "sales_notes": "Sales notes"
     },
@@ -473,7 +478,53 @@
       "converted": "Converted",
       "lost": "Lost"
     },
+    "score": "Score",
+    "score_tier": {
+      "hot": "Hot",
+      "warm": "Warm",
+      "cold": "Cold"
+    },
+    "source": {
+      "referral": "Referral",
+      "website": "Website",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "snapchat": "Snapchat",
+      "tiktok": "TikTok",
+      "cold_call": "Cold call",
+      "event": "Event",
+      "walk_in": "Walk-in",
+      "other": "Other"
+    },
+    "lost_reason": {
+      "price": "Price",
+      "no_response": "No response",
+      "chose_competitor": "Chose competitor",
+      "not_interested": "Not interested",
+      "not_qualified": "Not qualified",
+      "bad_timing": "Bad timing",
+      "other": "Other"
+    },
+    "activity": {
+      "logged": "Activity logged",
+      "log_title": "Log activity",
+      "log_button": "Log",
+      "body_placeholder": "Contact details (optional)",
+      "timeline": "Activity timeline",
+      "empty": "No activity yet.",
+      "status_changed": "Status changed from {{from}} to {{to}}",
+      "status_set": "Status: {{to}}",
+      "type": {
+        "call": "Call",
+        "whatsapp": "WhatsApp",
+        "email": "Email",
+        "meeting": "Meeting",
+        "note": "Note",
+        "status_change": "Status change"
+      }
+    },
     "actions": {
+      "details": "Details & timeline",
       "convert": "Convert to complex",
       "convert_title": "Convert lead to complex",
       "convert_body": "A new complex account will be created for {{clinic}}. Pick the package and billing cycle, and adjust the price manually if needed.",
@@ -939,11 +990,13 @@
     "reports": "My reports",
     "bookings": "Bookings",
     "customers": "Customers",
+    "reminders": "Contact reminders",
     "price_quotes": "Price quotes",
     "complaints": "Complaints",
     "articles": "Articles",
     "import_services": "Import services",
     "page_builder": "Page builder",
+    "tracking": "Tracking & Pixels",
     "subscription": "Subscription",
     "profile": "Complex profile",
     "team": "My team",
@@ -954,6 +1007,109 @@
       "team": "Team management",
       "settings": "Settings"
     }
+  },
+  "clinic_reminders": {
+    "title": "Contact reminders",
+    "subtitle": "Remind your team to contact a specific customer. You'll get a panel alert when the time comes.",
+    "add": "Remind me to contact",
+    "assigned_to": "Assigned to: {{name}}",
+    "created": "Reminder saved",
+    "marked_done": "Reminder marked done",
+    "cancelled": "Reminder cancelled",
+    "empty": "No reminders here.",
+    "due_at": "Contact at: {{time}}",
+    "set_by": "Set by: {{name}}",
+    "filter": {
+      "open": "Open",
+      "upcoming": "Upcoming",
+      "overdue": "Overdue",
+      "done": "Done",
+      "all": "All",
+      "mine": "Assigned to me"
+    },
+    "badge": {
+      "overdue": "Overdue",
+      "done": "Done"
+    },
+    "action": {
+      "done": "Done",
+      "cancel": "Cancel"
+    },
+    "dialog": {
+      "title": "Reminder to contact customer",
+      "subtitle": "Pick a time to be alerted to contact this customer.",
+      "subtitle_named": "Pick a time to be alerted to contact {{name}}.",
+      "save": "Save reminder"
+    },
+    "fields": {
+      "remind_at": "Reminder time",
+      "note": "Note (optional)",
+      "note_placeholder": "e.g. follow up on the X-ray result",
+      "assignee": "Assign to member (optional)",
+      "assignee_none": "Unassigned — whole clinic"
+    },
+    "presets": {
+      "in_1h": "In 1 hour",
+      "in_3h": "In 3 hours",
+      "tomorrow_morning": "Tomorrow morning",
+      "next_week": "Next week"
+    },
+    "errors": {
+      "no_time": "Pick a reminder time",
+      "past_time": "Pick a time in the future"
+    }
+  },
+  "tracking": {
+    "title": "Tracking & Pixels",
+    "subtitle": "Enable the feature and review complex requests",
+    "settings_title": "Global settings",
+    "feature_enabled": "Enable tracking feature",
+    "feature_enabled_hint": "When off, no pixel loads on the site at all.",
+    "consent_enabled": "Require cookie consent",
+    "consent_enabled_hint": "Show the consent banner before any pixel runs (legally required).",
+    "consent_text_ar": "Consent text (Arabic)",
+    "consent_text_en": "Consent text (English)",
+    "consent_text_placeholder": "Leave empty to use the default text",
+    "privacy_url": "Privacy policy URL",
+    "platform_pixels": "Main-site pixels",
+    "platform_pixels_hint": "Load on every public page (to measure the platform's own marketing).",
+    "requests_title": "Complex requests",
+    "tab_pending": "Pending review",
+    "tab_active": "Active",
+    "tab_all": "All",
+    "col_clinic": "Complex",
+    "col_pixels": "Pixels",
+    "col_status": "Status",
+    "advanced_matching": "Advanced matching",
+    "status_pending": "Pending review",
+    "status_active": "Active",
+    "status_rejected": "Rejected",
+    "status_disabled": "Disabled",
+    "approve": "Approve",
+    "reject": "Reject",
+    "disable": "Disable",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "disabled": "Disabled",
+    "reject_title": "Reject tracking request",
+    "reject_reason": "Rejection reason (optional)"
+  },
+  "clinic_tracking": {
+    "title": "Tracking & Pixels",
+    "subtitle": "Add your ad pixels and request activation from the admin",
+    "feature_off": "The tracking feature is not enabled by the admin yet. You can prepare your pixels now and request activation.",
+    "status_pending": "Your request is under admin review.",
+    "status_active": "Your tracking is active and running on your public pages.",
+    "status_rejected": "Request rejected",
+    "pixels_title": "Tracking pixels",
+    "add_pixel": "Add pixel",
+    "empty": "No pixels yet. Click \"Add pixel\" to start.",
+    "invalid_id": "Invalid ID — check the format.",
+    "advanced_matching": "Advanced matching",
+    "advanced_matching_hint": "Send hashed phone/email to improve ad matching. Requires visitor consent. Off by default.",
+    "save_draft": "Save draft",
+    "request_activation": "Request activation",
+    "requested": "Activation request sent"
   },
   "clinic_team": {
     "title": "My team",
@@ -1614,7 +1770,8 @@
     "timeline": {
       "booking_created": "New booking",
       "complaint_filed": "Complaint filed",
-      "quote_requested": "Quote request"
+      "quote_requested": "Quote request",
+      "reminder_set": "Contact reminder"
     }
   },
   "clinic_bookings_kanban": {

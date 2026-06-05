@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -60,6 +60,7 @@ const clinicNav: NavEntry[] = [
     items: [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar, requires: 'bookings.view' },
       { to: '/clinic/customers', label: 'clinic_nav.customers', icon: Users, requires: 'customers.view' },
+      { to: '/clinic/reminders', label: 'clinic_nav.reminders', icon: BellRing, badge: 'reminders_overdue' as keyof ClinicNavBadges, requires: 'reminders.view' },
       { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges, requires: 'price_quotes.view' },
       { to: '/clinic/complaints', label: 'clinic_nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof ClinicNavBadges, requires: 'complaints.view' },
       { to: '/clinic/reports', label: 'clinic_nav.reports', icon: MessageSquareWarning, requires: 'complaints.view' },
@@ -81,6 +82,7 @@ const clinicNav: NavEntry[] = [
     group: 'clinic_nav.group.settings',
     items: [
       { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop, requires: 'page_builder.view' },
+      { to: '/clinic/tracking', label: 'clinic_nav.tracking', icon: Radar, requires: 'tracking.view' },
       { to: '/clinic/subscription', label: 'clinic_nav.subscription', icon: CreditCard, badge: 'subscription_expiring' as keyof ClinicNavBadges, requires: 'subscription.view' },
       { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2, requires: 'profile.view' },
     ],

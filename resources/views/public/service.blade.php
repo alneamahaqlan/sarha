@@ -1,5 +1,9 @@
 @extends('layouts.public')
 
+@push('scripts')
+<script>window.sarhaTrack && window.sarhaTrack('view_service', { clinic_id: {{ (int) $clinic->id }}, service_id: {{ (int) $service->id }} });</script>
+@endpush
+
 @section('title', $service->name . ' — ' . $clinic->name)
 @section('description', Str::limit($service->description ?? $clinic->name, 160))
 @section('og_image', $service->image ? Storage::url($service->image) : asset('images/og-default.png'))

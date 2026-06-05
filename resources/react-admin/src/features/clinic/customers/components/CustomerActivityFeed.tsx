@@ -1,4 +1,4 @@
-import { Calendar, AlertOctagon, FileQuestion, Activity } from 'lucide-react';
+import { Calendar, AlertOctagon, FileQuestion, Activity, BellRing } from 'lucide-react';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { useCustomerTimeline } from '../hooks';
 import type { TimelineEvent } from '../types';
@@ -11,6 +11,7 @@ const ICONS: Record<string, any> = {
   booking:       Calendar,
   complaint:     AlertOctagon,
   quote_request: FileQuestion,
+  reminder:      BellRing,
   team_action:   Activity,
 };
 
@@ -18,6 +19,7 @@ const TONES: Record<string, string> = {
   booking:       'text-blue-700 bg-blue-50 border-blue-200',
   complaint:     'text-rose-700 bg-rose-50 border-rose-200',
   quote_request: 'text-amber-700 bg-amber-50 border-amber-200',
+  reminder:      'text-violet-700 bg-violet-50 border-violet-200',
   team_action:   'text-slate-700 bg-slate-50 border-slate-200',
 };
 

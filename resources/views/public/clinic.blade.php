@@ -77,6 +77,10 @@
 <script type="application/ld+json">{!! json_encode($schemaPayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endpush
 
+@push('scripts')
+<script>window.sarhaTrack && window.sarhaTrack('view_clinic', { clinic_id: {{ (int) $clinic->id }}, clinic_slug: @json($clinic->slug), city: @json(optional($clinic->city)->name) });</script>
+@endpush
+
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-8">
 

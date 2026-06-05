@@ -10,6 +10,8 @@ export interface AdminNavBadges {
   catalog_requests: number;
   clinic_reports: number;
   customer_reports: number;
+  tracking_pending: number;
+  sales_followups_overdue: number;
 }
 
 export interface ClinicNavBadges {
@@ -17,6 +19,7 @@ export interface ClinicNavBadges {
   subscription_expiring: number;
   offer_expiring: number;
   complaints: number;
+  reminders_overdue: number;
 }
 
 export function useAdminNavBadges() {

@@ -17,6 +17,7 @@ import { AssigneePicker } from './AssigneePicker';
 import { TagsManager } from './TagsManager';
 import { Customer360Panel } from './Customer360Panel';
 import { EditBookingDialog } from './EditBookingDialog';
+import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
 
 interface Props {
   bookingId: number;
@@ -119,6 +120,14 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                 <section className="space-y-2">
                   <div className="text-xs font-semibold">{t('clinic_bookings_kanban.detail.quick_actions')}</div>
                   <QuickActionsBar bookingId={data.id} />
+                  {data.customer_id && (
+                    <ReminderButton
+                      customerId={data.customer_id}
+                      customerName={data.customer_name}
+                      bookingId={data.id}
+                      variant="ghost"
+                    />
+                  )}
                 </section>
 
                 <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-white p-3">

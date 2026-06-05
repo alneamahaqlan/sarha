@@ -46,6 +46,14 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Messaging\WhatsAppSenderSelector::class,
             \App\Services\Messaging\Selectors\LeastRecentlyUsedSenderSelector::class,
         );
+
+        // Tracking context for the current request. Defaults to disabled
+        // (renders nothing); ResolveTrackingContext middleware replaces it
+        // with the resolved context on public clinic pages.
+        $this->app->singleton(
+            \App\Services\Tracking\TrackingContext::class,
+            fn () => \App\Services\Tracking\TrackingContext::disabled(),
+        );
     }
 
     public function boot(): void

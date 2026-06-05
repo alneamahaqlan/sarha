@@ -32,7 +32,7 @@ enum ClinicRole: string
             self::COORDINATOR => [
                 // Day-to-day operations
                 'bookings.*', 'complaints.*', 'price_quotes.*',
-                'customers.*',
+                'customers.*', 'reminders.*',
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
@@ -46,6 +46,9 @@ enum ClinicRole: string
                 // notes (author check enforces self-edit only) but
                 // can't edit details or delete others' notes.
                 'customers.view', 'customers.notes.create',
+                // Reception drives day-to-day follow-up, so it can set,
+                // complete, and cancel contact reminders.
+                'reminders.*',
                 'profile.view',
             ],
         };
@@ -113,9 +116,14 @@ enum ClinicRole: string
             'category_requests.view',
             'page_builder.view', 'page_builder.manage',
             'profile.view', 'profile.manage',
+            // Marketing tracking pixels — owner-only (sensitive: affects
+            // what loads on the public site + privacy/PDPL surface).
+            'tracking.view', 'tracking.manage',
             // Customer Hub (phase 3)
             'customers.view', 'customers.manage',
             'customers.notes.create', 'customers.notes.manage',
+            // Contact reminders (set / complete / cancel a follow-up nudge)
+            'reminders.view', 'reminders.create', 'reminders.manage',
             // Owner-only domains
             'subscription.view', 'subscription.manage',
             'team.view', 'team.manage',

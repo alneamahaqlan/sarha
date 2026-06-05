@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\ClinicActivityLog;
 use App\Models\Complaint;
 use App\Models\Customer;
+use App\Models\CustomerReminder;
 use App\Models\PriceQuoteRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -159,6 +160,25 @@ class CustomersController extends Controller
                     'reference' => null,
                     'status'    => $q->status,
                     'detail'    => $q->service_name,
+                    'link_to'   => null,
+                ]);
+            });
+
+        // Contact reminders set for this customer (one event each).
+        CustomerReminder::query()
+            ->where('customer_id', $customer->id)
+            ->with('assigneeMember:id,name')
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->each(function (CustomerReminder $r) use ($events) {
+                $events->push([
+                    'kind'      => 'reminder',
+                    'at'        => $r->created_at,
+                    'title_key' => 'customer.timeline.reminder_set',
+                    'reference' => null,
+                    'status'    => $r->status,
+                    'detail'    => $r->note ?: $r->assigneeMember?->name,
                     'link_to'   => null,
                 ]);
             });

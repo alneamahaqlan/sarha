@@ -145,6 +145,13 @@ class DashboardController extends Controller
                 'clinic_reports'         => \App\Models\ClinicReport::whereIn('status', ['new', 'in_review'])->count(),
                 // Customer-side platform reports waiting for review.
                 'customer_reports'       => \App\Models\CustomerReport::whereIn('status', ['new', 'in_review'])->count(),
+                // Complexes awaiting tracking-pixel activation approval.
+                'tracking_pending'       => Clinic::where('tracking_status', 'pending')->count(),
+                // Sales leads whose follow-up time has passed (still open).
+                'sales_followups_overdue' => \App\Models\SalesLead::whereNotNull('next_follow_up_at')
+                    ->where('next_follow_up_at', '<=', now())
+                    ->whereNotIn('status', \App\Models\SalesLead::TERMINAL_STATUSES)
+                    ->count(),
             ],
         ]);
     }

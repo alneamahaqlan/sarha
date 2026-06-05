@@ -19,6 +19,10 @@ return [
             'title' => 'New price-quote request',
             'body'  => ':customer is asking for a quote on :service.',
         ],
+        'contact_reminder_due' => [
+            'title' => 'Reminder to contact a customer',
+            'body'  => 'It is time to contact :customer:note_suffix',
+        ],
 
         // ── Subscription lifecycle ────────────────────────────────────
         'subscription_expiring_soon' => [
@@ -61,6 +65,18 @@ return [
             'title' => '🚨 AI emergency conversation',
             'body'  => 'Critical symptoms detected in user :customer\'s chat.',
         ],
+        'sales_followup_due' => [
+            'title' => 'Lead follow-up overdue',
+            'body'  => 'Time to follow up with the lead ":lead":assignee_suffix',
+        ],
+    ],
+
+    // Fragment appended to a sales-followup body when the lead is unassigned.
+    'sales_followup_unassigned' => '(unassigned)',
+
+    // Fragment appended to the contact-reminder body when assigned.
+    'reminder' => [
+        'assigned_to' => ' — assigned to :name',
     ],
 
     'preview' => [
@@ -68,11 +84,13 @@ return [
         'booking_cancelled_by_user' => 'A customer cancelled a booking',
         'complaint_created'         => 'New complaint awaiting reply',
         'quote_created'             => 'New price-quote request',
+        'contact_reminder_due'      => 'You have a customer to contact',
         'booking_confirmed'         => 'Your booking was confirmed',
         'complaint_replied'         => 'Your complaint got a reply',
         'quote_replied'             => 'Your quote request got a reply',
         'clinic_pending_approval'   => 'A new complex is awaiting approval',
         'ai_emergency'              => 'Alert: AI emergency conversation',
+        'sales_followup_due'        => 'You have an overdue lead follow-up',
         'subscription_expiring_soon'=> 'Your subscription expires soon',
         'subscription_expired'      => 'Your subscription has expired',
         'subscription_activated'    => 'A new subscription is active',

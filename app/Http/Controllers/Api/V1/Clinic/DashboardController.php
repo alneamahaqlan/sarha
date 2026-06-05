@@ -116,6 +116,12 @@ class DashboardController extends Controller
                     ->count(),
                 'subscription_expiring' => $subscriptionExpiring,
                 'offer_expiring'        => $offerExpiring,
+                // Pending contact reminders whose time has already passed —
+                // surfaces in the sidebar so overdue follow-ups aren't missed.
+                'reminders_overdue' => \App\Models\CustomerReminder::where('clinic_id', $clinicId)
+                    ->where('status', 'pending')
+                    ->where('remind_at', '<=', now())
+                    ->count(),
                 // Customer complaints raised against this complex that the
                 // admin hasn't resolved yet. Surfaces so the complex knows
                 // a customer is awaiting follow-up.

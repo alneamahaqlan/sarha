@@ -1,5 +1,16 @@
 @extends('layouts.public')
 
+@push('scripts')
+<script>
+@if(!empty($amPhoneHash) && !empty($amMetaId))
+// Advanced matching (opted-in): attach hashed phone before the conversion.
+// fbq exists only after consent → no-op otherwise.
+if (window.fbq) fbq('init', @json($amMetaId), { ph: @json($amPhoneHash) });
+@endif
+window.sarhaTrack && window.sarhaTrack('submit_booking', { clinic_id: {{ (int) $booking->clinic_id }}, booking_ref: @json($booking->reference_code) });
+</script>
+@endpush
+
 @section('title', __('site.booking_confirmed_title'))
 
 @section('content')
