@@ -31,7 +31,7 @@ export function useCustomer(id: number | null) {
 export function useUpdateCustomer(id: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name?: string; email?: string | null }) => customersApi.update(id, payload),
+    mutationFn: (payload: { name?: string; email?: string | null; marketing_opt_out?: boolean }) => customersApi.update(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
     },

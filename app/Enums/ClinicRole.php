@@ -32,7 +32,7 @@ enum ClinicRole: string
             self::COORDINATOR => [
                 // Day-to-day operations
                 'bookings.*', 'complaints.*', 'price_quotes.*',
-                'customers.*', 'reminders.*',
+                'customers.*', 'reminders.*', 'campaigns.*',
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
@@ -124,6 +124,8 @@ enum ClinicRole: string
             'customers.notes.create', 'customers.notes.manage',
             // Contact reminders (set / complete / cancel a follow-up nudge)
             'reminders.view', 'reminders.create', 'reminders.manage',
+            // Patient campaigns (segment + manual WhatsApp outreach)
+            'campaigns.view', 'campaigns.manage',
             // Owner-only domains
             'subscription.view', 'subscription.manage',
             'team.view', 'team.manage',

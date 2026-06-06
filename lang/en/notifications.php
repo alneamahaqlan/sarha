@@ -23,6 +23,10 @@ return [
             'title' => 'Reminder to contact a customer',
             'body'  => 'It is time to contact :customer:note_suffix',
         ],
+        'task_reminder_due' => [
+            'title' => 'Task reminder',
+            'body'  => 'Time for: :title:note_suffix',
+        ],
 
         // ── Subscription lifecycle ────────────────────────────────────
         'subscription_expiring_soon' => [
@@ -85,6 +89,7 @@ return [
         'complaint_created'         => 'New complaint awaiting reply',
         'quote_created'             => 'New price-quote request',
         'contact_reminder_due'      => 'You have a customer to contact',
+        'task_reminder_due'         => 'You have a task due',
         'booking_confirmed'         => 'Your booking was confirmed',
         'complaint_replied'         => 'Your complaint got a reply',
         'quote_replied'             => 'Your quote request got a reply',

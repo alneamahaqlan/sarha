@@ -35,6 +35,10 @@ return [
             'title' => 'تذكير بالتواصل مع عميل',
             'body'  => 'حان وقت التواصل مع العميل :customer:note_suffix',
         ],
+        'task_reminder_due' => [
+            'title' => 'تذكير بمهمة',
+            'body'  => 'حان وقت: :title:note_suffix',
+        ],
 
         // ── Subscription lifecycle ────────────────────────────────────
         'subscription_expiring_soon' => [
@@ -101,6 +105,7 @@ return [
         'complaint_created'         => 'شكوى جديدة بانتظار الرد',
         'quote_created'             => 'طلب سعر جديد',
         'contact_reminder_due'      => 'لديك تذكير بالتواصل مع عميل',
+        'task_reminder_due'         => 'لديك مهمة مستحقة',
         'booking_confirmed'         => 'تم تأكيد حجزك',
         'complaint_replied'         => 'تم الرد على شكواك',
         'quote_replied'             => 'تم الرد على طلب سعرك',

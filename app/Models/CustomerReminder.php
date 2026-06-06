@@ -28,7 +28,7 @@ class CustomerReminder extends Model
 
     protected $fillable = [
         'clinic_id', 'customer_id', 'booking_id', 'assignee_member_id',
-        'remind_at', 'note', 'status',
+        'title', 'remind_at', 'note', 'status',
         'created_by_type', 'created_by_id', 'created_by_name',
         'notified_at', 'completed_at',
     ];

@@ -39,6 +39,7 @@ class CustomerProfileResource extends JsonResource
             'name'                 => $this->name,
             'phone'                => $this->phone,
             'email'                => $this->email,
+            'marketing_opt_out'    => (bool) $this->marketing_opt_out,
             'user_id'              => $this->user_id,
             'first_seen_at'        => $this->first_seen_at?->toIso8601String(),
             'last_seen_at'         => $this->last_seen_at?->toIso8601String(),

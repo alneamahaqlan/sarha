@@ -15,8 +15,9 @@ class UpdateCustomerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'  => ['sometimes', 'required', 'string', 'max:120'],
-            'email' => ['nullable', 'email', 'max:191'],
+            'name'              => ['sometimes', 'required', 'string', 'max:120'],
+            'email'             => ['nullable', 'email', 'max:191'],
+            'marketing_opt_out' => ['sometimes', 'boolean'],
         ];
     }
 }

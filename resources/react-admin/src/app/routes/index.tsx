@@ -85,6 +85,8 @@ const ClinicTeamActivityPage = lazy(() => import('@/features/clinic/team/pages/C
 const ClinicCustomersIndex = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomersIndex').then(m => ({ default: m.ClinicCustomersIndex })));
 const ClinicCustomerProfile = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomerProfile').then(m => ({ default: m.ClinicCustomerProfile })));
 const ClinicRemindersIndex = lazy(() => import('@/features/clinic/reminders/pages/ClinicRemindersIndex').then(m => ({ default: m.ClinicRemindersIndex })));
+const ClinicCampaignsIndex = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignsIndex').then(m => ({ default: m.ClinicCampaignsIndex })));
+const ClinicCampaignRunner = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignRunner').then(m => ({ default: m.ClinicCampaignRunner })));
 const ClinicTrackingPage = lazy(() => import('@/features/clinic/tracking/pages/ClinicTrackingPage').then(m => ({ default: m.ClinicTrackingPage })));
 
 function PageFallback() {
@@ -184,6 +186,8 @@ export function AppRoutes() {
               <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />
               <Route path="customers/:id" element={<RoleGuard ability="customers.view"><ClinicCustomerProfile /></RoleGuard>} />
               <Route path="reminders" element={<RoleGuard ability="reminders.view"><ClinicRemindersIndex /></RoleGuard>} />
+              <Route path="campaigns" element={<RoleGuard ability="campaigns.view"><ClinicCampaignsIndex /></RoleGuard>} />
+              <Route path="campaigns/:id" element={<RoleGuard ability="campaigns.view"><ClinicCampaignRunner /></RoleGuard>} />
               <Route path="price-quotes" element={<RoleGuard ability="price_quotes.view"><ClinicQuotesIndex /></RoleGuard>} />
               <Route path="complaints" element={<RoleGuard ability="complaints.view"><ClinicComplaintsIndex /></RoleGuard>} />
               <Route path="reports" element={<RoleGuard ability="complaints.view"><ClinicReportsIndex /></RoleGuard>} />

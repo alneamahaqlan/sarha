@@ -990,7 +990,8 @@
     "reports": "My reports",
     "bookings": "Bookings",
     "customers": "Customers",
-    "reminders": "Contact reminders",
+    "reminders": "Tasks & reminders",
+    "campaigns": "Customer campaigns",
     "price_quotes": "Price quotes",
     "complaints": "Complaints",
     "articles": "Articles",
@@ -1009,9 +1010,10 @@
     }
   },
   "clinic_reminders": {
-    "title": "Contact reminders",
-    "subtitle": "Remind your team to contact a specific customer. You'll get a panel alert when the time comes.",
+    "title": "Tasks & reminders",
+    "subtitle": "Remind your team to follow up with a customer or handle a general task. You'll get a panel alert when the time comes.",
     "add": "Remind me to contact",
+    "new_task": "New task",
     "assigned_to": "Assigned to: {{name}}",
     "created": "Reminder saved",
     "marked_done": "Reminder marked done",
@@ -1037,12 +1039,16 @@
     },
     "dialog": {
       "title": "Reminder to contact customer",
+      "title_task": "New task",
       "subtitle": "Pick a time to be alerted to contact this customer.",
       "subtitle_named": "Pick a time to be alerted to contact {{name}}.",
+      "subtitle_task": "Set a task title and when to be reminded.",
       "save": "Save reminder"
     },
     "fields": {
       "remind_at": "Reminder time",
+      "task_title": "Task title",
+      "task_title_placeholder": "e.g. prepare the monthly performance report",
       "note": "Note (optional)",
       "note_placeholder": "e.g. follow up on the X-ray result",
       "assignee": "Assign to member (optional)",
@@ -1055,8 +1061,82 @@
       "next_week": "Next week"
     },
     "errors": {
+      "no_title": "Enter a task title",
       "no_time": "Pick a reminder time",
       "past_time": "Pick a time in the future"
+    }
+  },
+  "clinic_campaigns": {
+    "title": "Customer campaigns",
+    "subtitle": "Target a segment of your customers and message them on WhatsApp, with per-recipient tracking.",
+    "new": "New campaign",
+    "open": "Open",
+    "back": "Back to campaigns",
+    "empty": "No campaigns yet. Create your first to re-engage customers.",
+    "created": "Campaign created",
+    "deleted": "Campaign deleted",
+    "not_found": "Campaign not found.",
+    "no_recipients": "No recipients in this view.",
+    "runner_hint": "Tap “Send” to open WhatsApp with a prefilled message; the customer is marked as messaged automatically.",
+    "recipient_count": "{{count}} recipients in this segment",
+    "sent_of": "Sent to {{sent}} of {{total}}",
+    "booking_range": "{{range}} bookings",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "completed": "Completed"
+    },
+    "segment": {
+      "vip": "VIP customers",
+      "repeat": "Repeat",
+      "new": "New",
+      "new_month": "New this month",
+      "has_complaint": "Had a complaint",
+      "inactive_90d": "Inactive 90+ days"
+    },
+    "last_interaction": {
+      "30d": "Active within 30 days",
+      "90d": "Active within 90 days",
+      "180d_plus": "Inactive 180+ days"
+    },
+    "audience": {
+      "any_segment": "Any segment",
+      "any_interaction": "Any activity",
+      "any_bookings": "Any bookings count",
+      "has_notes": "Only with notes"
+    },
+    "fields": {
+      "name": "Campaign name",
+      "audience": "Target audience",
+      "message": "Message",
+      "message_placeholder": "e.g. Hi {{name}}, we miss you! Book your next visit and enjoy a special discount.",
+      "message_hint": "Use {{name}} to insert the customer's name when sending."
+    },
+    "create": {
+      "title": "New campaign",
+      "subtitle": "Pick the audience and write the message, then send it to each customer manually via WhatsApp.",
+      "save": "Create campaign"
+    },
+    "recipient_filter": {
+      "all": "All",
+      "pending": "Pending",
+      "sent": "Sent",
+      "skipped": "Skipped"
+    },
+    "recipient_status": {
+      "pending": "Pending",
+      "sent": "Sent",
+      "skipped": "Skipped"
+    },
+    "action": {
+      "send": "Send",
+      "skip": "Skip",
+      "reset": "Reset"
+    },
+    "errors": {
+      "no_name": "Enter a campaign name",
+      "no_message": "Enter a message",
+      "no_recipients": "No recipients in this segment"
     }
   },
   "tracking": {
@@ -1663,6 +1743,12 @@
   "clinic_customers": {
     "title": "Customers",
     "subtitle": "Unified customer base — full history, auto badges, internal notes",
+    "opt_out": {
+      "toggle": "Exclude from marketing campaigns",
+      "badge": "Excluded from campaigns",
+      "now_excluded": "Customer excluded from campaigns",
+      "now_included": "Customer included in campaigns"
+    },
     "empty": "No customers match this filter",
     "open_full_profile": "Open full profile",
     "page_of": "Page {{current}} of {{total}}",

@@ -27,6 +27,8 @@ enum NotificationEvent: string
     case QUOTE_CREATED              = 'quote_created';
     // A clinic-set "contact this patient now" reminder whose time has come.
     case CONTACT_REMINDER_DUE       = 'contact_reminder_due';
+    // A general team task (no customer) whose time has come.
+    case TASK_REMINDER_DUE          = 'task_reminder_due';
 
     // ── Clinic-side subscription lifecycle ─────────────────────────
     // Fired by the daily lifecycle command + SubscriptionService so
@@ -63,7 +65,8 @@ enum NotificationEvent: string
             self::SUBSCRIPTION_EXPIRED,
             self::SUBSCRIPTION_ACTIVATED,
             self::SUBSCRIPTION_CANCELLED,
-            self::CONTACT_REMINDER_DUE => Clinic::class,
+            self::CONTACT_REMINDER_DUE,
+            self::TASK_REMINDER_DUE => Clinic::class,
 
             self::BOOKING_CONFIRMED,
             self::COMPLAINT_REPLIED,
@@ -87,6 +90,7 @@ enum NotificationEvent: string
             self::BOOKING_CONFIRMED,
             self::CLINIC_PENDING_APPROVAL,
             self::CONTACT_REMINDER_DUE,
+            self::TASK_REMINDER_DUE,
             self::SALES_FOLLOWUP_DUE,
             self::SUBSCRIPTION_EXPIRING_SOON => NotificationPriority::HIGH,
 
@@ -107,6 +111,7 @@ enum NotificationEvent: string
             self::COMPLAINT_CREATED, self::COMPLAINT_REPLIED => 'alert-triangle',
             self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
             self::CONTACT_REMINDER_DUE                       => 'phone-call',
+            self::TASK_REMINDER_DUE                          => 'list-checks',
             self::CLINIC_PENDING_APPROVAL                    => 'building-2',
             self::AI_EMERGENCY                               => 'siren',
             self::SALES_FOLLOWUP_DUE                         => 'phone-call',
@@ -151,6 +156,9 @@ enum NotificationEvent: string
             self::CONTACT_REMINDER_DUE => isset($data['customer_id'])
                 ? '/app/clinic/customers/' . urlencode((string) $data['customer_id'])
                 : '/app/clinic/reminders',
+
+            // General task — always lands on the tasks/reminders page.
+            self::TASK_REMINDER_DUE => '/app/clinic/reminders',
 
             self::BOOKING_CONFIRMED  => '/account/bookings',
             self::COMPLAINT_REPLIED  => '/account/complaints',

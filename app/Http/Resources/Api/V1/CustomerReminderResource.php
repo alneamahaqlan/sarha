@@ -10,6 +10,7 @@ class CustomerReminderResource extends JsonResource
     {
         return [
             'id'              => $this->id,
+            'title'           => $this->title,
             'customer_id'     => $this->customer_id,
             'customer_name'   => $this->whenLoaded('customer', fn () => $this->customer?->name),
             'customer_phone'  => $this->whenLoaded('customer', fn () => $this->customer?->phone),

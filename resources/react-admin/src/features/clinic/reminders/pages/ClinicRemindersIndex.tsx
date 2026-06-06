@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BellRing, Check, Phone, MessageCircle, X } from 'lucide-react';
+import { BellRing, Check, Phone, MessageCircle, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 
 import { useReminders, useCompleteReminder, useCancelReminder } from '../hooks';
+import { ReminderDialog } from '../components/ReminderDialog';
 import type { CustomerReminder, ReminderListStatus } from '../types';
 
 const FILTERS: ReminderListStatus[] = ['open', 'upcoming', 'overdue', 'done', 'all'];
@@ -24,8 +25,10 @@ export function ClinicRemindersIndex() {
   const { locale } = useLocale();
   const [filter, setFilter] = useState<ReminderListStatus>('open');
   const [mine, setMine] = useState(false);
+  const [creating, setCreating] = useState(false);
   const { data: reminders, isLoading } = useReminders(filter, mine);
   const canManage = useCan('reminders.manage');
+  const canCreate = useCan('reminders.create');
 
   const complete = useCompleteReminder();
   const cancel = useCancelReminder();
@@ -58,9 +61,17 @@ export function ClinicRemindersIndex() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <BellRing className="h-5 w-5 text-[var(--color-muted-foreground)]" />
-        <h1 className="text-xl font-semibold">{t('clinic_reminders.title')}</h1>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <BellRing className="h-5 w-5 text-[var(--color-muted-foreground)]" />
+          <h1 className="text-xl font-semibold">{t('clinic_reminders.title')}</h1>
+        </div>
+        {canCreate && (
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="h-4 w-4" />
+            {t('clinic_reminders.new_task')}
+          </Button>
+        )}
       </div>
       <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_reminders.subtitle')}</p>
 
@@ -108,12 +119,16 @@ export function ClinicRemindersIndex() {
             >
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
-                  <Link
-                    to={`/clinic/customers/${r.customer_id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {r.customer_name ?? r.customer_phone ?? '—'}
-                  </Link>
+                  {r.customer_id ? (
+                    <Link
+                      to={`/clinic/customers/${r.customer_id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {r.customer_name ?? r.customer_phone ?? '—'}
+                    </Link>
+                  ) : (
+                    <span className="font-medium">{r.title ?? '—'}</span>
+                  )}
                   {r.status === 'pending' && r.is_overdue && (
                     <Badge variant="danger">{t('clinic_reminders.badge.overdue')}</Badge>
                   )}
@@ -172,6 +187,10 @@ export function ClinicRemindersIndex() {
             </div>
           ))}
         </div>
+      )}
+
+      {creating && (
+        <ReminderDialog open={creating} onClose={() => setCreating(false)} />
       )}
     </div>
   );

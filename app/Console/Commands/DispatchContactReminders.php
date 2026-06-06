@@ -41,10 +41,6 @@ class DispatchContactReminders extends Command
                 continue;
             }
 
-            $customerName = $reminder->customer?->name
-                ?: $reminder->customer?->phone
-                ?: '—';
-
             // Suffix folds the optional assignee + note into the body. When
             // both are empty it collapses to a trailing period.
             $assigneePart = $reminder->assigneeMember
@@ -55,11 +51,23 @@ class DispatchContactReminders extends Command
             $combined = $assigneePart . $notePart;
             $noteSuffix = $combined !== '' ? $combined : '.';
 
-            $notification = $dispatcher->dispatch(NotificationEvent::CONTACT_REMINDER_DUE, $clinic, [
-                'customer'    => $customerName,
-                'customer_id' => $reminder->customer_id,
-                'note_suffix' => $noteSuffix,
-            ]);
+            // Customer-linked rows are contact reminders; customer-less rows
+            // are general tasks driven by their title.
+            if ($reminder->customer_id) {
+                $customerName = $reminder->customer?->name
+                    ?: $reminder->customer?->phone
+                    ?: '—';
+                $notification = $dispatcher->dispatch(NotificationEvent::CONTACT_REMINDER_DUE, $clinic, [
+                    'customer'    => $customerName,
+                    'customer_id' => $reminder->customer_id,
+                    'note_suffix' => $noteSuffix,
+                ]);
+            } else {
+                $notification = $dispatcher->dispatch(NotificationEvent::TASK_REMINDER_DUE, $clinic, [
+                    'title'       => $reminder->title ?: '—',
+                    'note_suffix' => $noteSuffix,
+                ]);
+            }
 
             // Stamp regardless: a failed dispatch is logged inside the
             // dispatcher, and we don't want a poison row retried forever.

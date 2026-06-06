@@ -56,6 +56,7 @@ export interface CustomerProfile {
   name: string;
   phone: string;
   email: string | null;
+  marketing_opt_out: boolean;
   user_id: number | null;
   first_seen_at: string | null;
   last_seen_at: string | null;

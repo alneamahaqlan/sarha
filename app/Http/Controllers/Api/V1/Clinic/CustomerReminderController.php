@@ -69,11 +69,17 @@ class CustomerReminderController extends Controller
         $clinicId  = (int) auth('clinic')->id();
         $validated = $request->validated();
 
-        $customer = Customer::findOrFail($validated['customer_id']);
-        abort_unless($customer->clinic_id === $clinicId, 404);
+        // Customer is optional — a customer-less row is a general team task.
+        $customer = null;
+        if (! empty($validated['customer_id'])) {
+            $customer = Customer::findOrFail($validated['customer_id']);
+            abort_unless($customer->clinic_id === $clinicId, 404);
+        }
 
-        // A booking, if linked, must belong to the same clinic + customer.
+        // A booking, if linked, must belong to the same clinic + customer
+        // (and a booking implies a customer).
         if (! empty($validated['booking_id'])) {
+            abort_if($customer === null, 422);
             $booking = Booking::findOrFail($validated['booking_id']);
             abort_unless(
                 $booking->clinic_id === $clinicId && $booking->customer_id === $customer->id,
@@ -89,9 +95,10 @@ class CustomerReminderController extends Controller
 
         $reminder = CustomerReminder::create([
             'clinic_id'          => $clinicId,
-            'customer_id'        => $customer->id,
+            'customer_id'        => $customer?->id,
             'booking_id'         => $validated['booking_id'] ?? null,
             'assignee_member_id' => $validated['assignee_member_id'] ?? null,
+            'title'              => isset($validated['title']) ? trim($validated['title']) : null,
             'remind_at'          => $validated['remind_at'],
             'note'            => isset($validated['note']) ? trim($validated['note']) : null,
             'status'          => CustomerReminder::STATUS_PENDING,
@@ -101,7 +108,7 @@ class CustomerReminderController extends Controller
         ]);
 
         $this->activity->log('reminder.created', $reminder, [
-            'customer'  => $customer->name,
+            'subject'   => $customer?->name ?? $reminder->title,
             'remind_at' => $reminder->remind_at?->toIso8601String(),
         ]);
 

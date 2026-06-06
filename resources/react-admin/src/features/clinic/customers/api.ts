@@ -41,7 +41,10 @@ export const customersApi = {
     return res.data.data;
   },
 
-  update: async (id: number, payload: { name?: string; email?: string | null }) => {
+  update: async (
+    id: number,
+    payload: { name?: string; email?: string | null; marketing_opt_out?: boolean },
+  ) => {
     const res = await apiClient.patch<{ data: CustomerProfile }>(`/clinic/customers/${id}`, payload);
     return res.data.data;
   },

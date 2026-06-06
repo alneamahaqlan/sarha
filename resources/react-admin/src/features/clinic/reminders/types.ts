@@ -2,7 +2,8 @@ export type ReminderStatus = 'pending' | 'done' | 'cancelled';
 
 export interface CustomerReminder {
   id: number;
-  customer_id: number;
+  title: string | null;
+  customer_id: number | null;
   customer_name: string | null;
   customer_phone: string | null;
   booking_id: number | null;
@@ -19,7 +20,8 @@ export interface CustomerReminder {
 }
 
 export interface CreateReminderInput {
-  customer_id: number;
+  customer_id?: number | null;
+  title?: string | null;
   booking_id?: number | null;
   assignee_member_id?: number | null;
   remind_at: string; // ISO 8601

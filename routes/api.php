@@ -441,6 +441,20 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::post('reminders/{reminder}/cancel', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'cancel'])->name('clinic.reminders.cancel');
         });
 
+        // Patient campaigns — segment a clinic's own customers + manual
+        // WhatsApp outreach with per-recipient tracking.
+        Route::middleware('clinic.role:campaigns.view')->group(function () {
+            Route::get('campaigns', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'index'])->name('clinic.campaigns.index');
+            Route::post('campaigns/preview', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'preview'])->name('clinic.campaigns.preview');
+            Route::get('campaigns/{campaign}', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'show'])->name('clinic.campaigns.show');
+            Route::get('campaigns/{campaign}/recipients', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'recipients'])->name('clinic.campaigns.recipients');
+        });
+        Route::middleware('clinic.role:campaigns.manage')->group(function () {
+            Route::post('campaigns', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'store'])->name('clinic.campaigns.store');
+            Route::post('campaigns/{campaign}/recipients/{recipient}/mark', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'markRecipient'])->name('clinic.campaigns.mark');
+            Route::delete('campaigns/{campaign}', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'destroy'])->name('clinic.campaigns.destroy');
+        });
+
         Route::apiResource('bookings', ClinicBookingController::class)
             ->only(['index', 'store', 'show', 'update'])
             ->names('clinic.bookings');

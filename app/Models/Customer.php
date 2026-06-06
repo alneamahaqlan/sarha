@@ -30,6 +30,7 @@ class Customer extends Model
 
     protected $fillable = [
         'clinic_id', 'phone', 'name', 'email', 'user_id',
+        'marketing_opt_out',
         'first_seen_at', 'last_seen_at',
         'last_interaction_at', 'last_interaction_type',
         'total_bookings', 'completed_bookings',
@@ -43,6 +44,7 @@ class Customer extends Model
             'first_seen_at'       => 'datetime',
             'last_seen_at'        => 'datetime',
             'last_interaction_at' => 'datetime',
+            'marketing_opt_out'   => 'boolean',
             'total_bookings'      => 'integer',
             'completed_bookings'  => 'integer',
             'total_complaints'    => 'integer',

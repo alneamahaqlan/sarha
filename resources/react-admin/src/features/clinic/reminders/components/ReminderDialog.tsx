@@ -18,7 +18,8 @@ interface AssigneeOption { type: string; id: number; name: string; role: string 
 interface Props {
   open: boolean;
   onClose: () => void;
-  customerId: number;
+  /** Omit for a general team task (no customer). */
+  customerId?: number | null;
   customerName?: string | null;
   bookingId?: number | null;
 }
@@ -49,7 +50,9 @@ function presets(): { key: string; at: Date }[] {
 export function ReminderDialog({ open, onClose, customerId, customerName, bookingId }: Props) {
   const { t } = useTranslation();
   const mut = useCreateReminder();
+  const isGeneral = !customerId;
   const [remindAt, setRemindAt] = useState('');
+  const [title, setTitle] = useState('');
   const [note, setNote] = useState('');
   const [assigneeId, setAssigneeId] = useState('');
 
@@ -66,11 +69,16 @@ export function ReminderDialog({ open, onClose, customerId, customerName, bookin
 
   function reset() {
     setRemindAt('');
+    setTitle('');
     setNote('');
     setAssigneeId('');
   }
 
   async function onSubmit() {
+    if (isGeneral && !title.trim()) {
+      toast.error(t('clinic_reminders.errors.no_title'));
+      return;
+    }
     if (!remindAt) {
       toast.error(t('clinic_reminders.errors.no_time'));
       return;
@@ -82,7 +90,8 @@ export function ReminderDialog({ open, onClose, customerId, customerName, bookin
     }
     try {
       await mut.mutateAsync({
-        customer_id: customerId,
+        customer_id: customerId ?? null,
+        title: title.trim() || null,
         booking_id: bookingId ?? null,
         assignee_member_id: assigneeId ? Number(assigneeId) : null,
         remind_at: when.toISOString(),
@@ -100,15 +109,32 @@ export function ReminderDialog({ open, onClose, customerId, customerName, bookin
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('clinic_reminders.dialog.title')}</DialogTitle>
+          <DialogTitle>
+            {isGeneral ? t('clinic_reminders.dialog.title_task') : t('clinic_reminders.dialog.title')}
+          </DialogTitle>
           <DialogDescription>
             {customerName
               ? t('clinic_reminders.dialog.subtitle_named', { name: customerName })
-              : t('clinic_reminders.dialog.subtitle')}
+              : isGeneral
+                ? t('clinic_reminders.dialog.subtitle_task')
+                : t('clinic_reminders.dialog.subtitle')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
+          {isGeneral && (
+            <div className="space-y-1.5">
+              <Label htmlFor="rem-title">{t('clinic_reminders.fields.task_title')}</Label>
+              <Input
+                id="rem-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('clinic_reminders.fields.task_title_placeholder')}
+                maxLength={255}
+              />
+            </div>
+          )}
+
           <div className="space-y-1.5">
             <Label htmlFor="rem-at">{t('clinic_reminders.fields.remind_at')}</Label>
             <Input

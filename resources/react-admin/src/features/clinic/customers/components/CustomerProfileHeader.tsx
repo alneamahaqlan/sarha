@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useCan } from '@/app/providers/AuthProvider';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
@@ -44,6 +45,15 @@ export function CustomerProfileHeader({ customer }: Props) {
     setName(customer.name);
     setEmail(customer.email ?? '');
     setEditing(false);
+  }
+
+  async function toggleOptOut(next: boolean) {
+    try {
+      await mut.mutateAsync({ marketing_opt_out: next });
+      toast.success(next ? t('clinic_customers.opt_out.now_excluded') : t('clinic_customers.opt_out.now_included'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
   }
 
   const badges: any[] = [];
@@ -93,7 +103,16 @@ export function CustomerProfileHeader({ customer }: Props) {
                 {customer.tags.map((tag) => (
                   <Badge key={tag.id} variant="muted" className="bg-slate-100 text-slate-700">{tag.label}</Badge>
                 ))}
+                {customer.marketing_opt_out && (
+                  <Badge variant="warning">{t('clinic_customers.opt_out.badge')}</Badge>
+                )}
               </div>
+              {canManage && (
+                <label className="flex items-center gap-2 pt-1 text-xs text-[var(--color-muted-foreground)]">
+                  <Switch checked={customer.marketing_opt_out} onCheckedChange={toggleOptOut} disabled={mut.isPending} />
+                  {t('clinic_customers.opt_out.toggle')}
+                </label>
+              )}
             </>
           )}
         </div>
