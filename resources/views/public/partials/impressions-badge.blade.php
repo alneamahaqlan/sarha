@@ -6,6 +6,11 @@
     and on anything that belongs to it, so visitors get a consistent signal
     of how active the complex is.
 
+    NOTE: impressionsCount() sums clinic_impressions for ALL TIME, whereas the
+    clinic dashboard / "My stats" impressions number is a trailing 30-day window
+    from the same table. Same source, different window — the public badge figure
+    is expected to be larger. Cached 15 min (key clinic:{id}:impressions_total).
+
     Super-admin controlled (System Settings → group "display"):
       - public_impressions_badge_enabled : master on/off switch.
       - public_impressions_badge_min     : hide below this many impressions,

@@ -6,6 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClinicStat extends Model
 {
+    /**
+     * @deprecated The `search_appearances` column is the LEGACY impressions
+     * counter. It is no longer the source of truth and is not read by any
+     * user-facing surface — public «عدد الظهور» and the clinic stats page both
+     * read clinic_impressions (per-source) via ImpressionTrackerService /
+     * ClinicStatsService. The column is kept only for historical/seeded data
+     * and is no longer written by runtime app code. Do NOT add new reads/writes
+     * to it. See docs/qa/TC-001-impressions-discrepancy.md.
+     */
     protected $fillable = [
         'clinic_id', 'date', 'search_appearances',
         'page_views', 'bookings_count', 'quote_requests_count',
