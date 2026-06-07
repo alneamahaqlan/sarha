@@ -46,7 +46,10 @@
 
         {{-- Details --}}
         <div>
-            <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+                @include('public.partials.impressions-badge', ['clinic' => $clinic])
+            </div>
             <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $offer->title }}</h1>
 
             @if($isServiceLinked)

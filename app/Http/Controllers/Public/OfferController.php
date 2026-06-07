@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Offer;
+use App\Services\ImpressionTrackerService;
 use App\Services\SimilarityService;
 
 class OfferController extends Controller
@@ -28,6 +30,16 @@ class OfferController extends Controller
 
         $offer->setRelation('clinic', $clinic);
         $offer->load(['service:id,name,price,image,sub_clinic_id', 'service.categories:id,name,emoji']);
+
+        // Opening an offer page counts as an appearance for the complex
+        // (and the linked service, if any). Feeds the public «عدد الظهور»
+        // badge; failure-isolated inside the tracker.
+        $tracker = app(ImpressionTrackerService::class);
+        if ($offer->service) {
+            $tracker->trackService($offer->service, ImpressionSource::PROFILE);
+        } else {
+            $tracker->trackClinic($clinic->id, ImpressionSource::PROFILE);
+        }
 
         $similarOffers = $similarity->similarOffers($offer);
 

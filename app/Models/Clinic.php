@@ -7,11 +7,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Clinic extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
+
+    /**
+     * Below this many total impressions the public "عدد الظهور" badge is
+     * hidden — a freshly-onboarded complex shouldn't broadcast a tiny,
+     * unprofessional number while the platform is still in launch stage.
+     */
+    public const IMPRESSIONS_BADGE_MIN = 10;
 
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'license_number', 'tax_number',
@@ -226,6 +235,25 @@ class Clinic extends Authenticatable
     public function stats()
     {
         return $this->hasMany(ClinicStat::class);
+    }
+
+    /**
+     * Total public "appearances" of this complex across every source and
+     * day — the figure shown to visitors as «عدد الظهور». Sums the
+     * clinic_impressions counters (search + filter + home + similar +
+     * compare + profile opens, plus AI silently). Cached for 15 minutes
+     * so the social-proof badge never adds a SUM query to every
+     * profile / service / offer / doctor page load.
+     */
+    public function impressionsCount(): int
+    {
+        return (int) Cache::remember(
+            "clinic:{$this->id}:impressions_total",
+            now()->addMinutes(15),
+            fn () => (int) DB::table('clinic_impressions')
+                ->where('clinic_id', $this->id)
+                ->sum('count'),
+        );
     }
 
     public function aiConversations()

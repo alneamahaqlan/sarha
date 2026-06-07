@@ -194,6 +194,13 @@ class DatabaseSeeder extends Seeder
             ['key' => 'platform_email', 'value' => 'info@saerha.sa', 'type' => 'string', 'group' => 'general', 'label' => 'البريد الرسمي'],
             ['key' => 'platform_phone', 'value' => '+966XXXXXXXXX', 'type' => 'string', 'group' => 'general', 'label' => 'رقم الهاتف الرسمي'],
 
+            // ----- Public "عدد الظهور" (impressions) badge -----
+            // Controls the social-proof badge shown to visitors on the complex
+            // page and on anything that belongs to it (service / offer / doctor
+            // / sub-clinic). Both knobs are read in the impressions-badge blade.
+            ['key' => 'public_impressions_badge_enabled', 'value' => '1',  'type' => 'boolean', 'group' => 'display', 'label' => 'عرض شارة «عدد الظهور» للزوّار', 'description' => 'عند التفعيل، تظهر شارة عدد مرّات ظهور المجمع للزوّار على صفحة المجمع وصفحات الخدمات/العروض/الأطباء/العيادات التابعة له. عند الإيقاف تُخفى الشارة في كل المنصة.'],
+            ['key' => 'public_impressions_badge_min',     'value' => '10', 'type' => 'integer', 'group' => 'display', 'label' => 'الحدّ الأدنى لعرض شارة الظهور', 'description' => 'لا تظهر الشارة إلا إذا بلغ عدد ظهور المجمع هذا الحدّ أو أكثر — لتجنّب عرض رقم صغير غير احترافي للمجمعات الجديدة. ضع 1 لإظهارها لأي مجمع له ظهور، أو 0 لإظهارها دائماً.'],
+
             // ----- AI assistant (provider + per-provider key + model) -----
             // ai_provider selects the active LLM. The matching ai_<name>_api_key
             // gets used. Keys are type=encrypted so they're never returned in

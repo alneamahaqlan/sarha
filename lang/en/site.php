@@ -250,6 +250,9 @@ return [
     'verified_badge' => 'Verified',
     'verified_badge_tooltip' => 'Complex verified by the platform administration',
     'premium_badge' => 'Premium',
+    // "appearances" social-proof badge on public complex/service/offer/doctor pages.
+    'impressions_label' => 'views',
+    'impressions_tooltip' => 'Total times this complex has appeared across the platform (search, homepage, similar strips, and page opens)',
 
     // Team-member attribution on customer-facing replies (price quote / complaint).
     'reply_by_member' => 'Reply from the complex team — :member (:role)',

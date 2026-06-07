@@ -19,7 +19,10 @@
         @if($subClinic->category)
             <span class="text-sm text-gray-500">{{ $subClinic->category->emoji }} {{ $subClinic->category->name }}</span>
         @endif
-        <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $subClinic->display_name }}</h1>
+        <div class="flex items-center gap-2 flex-wrap mt-1">
+            <h1 class="text-2xl font-bold text-gray-800">{{ $subClinic->display_name }}</h1>
+            @include('public.partials.impressions-badge', ['clinic' => $clinic])
+        </div>
         @if($subClinic->description)
             <p class="text-gray-600 leading-relaxed mt-3 whitespace-pre-line">{{ $subClinic->description }}</p>
         @endif

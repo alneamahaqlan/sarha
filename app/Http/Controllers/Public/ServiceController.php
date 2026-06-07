@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Service;
+use App\Services\ImpressionTrackerService;
 use App\Services\SimilarityService;
 
 class ServiceController extends Controller
@@ -31,6 +33,11 @@ class ServiceController extends Controller
             'subClinic:id,name,name_en,clinic_id',
             'categories:id,name,emoji',
         ]);
+
+        // Opening a service page counts as an appearance for both the
+        // service and (cascaded) its complex — feeds the public «عدد الظهور»
+        // badge. Failure-isolated inside the tracker; never breaks the page.
+        app(ImpressionTrackerService::class)->trackService($service, ImpressionSource::PROFILE);
 
         $similarServices = $similarity->similarServices($service);
 

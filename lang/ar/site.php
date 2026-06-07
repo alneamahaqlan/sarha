@@ -250,6 +250,9 @@ return [
     'verified_badge' => 'موثّق',
     'verified_badge_tooltip' => 'مجمع تم توثيقه من قبل إدارة المنصة',
     'premium_badge' => 'مميز',
+    // "عدد الظهور" social-proof badge on public complex/service/offer/doctor pages.
+    'impressions_label' => 'ظهور',
+    'impressions_tooltip' => 'إجمالي مرّات ظهور هذا المجمع عبر المنصة (البحث والصفحة الرئيسية والمشابهة وفتح صفحاته)',
 
     // Team-member attribution on customer-facing replies (price quote / complaint).
     'reply_by_member' => 'ردّ من فريق المجمع — :member (:role)',
