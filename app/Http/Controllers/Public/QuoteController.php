@@ -39,6 +39,17 @@ class QuoteController extends Controller
         $validated = $this->validateQuote($request);
 
         if ($this->customerVerified($request, $validated['customer_phone'])) {
+            // A returning device (cookie match) skips OTP but isn't logged in yet.
+            // Log the customer in so they own the new request and can view
+            // quotes.show — otherwise the owner check there fails and aborts 404.
+            if (! auth('web')->check()) {
+                $user = $this->resolveCustomerUser($validated['customer_name'], $validated['customer_phone']);
+                if (! $user->is_active) {
+                    return back()->withErrors(['account' => __('site.account_blocked')])->withInput();
+                }
+                auth('web')->login($user, true);
+            }
+
             $quote = $this->createQuote($validated);
 
             return redirect()->route('quotes.show', $quote->id)
@@ -121,12 +132,21 @@ class QuoteController extends Controller
         $quoteRequest->load(['cities:id,name,name_en', 'replies.clinic:id,name,slug']);
 
         $isOwner = auth('web')->id() && auth('web')->id() === $quoteRequest->user_id;
+        $hasPublicReplies = $quoteRequest->publicReplies()->exists();
+
+        // A private request (no public replies yet) is viewable only by its owner.
+        if (! $isOwner && ! $hasPublicReplies) {
+            // A guest may in fact be the owner once they log in — send them to
+            // login and bring them back here, instead of a dead-end 404.
+            if (! auth('web')->check()) {
+                return redirect()->guest(route('login'));
+            }
+            abort(404);
+        }
+
         $replies = $isOwner
             ? $quoteRequest->replies
             : $quoteRequest->replies->where('is_public', true);
-
-        // Non-owners may only open requests that have public replies.
-        abort_if(! $isOwner && $replies->isEmpty() && $quoteRequest->publicReplies()->doesntExist(), 404);
 
         return view('public.quote-show', compact('quoteRequest', 'replies', 'isOwner'));
     }
