@@ -19,7 +19,7 @@ return [
     // Navigation groups (clinic panel)
     'group_my_services' => 'إدارة خدماتي',
     'group_bookings' => 'الحجوزات والعملاء',
-    'group_articles' => 'المحتوى والمقالات',
+    'group_articles' => 'المحتوى والمدونة',
     'group_settings' => 'الإعدادات',
 
     // ============================================
@@ -41,16 +41,16 @@ return [
     'res_category' => 'تخصص',
     'res_cities' => 'المدن',
     'res_city' => 'مدينة',
-    'res_articles' => 'المقالات',
-    'res_article' => 'مقال',
+    'res_articles' => 'المدونة',
+    'res_article' => 'تدوينة',
     'res_services' => 'الخدمات',
     'res_service' => 'خدمة',
     'res_audit_logs' => 'سجل المراجعة',
     'res_audit_log' => 'سجل',
     'res_my_service' => 'خدمة',
     'res_my_services' => 'خدماتي',
-    'res_my_article' => 'مقال',
-    'res_my_articles' => 'مقالاتي',
+    'res_my_article' => 'تدوينة',
+    'res_my_articles' => 'مدونتي',
     'res_clinic_profile' => 'ملف المجمع',
     'res_complaints' => 'الشكاوى',
     'res_complaint' => 'شكوى',
@@ -100,10 +100,10 @@ return [
 
         // Article
         'title' => 'العنوان',
-        'title_article' => 'عنوان المقال',
+        'title_article' => 'عنوان التدوينة',
         'excerpt' => 'مقتطف',
-        'body' => 'محتوى المقال',
-        'cover_image' => 'صورة المقال',
+        'body' => 'محتوى التدوينة',
+        'cover_image' => 'صورة التدوينة',
         'image' => 'الصورة',
         'logo' => 'الشعار',
         'gallery' => 'معرض الصور',
@@ -299,7 +299,7 @@ return [
         'extend_30' => 'تمديد 30 يوماً',
         'extend_90' => 'تمديد 90 يوماً',
         'generate_excerpt_ai' => 'توليد المقدمة بالذكاء',
-        'generate_article_ai' => 'كتابة المقال بالذكاء',
+        'generate_article_ai' => 'كتابة التدوينة بالذكاء',
         'analyze_excel_ai' => 'تحليل Excel بالذكاء',
         'import_from_sheets' => 'استيراد من Google Sheets',
         'login_as' => 'دخول كمجمع',
@@ -414,17 +414,17 @@ return [
         'impersonated_title' => 'دخل مسؤول إلى حسابك',
         'impersonated_body'  => 'الأدمن :admin يدير لوحتك حالياً للمراجعة',
 
-        'limit_warn_title' => 'قاربت على حد المقالات',
-        'limit_warn_body'  => 'نشرت :used من :limit مقالات هذا الشهر. ترقّى للباقة الأعلى لمقالات غير محدودة.',
+        'limit_warn_title' => 'قاربت على حد التدوينات',
+        'limit_warn_body'  => 'نشرت :used من :limit تدوينات هذا الشهر. ترقّى للباقة الأعلى لتدوينات غير محدودة.',
         'limit_hit_title' => 'تجاوزت الحد الشهري',
-        'limit_hit_body'  => 'تم حفظ مقالتك كمسودة لأن باقتك الحالية تسمح بـ :limit مقالات شهرياً.',
+        'limit_hit_body'  => 'تم حفظ تدوينتك كمسودة لأن باقتك الحالية تسمح بـ :limit تدوينات شهرياً.',
 
-        'article_published_title' => 'تم نشر مقال جديد',
-        'article_published_body'  => 'نشر :clinic مقال ":article" — راجع المحتوى.',
+        'article_published_title' => 'تم نشر تدوينة جديدة',
+        'article_published_body'  => 'نشر :clinic تدوينة ":article" — راجع المحتوى.',
     ],
 
     'ai' => [
-        'title_first' => 'أدخل عنوان المقال أولاً',
+        'title_first' => 'أدخل عنوان التدوينة أولاً',
         'not_configured' => 'مفتاح Claude API غير مفعّل. أضف ANTHROPIC_API_KEY في .env',
         'generated' => 'تم التوليد بنجاح',
         'failed' => 'تعذّر التوليد',
@@ -458,6 +458,7 @@ return [
         'city_has_clinics' => 'لا يمكن حذف مدينة مرتبطة بمجمعات',
         'category_has_clinics' => 'لا يمكن حذف تخصص مرتبط بمجمعات',
         'sub_clinic_has_services' => 'لا يمكن حذف عيادة مرتبطة بخدمات',
+        'static_page_is_system' => 'لا يمكن حذف صفحة أساسية في النظام',
     ],
 
     // WhatsApp sender numbers (OTP delivery via Wappi)

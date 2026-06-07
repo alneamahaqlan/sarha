@@ -12,6 +12,7 @@ use App\Http\Controllers\Public\DoctorController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\OfferController;
 use App\Http\Controllers\Public\PackageController;
+use App\Http\Controllers\Public\PageController;
 use App\Http\Controllers\Public\QuoteController;
 use App\Http\Controllers\Public\SearchController;
 use App\Http\Controllers\Public\ServiceController;
@@ -117,3 +118,10 @@ Route::middleware('auth:web')->group(function () {
     Route::delete('/account/relatives/{relative}', [AccountController::class, 'destroyRelative'])
         ->name('account.relatives.destroy');
 });
+
+// Admin-managed static content pages (About, Privacy, Terms, Contact, FAQ).
+// MUST stay LAST: this single-segment catch-all only matches slugs that no
+// earlier route claimed, so reserved words (search/login/account/...) win.
+Route::get('/{slug}', [PageController::class, 'show'])
+    ->where('slug', '[a-z0-9-]+')
+    ->name('pages.show');

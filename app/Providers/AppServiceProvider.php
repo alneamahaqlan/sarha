@@ -22,7 +22,9 @@ use App\Observers\ComplaintObserver;
 use App\Observers\PriceQuoteCustomerLinkObserver;
 use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
+use App\View\Composers\LayoutComposer;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -73,6 +75,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Custom Tailwind pagination view used across the public Blade lists.
         Paginator::defaultView('vendor.pagination.saerha');
+
+        // Public header/footer are admin-driven (navigation links + footer
+        // contact/social settings) — a single composer feeds both partials.
+        View::composer(
+            ['layouts.partials.header', 'layouts.partials.footer'],
+            LayoutComposer::class,
+        );
 
         $auditable = [
             Clinic::class,

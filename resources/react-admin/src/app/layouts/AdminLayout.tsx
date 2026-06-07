@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -37,6 +37,8 @@ const adminNav = [
       { to: '/admin/catalog-services', label: 'nav.catalog_services', icon: ClipboardList, badge: 'catalog_requests' as keyof AdminNavBadges },
       { to: '/admin/articles', label: 'nav.articles', icon: FileText },
       { to: '/admin/homepage-sections', label: 'nav.homepage_sections', icon: Home },
+      { to: '/admin/static-pages', label: 'nav.static_pages', icon: FileStack },
+      { to: '/admin/navigation-links', label: 'nav.navigation_links', icon: Link2 },
     ],
   },
   {

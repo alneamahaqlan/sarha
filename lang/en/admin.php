@@ -19,7 +19,7 @@ return [
     // Navigation groups (clinic panel)
     'group_my_services' => 'My Services',
     'group_bookings' => 'Bookings & Customers',
-    'group_articles' => 'Content & Articles',
+    'group_articles' => 'Content & Blog',
     'group_settings' => 'Settings',
 
     // ============================================
@@ -41,16 +41,16 @@ return [
     'res_category' => 'Specialty',
     'res_cities' => 'Cities',
     'res_city' => 'City',
-    'res_articles' => 'Articles',
-    'res_article' => 'Article',
+    'res_articles' => 'Blog',
+    'res_article' => 'Post',
     'res_services' => 'Services',
     'res_service' => 'Service',
     'res_audit_logs' => 'Audit Log',
     'res_audit_log' => 'Entry',
     'res_my_service' => 'Service',
     'res_my_services' => 'My Services',
-    'res_my_article' => 'Article',
-    'res_my_articles' => 'My Articles',
+    'res_my_article' => 'Post',
+    'res_my_articles' => 'My Blog',
     'res_clinic_profile' => 'Complex Profile',
     'res_complaints' => 'Complaints',
     'res_complaint' => 'Complaint',
@@ -100,9 +100,9 @@ return [
 
         // Article
         'title' => 'Title',
-        'title_article' => 'Article title',
+        'title_article' => 'Post title',
         'excerpt' => 'Excerpt',
-        'body' => 'Article body',
+        'body' => 'Post body',
         'cover_image' => 'Cover image',
         'image' => 'Image',
         'logo' => 'Logo',
@@ -299,7 +299,7 @@ return [
         'extend_30' => 'Extend 30 days',
         'extend_90' => 'Extend 90 days',
         'generate_excerpt_ai' => 'Generate excerpt with AI',
-        'generate_article_ai' => 'Write article with AI',
+        'generate_article_ai' => 'Write post with AI',
         'analyze_excel_ai' => 'Analyze Excel with AI',
         'import_from_sheets' => 'Import from Google Sheets',
         'login_as' => 'Log in as complex',
@@ -414,17 +414,17 @@ return [
         'impersonated_title' => 'An admin entered your account',
         'impersonated_body'  => 'Admin :admin is managing your panel for review',
 
-        'limit_warn_title' => 'Article limit approaching',
-        'limit_warn_body'  => 'You have published :used of :limit articles this month. Upgrade for unlimited articles.',
+        'limit_warn_title' => 'Post limit approaching',
+        'limit_warn_body'  => 'You have published :used of :limit posts this month. Upgrade for unlimited posts.',
         'limit_hit_title' => 'Monthly limit reached',
-        'limit_hit_body'  => 'Your article was saved as a draft because your current plan allows :limit published articles per month.',
+        'limit_hit_body'  => 'Your post was saved as a draft because your current plan allows :limit published posts per month.',
 
-        'article_published_title' => 'New article published',
+        'article_published_title' => 'New post published',
         'article_published_body'  => ':clinic published ":article" — review the content.',
     ],
 
     'ai' => [
-        'title_first' => 'Please enter the article title first',
+        'title_first' => 'Please enter the post title first',
         'not_configured' => 'Claude API key is not configured. Add ANTHROPIC_API_KEY to .env',
         'generated' => 'Generated successfully',
         'failed' => 'Generation failed',
@@ -458,6 +458,7 @@ return [
         'city_has_clinics' => 'Cannot delete a city that has complexes',
         'category_has_clinics' => 'Cannot delete a specialty that has complexes',
         'sub_clinic_has_services' => 'Cannot delete a clinic that has services',
+        'static_page_is_system' => 'Cannot delete a core system page',
     ],
 
     // WhatsApp sender numbers (OTP delivery via Wappi)

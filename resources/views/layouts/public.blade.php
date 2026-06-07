@@ -41,79 +41,8 @@
 </head>
 <body class="bg-cream antialiased">
 
-{{-- Navigation --}}
-<nav class="bg-white shadow-sm sticky top-0 z-50" x-data="{ open: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-            <div class="flex items-center gap-2">
-                {{-- Mobile hamburger — sized to clear 44px so a thumb tap
-                     never misses. -ms-2 stays so the icon stays optically
-                     flush with the brand logo. --}}
-                <button type="button" @click="open = !open"
-                        class="md:hidden inline-flex items-center justify-center min-h-touch min-w-touch -ms-2 text-gray-600 hover:text-sage-600"
-                        :aria-expanded="open.toString()" aria-label="@lang('site.menu')">
-                    <svg x-show="!open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                    <svg x-show="open" x-cloak class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-                <a href="{{ route('home') }}" class="flex items-center gap-2">
-                    <x-logo :size="40" />
-                </a>
-            </div>
-
-            <div class="hidden md:flex items-center gap-6">
-                <a href="{{ route('search') }}" class="inline-flex items-center min-h-touch text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_search')</a>
-                <a href="{{ route('quotes.board') }}" class="inline-flex items-center min-h-touch text-gray-600 hover:text-sage-600 transition-colors">@lang('site.nav_quotes')</a>
-            </div>
-
-            <div class="flex items-center gap-3">
-                {{-- Language switcher — bumped from py-1 to min-h-touch so it
-                     clears 44px on mobile thumbs. Sizing keeps desktop tight. --}}
-                <a href="{{ route('lang.switch', $altLocale) }}"
-                   class="inline-flex items-center justify-center min-h-touch text-sm text-gray-600 hover:text-sage-600 transition-colors px-3 border border-gray-200 rounded-lg"
-                   title="@lang('site.language')">
-                    {{ $altLocale === 'en' ? 'English' : 'العربية' }}
-                </a>
-
-                @auth('web')
-                    <a href="{{ route('account.show') }}"
-                       class="inline-flex items-center gap-1.5 min-h-touch text-sm text-gray-700 hover:text-sage-600 transition-colors">
-                        <span class="w-7 h-7 rounded-full bg-sage-100 text-sage-700 flex items-center justify-center text-xs font-bold">
-                            {{ mb_substr(auth('web')->user()->name ?: 'م', 0, 1) }}
-                        </span>
-                        <span class="hidden sm:inline">{{ auth('web')->user()->name ?: __('site.account_title') }}</span>
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center min-h-touch text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
-                        @lang('site.nav_login')
-                    </a>
-                @endauth
-            </div>
-        </div>
-
-        {{-- Mobile menu panel — each row gets min-h-touch so the
-             whole strip is a comfortable thumb target. --}}
-        <div x-show="open" x-cloak @click.outside="open = false"
-             class="md:hidden border-t border-gray-100 py-2">
-            <a href="{{ route('search') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_search')</a>
-            <a href="{{ route('quotes.board') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_quotes')</a>
-            @auth('web')
-                <a href="{{ route('account.show') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_profile')</a>
-                <a href="{{ route('account.bookings') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
-                <a href="{{ route('account.favorites') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>
-            @else
-                <a href="{{ route('login') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
-            @endauth
-        </div>
-    </div>
-</nav>
+{{-- Navigation (admin-managed links via navigation_links + LayoutComposer) --}}
+@include('layouts.partials.header')
 
 {{-- Flash messages --}}
 @if(session('success') || session('error'))
@@ -137,37 +66,8 @@
 
 @yield('content')
 
-<footer class="bg-charcoal text-gray-400 mt-16">
-    <div class="max-w-7xl mx-auto px-4 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div>
-                <x-logo :size="44" :on-dark="true" class="mb-3" />
-                <p class="text-sm leading-relaxed mt-3">@lang('site.footer_about')</p>
-            </div>
-            <div>
-                <h4 class="text-white font-semibold mb-3">@lang('site.footer_quick_links')</h4>
-                {{-- Footer link rows used to be naked inline text (~21px tall).
-                     Each link is now a block-level hit area clearing 44px so
-                     thumbs land reliably; gap stays 0 since each row has
-                     intrinsic vertical padding from min-h-touch. --}}
-                <ul class="text-sm">
-                    <li><a href="{{ route('home') }}" class="flex items-center min-h-touch hover:text-white transition-colors">@lang('site.breadcrumb_home')</a></li>
-                    <li><a href="{{ route('search') }}" class="flex items-center min-h-touch hover:text-white transition-colors">@lang('site.nav_search')</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="text-white font-semibold mb-3">@lang('site.footer_for_clinics')</h4>
-                <p class="text-sm mb-3">@lang('site.footer_for_clinics_desc')</p>
-                <a href="{{ route('clinic.register') }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
-                    @lang('site.nav_register_clinic')
-                </a>
-            </div>
-        </div>
-        <div class="border-t border-gray-800 mt-8 pt-6 text-center text-sm">
-            {!! __('site.footer_rights', ['year' => date('Y')]) !!}
-        </div>
-    </div>
-</footer>
+{{-- Footer (admin-managed columns + contact/social via LayoutComposer) --}}
+@include('layouts.partials.footer')
 
 {{-- Global AI chat widget --}}
 @livewire('ai-chat')

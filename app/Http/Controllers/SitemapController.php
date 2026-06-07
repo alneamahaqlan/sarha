@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\Clinic;
+use App\Models\StaticPage;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -34,6 +35,17 @@ class SitemapController extends Controller
                 'priority'   => '0.8',
                 'changefreq' => 'weekly',
                 'lastmod'    => $clinic->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+            ]);
+        }
+
+        // Admin-managed static pages (About, Privacy, Terms, ...)
+        $pages = StaticPage::published()->select(['slug', 'updated_at'])->get();
+        foreach ($pages as $page) {
+            $urls->push([
+                'loc'        => url('/' . $page->slug),
+                'priority'   => '0.5',
+                'changefreq' => 'monthly',
+                'lastmod'    => $page->updated_at?->toIso8601String() ?? now()->toIso8601String(),
             ]);
         }
 

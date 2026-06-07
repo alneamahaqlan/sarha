@@ -56,6 +56,11 @@ class DatabaseSeeder extends Seeder
         // public landing page renders empty without these rows.
         $this->call(HomepageSectionsSeeder::class);
 
+        // Static pages (About/Privacy/Terms/Contact/FAQ) + header/footer
+        // navigation links + footer contact/social settings. Light &
+        // idempotent (pages upsert, nav links seed-once) — always wanted.
+        $this->call(StaticContentSeeder::class);
+
         // ── Heavy demo data — opt out via SEED_HEAVY=0 in .env ─────────────
         if (env('SEED_HEAVY', true)) {
             $this->call(MassiveCityCoverageSeeder::class);

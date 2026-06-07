@@ -23,6 +23,8 @@ use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
+use App\Http\Controllers\Api\V1\Admin\NavigationLinkController;
+use App\Http\Controllers\Api\V1\Admin\StaticPageController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserProfileController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
@@ -127,6 +129,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::apiResource('categories', CategoryController::class);
+
+        // Static content pages (About/Privacy/Terms/Contact/FAQ) + the
+        // header/footer navigation-link manager. Both follow the category
+        // CRUD + reorder pattern.
+        Route::post('static-pages/reorder', [StaticPageController::class, 'reorder'])->name('static-pages.reorder');
+        Route::apiResource('static-pages', StaticPageController::class)->parameters(['static-pages' => 'static_page']);
+        Route::post('navigation-links/reorder', [NavigationLinkController::class, 'reorder'])->name('navigation-links.reorder');
+        Route::apiResource('navigation-links', NavigationLinkController::class)->parameters(['navigation-links' => 'navigation_link']);
 
         // Subscription packages catalogue — full CRUD for the super-admin.
         // Deletion is rejected at controller level if any clinic is on the package.
