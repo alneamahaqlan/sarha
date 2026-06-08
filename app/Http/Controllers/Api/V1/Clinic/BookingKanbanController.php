@@ -68,7 +68,7 @@ class BookingKanbanController extends Controller
     public function show(Booking $booking): BookingDetailResource
     {
         $this->authorize('view', $booking);
-        $booking->load(['service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags']);
+        $booking->load(['service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags', 'customer:id,follow_up_priority']);
         return new BookingDetailResource($booking);
     }
 

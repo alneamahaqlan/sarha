@@ -88,6 +88,7 @@ class BookingDetailResource extends JsonResource
             'created_at'     => $this->created_at?->toIso8601String(),
             'updated_at'     => $this->updated_at?->toIso8601String(),
             'created_by_name' => $this->created_by_name,
+            'follow_up_priority' => (int) ($this->customer?->follow_up_priority ?? 0),
         ];
     }
 

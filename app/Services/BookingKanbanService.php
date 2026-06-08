@@ -57,7 +57,13 @@ class BookingKanbanService
             $q->where('id', '<', $cursor);
         }
 
-        $q->orderByRaw('CASE WHEN appointment_at IS NULL THEN 1 ELSE 0 END, appointment_at ASC')
+        // Order by follow-up priority (the customer's star rating) first,
+        // then by appointment date. Priority lives on the customer, so we
+        // read it via a correlated subquery to avoid a join that would make
+        // the shared base-query columns ambiguous. Un-linked bookings
+        // (null customer_id) sort last, as their priority is NULL.
+        $q->orderByRaw('(SELECT follow_up_priority FROM customers WHERE customers.id = bookings.customer_id) DESC')
+          ->orderByRaw('CASE WHEN appointment_at IS NULL THEN 1 ELSE 0 END, appointment_at ASC')
           ->orderByDesc('id');
 
         $items = $q->take($limit + 1)->get();
@@ -134,7 +140,7 @@ class BookingKanbanService
     {
         $q = Booking::query()
             ->where('clinic_id', $clinicId)
-            ->with(['service:id,name', 'assignee', 'tags']);
+            ->with(['service:id,name', 'assignee', 'tags', 'customer:id,follow_up_priority']);
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
             $q->where(function ($w) use ($search) {

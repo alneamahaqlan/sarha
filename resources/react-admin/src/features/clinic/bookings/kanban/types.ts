@@ -46,6 +46,15 @@ export type SuggestionKey =
   | 'reminder_soon'
   | 'cancel_risk';
 
+/** Per-suggestion config: always has `enabled`; threshold field varies. */
+export interface SuggestionSetting {
+  enabled: boolean;
+  hours?: number;
+  count?: number;
+}
+
+export type SuggestionSettings = Record<SuggestionKey, SuggestionSetting>;
+
 export type AssigneeKind = 'Clinic' | 'ClinicTeamMember';
 
 export interface AssigneePayload {
@@ -121,6 +130,7 @@ export interface KanbanCard {
   created_at: string;
   acquisition_source: AcquisitionSource;
   stage_id: number | null;
+  follow_up_priority: number;
   is_for_relative: boolean;
   auto_tags: AutoTags;
   suggestions: SuggestionKey[];
@@ -286,6 +296,7 @@ export interface BookingDetail {
   created_at: string;
   updated_at: string;
   created_by_name: string | null;
+  follow_up_priority: number;
 }
 
 export interface AssigneeOption {

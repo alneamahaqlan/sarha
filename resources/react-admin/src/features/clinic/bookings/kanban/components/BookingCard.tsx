@@ -4,12 +4,15 @@ import { Check, Clock, User, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { useCan } from '@/app/providers/AuthProvider';
 import { Badge } from '@/components/ui/badge';
 import { extractMessage } from '@/lib/api-client';
 import { bookingKanbanApi } from '../api';
 import { CardAutoTags } from './CardAutoTags';
 import { CardSuggestions } from './CardSuggestions';
 import { CardHeatBar } from './CardHeatBar';
+import { FollowUpStars } from '@/features/clinic/customers/components/FollowUpStars';
+import { customersApi } from '@/features/clinic/customers/api';
 import type { KanbanCard, TagDto } from '../types';
 
 interface Props {
@@ -42,6 +45,22 @@ export function BookingCard({ card, onOpen }: Props) {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const qc = useQueryClient();
+  const canManage = useCan('customers.manage');
+
+  // Follow-up priority is a customer attribute — editing it here updates
+  // the linked customer and refreshes both the board and the CRM.
+  async function setPriority(v: number) {
+    if (!card.customer_id) return;
+    try {
+      await customersApi.update(card.customer_id, { follow_up_priority: v });
+      // Re-sort the board only (the card may move within its column);
+      // the stars already filled optimistically, so this is background.
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban', 'board'] });
+      qc.invalidateQueries({ queryKey: ['clinic', 'customers', 'list'] });
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  }
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     data: { card },
@@ -53,7 +72,7 @@ export function BookingCard({ card, onOpen }: Props) {
     e.stopPropagation();
     try {
       await bookingKanbanApi.updateStatus(card.id, { status: 'contacted' });
-      qc.invalidateQueries({ queryKey: ['clinic', 'bookings'] });
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban'] });
       toast.success(t('clinic_bookings_kanban.card.marked_contacted'));
     } catch (err) {
       toast.error(extractMessage(err, t('errors.generic')));
@@ -94,7 +113,17 @@ export function BookingCard({ card, onOpen }: Props) {
               {card.reference_code}
             </div>
           </div>
-          {subBadgeLabel && <Badge variant="muted" className="shrink-0 px-1.5 text-[10px]">{subBadgeLabel}</Badge>}
+          <div className="flex shrink-0 items-center gap-1">
+            <span onPointerDown={(e) => e.stopPropagation()}>
+              <FollowUpStars
+                value={card.follow_up_priority}
+                size="sm"
+                showLabel={false}
+                onChange={canManage && card.customer_id ? setPriority : undefined}
+              />
+            </span>
+            {subBadgeLabel && <Badge variant="muted" className="px-1.5 text-[10px]">{subBadgeLabel}</Badge>}
+          </div>
         </div>
 
         <CardAutoTags tags={card.auto_tags} />

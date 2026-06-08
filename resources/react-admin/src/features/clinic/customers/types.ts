@@ -36,6 +36,7 @@ export interface CustomerListRow {
   last_seen_at: string | null;
   last_interaction_at: string | null;
   last_interaction_type: InteractionKind;
+  follow_up_priority: number;
   tags: CustomerTagDto[];
   has_notes?: boolean | null;
 }
@@ -62,6 +63,7 @@ export interface CustomerProfile {
   last_seen_at: string | null;
   last_interaction_at: string | null;
   last_interaction_type: InteractionKind;
+  follow_up_priority: number;
   auto_tags: {
     is_vip: boolean;
     is_repeat: boolean;
@@ -154,6 +156,11 @@ export interface ListFilters {
   booking_range?: BookingRange;
   has_notes?: boolean;
   last_interaction?: LastInteractionWindow;
+  /** Follow-up priority filter: 0..3 (undefined = any). */
+  priority?: number;
+  /** Sort column — only 'priority' is supported beyond the default. */
+  sort?: 'priority';
+  order?: 'asc' | 'desc';
   page?: number;
   per_page?: number;
 }

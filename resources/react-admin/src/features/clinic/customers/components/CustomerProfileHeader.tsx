@@ -11,6 +11,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useUpdateCustomer } from '../hooks';
 import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
+import { FollowUpStars } from './FollowUpStars';
 import type { CustomerProfile } from '../types';
 
 interface Props {
@@ -51,6 +52,15 @@ export function CustomerProfileHeader({ customer }: Props) {
     try {
       await mut.mutateAsync({ marketing_opt_out: next });
       toast.success(next ? t('clinic_customers.opt_out.now_excluded') : t('clinic_customers.opt_out.now_included'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  }
+
+  async function setPriority(next: number) {
+    try {
+      await mut.mutateAsync({ follow_up_priority: next });
+      toast.success(t('clinic_customers.priority.updated'));
     } catch (err) {
       toast.error(extractMessage(err, t('errors.generic')));
     }
@@ -106,6 +116,13 @@ export function CustomerProfileHeader({ customer }: Props) {
                 {customer.marketing_opt_out && (
                   <Badge variant="warning">{t('clinic_customers.opt_out.badge')}</Badge>
                 )}
+              </div>
+              <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200/70 bg-gradient-to-l from-amber-50 to-white px-2.5 py-1.5">
+                <span className="text-xs font-medium text-[var(--color-muted-foreground)]">{t('clinic_customers.priority.label')}</span>
+                <FollowUpStars
+                  value={customer.follow_up_priority}
+                  onChange={canManage ? setPriority : undefined}
+                />
               </div>
               {canManage && (
                 <label className="flex items-center gap-2 pt-1 text-xs text-[var(--color-muted-foreground)]">

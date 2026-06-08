@@ -18,7 +18,7 @@ import { extractMessage } from '@/lib/api-client';
 
 import { bookingKanbanApi } from '../api';
 import { useKanbanBoard } from '../hooks';
-import type { BookingStage, KanbanCard, KanbanFilters, StageKind } from '../types';
+import type { BookingStage, KanbanBoard as KanbanBoardData, KanbanCard, KanbanFilters, StageKind } from '../types';
 import { KanbanColumnView } from './KanbanColumn';
 import { BookingCard } from './BookingCard';
 import { MoveConfirmDialog, type MoveIntent, type MoveResult } from './MoveConfirmDialog';
@@ -134,16 +134,42 @@ export function KanbanBoard({ filters, onOpenCard, stages }: Props) {
     applyMove(card, { stage_id: targetStage.id, status: REP_STATUS[targetKind] });
   }
 
+  /** Move the card between columns in the cached board immediately. */
+  function optimisticMove(card: KanbanCard, targetStageId: number, newStatus?: string) {
+    qc.setQueriesData<KanbanBoardData>({ queryKey: ['clinic', 'bookings', 'kanban', 'board'] }, (old) => {
+      if (!old) return old;
+      let moved: KanbanCard | undefined;
+      const next: KanbanBoardData = {};
+      for (const [sid, col] of Object.entries(old)) {
+        const items = (col.items ?? []).filter((c) => {
+          if (c.id === card.id) { moved = c; return false; }
+          return true;
+        });
+        const removed = items.length !== (col.items?.length ?? 0);
+        next[sid] = { ...col, items, total: removed ? Math.max(0, col.total - 1) : col.total };
+      }
+      const tkey = String(targetStageId);
+      if (moved && next[tkey]) {
+        const movedCard = { ...moved, stage_id: targetStageId, status: (newStatus ?? moved.status) as KanbanCard['status'] };
+        next[tkey] = { ...next[tkey], items: [movedCard, ...next[tkey].items], total: next[tkey].total + 1 };
+      }
+      return next;
+    });
+  }
+
   async function applyMove(card: KanbanCard, payload: MovePayload) {
+    setPending(null);
+    optimisticMove(card, payload.stage_id, payload.status); // instant: card stays put
     try {
       await bookingKanbanApi.updateStatus(card.id, payload);
-      qc.invalidateQueries({ queryKey: ['clinic', 'bookings'] });
+      // Reconcile order (priority/date) + stats + team activity in the
+      // background — the card already moved optimistically.
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban'] });
       qc.invalidateQueries({ queryKey: ['clinic', 'team-activity'] });
       toast.success(t('clinic_bookings_kanban.move.success'));
     } catch (err) {
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban'] }); // rollback to truth
       toast.error(extractMessage(err, t('errors.generic')));
-    } finally {
-      setPending(null);
     }
   }
 

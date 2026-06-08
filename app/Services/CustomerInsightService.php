@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\Clinic;
 use App\Models\ClinicActivityLog;
 use App\Models\Customer;
 use App\Support\PhoneNormalizer;
@@ -30,6 +31,13 @@ class CustomerInsightService
 
     /** @var array<int, array<int,string>> bookingId => suggestion keys */
     private array $suggestionCache = [];
+
+    /**
+     * Cancel-risk threshold (number of past cancellations/no-shows) for
+     * the clinic whose board is being preloaded. Resolved once in
+     * preloadSuggestions; falls back to the default until then.
+     */
+    private int $cancelRiskThreshold = Clinic::SUGGESTION_DEFAULTS['cancel_risk']['count'];
 
     /**
      * Preload signals for a set of bookings. After this call,
@@ -163,10 +171,11 @@ class CustomerInsightService
     // ---------- internal ----------
 
     /**
-     * Cancel-risk = the customer has 2+ historical cancellations or
-     * no-shows. Computed live (we don't store it as a counter).
-     * Cached per customer so multiple cards for the same customer
-     * don't re-query.
+     * Cancel-risk = the customer has N+ historical cancellations or
+     * no-shows, where N is the clinic's configured threshold (default 2,
+     * resolved in preloadSuggestions). Computed live (we don't store it
+     * as a counter). Cached per customer so multiple cards for the same
+     * customer don't re-query.
      */
     private array $cancelRiskCache = [];
     private function cancelRiskFor(Customer $customer): bool
@@ -175,7 +184,7 @@ class CustomerInsightService
             $this->cancelRiskCache[$customer->id] = Booking::query()
                 ->where('customer_id', $customer->id)
                 ->whereIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
-                ->count() >= 2;
+                ->count() >= $this->cancelRiskThreshold;
         }
         return $this->cancelRiskCache[$customer->id];
     }
@@ -189,6 +198,13 @@ class CustomerInsightService
     {
         $bookingIds = $bookings->pluck('id')->all();
         if (empty($bookingIds)) return;
+
+        // Per-clinic suggestion config (which nudges are on + thresholds).
+        // Resolved once for the whole board; missing clinic → defaults.
+        $settings = Clinic::find($clinicId)?->suggestionSettings()
+            ?? Clinic::SUGGESTION_DEFAULTS;
+        $this->cancelRiskThreshold = (int) ($settings['cancel_risk']['count']
+            ?? Clinic::SUGGESTION_DEFAULTS['cancel_risk']['count']);
 
         $actions = ['booking.call_attempted', 'booking.whatsapped', 'booking.reminder_sent'];
 
@@ -214,29 +230,34 @@ class CustomerInsightService
             $hasReminder = $rows->where('action', 'booking.reminder_sent')->isNotEmpty();
             $lastCall = $rows->where('action', 'booking.call_attempted')->first();
 
-            if ($isPending && $appt && $appt->lte($now->copy()->addHours(24)) && $appt->gte($now)) {
+            if ($settings['confirm_urgent']['enabled']
+                && $isPending && $appt
+                && $appt->lte($now->copy()->addHours($settings['confirm_urgent']['hours'])) && $appt->gte($now)) {
                 $activeKeys[] = 'confirm_urgent';
             }
 
-            if ($b->status === Booking::STATUS_NEW && ! $hasContact) {
+            if ($settings['first_contact']['enabled']
+                && $b->status === Booking::STATUS_NEW && ! $hasContact) {
                 $activeKeys[] = 'first_contact';
             }
 
-            if ($lastCall) {
+            if ($settings['retry_call']['enabled'] && $lastCall) {
                 $outcome = $lastCall->summary['outcome'] ?? null;
                 $hoursSince = Carbon::parse($lastCall->created_at)->diffInHours($now);
-                if ($outcome === 'no_answer' && $hoursSince >= 2 && $isPending) {
+                if ($outcome === 'no_answer' && $hoursSince >= $settings['retry_call']['hours'] && $isPending) {
                     $activeKeys[] = 'retry_call';
                 }
             }
 
-            if ($b->status === Booking::STATUS_APPOINTMENT_SET && $appt
-                && $appt->lte($now->copy()->addHours(48)) && $appt->gte($now) && ! $hasReminder) {
+            if ($settings['reminder_soon']['enabled']
+                && $b->status === Booking::STATUS_APPOINTMENT_SET && $appt
+                && $appt->lte($now->copy()->addHours($settings['reminder_soon']['hours'])) && $appt->gte($now) && ! $hasReminder) {
                 $activeKeys[] = 'reminder_soon';
             }
 
             $customer = $this->customerFor($b);
-            if ($customer && $this->cancelRiskFor($customer) && $isPending) {
+            if ($settings['cancel_risk']['enabled']
+                && $customer && $this->cancelRiskFor($customer) && $isPending) {
                 $activeKeys[] = 'cancel_risk';
             }
 

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookingKanbanApi } from './api';
-import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageColor, StageKind, TagColor, UpdateBookingInput } from './types';
+import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageColor, StageKind, SuggestionSettings, TagColor, UpdateBookingInput } from './types';
 
 const KEY = ['clinic', 'bookings', 'kanban'] as const;
 
@@ -184,6 +184,26 @@ export function useReorderStages() {
     mutationFn: (orderedIds: number[]) => bookingKanbanApi.reorderStages(orderedIds),
     onSuccess: (data) => {
       qc.setQueryData([...KEY, 'stages'], data);
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useSuggestionSettings() {
+  return useQuery({
+    queryKey: [...KEY, 'suggestion-settings'],
+    queryFn: () => bookingKanbanApi.suggestionSettings(),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useUpdateSuggestionSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: SuggestionSettings) => bookingKanbanApi.updateSuggestionSettings(payload),
+    onSuccess: (data) => {
+      qc.setQueryData([...KEY, 'suggestion-settings'], data);
+      // Suggestions are computed server-side per card — refresh the board.
       qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
     },
   });

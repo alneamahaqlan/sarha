@@ -13,6 +13,7 @@ import type {
   QuickAction,
   StageColor,
   StageKind,
+  SuggestionSettings,
   TagColor,
   TagDto,
   TagLabelOption,
@@ -153,6 +154,16 @@ export const bookingKanbanApi = {
   reorderStages: async (orderedIds: number[]): Promise<BookingStage[]> => {
     const res = await apiClient.put<{ data: BookingStage[] }>('/clinic/bookings/stages/reorder', { ordered_ids: orderedIds });
     return res.data.data ?? [];
+  },
+
+  suggestionSettings: async (): Promise<SuggestionSettings> => {
+    const res = await apiClient.get<{ data: SuggestionSettings }>('/clinic/bookings/suggestion-settings');
+    return res.data.data;
+  },
+
+  updateSuggestionSettings: async (payload: SuggestionSettings): Promise<SuggestionSettings> => {
+    const res = await apiClient.put<{ data: SuggestionSettings }>('/clinic/bookings/suggestion-settings', payload);
+    return res.data.data;
   },
 
   /**

@@ -34,11 +34,19 @@ class CustomersController extends Controller
         $q = $this->baseQuery($clinicId, $request);
 
         $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
-        $rows = $q
-            ->with(['tags:id,customer_id,label,color', 'notes:id,customer_id'])
-            ->orderByDesc('last_interaction_at')
-            ->paginate($perPage)
-            ->withQueryString();
+
+        $q->with(['tags:id,customer_id,label,color', 'notes:id,customer_id']);
+
+        // Sorting: follow-up priority is the only extra sortable column;
+        // everything else keeps the default most-recently-active order.
+        $order = $request->input('order') === 'asc' ? 'asc' : 'desc';
+        if ($request->input('sort') === 'priority') {
+            $q->orderBy('follow_up_priority', $order)->orderByDesc('last_interaction_at');
+        } else {
+            $q->orderByDesc('last_interaction_at');
+        }
+
+        $rows = $q->paginate($perPage)->withQueryString();
 
         return CustomerListResource::collection($rows);
     }
@@ -270,13 +278,21 @@ class CustomersController extends Controller
         // the Hub list and campaign audience resolution stay in lockstep.
         $q = Customer::query()->where('clinic_id', $clinicId);
 
-        return \App\Services\CustomerSegmentFilter::apply($q, [
+        \App\Services\CustomerSegmentFilter::apply($q, [
             'search'           => $request->input('search'),
             'segment'          => $request->input('segment'),
             'booking_range'    => $request->input('booking_range'),
             'has_notes'        => $request->boolean('has_notes'),
             'last_interaction' => $request->input('last_interaction'),
         ]);
+
+        // Follow-up priority filter (CRM-only — kept out of the shared
+        // CustomerSegmentFilter so campaign audiences are unaffected).
+        if ($request->filled('priority') && $request->input('priority') !== '') {
+            $q->where('follow_up_priority', (int) $request->input('priority'));
+        }
+
+        return $q;
     }
 
     private function ensureClinicOwns(Customer $customer): void

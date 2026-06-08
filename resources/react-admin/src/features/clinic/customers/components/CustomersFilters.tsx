@@ -64,6 +64,18 @@ export function CustomersFilters({ filters, onChange, onClear }: Props) {
         <option value="180d_plus">{t('clinic_customers.filters.last_180d_plus')}</option>
       </Select>
 
+      <Select
+        value={filters.priority != null ? String(filters.priority) : ''}
+        onChange={(e) => onChange({ priority: e.target.value === '' ? undefined : Number(e.target.value), page: 1 })}
+        className="lg:max-w-[180px]"
+      >
+        <option value="">{t('clinic_customers.priority.filter_any')}</option>
+        <option value="3">{t('clinic_customers.priority.level_3')}</option>
+        <option value="2">{t('clinic_customers.priority.level_2')}</option>
+        <option value="1">{t('clinic_customers.priority.level_1')}</option>
+        <option value="0">{t('clinic_customers.priority.level_0')}</option>
+      </Select>
+
       <label className="flex items-center gap-2 text-sm">
         <Switch
           checked={!!filters.has_notes}

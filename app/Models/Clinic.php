@@ -22,6 +22,31 @@ class Clinic extends Authenticatable
      */
     public const IMPRESSIONS_BADGE_MIN = 10;
 
+    /**
+     * Default Kanban card-suggestion config, used when a clinic hasn't
+     * overridden it. `enabled` gates whether the suggestion surfaces;
+     * `hours`/`count` are its tunable threshold. Mirrors the thresholds
+     * baked into CustomerInsightService before this became per-clinic.
+     *
+     * Keep keys in sync with SuggestionKey in the React admin
+     * (kanban/types.ts) and CustomerInsightService.
+     */
+    public const SUGGESTION_DEFAULTS = [
+        'confirm_urgent' => ['enabled' => true, 'hours' => 24],
+        'first_contact'  => ['enabled' => true],
+        'retry_call'     => ['enabled' => true, 'hours' => 2],
+        'reminder_soon'  => ['enabled' => true, 'hours' => 48],
+        'cancel_risk'    => ['enabled' => true, 'count' => 2],
+    ];
+
+    /** Min/max bounds for the tunable thresholds (validation + UI clamp). */
+    public const SUGGESTION_BOUNDS = [
+        'confirm_urgent' => ['hours' => [1, 168]],
+        'retry_call'     => ['hours' => [1, 72]],
+        'reminder_soon'  => ['hours' => [1, 168]],
+        'cancel_risk'    => ['count' => [1, 10]],
+    ];
+
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'license_number', 'tax_number',
         'commercial_registration', 'password', 'password_plaintext', 'city_id',
@@ -31,7 +56,7 @@ class Clinic extends Authenticatable
         'subscription_package_id',
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
-        'booking_stage_labels',
+        'booking_stage_labels', 'suggestion_settings',
         // Marketing tracking pixels (see docs/tracking/). Moderated:
         // clinic edits pixels + requests, super-admin approves.
         'tracking_status', 'tracking_pixels', 'advanced_matching_optin',
@@ -49,6 +74,7 @@ class Clinic extends Authenticatable
             'password_plaintext' => 'encrypted',
             'gallery' => 'array',
             'booking_stage_labels' => 'array',
+            'suggestion_settings' => 'array',
             'is_featured' => 'boolean',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
@@ -87,6 +113,41 @@ class Clinic extends Authenticatable
         return $this->status === 'active'
             && $this->subscription_ends_at
             && $this->subscription_ends_at->isFuture();
+    }
+
+    /**
+     * The clinic's effective Kanban suggestion config: stored overrides
+     * merged over SUGGESTION_DEFAULTS, normalized + clamped to bounds.
+     * Always returns every known key with concrete enabled/threshold
+     * values, so callers never have to null-check.
+     *
+     * @return array<string, array{enabled: bool, hours?: int, count?: int}>
+     */
+    public function suggestionSettings(): array
+    {
+        $stored = is_array($this->suggestion_settings) ? $this->suggestion_settings : [];
+        $out = [];
+
+        foreach (self::SUGGESTION_DEFAULTS as $key => $defaults) {
+            $row = is_array($stored[$key] ?? null) ? $stored[$key] : [];
+
+            $merged = ['enabled' => array_key_exists('enabled', $row)
+                ? (bool) $row['enabled']
+                : $defaults['enabled']];
+
+            foreach (['hours', 'count'] as $field) {
+                if (! isset($defaults[$field])) {
+                    continue;
+                }
+                $value = isset($row[$field]) ? (int) $row[$field] : $defaults[$field];
+                [$min, $max] = self::SUGGESTION_BOUNDS[$key][$field];
+                $merged[$field] = max($min, min($max, $value));
+            }
+
+            $out[$key] = $merged;
+        }
+
+        return $out;
     }
 
     public function isPremium(): bool

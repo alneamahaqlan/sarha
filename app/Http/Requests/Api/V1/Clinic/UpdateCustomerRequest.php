@@ -18,6 +18,7 @@ class UpdateCustomerRequest extends FormRequest
             'name'              => ['sometimes', 'required', 'string', 'max:120'],
             'email'             => ['nullable', 'email', 'max:191'],
             'marketing_opt_out' => ['sometimes', 'boolean'],
+            'follow_up_priority'=> ['sometimes', 'integer', 'between:0,3'],
         ];
     }
 }

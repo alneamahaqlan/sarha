@@ -33,6 +33,7 @@ class Customer extends Model
         'marketing_opt_out',
         'first_seen_at', 'last_seen_at',
         'last_interaction_at', 'last_interaction_type',
+        'follow_up_priority',
         'total_bookings', 'completed_bookings',
         'total_complaints', 'total_quote_requests',
         // notes column dropped in 040100 — replaced by customer_notes thread
@@ -45,6 +46,7 @@ class Customer extends Model
             'last_seen_at'        => 'datetime',
             'last_interaction_at' => 'datetime',
             'marketing_opt_out'   => 'boolean',
+            'follow_up_priority'  => 'integer',
             'total_bookings'      => 'integer',
             'completed_bookings'  => 'integer',
             'total_complaints'    => 'integer',

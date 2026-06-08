@@ -405,6 +405,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::patch('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
         Route::delete('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'destroy'])->name('clinic.bookings.stages.destroy');
 
+        // Per-clinic Kanban card-suggestion config (toggle nudges + tune thresholds).
+        Route::get('bookings/suggestion-settings', [\App\Http\Controllers\Api\V1\Clinic\BookingSuggestionSettingsController::class, 'show'])->name('clinic.bookings.suggestion-settings.show');
+        Route::put('bookings/suggestion-settings', [\App\Http\Controllers\Api\V1\Clinic\BookingSuggestionSettingsController::class, 'update'])->name('clinic.bookings.suggestion-settings.update');
+
         // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
         Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
         Route::get('bookings/kanban-stats', [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'stats'])->name('clinic.bookings.kanban-stats');

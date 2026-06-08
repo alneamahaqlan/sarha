@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { KanbanBoard } from '../components/KanbanBoard';
@@ -9,6 +9,7 @@ import { BookingTableView } from '../components/BookingTableView';
 import { BookingCalendarView } from '../components/BookingCalendarView';
 import { CreateBookingDialog } from '../components/CreateBookingDialog';
 import { StagesManagerDialog } from '../components/StagesManagerDialog';
+import { SuggestionSettingsDialog } from '../components/SuggestionSettingsDialog';
 import { ExportDialog } from '../components/ExportDialog';
 import { useBookingStages } from '../hooks';
 import type { KanbanCard, KanbanFilters } from '../types';
@@ -26,6 +27,7 @@ export function ClinicBookingsKanban() {
   const [openCard, setOpenCard] = useState<KanbanCard | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [stagesOpen, setStagesOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const { data: stages } = useBookingStages();
 
@@ -51,6 +53,10 @@ export function ClinicBookingsKanban() {
           <Button variant="outline" onClick={() => setStagesOpen(true)} className="gap-1.5">
             <SlidersHorizontal className="h-4 w-4" />
             <span className="hidden sm:inline">{t('clinic_bookings_kanban.stages.cta')}</span>
+          </Button>
+          <Button variant="outline" onClick={() => setSuggestionsOpen(true)} className="gap-1.5">
+            <Lightbulb className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('clinic_bookings_kanban.suggestion_settings.cta')}</span>
           </Button>
           <div className="flex items-center gap-1 rounded-md border border-[var(--color-border)] p-0.5">
             <Button variant={view === 'kanban' ? 'default' : 'ghost'} size="sm" onClick={() => setView('kanban')} className="gap-1">
@@ -89,6 +95,7 @@ export function ClinicBookingsKanban() {
 
       {createOpen && <CreateBookingDialog open onClose={() => setCreateOpen(false)} />}
       {stagesOpen && <StagesManagerDialog onClose={() => setStagesOpen(false)} />}
+      {suggestionsOpen && <SuggestionSettingsDialog onClose={() => setSuggestionsOpen(false)} />}
       {exportOpen && <ExportDialog filters={filters} onClose={() => setExportOpen(false)} />}
     </div>
   );

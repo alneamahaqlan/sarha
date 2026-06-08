@@ -18,6 +18,9 @@ function flatten(f: ListFilters): Record<string, string | number | boolean> {
   if (f.booking_range) out.booking_range = f.booking_range;
   if (f.has_notes) out.has_notes = '1';
   if (f.last_interaction) out.last_interaction = f.last_interaction;
+  if (f.priority != null) out.priority = f.priority;
+  if (f.sort) out.sort = f.sort;
+  if (f.order) out.order = f.order;
   if (f.page) out.page = f.page;
   if (f.per_page) out.per_page = f.per_page;
   return out;
@@ -43,7 +46,7 @@ export const customersApi = {
 
   update: async (
     id: number,
-    payload: { name?: string; email?: string | null; marketing_opt_out?: boolean },
+    payload: { name?: string; email?: string | null; marketing_opt_out?: boolean; follow_up_priority?: number },
   ) => {
     const res = await apiClient.patch<{ data: CustomerProfile }>(`/clinic/customers/${id}`, payload);
     return res.data.data;

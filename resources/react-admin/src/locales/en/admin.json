@@ -1823,6 +1823,17 @@
   "clinic_customers": {
     "title": "Customers",
     "subtitle": "Unified customer base — full history, auto badges, internal notes",
+    "priority": {
+      "label": "Follow-up priority",
+      "column": "Priority",
+      "updated": "Follow-up priority updated",
+      "sort_hint": "Click to sort by priority",
+      "filter_any": "Any priority",
+      "level_0": "Normal",
+      "level_1": "Needs follow-up",
+      "level_2": "Interested",
+      "level_3": "Ready to book"
+    },
     "opt_out": {
       "toggle": "Exclude from marketing campaigns",
       "badge": "Excluded from campaigns",
@@ -2000,6 +2011,30 @@
       "retry_call": "Retry call",
       "reminder_soon": "Send reminder",
       "cancel_risk": "Cancel risk"
+    },
+    "suggestion_settings": {
+      "cta": "Suggestions",
+      "title": "Smart suggestion settings",
+      "subtitle": "Turn each card suggestion on or off, and tune its thresholds.",
+      "saved": "Settings saved",
+      "hint": "Thresholds are kept within safe bounds; out-of-range values snap back automatically. Turning a suggestion off hides it from all cards immediately.",
+      "desc": {
+        "confirm_urgent": "Flags bookings whose appointment is near but not yet confirmed.",
+        "first_contact": "Shows on every new booking with no logged call or WhatsApp yet.",
+        "retry_call": "Reminds you to call back after an unanswered attempt.",
+        "reminder_soon": "Suggests sending a reminder ahead of a confirmed appointment.",
+        "cancel_risk": "Flags customers with a history of cancellations or no-shows."
+      },
+      "threshold": {
+        "confirm_urgent": "Appointment within",
+        "retry_call": "After",
+        "reminder_soon": "Appointment within",
+        "cancel_risk": "Cancellations / no-shows ≥"
+      },
+      "unit": {
+        "hours": "hours",
+        "count": "times"
+      }
     },
     "card": {
       "unassigned": "Unassigned",

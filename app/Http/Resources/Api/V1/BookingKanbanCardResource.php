@@ -41,6 +41,7 @@ class BookingKanbanCardResource extends JsonResource
             'created_at'     => $this->created_at?->toIso8601String(),
             'acquisition_source' => $this->acquisition_source,
             'stage_id'       => $this->stage_id,
+            'follow_up_priority' => (int) ($this->customer?->follow_up_priority ?? 0),
             'is_for_relative'=> ! is_null($this->relative_id),
             'auto_tags'      => [
                 'is_vip'             => $signals['is_vip'],
