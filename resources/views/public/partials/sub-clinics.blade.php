@@ -43,7 +43,7 @@
             @if($sub->services->isEmpty())
                 <p class="text-sm text-gray-400 py-4 text-center">@lang('site.no_services_in_sub_clinic')</p>
             @else
-                <div class="divide-y divide-gray-100 border-t border-gray-100 mt-2">
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-gray-100 pt-4 mt-2">
                     @foreach($sub->services as $service)
                         @include('public.partials.service-row', ['service' => $service, 'clinic' => $clinic])
                     @endforeach
@@ -61,7 +61,7 @@
                     {{ __('site.services_count', ['count' => $generalServices->count()]) }}
                 </span>
             </div>
-            <div class="divide-y divide-gray-100 border-t border-gray-100">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 border-t border-gray-100 pt-4">
                 @foreach($generalServices as $service)
                     @include('public.partials.service-row', ['service' => $service, 'clinic' => $clinic])
                 @endforeach

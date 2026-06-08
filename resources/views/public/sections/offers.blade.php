@@ -23,7 +23,7 @@
                 @lang('site.home_no_offers')
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
                 @foreach($offers as $i => $offer)
                     @php
                         $discount = $offer->discountPercentage();
@@ -37,7 +37,7 @@
                             ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id])
                             : '#';
                     @endphp
-                    <div class="reveal relative" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">
+                    <div class="reveal relative" style="--reveal-delay:{{ ($i % 6) * 70 }}ms">
                         <x-save-button :model="$offer" type="offer" class="absolute top-3 end-3 z-20" />
                         <a href="{{ $href }}"
                            class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden h-full">
@@ -59,21 +59,21 @@
                                     </span>
                                 @endif
                             </div>
-                            <div class="p-4">
-                                <h3 class="font-semibold text-gray-800 line-clamp-1 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
+                            <div class="p-3">
+                                <h3 class="text-sm font-semibold text-gray-800 line-clamp-1 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
                                 @if($clinic)
-                                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name ?? $clinic->city->name }}@endif</p>
+                                    <p class="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name ?? $clinic->city->name }}@endif</p>
                                 @endif
-                                <div class="mt-3 flex items-end justify-between gap-2">
+                                <div class="mt-2 flex items-end justify-between gap-1">
                                     <div>
                                         @if($offer->old_price !== null)
-                                            <span class="block text-[11px] text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
+                                            <span class="block text-[10px] text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
                                         @endif
                                         @if($offer->price !== null)
-                                            <span class="text-sage-700 font-bold text-lg">{{ number_format((float) $offer->price) }}<span class="text-xs font-normal ms-1"><x-riyal /></span></span>
+                                            <span class="text-sage-700 font-bold text-base">{{ number_format((float) $offer->price) }}<span class="text-[10px] font-normal ms-0.5"><x-riyal /></span></span>
                                         @endif
                                     </div>
-                                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-sage-600 group-hover:text-sage-700">@lang('site.home_view_offer') <span class="rtl:rotate-180">→</span></span>
+                                    <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-sage-600 group-hover:text-sage-700"><span class="rtl:rotate-180">→</span></span>
                                 </div>
                             </div>
                         </a>

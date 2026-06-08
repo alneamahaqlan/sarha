@@ -204,7 +204,7 @@
             <p>@lang('site.no_results_subtitle')</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
             @foreach($clinics as $clinic)
                 <div class="relative">
                     @auth('web')
