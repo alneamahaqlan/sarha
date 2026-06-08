@@ -131,6 +131,15 @@ class ClinicStatsService
         $bookingsBySource = (clone $bookings)->selectRaw('source, COUNT(*) c')->groupBy('source')
             ->pluck('c', 'source')->map(fn ($v) => (int) $v);
 
+        // Acquisition channel distribution (instagram, whatsapp, walk_in…).
+        // Filled across all canonical channels so the report shows every
+        // option even when its count is zero.
+        $acqCounts = (clone $bookings)->selectRaw('acquisition_source, COUNT(*) c')
+            ->groupBy('acquisition_source')->pluck('c', 'acquisition_source');
+        $bookingsByAcquisitionSource = collect(Booking::ACQUISITION_SOURCES)
+            ->mapWithKeys(fn ($s) => [$s => (int) ($acqCounts[$s] ?? 0)])
+            ->all();
+
         $quotesByStatus = $this->fillStatuses(
             (clone $quotes)->selectRaw('status, COUNT(*) c')->groupBy('status')->pluck('c', 'status'),
             self::QUOTE_STATUSES
@@ -178,6 +187,7 @@ class ClinicStatsService
             'trend'                 => $trend,
             'bookings_by_status'    => $bookingsByStatus,
             'bookings_by_source'    => $bookingsBySource,
+            'bookings_by_acquisition_source' => $bookingsByAcquisitionSource,
             'quotes_by_status'      => $quotesByStatus,
             'quotes_top_services'   => $quotesTopServices,
             'services_performance'  => $servicesPerf,

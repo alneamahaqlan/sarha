@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { CardAutoTags } from './CardAutoTags';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
-import { KANBAN_COLUMNS, type KanbanCard } from '../types';
+import type { KanbanCard } from '../types';
 import { useKanbanBoard } from '../hooks';
 
 interface Props {
@@ -22,7 +22,7 @@ export function BookingTableView({ filters, onOpenCard }: Props) {
   const { locale } = useLocale();
   const { data, isLoading } = useKanbanBoard(filters);
 
-  const rows = KANBAN_COLUMNS.flatMap((c) => data?.[c]?.items ?? []);
+  const rows = Object.values(data ?? {}).flatMap((p) => p?.items ?? []);
 
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-white">

@@ -8,6 +8,25 @@ use App\Models\Article;
 class ArticleController extends Controller
 {
     /**
+     * Public blog index — paginated list of all published articles whose
+     * clinic is publicly visible. Gives every article a reachable home
+     * beyond the homepage's "latest" strip, and enables the "view all"
+     * link on the homepage articles section (guarded by Route::has).
+     */
+    public function index()
+    {
+        $articles = Article::query()
+            ->where('is_published', true)
+            ->whereHas('clinic', fn ($q) => $q->publiclyVisible())
+            ->with(['clinic:id,name,slug'])
+            ->latest('published_at')
+            ->latest()
+            ->paginate(12);
+
+        return view('public.articles-index', compact('articles'));
+    }
+
+    /**
      * Public single-article page. Only published articles whose clinic is
      * publicly visible are reachable; views are counted on each load.
      */

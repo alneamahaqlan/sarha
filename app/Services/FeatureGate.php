@@ -51,6 +51,10 @@ class FeatureGate
         'banner_slots'                => 0,
         'allow_offers_packages'       => false,
         'allow_doctors_before_after'  => false,
+        // CRM defaults ON so legacy/packageless clinics keep the
+        // operational surface they already had. Admin opts a package
+        // OUT to make CRM a paid differentiator.
+        'crm_enabled'                 => true,
     ];
 
     // ─────────────────────────── Limits (int|null = unlimited) ───────────────────────────
@@ -68,6 +72,7 @@ class FeatureGate
     public function hasVerifiedBadge(Clinic $clinic): bool        { return (bool) $this->value($clinic, 'verified_badge'); }
     public function canPublishOffers(Clinic $clinic): bool        { return (bool) $this->value($clinic, 'allow_offers_packages'); }
     public function canShowDoctorsAndBeforeAfter(Clinic $clinic): bool { return (bool) $this->value($clinic, 'allow_doctors_before_after'); }
+    public function hasCrmAccess(Clinic $clinic): bool            { return (bool) $this->value($clinic, 'crm_enabled'); }
 
     public function aiAssistantPriority(Clinic $clinic): int      { return (int) $this->value($clinic, 'ai_assistant_priority'); }
     public function analyticsLevel(Clinic $clinic): string        { return (string) $this->value($clinic, 'analytics_level'); }
@@ -157,6 +162,7 @@ class FeatureGate
                 'analytics_level'           => $this->analyticsLevel($clinic),
                 'allow_offers_packages'     => $this->canPublishOffers($clinic),
                 'allow_doctors_before_after'=> $this->canShowDoctorsAndBeforeAfter($clinic),
+                'crm_enabled'               => $this->hasCrmAccess($clinic),
             ],
         ];
     }

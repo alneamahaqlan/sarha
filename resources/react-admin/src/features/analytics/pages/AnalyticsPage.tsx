@@ -17,6 +17,7 @@ import type { StatsRange, ImpressionSource } from '@/features/clinic/stats/api';
 
 import { useAnalytics } from '../hooks';
 import type { AnalyticsData } from '../api';
+import { ACQUISITION_SOURCES } from '@/features/clinic/bookings/kanban/types';
 
 const BOOKING_STATUSES = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
 const QUOTE_STATUSES = ['new', 'replied', 'closed'];
@@ -136,6 +137,15 @@ function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.
         <DistributionBars
           title={t('clinic_stats.quotes_by_status')}
           rows={QUOTE_STATUSES.map((k) => ({ label: t(`clinic_stats.q_status.${k}`), value: data.quotes_by_status[k] ?? 0 }))}
+          empty={t('common.no_data')}
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DistributionBars
+          title={t('clinic_stats.bookings_by_acquisition_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.bookings_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
           empty={t('common.no_data')}
         />
       </div>

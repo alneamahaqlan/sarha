@@ -6,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useSubClinicLookup, useClinicServices } from '@/features/clinic/services/hooks';
 import { useAssignees, useTagLabels } from '../hooks';
-import type { KanbanFilters as F } from '../types';
+import { ACQUISITION_SOURCES, type KanbanFilters as F } from '../types';
 
 interface Props {
   filters: F;
@@ -77,30 +77,45 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
       </Select>
 
       <Select
-        value={filters.auto_tag ?? ''}
-        onChange={(e) => onChange({ auto_tag: (e.target.value || undefined) as any })}
-        className="lg:max-w-[180px]"
+        value={filters.auto_tag ? `auto:${filters.auto_tag}` : filters.custom_tag ? `custom:${filters.custom_tag}` : ''}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (!v) { onChange({ auto_tag: undefined, custom_tag: undefined }); return; }
+          const sep = v.indexOf(':');
+          const kind = v.slice(0, sep);
+          const val = v.slice(sep + 1);
+          if (kind === 'auto') onChange({ auto_tag: val as any, custom_tag: undefined });
+          else onChange({ custom_tag: val, auto_tag: undefined });
+        }}
+        className="lg:max-w-[200px]"
       >
         <option value="">{t('clinic_bookings_kanban.filters.tag_any')}</option>
-        <option value="urgent_confirm">{t('clinic_bookings_kanban.filters.tag_urgent')}</option>
-        <option value="vip">{t('clinic_bookings_kanban.filters.tag_vip')}</option>
-        <option value="repeat">{t('clinic_bookings_kanban.filters.tag_repeat')}</option>
-        <option value="new_customer">{t('clinic_bookings_kanban.filters.tag_new_customer')}</option>
-        <option value="has_complaint">{t('clinic_bookings_kanban.filters.tag_has_complaint')}</option>
+        <optgroup label={t('clinic_bookings_kanban.filters.tag_group_auto')}>
+          <option value="auto:urgent_confirm">{t('clinic_bookings_kanban.filters.tag_urgent')}</option>
+          <option value="auto:vip">{t('clinic_bookings_kanban.filters.tag_vip')}</option>
+          <option value="auto:repeat">{t('clinic_bookings_kanban.filters.tag_repeat')}</option>
+          <option value="auto:new_customer">{t('clinic_bookings_kanban.filters.tag_new_customer')}</option>
+          <option value="auto:has_complaint">{t('clinic_bookings_kanban.filters.tag_has_complaint')}</option>
+        </optgroup>
+        {(tagLabels?.length ?? 0) > 0 && (
+          <optgroup label={t('clinic_bookings_kanban.filters.tag_group_custom')}>
+            {tagLabels!.map((tag) => (
+              <option key={tag.label} value={`custom:${tag.label}`}>{tag.label}</option>
+            ))}
+          </optgroup>
+        )}
       </Select>
 
-      {(tagLabels?.length ?? 0) > 0 && (
-        <Select
-          value={filters.custom_tag ?? ''}
-          onChange={(e) => onChange({ custom_tag: e.target.value || undefined })}
-          className="lg:max-w-[200px]"
-        >
-          <option value="">{t('clinic_bookings_kanban.filters.custom_tag_any')}</option>
-          {tagLabels!.map((tag) => (
-            <option key={tag.label} value={tag.label}>{tag.label}</option>
-          ))}
-        </Select>
-      )}
+      <Select
+        value={filters.acquisition_source ?? ''}
+        onChange={(e) => onChange({ acquisition_source: (e.target.value || undefined) as any })}
+        className="lg:max-w-[180px]"
+      >
+        <option value="">{t('clinic_bookings_kanban.source.filter_any')}</option>
+        {ACQUISITION_SOURCES.map((s) => (
+          <option key={s} value={s}>{t(`clinic_bookings_kanban.source.opt.${s}`)}</option>
+        ))}
+      </Select>
 
       <Input
         type="date"

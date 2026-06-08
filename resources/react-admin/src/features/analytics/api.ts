@@ -101,6 +101,7 @@ export interface AnalyticsData {
   bookings_by_status: Record<string, number>;
   quotes_by_status: Record<string, number>;
   bookings_by_source: Record<string, number>;
+  bookings_by_acquisition_source: Record<string, number>;
   best_days: { top_visits_weekday: number | null; top_requests_weekday: number | null };
   top_clinics: AnalyticsTopClinic[];
   top_services: AnalyticsTopService[];

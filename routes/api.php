@@ -384,13 +384,26 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::post('category-requests', [ClinicCategoryRequestController::class, 'store'])->name('clinic.category-requests.store');
         });
 
+        // ── CRM suite ───────────────────────────────────────────────────
+        // The whole operational surface (bookings/kanban, customers,
+        // reminders, campaigns, price-quotes, outreach, complaints,
+        // reports) sits behind one subscription gate. `crm_enabled`
+        // defaults ON for every package, so this is inert until an admin
+        // opts a package out — then the entire block 403s and the React
+        // sidebar hides the "CRM" tab. Inner clinic.role:* groups still
+        // apply per-route. Closes just before "Articles" below.
+        Route::middleware('clinic.feature:crm')->group(function () {
+
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
 
-        // CSV export + customisable Kanban stage labels.
+        // CSV export + customisable Kanban stages (per-clinic columns).
         Route::get('bookings/export', [\App\Http\Controllers\Api\V1\Clinic\BookingExportController::class, 'export'])->name('clinic.bookings.export');
-        Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'show'])->name('clinic.bookings.stages.show');
-        Route::put('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
+        Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'index'])->name('clinic.bookings.stages.index');
+        Route::post('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'store'])->name('clinic.bookings.stages.store');
+        Route::put('bookings/stages/reorder', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'reorder'])->name('clinic.bookings.stages.reorder');
+        Route::patch('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
+        Route::delete('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'destroy'])->name('clinic.bookings.stages.destroy');
 
         // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
         Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
@@ -491,6 +504,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // technical issue, abusive customer, fake review, billing, etc.).
         Route::get('reports', [ClinicReportController::class, 'index'])->name('clinic.reports.index');
         Route::post('reports', [ClinicReportController::class, 'store'])->name('clinic.reports.store');
+
+        }); // end clinic.feature:crm group
 
         // Articles — coordinator + owner only.
         Route::middleware('clinic.role:articles.manage')->group(function () {

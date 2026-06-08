@@ -106,11 +106,16 @@ class DemoSeeder extends Seeder
         $cats = [
             ['أسنان', 'Dentistry', '🦷'], ['جلدية', 'Dermatology', '🧴'], ['عيون', 'Ophthalmology', '👁️'],
             ['أطفال', 'Pediatrics', '🧒'], ['عظام', 'Orthopedics', '🦴'], ['قلب', 'Cardiology', '❤️'],
-            ['باطنة', 'Internal Medicine', '🩺'], ['نساء وولادة', 'Obstetrics', '🤰'], ['أنف وأذن وحنجرة', 'ENT', '👂'],
+            // name_en MUST match DatabaseSeeder's canonical slug ('gynecology')
+            // — using 'Obstetrics' here forged a 2nd row with the same Arabic
+            // name and a different slug, duplicating the specialty.
+            ['باطنة', 'Internal Medicine', '🩺'], ['نساء وولادة', 'Gynecology', '🌸'], ['أنف وأذن وحنجرة', 'ENT', '👂'],
             ['مسالك بولية', 'Urology', '🧫'], ['نفسية', 'Psychiatry', '🧠'], ['تغذية', 'Nutrition', '🥗'],
             ['أعصاب', 'Neurology', '⚡'], ['جراحة عامة', 'General Surgery', '🔪'], ['أشعة', 'Radiology', '📷'],
             ['مختبر', 'Laboratory', '🧪'], ['تجميل', 'Cosmetics', '💉'], ['طب أسرة', 'Family Medicine', '👨‍👩‍👧'],
-            ['سمنة', 'Obesity', '⚖️'], ['علاج طبيعي', 'Physiotherapy', '🦾'],
+            // 'Physical Therapy' → slug 'physical-therapy' matches the
+            // canonical row; 'Physiotherapy' forged a duplicate.
+            ['سمنة', 'Obesity', '⚖️'], ['علاج طبيعي', 'Physical Therapy', '💪'],
         ];
         $sort = 0;
         foreach ($cats as [$ar, $en, $emoji]) {

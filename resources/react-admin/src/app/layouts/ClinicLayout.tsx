@@ -36,7 +36,7 @@ type NavItem = {
   badge?: keyof ClinicNavBadges;
   requires?: string;
 };
-type NavGroup = { group: string; items: NavItem[] };
+type NavGroup = { group: string; items: NavItem[]; feature?: string };
 type NavEntry = NavItem | NavGroup;
 
 const clinicNav: NavEntry[] = [
@@ -56,7 +56,11 @@ const clinicNav: NavEntry[] = [
     ],
   },
   {
-    group: 'clinic_nav.group.bookings',
+    // Unified CRM suite — gated by the `crm` subscription feature. When a
+    // package opts out, the whole group is hidden here and the matching
+    // routes 403 server-side (clinic.feature:crm middleware).
+    group: 'clinic_nav.group.crm',
+    feature: 'crm',
     items: [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar, requires: 'bookings.view' },
       { to: '/clinic/customers', label: 'clinic_nav.customers', icon: Users, requires: 'customers.view' },
@@ -68,20 +72,12 @@ const clinicNav: NavEntry[] = [
     ],
   },
   {
-    group: 'clinic_nav.group.articles',
-    items: [
-      { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText, requires: 'articles.view' },
-    ],
-  },
-  {
-    group: 'clinic_nav.group.team',
-    items: [
-      { to: '/clinic/team', label: 'clinic_nav.team', icon: Users, requires: 'team.view' },
-    ],
-  },
-  {
+    // Articles + team folded in here — each was a lone-item group before,
+    // which wastes a collapsible header per single link.
     group: 'clinic_nav.group.settings',
     items: [
+      { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText, requires: 'articles.view' },
+      { to: '/clinic/team', label: 'clinic_nav.team', icon: Users, requires: 'team.view' },
       { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop, requires: 'page_builder.view' },
       { to: '/clinic/tracking', label: 'clinic_nav.tracking', icon: Radar, requires: 'tracking.view' },
       { to: '/clinic/subscription', label: 'clinic_nav.subscription', icon: CreditCard, badge: 'subscription_expiring' as keyof ClinicNavBadges, requires: 'subscription.view' },
@@ -95,11 +91,17 @@ const clinicNav: NavEntry[] = [
  * can't access. Empty groups are removed entirely so the sidebar
  * doesn't render orphaned section headers.
  */
-function filterNavByPermissions(nav: NavEntry[], can: (perm: string) => boolean): NavEntry[] {
+function filterNavByPermissions(
+  nav: NavEntry[],
+  can: (perm: string) => boolean,
+  hasFeature: (feature: string) => boolean,
+): NavEntry[] {
   const allowed = (perm?: string) => !perm || can(perm);
   return nav
     .map((entry) => {
       if ('items' in entry) {
+        // Drop the whole group when its subscription feature is off.
+        if (entry.feature && !hasFeature(entry.feature)) return null;
         const items = entry.items.filter((i) => allowed(i.requires));
         return items.length ? { ...entry, items } : null;
       }
@@ -109,7 +111,7 @@ function filterNavByPermissions(nav: NavEntry[], can: (perm: string) => boolean)
 }
 
 export function ClinicLayout() {
-  const { user, can, acting } = useAuth();
+  const { user, can, hasFeature, acting } = useAuth();
   const location = useLocation();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
@@ -124,7 +126,7 @@ export function ClinicLayout() {
   });
 
   // Permission-aware nav — drops items the active role can't reach.
-  const visibleNav = filterNavByPermissions(clinicNav, can);
+  const visibleNav = filterNavByPermissions(clinicNav, can, hasFeature);
 
   // Display name in the header is the acting actor (team member when
   // present, clinic name for owner sessions). The clinic name is

@@ -90,6 +90,15 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                         <Clock className="h-3 w-3" />{fmtDate(data.appointment_at, locale)}
                       </div>
                     )}
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.source.label')}: {t(`clinic_bookings_kanban.source.opt.${data.acquisition_source}`)}
+                    </div>
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.detail.added_by')}: {data.created_by_name ?? t('clinic_bookings_kanban.detail.added_by_self')}
+                    </div>
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.detail.added_at')}: {fmtDate(data.created_at, locale)}
+                    </div>
                     {data.notes && (
                       <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-800">
                         <div className="text-[10px] uppercase">{t('clinic_bookings_kanban.detail.customer_notes')}</div>

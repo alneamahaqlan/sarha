@@ -4,6 +4,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
+    "add": "Add",
+    "close": "Close",
     "edit": "Edit",
     "create": "Create",
     "search": "Search...",
@@ -66,7 +68,9 @@
       "clinics": "Complex management",
       "content": "Content & services",
       "sales": "Sales & subscriptions",
-      "system": "System settings"
+      "taxonomy": "Taxonomy & regions",
+      "marketing": "Marketing & channels",
+      "system": "System & tools"
     }
   },
   "auth": {
@@ -615,6 +619,17 @@
     "expired": "Expired",
     "visits_30d": "Visits (30d)",
     "total_bookings": "Total bookings",
+    "services_count": "Services",
+    "offers_count": "Offers",
+    "customers_count": "Customers",
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "most_services": "Most services",
+      "most_offers": "Most offers",
+      "most_bookings": "Most bookings",
+      "most_customers": "Most customers"
+    },
     "featured": "Featured",
     "filter_all_statuses": "All statuses",
     "filter_all_plans": "All plans",
@@ -1067,6 +1082,7 @@
     "group": {
       "my_services": "Manage my services",
       "bookings": "Bookings & customers",
+      "crm": "Customers (CRM)",
       "articles": "Content & blog",
       "team": "Team management",
       "settings": "Settings"
@@ -1448,6 +1464,7 @@
     "no_rank": "Not enough data to rank yet.",
     "trend_title": "Performance over time",
     "bookings_by_status": "Contact requests by status",
+    "bookings_by_acquisition_source": "Bookings by source",
     "quotes_by_status": "Price requests by status",
     "bk_status": {
       "new": "New",
@@ -1942,7 +1959,8 @@
       "title": "New booking (walk-in / phone)",
       "subtitle": "Enter a customer who contacted you directly. All fields are editable later.",
       "missing_fields": "Name and phone are required",
-      "success": "Booking created"
+      "success": "Booking created",
+      "audit_hint": "The creator's name and the creation date are recorded automatically."
     },
     "edit": {
       "title": "Edit booking"
@@ -2002,13 +2020,45 @@
       "tag_new_customer": "New customers only",
       "tag_has_complaint": "Has prior complaint",
       "custom_tag_any": "Any custom tag",
+      "tag_group_auto": "Automatic tags",
+      "tag_group_custom": "Custom tags",
       "mine_only": "My bookings only"
     },
+    "source": {
+      "label": "Source",
+      "unset": "Unset (other)",
+      "filter_any": "All sources",
+      "opt": {
+        "returning_customer": "Returning customer",
+        "walk_in": "Walk-in",
+        "phone_call": "Phone call",
+        "whatsapp": "WhatsApp",
+        "referral": "Referral",
+        "instagram": "Instagram",
+        "snapchat": "Snapchat",
+        "tiktok": "TikTok",
+        "twitter": "Twitter (X)",
+        "facebook": "Facebook",
+        "google_maps": "Google Maps",
+        "other": "Other"
+      }
+    },
     "stages": {
-      "cta": "Edit stages",
-      "title": "Edit stage labels",
-      "subtitle": "Customise the board column names. Leave a field blank to use the default name.",
-      "saved": "Stages saved"
+      "cta": "Manage stages",
+      "title": "Manage board stages",
+      "subtitle": "Add your own stages, reorder them and pick colours. Each stage is tied to a kind that drives its behaviour.",
+      "saved": "Stages saved",
+      "added": "Stage added",
+      "deleted": "Stage deleted",
+      "add_new": "Add a new stage",
+      "name_placeholder": "Stage name",
+      "kind_hint": "The \"kind\" controls how the system treats the stage (stats, alerts, cancel/complete flows). Not shown to customers.",
+      "base_badge": "Base",
+      "base_protected": "Base stage — can't be deleted",
+      "base_kind_locked": "A base stage's kind is fixed",
+      "delete_title": "Delete the \"{{name}}\" stage?",
+      "delete_desc": "All bookings in this stage will move to \"{{target}}\" — none will be lost. Continue?",
+      "delete_desc_fallback": "All bookings in this stage will move to the base stage of the same kind — none will be lost. Continue?"
     },
     "export": {
       "cta": "Export Excel",
@@ -2067,7 +2117,10 @@
       "clinic_notes": "Internal notes",
       "for_relative": "Booked for a relative",
       "quick_actions": "Quick actions",
-      "tags": "Tags"
+      "tags": "Tags",
+      "added_by": "Added by",
+      "added_by_self": "Customer (self-booked)",
+      "added_at": "Added on"
     },
     "assignee": {
       "label": "Following up",
@@ -2679,6 +2732,7 @@
       "verified_badge": "Verified badge",
       "allow_offers_packages": "Offers + medical packages",
       "allow_doctors_before_after": "Doctors + before/after gallery",
+      "crm_enabled": "Integrated CRM (customers/reminders/campaigns/bookings)",
       "ai_assistant_priority": "AI assistant priority",
       "analytics_level": "Analytics level"
     },

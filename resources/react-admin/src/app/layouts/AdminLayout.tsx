@@ -37,8 +37,6 @@ const adminNav = [
       { to: '/admin/catalog-services', label: 'nav.catalog_services', icon: ClipboardList, badge: 'catalog_requests' as keyof AdminNavBadges },
       { to: '/admin/articles', label: 'nav.articles', icon: FileText },
       { to: '/admin/homepage-sections', label: 'nav.homepage_sections', icon: Home },
-      { to: '/admin/static-pages', label: 'nav.static_pages', icon: FileStack },
-      { to: '/admin/navigation-links', label: 'nav.navigation_links', icon: Link2 },
     ],
   },
   {
@@ -50,17 +48,29 @@ const adminNav = [
     ],
   },
   {
-    group: 'nav.group.system',
+    group: 'nav.group.taxonomy',
     items: [
       { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
       { to: '/admin/categories', label: 'nav.categories', icon: Tag },
       { to: '/admin/category-requests', label: 'nav.category_requests', icon: Tags, badge: 'category_requests' as keyof AdminNavBadges },
-      { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+    ],
+  },
+  {
+    group: 'nav.group.marketing',
+    items: [
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
-      { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
-      { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
-      { to: '/admin/tracking', label: 'nav.tracking', icon: Radar, badge: 'tracking_pending' as keyof AdminNavBadges },
       { to: '/admin/whatsapp-senders', label: 'nav.whatsapp_senders', icon: MessageCircle },
+      { to: '/admin/tracking', label: 'nav.tracking', icon: Radar, badge: 'tracking_pending' as keyof AdminNavBadges },
+      { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
+    ],
+  },
+  {
+    group: 'nav.group.system',
+    items: [
+      { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+      { to: '/admin/static-pages', label: 'nav.static_pages', icon: FileStack },
+      { to: '/admin/navigation-links', label: 'nav.navigation_links', icon: Link2 },
       { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
     ],
   },

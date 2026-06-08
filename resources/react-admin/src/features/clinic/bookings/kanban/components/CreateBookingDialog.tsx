@@ -13,7 +13,7 @@ import { extractMessage } from '@/lib/api-client';
 import { clinicServicesApi } from '@/features/clinic/services/api';
 
 import { useAssignees, useCreateBooking } from '../hooks';
-import type { CreateBookingInput } from '../types';
+import { ACQUISITION_SOURCES, type CreateBookingInput } from '../types';
 
 interface Props {
   open: boolean;
@@ -28,13 +28,10 @@ const EMPTY: CreateBookingInput = {
   notes: null,
   clinic_notes: null,
   status: 'new',
+  acquisition_source: null,
   assignee_type: null,
   assignee_id: null,
 };
-
-function toLocalDatetime(): string {
-  return '';
-}
 
 export function CreateBookingDialog({ open, onClose }: Props) {
   const { t } = useTranslation();
@@ -118,6 +115,19 @@ export function CreateBookingDialog({ open, onClose }: Props) {
             </Select>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="cb-source">{t('clinic_bookings_kanban.source.label')}</Label>
+            <Select
+              id="cb-source"
+              value={v.acquisition_source ?? ''}
+              onChange={(e) => patch('acquisition_source', (e.target.value || null) as any)}
+            >
+              <option value="">{t('clinic_bookings_kanban.source.unset')}</option>
+              {ACQUISITION_SOURCES.filter((s) => s !== 'other').map((s) => (
+                <option key={s} value={s}>{t(`clinic_bookings_kanban.source.opt.${s}`)}</option>
+              ))}
+            </Select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="cb-assignee">{t('clinic_bookings_kanban.assignee.label')}</Label>
             <Select
               id="cb-assignee"
@@ -141,6 +151,10 @@ export function CreateBookingDialog({ open, onClose }: Props) {
             <Textarea id="cb-notes" rows={2} value={v.clinic_notes ?? ''} onChange={(e) => patch('clinic_notes', e.target.value)} />
           </div>
         </div>
+
+        <p className="text-xs text-[var(--color-muted-foreground)]">
+          {t('clinic_bookings_kanban.create.audit_hint')}
+        </p>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>

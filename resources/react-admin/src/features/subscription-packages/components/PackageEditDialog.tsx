@@ -57,6 +57,7 @@ const EMPTY: SubscriptionPackageFormValues = {
   banner_slots: 0,
   allow_offers_packages: false,
   allow_doctors_before_after: false,
+  crm_enabled: true,
   similar_config: {
     limit: 6,
     sections: {
@@ -272,6 +273,7 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
                 ['verified_badge',             'packages.field.verified_badge'],
                 ['allow_offers_packages',      'packages.field.allow_offers_packages'],
                 ['allow_doctors_before_after', 'packages.field.allow_doctors_before_after'],
+                ['crm_enabled',                'packages.field.crm_enabled'],
               ] as const).map(([key, labelKey]) => (
                 <label key={key} className="flex items-center justify-between gap-2 rounded-md border border-[var(--color-border)] px-3 py-2">
                   <span className="text-sm">{t(labelKey)}</span>

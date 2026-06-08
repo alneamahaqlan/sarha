@@ -37,6 +37,7 @@ class BookingDetailResource extends JsonResource
             'kanban_column'  => $this->kanbanColumn(),
             'appointment_at' => $this->appointment_at?->toIso8601String(),
             'source'         => $this->source,
+            'acquisition_source' => $this->acquisition_source,
             'is_for_relative'=> ! is_null($this->relative_id),
             'service'        => $this->whenLoaded('service', fn() => $this->service ? [
                 'id'   => $this->service->id,
@@ -86,6 +87,7 @@ class BookingDetailResource extends JsonResource
                 ])->all(),
             'created_at'     => $this->created_at?->toIso8601String(),
             'updated_at'     => $this->updated_at?->toIso8601String(),
+            'created_by_name' => $this->created_by_name,
         ];
     }
 

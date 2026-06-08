@@ -1,8 +1,30 @@
 import type { BookingStatus } from '@/features/bookings/types';
 
-export type KanbanColumn = 'new' | 'confirmed' | 'completed' | 'cancelled';
+/**
+ * The 4 fixed semantic "kinds" a stage can belong to. These drive all
+ * status-based business logic and the drag-and-drop dialogs; clinics can
+ * add as many named stages as they like on top of these kinds.
+ */
+export type StageKind = 'new' | 'confirmed' | 'completed' | 'cancelled';
 
-export const KANBAN_COLUMNS: KanbanColumn[] = ['new', 'confirmed', 'completed', 'cancelled'];
+/** @deprecated kept as the kind type — use StageKind. */
+export type KanbanColumn = StageKind;
+
+export const STAGE_KINDS: StageKind[] = ['new', 'confirmed', 'completed', 'cancelled'];
+
+export type StageColor = 'rose' | 'amber' | 'emerald' | 'sky' | 'violet' | 'slate';
+export const STAGE_COLORS: StageColor[] = ['rose', 'amber', 'emerald', 'sky', 'violet', 'slate'];
+
+/** A custom Kanban column owned by the clinic. */
+export interface BookingStage {
+  id: number;
+  name: string;
+  kind: StageKind;
+  color: StageColor;
+  sort_order: number;
+  /** The 4 base stages (one per kind) — renamable but not deletable. */
+  is_default: boolean;
+}
 
 export type SubBadge =
   | 'awaiting_contact'
@@ -51,6 +73,40 @@ export interface TagDto {
 export type TagColor = 'rose' | 'amber' | 'emerald' | 'sky' | 'violet' | 'slate';
 export const TAG_COLORS: TagColor[] = ['rose', 'amber', 'emerald', 'sky', 'violet', 'slate'];
 
+/**
+ * Acquisition channels — where the patient came from. Kept in sync with
+ * Booking::ACQUISITION_SOURCES on the backend. 'other' is the default
+ * when the team leaves the field blank on a manual booking.
+ */
+export type AcquisitionSource =
+  | 'returning_customer'
+  | 'walk_in'
+  | 'phone_call'
+  | 'whatsapp'
+  | 'referral'
+  | 'instagram'
+  | 'snapchat'
+  | 'tiktok'
+  | 'twitter'
+  | 'facebook'
+  | 'google_maps'
+  | 'other';
+
+export const ACQUISITION_SOURCES: AcquisitionSource[] = [
+  'returning_customer',
+  'walk_in',
+  'phone_call',
+  'whatsapp',
+  'referral',
+  'instagram',
+  'snapchat',
+  'tiktok',
+  'twitter',
+  'facebook',
+  'google_maps',
+  'other',
+];
+
 export interface KanbanCard {
   id: number;
   customer_id: number | null;
@@ -63,6 +119,8 @@ export interface KanbanCard {
   sub_badge: SubBadge | null;
   appointment_at: string | null;
   created_at: string;
+  acquisition_source: AcquisitionSource;
+  stage_id: number | null;
   is_for_relative: boolean;
   auto_tags: AutoTags;
   suggestions: SuggestionKey[];
@@ -79,7 +137,8 @@ export interface KanbanColumnPayload {
   total: number;
 }
 
-export type KanbanBoard = Record<KanbanColumn, KanbanColumnPayload>;
+/** Board payload keyed by stage id (string). */
+export type KanbanBoard = Record<string, KanbanColumnPayload>;
 
 export interface KanbanStats {
   today_count: number;
@@ -87,9 +146,6 @@ export interface KanbanStats {
   needs_urgent_confirm: number;
   weekly_confirm_rate: number | null;
 }
-
-/** Per-clinic custom labels for the 4 Kanban columns (blank = default). */
-export type StageLabels = Partial<Record<KanbanColumn, string>>;
 
 export interface KanbanFilters {
   search?: string;
@@ -102,6 +158,8 @@ export interface KanbanFilters {
   auto_tag?: 'urgent_confirm' | 'vip' | 'repeat' | 'new_customer' | 'has_complaint';
   /** Custom tag label (matches both booking + customer scope) */
   custom_tag?: string;
+  /** Acquisition channel the patient came from */
+  acquisition_source?: AcquisitionSource;
   mine_only?: boolean;
 }
 
@@ -113,6 +171,7 @@ export interface CreateBookingInput {
   notes?: string | null;
   clinic_notes?: string | null;
   status?: 'new' | 'contacted' | 'appointment_set';
+  acquisition_source?: AcquisitionSource | null;
   assignee_type?: AssigneeKind | null;
   assignee_id?: number | null;
 }
@@ -121,6 +180,7 @@ export interface UpdateBookingInput {
   status?: string;
   appointment_at?: string | null;
   clinic_notes?: string | null;
+  acquisition_source?: AcquisitionSource;
 }
 
 export interface TagLabelOption {
@@ -208,6 +268,7 @@ export interface BookingDetail {
   kanban_column: KanbanColumn;
   appointment_at: string | null;
   source: string;
+  acquisition_source: AcquisitionSource;
   is_for_relative: boolean;
   service: { id: number; name: string; price: number | null } | null;
   booker: { id: number; name: string; phone: string } | null;
@@ -224,6 +285,7 @@ export interface BookingDetail {
   customer_tags: TagDto[];
   created_at: string;
   updated_at: string;
+  created_by_name: string | null;
 }
 
 export interface AssigneeOption {

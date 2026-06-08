@@ -37,6 +37,7 @@ class SubscriptionPackageResource extends JsonResource
             'banner_slots'                => (int) $this->banner_slots,
             'allow_offers_packages'       => (bool) $this->allow_offers_packages,
             'allow_doctors_before_after'  => (bool) $this->allow_doctors_before_after,
+            'crm_enabled'                 => (bool) $this->crm_enabled,
             // Per-package "similar sections" config — always normalised (stored
             // values merged over defaults) so the admin UI gets a full matrix.
             'similar_config'              => $this->similarConfig(),

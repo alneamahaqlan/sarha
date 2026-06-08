@@ -49,6 +49,7 @@ export interface SubscriptionPackage {
   banner_slots: number;
   allow_offers_packages: boolean;
   allow_doctors_before_after: boolean;
+  crm_enabled: boolean;
   similar_config: SimilarConfig;
 
   clinics_count: number;

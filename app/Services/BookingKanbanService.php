@@ -27,8 +27,30 @@ class BookingKanbanService
      */
     public function column(int $clinicId, string $column, array $filters = [], ?int $cursor = null, int $limit = 20): array
     {
-        $q = $this->baseQuery($clinicId, $filters)->forKanbanColumn($column);
+        return $this->paginate(
+            $clinicId,
+            $this->baseQuery($clinicId, $filters)->forKanbanColumn($column),
+            $cursor,
+            $limit,
+        );
+    }
 
+    /**
+     * Fetch a single custom-stage column. `$isPrimary` makes the stage
+     * also absorb un-staged bookings of its kind (see Booking::scopeForStage).
+     */
+    public function columnForStage(int $clinicId, \App\Models\ClinicBookingStage $stage, bool $isPrimary, array $filters = [], ?int $cursor = null, int $limit = 20): array
+    {
+        return $this->paginate(
+            $clinicId,
+            $this->baseQuery($clinicId, $filters)->forStage($stage, $isPrimary),
+            $cursor,
+            $limit,
+        );
+    }
+
+    private function paginate(int $clinicId, Builder $q, ?int $cursor, int $limit): array
+    {
         // Cursor = last id seen (descending order). Cheaper than offset
         // and stable under inserts.
         if ($cursor) {
@@ -179,6 +201,12 @@ class BookingKanbanService
 
             default => null,
         };
+
+        // Acquisition-source filter: the marketing channel the patient
+        // came from (instagram, whatsapp, walk_in, …).
+        if ($acqSource = $filters['acquisition_source'] ?? null) {
+            $q->where('acquisition_source', $acqSource);
+        }
 
         // Custom-tag filter: matches a tag label across BOTH scopes
         // (per-booking tags and per-customer tags). After phase 2 the

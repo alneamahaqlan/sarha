@@ -8,7 +8,7 @@ import { KanbanFiltersBar } from '../components/KanbanFilters';
 import { BookingTableView } from '../components/BookingTableView';
 import { BookingCalendarView } from '../components/BookingCalendarView';
 import { CreateBookingDialog } from '../components/CreateBookingDialog';
-import { StageLabelsDialog } from '../components/StageLabelsDialog';
+import { StagesManagerDialog } from '../components/StagesManagerDialog';
 import { ExportDialog } from '../components/ExportDialog';
 import { useBookingStages } from '../hooks';
 import type { KanbanCard, KanbanFilters } from '../types';
@@ -27,7 +27,7 @@ export function ClinicBookingsKanban() {
   const [createOpen, setCreateOpen] = useState(false);
   const [stagesOpen, setStagesOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const { data: stageLabels } = useBookingStages();
+  const { data: stages } = useBookingStages();
 
   const patchFilters = (p: Partial<KanbanFilters>) => setFilters((prev) => ({ ...prev, ...p }));
   const clearFilters = () => setFilters({});
@@ -73,7 +73,7 @@ export function ClinicBookingsKanban() {
 
       <KanbanFiltersBar filters={filters} onChange={patchFilters} onClear={clearFilters} />
 
-      {view === 'kanban' && <KanbanBoard filters={filters} onOpenCard={setOpenCard} stageLabels={stageLabels} />}
+      {view === 'kanban' && <KanbanBoard filters={filters} onOpenCard={setOpenCard} stages={stages ?? []} />}
       {view === 'table' && <BookingTableView filters={filters} onOpenCard={setOpenCard} />}
       {view === 'calendar' && <BookingCalendarView filters={filters} onOpenCard={setOpenCard} />}
 
@@ -88,7 +88,7 @@ export function ClinicBookingsKanban() {
       </Suspense>
 
       {createOpen && <CreateBookingDialog open onClose={() => setCreateOpen(false)} />}
-      {stagesOpen && <StageLabelsDialog onClose={() => setStagesOpen(false)} />}
+      {stagesOpen && <StagesManagerDialog onClose={() => setStagesOpen(false)} />}
       {exportOpen && <ExportDialog filters={filters} onClose={() => setExportOpen(false)} />}
     </div>
   );

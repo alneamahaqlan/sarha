@@ -10,8 +10,8 @@
                 </h2>
                 <p class="reveal text-gray-500 text-sm mt-1" style="--reveal-delay:140ms">@lang('site.home_articles_subtitle')</p>
             </div>
-            @if(\Illuminate\Support\Facades\Route::has('articles.index'))
-                <a href="{{ route('articles.index') }}" class="reveal text-sage-600 text-sm font-semibold hover:text-sage-700 inline-flex items-center gap-1 whitespace-nowrap">
+            @if(\Illuminate\Support\Facades\Route::has('blog.index'))
+                <a href="{{ route('blog.index') }}" class="reveal text-sage-600 text-sm font-semibold hover:text-sage-700 inline-flex items-center gap-1 whitespace-nowrap">
                     @lang('site.view_all') <span class="rtl:rotate-180">→</span>
                 </a>
             @endif

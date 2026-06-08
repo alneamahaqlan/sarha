@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Calendar, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 
 import type { ClinicStatsFull, ImpressionSource } from '../api';
+import { ACQUISITION_SOURCES } from '@/features/clinic/bookings/kanban/types';
 
 const BOOKING_STATUSES = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
 const QUOTE_STATUSES = ['new', 'replied', 'closed'];
@@ -101,6 +102,17 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
         <DistributionBars
           title={t('clinic_stats.quotes_by_status')}
           rows={QUOTE_STATUSES.map((k) => ({ label: t(`clinic_stats.q_status.${k}`), value: data.quotes_by_status[k] ?? 0 }))}
+          empty={t('common.no_data')}
+        />
+      </div>
+
+      {/* Bookings by acquisition source */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DistributionBars
+          title={t('clinic_stats.bookings_by_acquisition_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.bookings_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
           empty={t('common.no_data')}
         />
       </div>

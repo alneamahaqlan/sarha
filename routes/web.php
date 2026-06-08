@@ -77,7 +77,12 @@ Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
 Route::post('/quotes/verify', [QuoteController::class, 'storeVerify'])->name('quotes.verify');
 Route::get('/quotes/{quoteRequest}', [QuoteController::class, 'show'])->whereNumber('quoteRequest')->name('quotes.show');
 
-// Standalone article page (SEO) — published articles of publicly-visible clinics.
+// Blog: index (all published articles) + standalone article page (SEO).
+// Published articles of publicly-visible clinics only.
+// Name is `blog.index` (not `articles.index`) to avoid colliding with the
+// admin API resource route of the same name — route() would otherwise
+// resolve to the API endpoint.
+Route::get('/articles', [ArticleController::class, 'index'])->name('blog.index');
 Route::get('/article/{slug}', [ArticleController::class, 'show'])->name('article.show');
 
 // Public "List your complex" — creates a SalesLead for the admin pipeline.

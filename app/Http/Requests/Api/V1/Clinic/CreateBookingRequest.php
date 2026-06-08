@@ -31,6 +31,7 @@ class CreateBookingRequest extends FormRequest
             'notes'          => ['nullable', 'string', 'max:1000'],
             'clinic_notes'   => ['nullable', 'string', 'max:1000'],
             'status'         => ['nullable', Rule::in(['new', 'contacted', 'appointment_set'])],
+            'acquisition_source' => ['nullable', Rule::in(Booking::ACQUISITION_SOURCES)],
             'assignee_type'  => ['nullable', Rule::in(['Clinic', 'ClinicTeamMember'])],
             'assignee_id'    => ['nullable', 'integer'],
         ];

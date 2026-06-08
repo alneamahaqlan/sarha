@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookingKanbanApi } from './api';
-import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageLabels, TagColor, UpdateBookingInput } from './types';
+import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageColor, StageKind, TagColor, UpdateBookingInput } from './types';
 
 const KEY = ['clinic', 'bookings', 'kanban'] as const;
 
@@ -144,11 +144,48 @@ export function useBookingStages() {
   });
 }
 
-export function useUpdateBookingStages() {
+export function useCreateStage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (labels: StageLabels) => bookingKanbanApi.updateStages(labels),
-    onSuccess: (data) => qc.setQueryData([...KEY, 'stages'], data),
+    mutationFn: (input: { name: string; kind: StageKind; color: StageColor }) => bookingKanbanApi.createStage(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useUpdateStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { id: number; name: string; kind: StageKind; color: StageColor }) =>
+      bookingKanbanApi.updateStage(input.id, { name: input.name, kind: input.kind, color: input.color }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useDeleteStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => bookingKanbanApi.deleteStage(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useReorderStages() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderedIds: number[]) => bookingKanbanApi.reorderStages(orderedIds),
+    onSuccess: (data) => {
+      qc.setQueryData([...KEY, 'stages'], data);
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
   });
 }
 

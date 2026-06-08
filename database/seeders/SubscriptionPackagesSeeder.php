@@ -50,6 +50,7 @@ class SubscriptionPackagesSeeder extends Seeder
                 'banner_slots'                => 0,
                 'allow_offers_packages'       => false,
                 'allow_doctors_before_after'  => false,
+                'crm_enabled'                 => true,
             ],
             [
                 'slug'         => SubscriptionPackage::SLUG_STANDARD,
@@ -73,6 +74,7 @@ class SubscriptionPackagesSeeder extends Seeder
                 'banner_slots'                => 1,
                 'allow_offers_packages'       => true,
                 'allow_doctors_before_after'  => true,
+                'crm_enabled'                 => true,
             ],
             [
                 'slug'         => SubscriptionPackage::SLUG_PREMIUM,
@@ -96,6 +98,7 @@ class SubscriptionPackagesSeeder extends Seeder
                 'banner_slots'                => 3,
                 'allow_offers_packages'       => true,
                 'allow_doctors_before_after'  => true,
+                'crm_enabled'                 => true,
             ],
         ];
 

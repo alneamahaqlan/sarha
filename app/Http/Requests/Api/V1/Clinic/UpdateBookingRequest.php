@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Api\V1\Clinic;
 
+use App\Models\Booking;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateBookingRequest extends FormRequest
 {
@@ -20,6 +22,11 @@ class UpdateBookingRequest extends FormRequest
             'status'         => ['sometimes', 'required', 'in:new,contacted,appointment_set,completed,no_show,cancelled'],
             'appointment_at' => ['nullable', 'date'],
             'clinic_notes'   => ['nullable', 'string'],
+            'acquisition_source' => ['sometimes', 'required', Rule::in(Booking::ACQUISITION_SOURCES)],
+            // Moving a card to a custom Kanban stage. Must belong to the
+            // acting clinic; status is sent alongside when the kind changes.
+            'stage_id'       => ['sometimes', 'nullable', Rule::exists('clinic_booking_stages', 'id')
+                ->where('clinic_id', (int) $this->user('clinic')?->getKey())],
             // Optional context attached to the status transition —
             // logged into clinic_activity_logs.summary so the
             // Kanban Timeline can render "Cancelled: schedule_conflict".

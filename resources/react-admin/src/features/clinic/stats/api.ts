@@ -82,6 +82,7 @@ export interface ClinicStatsFull {
   trend: StatsTrendPoint[];
   bookings_by_status: Record<string, number>;
   bookings_by_source: Record<string, number>;
+  bookings_by_acquisition_source: Record<string, number>;
   quotes_by_status: Record<string, number>;
   quotes_top_services: { name: string; count: number }[];
   services_performance: StatsServiceRow[];

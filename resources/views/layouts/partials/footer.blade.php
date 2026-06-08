@@ -80,8 +80,16 @@
             @endforeach
         </div>
 
+        {{-- Built-in quick links — always present regardless of admin-managed
+             columns, so the blog and the public quote board are reachable
+             from every page (not only via the homepage strip). --}}
+        <nav class="border-t border-gray-800 mt-8 pt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            <a href="{{ route('blog.index') }}" class="inline-flex items-center min-h-touch hover:text-white transition-colors">@lang('site.nav_blog')</a>
+            <a href="{{ route('quotes.board') }}" class="inline-flex items-center min-h-touch hover:text-white transition-colors">@lang('site.quotes_board_title')</a>
+        </nav>
+
         {{-- For-clinics CTA + copyright --}}
-        <div class="border-t border-gray-800 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="mt-4 pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
             <p class="text-sm text-center sm:text-start">{!! __('site.footer_rights', ['year' => date('Y')]) !!}</p>
             <a href="{{ route('clinic.register') }}"
                class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">

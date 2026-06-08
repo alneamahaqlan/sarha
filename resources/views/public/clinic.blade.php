@@ -111,8 +111,8 @@
             </div>
         @endif
         <div class="p-6">
-            <div class="flex items-start justify-between gap-4 flex-wrap">
-                <div class="flex-1 min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="w-full sm:flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-2xl font-bold text-gray-900">{{ $clinic->name }}</h1>
                         {{-- Verified badge — package-driven, set in ClinicController::show via FeatureGate. --}}

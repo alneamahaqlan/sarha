@@ -40,6 +40,7 @@ class SubscriptionPackage extends Model
         'featured_in_search', 'ai_assistant_priority', 'google_reviews_sync',
         'verified_badge', 'analytics_level', 'quote_replies_monthly_limit',
         'banner_slots', 'allow_offers_packages', 'allow_doctors_before_after',
+        'crm_enabled',
         // Per-package config for the public "similar / related" strips.
         'similar_config',
     ];
@@ -64,6 +65,7 @@ class SubscriptionPackage extends Model
             'banner_slots'                 => 'integer',
             'allow_offers_packages'        => 'boolean',
             'allow_doctors_before_after'   => 'boolean',
+            'crm_enabled'                  => 'boolean',
             'similar_config'               => 'array',
         ];
     }

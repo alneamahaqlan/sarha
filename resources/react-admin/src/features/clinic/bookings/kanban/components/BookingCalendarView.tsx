@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { useKanbanBoard } from '../hooks';
-import { KANBAN_COLUMNS, type KanbanCard, type KanbanFilters } from '../types';
+import type { KanbanCard, KanbanFilters } from '../types';
 
 interface Props {
   filters: KanbanFilters;
@@ -55,7 +55,7 @@ export function BookingCalendarView({ filters, onOpenCard }: Props) {
 
   const allCards = useMemo(() => {
     if (!data) return [] as KanbanCard[];
-    return KANBAN_COLUMNS.flatMap((c) => data[c]?.items ?? []);
+    return Object.values(data).flatMap((p) => p?.items ?? []);
   }, [data]);
 
   // Bucket cards into hour slots; cards without appointment_at sit in

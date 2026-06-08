@@ -11,7 +11,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 
 import { useUpdateBooking } from '../hooks';
-import type { BookingDetail } from '../types';
+import { ACQUISITION_SOURCES, type AcquisitionSource, type BookingDetail } from '../types';
 
 interface Props {
   open: boolean;
@@ -31,6 +31,7 @@ export function EditBookingDialog({ open, booking, onClose }: Props) {
   const [appt, setAppt] = useState(toLocal(booking.appointment_at));
   const [notes, setNotes] = useState(booking.clinic_notes ?? '');
   const [status, setStatus] = useState(booking.status);
+  const [source, setSource] = useState<AcquisitionSource>(booking.acquisition_source ?? 'other');
   const mut = useUpdateBooking(booking.id);
 
   async function onSubmit() {
@@ -39,6 +40,7 @@ export function EditBookingDialog({ open, booking, onClose }: Props) {
         status,
         appointment_at: appt ? new Date(appt).toISOString() : null,
         clinic_notes: notes || null,
+        acquisition_source: source,
       });
       toast.success(t('clinic_bookings.updated'));
       onClose();
@@ -68,6 +70,14 @@ export function EditBookingDialog({ open, booking, onClose }: Props) {
           <div className="space-y-1.5">
             <Label htmlFor="eb-appt">{t('clinic_bookings.appointment_at')}</Label>
             <Input id="eb-appt" type="datetime-local" value={appt} onChange={(e) => setAppt(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="eb-source">{t('clinic_bookings_kanban.source.label')}</Label>
+            <Select id="eb-source" value={source} onChange={(e) => setSource(e.target.value as AcquisitionSource)}>
+              {ACQUISITION_SOURCES.map((s) => (
+                <option key={s} value={s}>{t(`clinic_bookings_kanban.source.opt.${s}`)}</option>
+              ))}
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="eb-notes">{t('clinic_bookings.clinic_notes')}</Label>

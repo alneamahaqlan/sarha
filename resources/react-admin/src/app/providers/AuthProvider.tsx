@@ -9,6 +9,11 @@ interface AuthContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
   can: (perm: string) => boolean;
+  /**
+   * Subscription feature check (clinic-side). Defaults to TRUE when the
+   * flag is absent so we never hide a surface the server still allows.
+   */
+  hasFeature: (feature: string) => boolean;
   /** Acting overlay (clinic-side only); null for non-clinic sessions. */
   acting: ClinicActing | null;
   refetch: () => Promise<unknown>;
@@ -38,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     isAuthenticated: !!data,
     can: (perm) => !!data?.permissions?.[perm],
+    hasFeature: (feature) => data?.features?.[feature] ?? true,
     acting: data?.acting ?? null,
     refetch,
   };
