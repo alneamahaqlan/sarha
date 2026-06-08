@@ -116,6 +116,69 @@
     direction: rtl;
 }
 
+/* ──────────────────────────────────────────────────────────────
+   Premium surface system — soft sage-tinted shadows, glassmorphism,
+   and a light "aurora" backdrop. Used by the homepage redesign to
+   replace heavy borders (ring-1 ring-gray-100) with floating depth.
+   ────────────────────────────────────────────────────────────── */
+
+/* Soft layered shadow, tinted with sage so cards feel warm not grey.
+   Replaces hairline rings on cards. `-lg` is the hover/raised state. */
+.shadow-soft {
+    box-shadow:
+        0 1px 2px rgba(31, 74, 63, 0.04),
+        0 4px 12px rgba(31, 74, 63, 0.05),
+        0 12px 28px rgba(31, 74, 63, 0.05);
+}
+.shadow-soft-lg {
+    box-shadow:
+        0 2px 6px rgba(31, 74, 63, 0.06),
+        0 12px 24px rgba(31, 74, 63, 0.08),
+        0 28px 56px rgba(31, 74, 63, 0.10);
+}
+/* Gold-tinted lift — for premium/featured surfaces on hover. */
+.shadow-gold-lg {
+    box-shadow:
+        0 2px 6px rgba(168, 136, 69, 0.08),
+        0 16px 32px rgba(168, 136, 69, 0.12),
+        0 32px 60px rgba(31, 74, 63, 0.08);
+}
+
+/* Frosted-glass surface — translucent white over a gradient backdrop.
+   `-webkit-` prefix kept for Safari. Falls back to solid-ish white if
+   backdrop-filter is unsupported. */
+.glass {
+    background: rgba(255, 255, 255, 0.72);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+.glass-soft {
+    background: rgba(255, 255, 255, 0.55);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass, .glass-soft { background: rgba(255, 255, 255, 0.94); }
+}
+
+/* Bright "aurora" backdrop — subtle radial sage + gold glows over cream.
+   Used behind the hero so the page reads light and premium, not flat. */
+.bg-aurora {
+    background-color: var(--color-cream);
+    background-image:
+        radial-gradient(60% 55% at 18% 12%, rgba(45, 106, 92, 0.10) 0%, transparent 60%),
+        radial-gradient(55% 50% at 88% 8%, rgba(201, 169, 97, 0.16) 0%, transparent 55%),
+        radial-gradient(70% 60% at 50% 110%, rgba(74, 138, 122, 0.10) 0%, transparent 60%);
+}
+/* Softer aurora for mid-page sections (less intense than the hero). */
+.bg-aurora-soft {
+    background-image:
+        radial-gradient(50% 50% at 85% 0%, rgba(201, 169, 97, 0.08) 0%, transparent 55%),
+        radial-gradient(55% 55% at 10% 100%, rgba(45, 106, 92, 0.06) 0%, transparent 60%);
+}
+
 /* AI logo · pulsing neural network (used in AI contexts only) */
 @keyframes ai-pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }

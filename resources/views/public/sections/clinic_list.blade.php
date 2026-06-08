@@ -16,7 +16,7 @@
     $gridCols = $source === 'featured' ? 'lg:grid-cols-4' : 'lg:grid-cols-3';
     $bgClass  = $source === 'top_rated' ? '' : 'bg-white';
 @endphp
-<section class="py-16 px-4 {{ $bgClass }}">
+<section class="py-20 md:py-28 px-4 {{ $bgClass }}">
     <div class="max-w-7xl mx-auto">
         <div class="flex items-end justify-between {{ $hasSubtitle ? 'mb-2' : 'mb-8' }}">
             <div>

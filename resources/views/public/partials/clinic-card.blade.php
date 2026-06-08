@@ -4,7 +4,7 @@
 @endphp
 
 <a href="{{ route('clinic.show', $clinic->slug) }}"
-   class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden block group relative">
+   class="bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden block group relative">
 
     {{-- Smart badges overlay --}}
     @if(! empty($badges))
@@ -55,7 +55,7 @@
 
     <div class="p-4">
         <div class="flex items-start justify-between mb-2 gap-2">
-            <h3 class="font-bold text-gray-800 group-hover:text-sage-600 transition-colors leading-snug">
+            <h3 class="font-display font-bold text-charcoal group-hover:text-sage-600 transition-colors leading-snug">
                 {{ $clinic->name }}
             </h3>
             @if($clinic->is_featured && empty($badges))
@@ -67,8 +67,8 @@
         <div class="flex items-center gap-3 text-sm text-gray-500 mb-3 flex-wrap">
             @if(($clinic->google_reviews_avg_rating ?? 0) > 0)
                 <span class="flex items-center gap-1">
-                    <span class="text-yellow-500">★</span>
-                    <span class="font-semibold text-gray-700">{{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
+                    <span class="text-gold-primary">★</span>
+                    <span class="font-semibold text-charcoal">{{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
                 </span>
             @endif
             <span class="flex items-center gap-1">

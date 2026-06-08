@@ -21,7 +21,7 @@
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
 @endphp
 
-<div class="relative bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition-all overflow-hidden flex flex-col">
+<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
     {{-- Save button is a sibling of (not nested in) the navigation links so
          tapping the heart never triggers a page change. --}}
     <x-save-button :model="$offer" type="offer" class="absolute bottom-3 end-3 z-20" />

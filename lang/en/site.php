@@ -186,6 +186,7 @@ return [
     // Sub-clinics
     'sub_clinics_title' => 'Clinics & departments',
     'services_count' => ':count services',
+    'clinics_count' => ':count complexes',
     'general_services' => 'General services',
     'no_services_yet' => 'No services published yet',
     'no_services_in_sub_clinic' => 'No services in this clinic yet',
@@ -594,6 +595,7 @@ Do not share this code with anyone. Valid for 5 minutes.',
     'home_starting_from'          => 'Starting from',
     'home_read_article'           => 'Read post',
     'home_view_offer'             => 'View details',
+    'home_offer_saved'            => 'Save :amount',
 
     // Footer
     'footer_about' => 'A specialized platform to search, compare, and book medical services in Saudi Arabia.',

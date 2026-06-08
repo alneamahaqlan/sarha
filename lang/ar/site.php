@@ -186,6 +186,7 @@ return [
     // Sub-clinics
     'sub_clinics_title' => 'العيادات والأقسام',
     'services_count' => ':count خدمة',
+    'clinics_count' => ':count مجمع',
     'general_services' => 'خدمات عامة',
     'no_services_yet' => 'لا توجد خدمات منشورة بعد',
     'no_services_in_sub_clinic' => 'لا توجد خدمات في هذه العيادة بعد',
@@ -592,6 +593,7 @@ return [
     'home_starting_from'          => 'يبدأ من',
     'home_read_article'           => 'اقرأ التدوينة',
     'home_view_offer'             => 'عرض التفاصيل',
+    'home_offer_saved'            => 'وفّرت :amount',
 
     // Footer
     'footer_about' => 'منصة متخصصة للبحث والمقارنة وحجز الخدمات الطبية في المملكة العربية السعودية.',

@@ -31,7 +31,7 @@
                     {{-- Clicking an offer opens its detail page; the booking
                          deep-link lives there, not on the card. --}}
                     <a href="{{ $clinic ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]) : '#' }}"
-                       class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-lg hover:ring-gold-soft transition-all overflow-hidden h-full">
+                       class="block group bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full">
                         <div class="relative aspect-[16/10] bg-sage-mist text-sage-primary flex items-center justify-center text-4xl">
                             {{ $category->emoji ?: '🩺' }}
                             @if($discount && $discount > 0)
