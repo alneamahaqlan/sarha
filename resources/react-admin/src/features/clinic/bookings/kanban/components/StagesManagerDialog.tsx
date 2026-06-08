@@ -127,16 +127,22 @@ export function StagesManagerDialog({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setNewName(e.target.value)}
               />
             </div>
-            <Select value={newKind} onChange={(e) => setNewKind(e.target.value as StageKind)} className="sm:max-w-[150px]">
-              {STAGE_KINDS.map((k) => (
-                <option key={k} value={k}>{t(`clinic_bookings_kanban.column.${k}`)}</option>
-              ))}
-            </Select>
-            <Select value={newColor} onChange={(e) => setNewColor(e.target.value as StageColor)} className="sm:max-w-[130px]">
-              {STAGE_COLORS.map((c) => (
-                <option key={c} value={c}>{t(`clinic_bookings_kanban.tags.color_${c}`)}</option>
-              ))}
-            </Select>
+            <div className="flex flex-col gap-1 sm:max-w-[160px]">
+              <span className="text-[10px] text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.stages.scope_label')}</span>
+              <Select value={newKind} onChange={(e) => setNewKind(e.target.value as StageKind)}>
+                {STAGE_KINDS.map((k) => (
+                  <option key={k} value={k}>{t(`clinic_bookings_kanban.column.${k}`)}</option>
+                ))}
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1 sm:max-w-[130px]">
+              <span className="text-[10px] text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.stages.color_label')}</span>
+              <Select value={newColor} onChange={(e) => setNewColor(e.target.value as StageColor)}>
+                {STAGE_COLORS.map((c) => (
+                  <option key={c} value={c}>{t(`clinic_bookings_kanban.tags.color_${c}`)}</option>
+                ))}
+              </Select>
+            </div>
             <Button onClick={onAdd} disabled={!newName.trim() || createMut.isPending} className="gap-1 shrink-0">
               <Plus className="h-4 w-4" />
               {t('common.add')}
@@ -197,7 +203,14 @@ function StageRow({
   return (
     <div className="flex items-center gap-2 rounded-md border border-[var(--color-border)] bg-white p-2">
       <span className={`h-3 w-3 shrink-0 rounded-full ${COLOR_DOT[color]}`} />
-      <Input value={name} maxLength={40} onChange={(e) => setName(e.target.value)} className="flex-1" />
+      <Input
+        value={name}
+        maxLength={40}
+        onChange={(e) => setName(e.target.value)}
+        disabled={stage.is_default}
+        title={stage.is_default ? t('clinic_bookings_kanban.stages.base_name_locked') : undefined}
+        className="flex-1"
+      />
       {stage.is_default && (
         <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
           {t('clinic_bookings_kanban.stages.base_badge')}

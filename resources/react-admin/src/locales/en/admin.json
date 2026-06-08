@@ -1971,8 +1971,8 @@
     },
     "column": {
       "new": "New",
-      "confirmed": "Confirmed",
-      "completed": "Completed",
+      "confirmed": "Booked",
+      "completed": "Service done",
       "cancelled": "Cancelled",
       "empty": "No bookings in this column"
     },
@@ -2052,10 +2052,13 @@
       "deleted": "Stage deleted",
       "add_new": "Add a new stage",
       "name_placeholder": "Stage name",
-      "kind_hint": "The \"kind\" controls how the system treats the stage (stats, alerts, cancel/complete flows). Not shown to customers.",
+      "scope_label": "Scope (belongs to)",
+      "color_label": "Colour",
+      "kind_hint": "Every stage belongs to one of the four scopes: New · Booked · Service done · Cancelled. The scope drives how the system treats it — e.g. a stage under the \"Cancelled\" scope counts as a cancellation. These four base names are fixed.",
       "base_badge": "Base",
       "base_protected": "Base stage — can't be deleted",
-      "base_kind_locked": "A base stage's kind is fixed",
+      "base_kind_locked": "A base stage's scope is fixed",
+      "base_name_locked": "A base stage's name is fixed",
       "delete_title": "Delete the \"{{name}}\" stage?",
       "delete_desc": "All bookings in this stage will move to \"{{target}}\" — none will be lost. Continue?",
       "delete_desc_fallback": "All bookings in this stage will move to the base stage of the same kind — none will be lost. Continue?"
