@@ -27,7 +27,11 @@
                     $service  = $offer->service;
                 @endphp
                 <div class="reveal relative" style="--reveal-delay:{{ ($i % 6) * 70 }}ms">
-                    <x-save-button :model="$offer" type="offer" class="absolute top-2 end-2 z-20" />
+                    <div class="absolute top-2 end-2 z-20 flex flex-col gap-1.5">
+                        <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" compact />
+                        <x-save-button :model="$offer" type="offer" />
+                        <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+                    </div>
                     {{-- Clicking an offer opens its detail page; the booking
                          deep-link lives there, not on the card. --}}
                     <a href="{{ $clinic ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]) : '#' }}"

@@ -61,6 +61,7 @@ const ArticlesIndex       = lazy(() => import('@/features/articles/pages/Article
 const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
 const CatalogServicesIndex = lazy(() => import('@/features/catalog-services/pages/CatalogServicesIndex').then(m => ({ default: m.CatalogServicesIndex })));
 const TrackingPage        = lazy(() => import('@/features/tracking/pages/TrackingPage').then(m => ({ default: m.TrackingPage })));
+const CartModerationPage  = lazy(() => import('@/features/cart/pages/CartModerationPage').then(m => ({ default: m.CartModerationPage })));
 
 const ClinicDashboardPage = lazy(() => import('@/features/clinic/dashboard/pages/ClinicDashboardPage').then(m => ({ default: m.ClinicDashboardPage })));
 const ClinicMyStatsPage   = lazy(() => import('@/features/clinic/stats/pages/ClinicMyStatsPage').then(m => ({ default: m.ClinicMyStatsPage })));
@@ -90,6 +91,7 @@ const ClinicRemindersIndex = lazy(() => import('@/features/clinic/reminders/page
 const ClinicCampaignsIndex = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignsIndex').then(m => ({ default: m.ClinicCampaignsIndex })));
 const ClinicCampaignRunner = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignRunner').then(m => ({ default: m.ClinicCampaignRunner })));
 const ClinicTrackingPage = lazy(() => import('@/features/clinic/tracking/pages/ClinicTrackingPage').then(m => ({ default: m.ClinicTrackingPage })));
+const ClinicCartPage     = lazy(() => import('@/features/clinic/cart/pages/ClinicCartPage').then(m => ({ default: m.ClinicCartPage })));
 
 function PageFallback() {
   return (
@@ -153,6 +155,7 @@ export function AppRoutes() {
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
               <Route path="tracking" element={<TrackingPage />} />
+              <Route path="cart" element={<CartModerationPage />} />
               <Route path="whatsapp-senders" element={<WhatsAppSendersIndex />} />
               <Route path="ai-center" element={<AiCenterPage />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
@@ -201,6 +204,7 @@ export function AppRoutes() {
               <Route path="subscription" element={<RoleGuard ability="subscription.view"><ClinicSubscriptionPage /></RoleGuard>} />
               <Route path="profile" element={<ClinicProfilePage />} />
               <Route path="tracking" element={<RoleGuard ability="tracking.view"><ClinicTrackingPage /></RoleGuard>} />
+              <Route path="cart" element={<RoleGuard ability="cart.view"><ClinicCartPage /></RoleGuard>} />
               <Route path="team" element={<RoleGuard ability="team.view"><ClinicTeamIndex /></RoleGuard>} />
               <Route path="team-activity" element={<RoleGuard ability="team_activity.view"><ClinicTeamActivityPage /></RoleGuard>} />
             </Route>

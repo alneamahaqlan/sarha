@@ -15,11 +15,14 @@
                class="group block bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-sage-100 hover:border-sage-300 transition-all">
                 <div class="flex items-start justify-between gap-3">
                     <h3 class="font-bold text-gray-800 group-hover:text-sage-700 transition-colors">{{ $package->name }}</h3>
-                    @if($package->discountPercentage())
-                        <span class="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-                            -{{ $package->discountPercentage() }}%
-                        </span>
-                    @endif
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        @if($package->discountPercentage())
+                            <span class="bg-red-50 text-red-700 text-xs px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
+                                -{{ $package->discountPercentage() }}%
+                            </span>
+                        @endif
+                        <x-compare-toggle type="package" :id="$package->id" :name="$package->name" />
+                    </div>
                 </div>
                 @if($package->description)
                     <p class="text-sm text-gray-500 mt-1">{{ $package->description }}</p>

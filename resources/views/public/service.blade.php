@@ -94,6 +94,7 @@
                     <x-icon name="calendar" class="w-5 h-5" />
                     @lang('site.book_appointment')
                 </a>
+                <x-add-to-cart-button :model="$service" type="service" :clinic="$clinic" />
                 @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])
             </div>
         </div>

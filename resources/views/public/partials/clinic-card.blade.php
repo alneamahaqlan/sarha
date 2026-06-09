@@ -25,6 +25,7 @@
     @if($compare ?? false)
         <button type="button"
                 class="compare-toggle absolute top-1 end-1 z-20 inline-flex items-center justify-center min-h-touch min-w-touch rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500"
+                data-compare-type="clinic"
                 data-compare-id="{{ $clinic->id }}"
                 data-compare-name="{{ $clinic->name }}"
                 aria-pressed="false"

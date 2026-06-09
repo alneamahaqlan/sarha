@@ -7,6 +7,7 @@ use App\Http\Controllers\Public\ArticleController;
 use App\Http\Controllers\Public\ClinicController;
 use App\Http\Controllers\Public\ClinicRegistrationController;
 use App\Http\Controllers\Public\BeforeAfterController;
+use App\Http\Controllers\Public\CartController;
 use App\Http\Controllers\Public\CompareController;
 use App\Http\Controllers\Public\DoctorController;
 use App\Http\Controllers\Public\HomeController;
@@ -46,6 +47,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/search/suggest', [SearchController::class, 'suggest'])->middleware('throttle:60,1')->name('search.suggest');
 Route::get('/compare', [CompareController::class, 'index'])->name('compare');
+
+// Cart add is OUTSIDE auth so a guest can add → OTP-verify → log in mid-flow.
+Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/add/verify', [CartController::class, 'addVerify'])->name('cart.add.verify');
 
 // Fire-and-forget click tracking for clinic action buttons (sendBeacon, CSRF-excluded).
 Route::post('/track/click', [TrackingController::class, 'click'])
@@ -115,6 +120,11 @@ Route::middleware('auth:web')->group(function () {
     Route::post('/favorites/{clinic:slug}/toggle', [AccountController::class, 'toggleFavorite'])->name('favorites.toggle');
     // Saved services + offers (polymorphic) — type + id in the body.
     Route::post('/saved/toggle', [AccountController::class, 'toggleSaved'])->name('saved.toggle');
+
+    // Shopping cart — viewing + removing require a logged-in customer
+    // (adding lives outside this group so guests can OTP in).
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::delete('/cart/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
 
     // Saved relatives — managed inline from the booking form (no
     // dedicated /account/relatives page per the spec).

@@ -22,9 +22,13 @@
 @endphp
 
 <div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
-    {{-- Save button is a sibling of (not nested in) the navigation links so
-         tapping the heart never triggers a page change. --}}
-    <x-save-button :model="$offer" type="offer" class="absolute bottom-3 end-3 z-20" />
+    {{-- Save + compare are siblings of (not nested in) the navigation links so
+         tapping them never triggers a page change. flex-col-reverse keeps the
+         heart in its original bottom-corner spot with compare stacked above. --}}
+    <div class="absolute bottom-3 end-3 z-20 flex flex-col-reverse gap-1.5">
+        <x-save-button :model="$offer" type="offer" />
+        <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+    </div>
 
     <a href="{{ $offerHref }}" class="relative block {{ $large ? 'aspect-[16/9]' : 'aspect-[4/3]' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
         @if($imageUrl)

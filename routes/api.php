@@ -266,6 +266,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('clinics/{clinic}/tracking/reject',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'reject'])->name('admin.tracking.reject');
         Route::post('clinics/{clinic}/tracking/disable', [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'disable'])->name('admin.tracking.disable');
 
+        // Per-clinic cart feature — activation request queue + enable/disable.
+        Route::get('cart/requests', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'requests'])->name('admin.cart.requests');
+        Route::post('clinics/{clinic}/cart/approve', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'approve'])->name('admin.cart.approve');
+        Route::post('clinics/{clinic}/cart/reject',  [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'reject'])->name('admin.cart.reject');
+        Route::post('clinics/{clinic}/cart/disable', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'disable'])->name('admin.cart.disable');
+
         // WhatsApp sender numbers (Wappi profiles) used for OTP delivery.
         // Full CRUD (capped at 5 in the request) + an end-to-end test send.
         Route::post('whatsapp-senders/{whatsappSender}/test', [\App\Http\Controllers\Api\V1\Admin\WhatsAppSenderController::class, 'test'])
@@ -534,6 +540,16 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::middleware('clinic.role:tracking.manage')->group(function () {
             Route::put('tracking', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'update'])->name('clinic.tracking.update');
             Route::post('tracking/request', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'requestActivation'])->name('clinic.tracking.request');
+        });
+
+        // Cart feature — owner only. View status; request activation +
+        // toggle the storefront show/hide switch once active.
+        Route::middleware('clinic.role:cart.view')->group(function () {
+            Route::get('cart', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'show'])->name('clinic.cart.show');
+        });
+        Route::middleware('clinic.role:cart.manage')->group(function () {
+            Route::put('cart', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'update'])->name('clinic.cart.update');
+            Route::post('cart/request', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'requestActivation'])->name('clinic.cart.request');
         });
 
         // Subscription — owner only (sensitive financial data per spec).

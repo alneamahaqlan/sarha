@@ -119,6 +119,9 @@ enum ClinicRole: string
             // Marketing tracking pixels — owner-only (sensitive: affects
             // what loads on the public site + privacy/PDPL surface).
             'tracking.view', 'tracking.manage',
+            // Cart feature — owner-only (affects the public storefront +
+            // is gated/approved by the platform admin).
+            'cart.view', 'cart.manage',
             // Customer Hub (phase 3)
             'customers.view', 'customers.manage',
             'customers.notes.create', 'customers.notes.manage',

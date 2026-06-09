@@ -84,6 +84,7 @@
                     <x-icon name="{{ $isServiceLinked ? 'calendar' : 'phone' }}" class="w-5 h-5" />
                     {{ $isServiceLinked ? __('site.book_now_label') : __('site.contact_for_inquiry') }}
                 </a>
+                <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" />
                 @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])
             </div>
         </div>

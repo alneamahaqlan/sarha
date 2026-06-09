@@ -11,6 +11,7 @@ export interface AdminNavBadges {
   clinic_reports: number;
   customer_reports: number;
   tracking_pending: number;
+  cart_pending: number;
   sales_followups_overdue: number;
 }
 

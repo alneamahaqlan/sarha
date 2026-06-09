@@ -72,11 +72,19 @@
 {{-- Global AI chat widget --}}
 @livewire('ai-chat')
 
-{{-- Compare tray (populated client-side from localStorage) --}}
-<div id="compare-bar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden w-[calc(100%-2rem)] max-w-md">
+{{-- Add-to-cart OTP modal — guests only (logged-in customers add directly). --}}
+@guest('web')
+    @include('public.partials.cart-otp-modal')
+@endguest
+
+{{-- Compare tray (populated client-side from localStorage).
+     Type-aware: one bucket per item type (clinic/service/offer/package), so a
+     comparison is always same-type. The tray shows whichever bucket the visitor
+     last touched. --}}
+<div id="compare-bar" class="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] sm:bottom-4 left-1/2 -translate-x-1/2 z-50 hidden w-[calc(100%-2rem)] max-w-md">
     <div class="flex items-center gap-3 rounded-xl bg-gray-900 px-4 py-3 text-white shadow-lg">
         <span class="text-sm">
-            <span id="compare-count">0</span> {{ __('site.compare_selected') }}
+            <span id="compare-count">0</span> <span id="compare-label">{{ __('site.compare_selected') }}</span>
         </span>
         <a id="compare-go" href="#" class="ms-auto rounded-lg bg-sage-500 px-4 py-2 text-sm font-semibold hover:bg-sage-600">
             @lang('site.compare_now')
@@ -87,32 +95,62 @@
     </div>
 </div>
 
+@php
+    $compareTypes  = ['clinic', 'service', 'offer', 'package'];
+    $compareLabels = [
+        'clinic'  => __('site.compare_selected_clinics'),
+        'service' => __('site.compare_selected_services'),
+        'offer'   => __('site.compare_selected_offers'),
+        'package' => __('site.compare_selected_packages'),
+    ];
+@endphp
 <script>
 (function () {
-    var KEY = 'saerha_compare';
+    var TYPES  = @json($compareTypes);
+    var LABELS = @json($compareLabels);
     var MAX = 3;
     var COMPARE_URL = @json(route('compare'));
     var MAX_MSG = @json(__('site.compare_max', ['max' => 3]));
 
-    function read() {
-        try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; }
+    function keyFor(type) { return 'saerha_compare_' + type; }
+    function read(type) {
+        try { return JSON.parse(localStorage.getItem(keyFor(type))) || []; } catch (e) { return []; }
     }
-    function write(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+    function write(type, list) { localStorage.setItem(keyFor(type), JSON.stringify(list)); }
+
+    // Active type = whichever non-empty bucket the visitor last touched. On a
+    // cold load with several buckets filled, fall back to the first non-empty.
+    var activeType = null;
+    function pickActiveType() {
+        if (activeType && read(activeType).length) { return activeType; }
+        for (var i = 0; i < TYPES.length; i++) {
+            if (read(TYPES[i]).length) { return TYPES[i]; }
+        }
+        return null;
+    }
 
     function render() {
-        var list = read();
+        // Reflect the selected state on every toggle, matched by type + id so a
+        // service toggle never lights up from a clinic bucket of the same id.
         document.querySelectorAll('[data-compare-id]').forEach(function (btn) {
-            var on = list.some(function (i) { return String(i.id) === btn.dataset.compareId; });
+            var type = btn.dataset.compareType || 'clinic';
+            var on = read(type).some(function (i) { return String(i.id) === btn.dataset.compareId; });
             btn.classList.toggle('is-selected', on);
             btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         });
+
         var bar = document.getElementById('compare-bar');
-        if (!bar) return;
-        document.getElementById('compare-count').textContent = list.length;
+        if (!bar) { return; }
+        activeType = pickActiveType();
+        if (!activeType) { bar.classList.add('hidden'); return; }
+
+        var list = read(activeType);
         bar.classList.toggle('hidden', list.length === 0);
+        document.getElementById('compare-count').textContent = list.length;
+        document.getElementById('compare-label').textContent = LABELS[activeType] || '';
         var go = document.getElementById('compare-go');
         var ids = list.map(function (i) { return i.id; }).join(',');
-        go.href = COMPARE_URL + '?ids=' + encodeURIComponent(ids);
+        go.href = COMPARE_URL + '?type=' + encodeURIComponent(activeType) + '&ids=' + encodeURIComponent(ids);
         var disabled = list.length < 2;
         go.classList.toggle('opacity-50', disabled);
         go.classList.toggle('pointer-events-none', disabled);
@@ -123,7 +161,8 @@
         if (toggle) {
             e.preventDefault();
             e.stopPropagation();
-            var list = read();
+            var type = toggle.dataset.compareType || 'clinic';
+            var list = read(type);
             var id = toggle.dataset.compareId;
             var idx = list.findIndex(function (i) { return String(i.id) === id; });
             if (idx >= 0) {
@@ -132,12 +171,13 @@
                 if (list.length >= MAX) { alert(MAX_MSG); return; }
                 list.push({ id: id, name: toggle.dataset.compareName || '' });
             }
-            write(list);
+            write(type, list);
+            activeType = type; // last touched wins the tray
             render();
             return;
         }
         if (e.target.closest('#compare-clear')) {
-            write([]);
+            if (activeType) { write(activeType, []); }
             render();
         }
     });

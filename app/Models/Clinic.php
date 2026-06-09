@@ -61,6 +61,11 @@ class Clinic extends Authenticatable
         // clinic edits pixels + requests, super-admin approves.
         'tracking_status', 'tracking_pixels', 'advanced_matching_optin',
         'tracking_rejection_reason', 'tracking_requested_at', 'tracking_reviewed_by',
+        // Cart feature gate (moderated like tracking: clinic requests,
+        // super-admin approves). cart_storefront_enabled is the clinic's
+        // own show/hide switch once active.
+        'cart_status', 'cart_rejection_reason', 'cart_requested_at',
+        'cart_reviewed_by', 'cart_storefront_enabled',
     ];
 
     protected $hidden = ['password', 'password_plaintext', 'remember_token'];
@@ -81,7 +86,21 @@ class Clinic extends Authenticatable
             'tracking_pixels' => 'array',
             'advanced_matching_optin' => 'boolean',
             'tracking_requested_at' => 'datetime',
+            'cart_requested_at' => 'datetime',
+            'cart_storefront_enabled' => 'boolean',
         ];
+    }
+
+    /** Cart feature is approved + on for this clinic. */
+    public function cartActive(): bool
+    {
+        return $this->cart_status === 'active';
+    }
+
+    /** Cart button should render on this clinic's public pages. */
+    public function cartVisible(): bool
+    {
+        return $this->cartActive() && $this->cart_storefront_enabled;
     }
 
     /**

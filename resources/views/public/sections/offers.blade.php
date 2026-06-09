@@ -41,7 +41,11 @@
                             : '#';
                     @endphp
                     <div class="reveal relative" style="--reveal-delay:{{ ($i % 6) * 70 }}ms">
-                        <x-save-button :model="$offer" type="offer" class="absolute top-3 end-3 z-20" />
+                        <div class="absolute top-3 end-3 z-20 flex flex-col gap-1.5">
+                            <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" compact />
+                            <x-save-button :model="$offer" type="offer" />
+                            <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+                        </div>
                         <a href="{{ $href }}"
                            class="flex flex-col h-full bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden group">
                             <div class="relative aspect-[4/3] bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-5xl">

@@ -10,10 +10,12 @@
         : null;
 @endphp
 
-{{-- Spacer so the fixed bar never covers page content on mobile --}}
-<div class="h-16 sm:hidden" aria-hidden="true"></div>
+{{-- Spacer so the fixed bar never covers page content on mobile. Sized to the
+     bar height PLUS the iOS home-indicator safe area so the last content always
+     clears it. --}}
+<div class="h-[calc(4rem+env(safe-area-inset-bottom))] sm:hidden" aria-hidden="true"></div>
 
-<div class="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)]">
+<div class="fixed bottom-0 inset-x-0 z-40 sm:hidden bg-white border-t border-gray-200 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] pb-[env(safe-area-inset-bottom)]">
     <div class="grid grid-cols-4 divide-x divide-gray-100 text-center" dir="ltr">
         @if($clinic->phone)
             <a href="tel:{{ $clinic->phone }}" data-track="call" data-clinic="{{ $clinic->id }}"

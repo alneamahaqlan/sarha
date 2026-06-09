@@ -11,7 +11,11 @@
         <div class="flex items-start gap-1.5">
             <a href="{{ route('service.show', ['slug' => $clinic->slug, 'service' => $service->id]) }}"
                class="text-sm font-semibold text-gray-800 hover:text-sage-700 transition-colors line-clamp-2">{{ $service->name }}</a>
-            <x-save-button :model="$service" type="service" class="flex-shrink-0 ms-auto" />
+            <div class="flex items-center gap-1 ms-auto flex-shrink-0">
+                <x-add-to-cart-button :model="$service" type="service" :clinic="$clinic" compact />
+                <x-compare-toggle type="service" :id="$service->id" :name="$service->name" />
+                <x-save-button :model="$service" type="service" />
+            </div>
         </div>
         @if($service->description)
             <p class="text-[11px] text-gray-500 mt-1 line-clamp-2">{{ $service->description }}</p>

@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone, ShoppingCart } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -80,6 +80,7 @@ const clinicNav: NavEntry[] = [
       { to: '/clinic/team', label: 'clinic_nav.team', icon: Users, requires: 'team.view' },
       { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop, requires: 'page_builder.view' },
       { to: '/clinic/tracking', label: 'clinic_nav.tracking', icon: Radar, requires: 'tracking.view' },
+      { to: '/clinic/cart', label: 'clinic_nav.cart', icon: ShoppingCart, requires: 'cart.view' },
       { to: '/clinic/subscription', label: 'clinic_nav.subscription', icon: CreditCard, badge: 'subscription_expiring' as keyof ClinicNavBadges, requires: 'subscription.view' },
       { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2, requires: 'profile.view' },
     ],

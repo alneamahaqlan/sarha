@@ -60,6 +60,7 @@
     "audit_logs": "Audit log",
     "system_settings": "System settings",
     "tracking": "Tracking & Pixels",
+    "cart": "Shopping cart",
     "whatsapp_senders": "WhatsApp numbers",
     "ai_center": "AI Assistant Center",
     "mass_notify": "Mass notify",
@@ -1076,6 +1077,7 @@
     "import_services": "Import services",
     "page_builder": "Page builder",
     "tracking": "Tracking & Pixels",
+    "cart": "Shopping cart",
     "subscription": "Subscription",
     "profile": "Complex profile",
     "team": "My team",
@@ -1218,6 +1220,28 @@
       "no_recipients": "No recipients in this segment"
     }
   },
+  "cart": {
+    "title": "Shopping cart",
+    "subtitle": "Enable the cart feature per complex and review activation requests",
+    "tab_pending": "Pending review",
+    "tab_active": "Active",
+    "tab_all": "All",
+    "col_clinic": "Complex",
+    "col_status": "Status",
+    "status_pending": "Pending review",
+    "status_active": "Active",
+    "status_rejected": "Rejected",
+    "status_disabled": "Disabled",
+    "approve": "Approve",
+    "enable": "Enable",
+    "reject": "Reject",
+    "disable": "Disable",
+    "approved": "Cart enabled",
+    "rejected": "Request rejected",
+    "disabled": "Cart disabled",
+    "reject_title": "Reject cart request",
+    "reject_reason": "Reason (optional)"
+  },
   "tracking": {
     "title": "Tracking & Pixels",
     "subtitle": "Enable the feature and review complex requests",
@@ -1267,6 +1291,18 @@
     "advanced_matching": "Advanced matching",
     "advanced_matching_hint": "Send hashed phone/email to improve ad matching. Requires visitor consent. Off by default.",
     "save_draft": "Save draft",
+    "request_activation": "Request activation",
+    "requested": "Activation request sent"
+  },
+  "clinic_cart": {
+    "title": "Shopping cart",
+    "subtitle": "Let customers add your services, offers and packages to a cart",
+    "status_disabled": "The cart is not enabled for your complex yet. Request activation and the admin will review it.",
+    "status_pending": "Your activation request is under admin review.",
+    "status_active": "The cart is active on your public pages.",
+    "status_rejected": "Request rejected",
+    "storefront_enabled": "Show the cart on my pages",
+    "storefront_enabled_hint": "Turn off to temporarily hide the \"add to cart\" button without losing approval.",
     "request_activation": "Request activation",
     "requested": "Activation request sent"
   },

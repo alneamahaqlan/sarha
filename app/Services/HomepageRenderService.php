@@ -101,7 +101,7 @@ class HomepageRenderService
                 // withAvg loads the clinic's average Google rating for the
                 // premium offer card's ★ indicator (display-only). Explicit
                 // column list kept so the avg alias is appended, not replacing.
-                'clinic' => fn ($c) => $c->select('id', 'name', 'slug', 'city_id')
+                'clinic' => fn ($c) => $c->select('id', 'name', 'slug', 'city_id', 'cart_status', 'cart_storefront_enabled')
                     ->withAvg('googleReviews', 'rating'),
                 'clinic.city:id,name',
                 'service:id,name,image',

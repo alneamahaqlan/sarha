@@ -40,6 +40,14 @@
                 </a>
 
                 @auth('web')
+                    @php $cartCount = auth('web')->user()->cartCount(); @endphp
+                    <a href="{{ route('cart.index') }}" title="@lang('site.cart_title')" aria-label="@lang('site.cart_title')"
+                       class="relative inline-flex items-center justify-center min-h-touch w-10 text-gray-700 hover:text-sage-600 transition-colors">
+                        <x-icon name="shopping-bag" class="w-6 h-6" />
+                        @if($cartCount > 0)
+                            <span class="absolute top-1 end-1 min-w-[18px] h-[18px] px-1 rounded-full bg-sage-600 text-white text-[10px] font-bold flex items-center justify-center">{{ $cartCount }}</span>
+                        @endif
+                    </a>
                     <a href="{{ route('account.show') }}"
                        class="inline-flex items-center gap-1.5 min-h-touch text-sm text-gray-700 hover:text-sage-600 transition-colors">
                         <span class="w-7 h-7 rounded-full bg-sage-100 text-sage-700 flex items-center justify-center text-xs font-bold">
@@ -69,6 +77,7 @@
                    class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">{{ $link->label }}</a>
             @endforeach
             @auth('web')
+                <a href="{{ route('cart.index') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.cart_title')</a>
                 <a href="{{ route('account.show') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_profile')</a>
                 <a href="{{ route('account.bookings') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
                 <a href="{{ route('account.favorites') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>

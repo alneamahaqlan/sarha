@@ -60,6 +60,7 @@
     "audit_logs": "سجل التدقيق",
     "system_settings": "إعدادات النظام",
     "tracking": "التتبّع والبكسلات",
+    "cart": "السلة",
     "whatsapp_senders": "أرقام واتساب",
     "ai_center": "مركز المساعد الذكي",
     "mass_notify": "إشعار جماعي",
@@ -1076,6 +1077,7 @@
     "import_services": "استيراد خدمات",
     "page_builder": "تخصيص صفحتي",
     "tracking": "التتبّع والبكسلات",
+    "cart": "السلة",
     "subscription": "الاشتراك",
     "profile": "ملف المجمع",
     "team": "فريقي",
@@ -1218,6 +1220,28 @@
       "no_recipients": "لا يوجد مستلمون بهذه الشريحة"
     }
   },
+  "cart": {
+    "title": "السلة",
+    "subtitle": "فعّل ميزة السلة لكل مجمع وراجع طلبات التفعيل",
+    "tab_pending": "بانتظار المراجعة",
+    "tab_active": "مفعّلة",
+    "tab_all": "الكل",
+    "col_clinic": "المجمع",
+    "col_status": "الحالة",
+    "status_pending": "بانتظار المراجعة",
+    "status_active": "مفعّلة",
+    "status_rejected": "مرفوضة",
+    "status_disabled": "معطّلة",
+    "approve": "اعتماد",
+    "enable": "تفعيل",
+    "reject": "رفض",
+    "disable": "تعطيل",
+    "approved": "تم تفعيل السلة",
+    "rejected": "تم رفض الطلب",
+    "disabled": "تم تعطيل السلة",
+    "reject_title": "رفض طلب السلة",
+    "reject_reason": "السبب (اختياري)"
+  },
   "tracking": {
     "title": "التتبّع والبكسلات",
     "subtitle": "تفعيل الميزة ومراجعة طلبات المجمعات",
@@ -1267,6 +1291,18 @@
     "advanced_matching": "المطابقة المتقدّمة",
     "advanced_matching_hint": "إرسال جوال/بريد مُجزّأ لتحسين مطابقة الإعلانات. يتطلب موافقة الزائر. افتراضياً مطفأ.",
     "save_draft": "حفظ المسودة",
+    "request_activation": "طلب التفعيل",
+    "requested": "تم إرسال طلب التفعيل"
+  },
+  "clinic_cart": {
+    "title": "السلة",
+    "subtitle": "اسمح للعملاء بإضافة خدماتك وعروضك وباقاتك إلى سلة",
+    "status_disabled": "ميزة السلة غير مفعّلة لمجمعك بعد. أرسل طلب تفعيل وستراجعه الإدارة.",
+    "status_pending": "طلب التفعيل قيد مراجعة الإدارة.",
+    "status_active": "السلة مفعّلة وتظهر على صفحاتك العامة.",
+    "status_rejected": "تم رفض الطلب",
+    "storefront_enabled": "إظهار السلة على صفحاتي",
+    "storefront_enabled_hint": "أوقفه لإخفاء زر «أضف للسلة» مؤقتاً دون فقدان الاعتماد.",
     "request_activation": "طلب التفعيل",
     "requested": "تم إرسال طلب التفعيل"
   },
