@@ -174,12 +174,19 @@
                     <div class="flex items-center gap-2">
                         @auth('web')
                             @php $isFavorited = auth('web')->user()->hasFavorited($clinic); @endphp
-                            <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}">
+                            <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="js-save-form">
                                 @csrf
                                 <button type="submit"
+                                        data-fav-toggle
+                                        data-saved="{{ $isFavorited ? '1' : '0' }}"
+                                        data-class-on="bg-red-50 text-red-500 hover:bg-red-100"
+                                        data-class-off="bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                        data-title-on="{{ __('site.favorite_remove') }}"
+                                        data-title-off="{{ __('site.favorite_add') }}"
                                         title="{{ $isFavorited ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                         class="w-11 h-11 rounded-full {{ $isFavorited ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }} flex items-center justify-center transition-colors">
-                                    <x-icon :name="$isFavorited ? 'heart-solid' : 'heart'" class="w-4 h-4" />
+                                    <span data-fav-icon-on class="{{ $isFavorited ? '' : 'hidden' }}"><x-icon name="heart-solid" class="w-4 h-4" /></span>
+                                    <span data-fav-icon-off class="{{ $isFavorited ? 'hidden' : '' }}"><x-icon name="heart" class="w-4 h-4" /></span>
                                 </button>
                             </form>
                         @endauth

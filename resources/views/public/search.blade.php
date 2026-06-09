@@ -208,14 +208,21 @@
             @foreach($clinics as $clinic)
                 <div class="relative">
                     @auth('web')
-                        <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="absolute bottom-3 end-3 z-20">
+                        @php $fav = auth('web')->user()->hasFavorited($clinic); @endphp
+                        <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="js-save-form absolute bottom-3 end-3 z-20">
                             @csrf
-                            @php $fav = auth('web')->user()->hasFavorited($clinic); @endphp
                             <button type="submit"
+                                    data-fav-toggle
+                                    data-saved="{{ $fav ? '1' : '0' }}"
+                                    data-class-on="bg-red-50 text-red-500 hover:bg-red-100"
+                                    data-class-off="bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                    data-title-on="{{ __('site.favorite_remove') }}"
+                                    data-title-off="{{ __('site.favorite_add') }}"
                                     title="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                     aria-label="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-full shadow-sm ring-1 ring-gray-100 transition-colors {{ $fav ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50' }}">
-                                <x-icon :name="$fav ? 'heart-solid' : 'heart'" class="w-4 h-4" />
+                                <span data-fav-icon-on class="{{ $fav ? '' : 'hidden' }}"><x-icon name="heart-solid" class="w-4 h-4" /></span>
+                                <span data-fav-icon-off class="{{ $fav ? 'hidden' : '' }}"><x-icon name="heart" class="w-4 h-4" /></span>
                             </button>
                         </form>
                     @else

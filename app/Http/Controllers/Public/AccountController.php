@@ -125,15 +125,22 @@ class AccountController extends Controller
 
         if ($existing) {
             $existing->delete();
-            return back()->with('success', __('site.saved_removed'));
+            $saved = false;
+        } else {
+            $user->savedItems()->create([
+                'favoritable_type' => $model->getMorphClass(),
+                'favoritable_id'   => $model->getKey(),
+            ]);
+            $saved = true;
         }
 
-        $user->savedItems()->create([
-            'favoritable_type' => $model->getMorphClass(),
-            'favoritable_id'   => $model->getKey(),
-        ]);
+        // AJAX heart toggle (progressive enhancement): the card swaps state
+        // in place without a full reload. Non-JS clients still get back().
+        if ($request->expectsJson()) {
+            return response()->json(['saved' => $saved]);
+        }
 
-        return back()->with('success', __('site.saved_added'));
+        return back()->with('success', $saved ? __('site.saved_added') : __('site.saved_removed'));
     }
 
     public function quotes()
@@ -310,17 +317,25 @@ class AccountController extends Controller
         return back()->with('success', __('site.report_sent'));
     }
 
-    public function toggleFavorite(Clinic $clinic)
+    public function toggleFavorite(Request $request, Clinic $clinic)
     {
         $user = auth('web')->user();
 
         if ($user->hasFavorited($clinic)) {
             $user->favorites()->detach($clinic->id);
-            return back()->with('success', __('site.favorite_removed'));
+            $favorited = false;
+        } else {
+            $user->favorites()->attach($clinic->id);
+            $favorited = true;
         }
 
-        $user->favorites()->attach($clinic->id);
-        return back()->with('success', __('site.favorite_added'));
+        // AJAX heart toggle (progressive enhancement): swap in place without a
+        // full reload. Non-JS clients still fall back to back().
+        if ($request->expectsJson()) {
+            return response()->json(['saved' => $favorited]);
+        }
+
+        return back()->with('success', $favorited ? __('site.favorite_added') : __('site.favorite_removed'));
     }
 
     /**
