@@ -1,5 +1,8 @@
 export type CampaignStatus = 'draft' | 'active' | 'completed';
 export type RecipientStatus = 'pending' | 'sent' | 'skipped';
+/** Fulfilment mode: clinic sends manually vs platform runs it externally. */
+export type CampaignType = 'self' | 'managed';
+export type ManagedStatus = 'submitted' | 'closed';
 
 /** Mirrors the Customers Hub audience filters (reused for campaign targeting). */
 export interface CampaignAudience {
@@ -12,10 +15,14 @@ export interface CampaignAudience {
 
 export interface Campaign {
   id: number;
+  type: CampaignType;
   name: string;
   message_template: string;
+  image_path: string | null;
+  image_url: string | null;
   audience: CampaignAudience | null;
   status: CampaignStatus;
+  managed_status: ManagedStatus | null;
   total_recipients: number;
   sent_count: number;
   progress: number;
@@ -34,7 +41,9 @@ export interface CampaignRecipient {
 
 export interface CreateCampaignInput {
   name: string;
+  type: CampaignType;
   message_template: string;
+  image_path?: string | null;
   audience: CampaignAudience;
 }
 

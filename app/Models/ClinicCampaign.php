@@ -19,8 +19,17 @@ class ClinicCampaign extends Model
     public const STATUS_ACTIVE    = 'active';
     public const STATUS_COMPLETED = 'completed';
 
+    /** Fulfilment mode. */
+    public const TYPE_SELF    = 'self';    // clinic sends each WhatsApp itself
+    public const TYPE_MANAGED = 'managed'; // platform runs it externally on request
+
+    /** Admin-queue state for managed campaigns. */
+    public const MANAGED_SUBMITTED = 'submitted';
+    public const MANAGED_CLOSED    = 'closed';
+
     protected $fillable = [
-        'clinic_id', 'name', 'message_template', 'audience', 'status',
+        'clinic_id', 'type', 'name', 'message_template', 'image_path', 'audience', 'status',
+        'managed_status', 'managed_closed_at', 'managed_closed_by_admin_id',
         'total_recipients', 'sent_count',
         'created_by_type', 'created_by_id', 'created_by_name',
     ];
@@ -28,10 +37,16 @@ class ClinicCampaign extends Model
     protected function casts(): array
     {
         return [
-            'audience'         => 'array',
-            'total_recipients' => 'integer',
-            'sent_count'       => 'integer',
+            'audience'          => 'array',
+            'total_recipients'  => 'integer',
+            'sent_count'        => 'integer',
+            'managed_closed_at' => 'datetime',
         ];
+    }
+
+    public function isManaged(): bool
+    {
+        return $this->type === self::TYPE_MANAGED;
     }
 
     public function clinic()
@@ -47,6 +62,11 @@ class ClinicCampaign extends Model
     public function createdBy()
     {
         return $this->morphTo('created_by');
+    }
+
+    public function closedByAdmin()
+    {
+        return $this->belongsTo(Admin::class, 'managed_closed_by_admin_id');
     }
 
     public function scopeForClinic(Builder $q, int $clinicId): Builder

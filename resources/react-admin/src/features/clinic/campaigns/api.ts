@@ -17,6 +17,17 @@ export const campaignsApi = {
     return res.data.data;
   },
 
+  /** Uploads a managed-campaign creative image; returns its relative storage path. */
+  uploadImage: async (file: File) => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('directory', 'campaigns');
+    const res = await apiClient.post<{ data: { path: string } }>('/uploads', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data.data.path;
+  },
+
   get: async (id: number) => {
     const res = await apiClient.get<{ data: Campaign }>(`/clinic/campaigns/${id}`);
     return res.data.data;

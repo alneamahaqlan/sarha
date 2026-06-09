@@ -74,21 +74,34 @@ export function ClinicCampaignsIndex() {
                 onClick={() => navigate(`/clinic/campaigns/${c.id}`)}
                 className="min-w-0 flex-1 text-start"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium hover:underline">{c.name}</span>
-                  <Badge variant={STATUS_VARIANT[c.status]}>{t(`clinic_campaigns.status.${c.status}`)}</Badge>
+                  {c.type === 'managed' ? (
+                    <Badge variant={c.managed_status === 'closed' ? 'success' : 'warning'}>
+                      {t(`clinic_campaigns.managed_status.${c.managed_status ?? 'submitted'}`)}
+                    </Badge>
+                  ) : (
+                    <Badge variant={STATUS_VARIANT[c.status]}>{t(`clinic_campaigns.status.${c.status}`)}</Badge>
+                  )}
+                  {c.type === 'managed' && (
+                    <Badge variant="muted">{t('clinic_campaigns.type.managed')}</Badge>
+                  )}
                 </div>
                 <div className="mt-1 flex items-center gap-3 text-xs text-[var(--color-muted-foreground)]">
                   <span className="inline-flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
-                    {t('clinic_campaigns.sent_of', { sent: c.sent_count, total: c.total_recipients })}
+                    {c.type === 'managed'
+                      ? t('clinic_campaigns.recipient_count', { count: c.total_recipients })
+                      : t('clinic_campaigns.sent_of', { sent: c.sent_count, total: c.total_recipients })}
                   </span>
                   <span>{fmt(c.created_at)}</span>
                 </div>
-                {/* Progress bar */}
-                <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-[var(--color-muted)]">
-                  <div className="h-full rounded-full bg-emerald-500" style={{ width: `${c.progress}%` }} />
-                </div>
+                {/* Progress bar — only meaningful for self-send campaigns. */}
+                {c.type !== 'managed' && (
+                  <div className="mt-1.5 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-[var(--color-muted)]">
+                    <div className="h-full rounded-full bg-emerald-500" style={{ width: `${c.progress}%` }} />
+                  </div>
+                )}
               </button>
 
               <div className="flex shrink-0 items-center gap-1.5">

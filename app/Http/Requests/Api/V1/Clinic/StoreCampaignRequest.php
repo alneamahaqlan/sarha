@@ -17,8 +17,17 @@ class StoreCampaignRequest extends FormRequest
     {
         return [
             'name'             => ['required', 'string', 'max:120'],
+            // Fulfilment mode: 'self' (clinic sends manually) or 'managed'
+            // (platform runs it externally on request). Defaults to self.
+            'type'             => ['nullable', Rule::in([
+                \App\Models\ClinicCampaign::TYPE_SELF,
+                \App\Models\ClinicCampaign::TYPE_MANAGED,
+            ])],
             // The message body; {{name}} is rendered per recipient client-side.
             'message_template' => ['required', 'string', 'max:2000'],
+            // Managed campaigns carry a creative image (relative upload path).
+            'image_path'       => ['nullable', 'string', 'max:2048',
+                'required_if:type,' . \App\Models\ClinicCampaign::TYPE_MANAGED],
 
             'audience'                    => ['nullable', 'array'],
             'audience.segment'            => ['nullable', Rule::in(['vip', 'repeat', 'new', 'new_month', 'has_complaint', 'inactive_90d'])],

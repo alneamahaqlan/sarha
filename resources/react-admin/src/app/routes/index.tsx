@@ -59,6 +59,7 @@ const WhatsAppSendersIndex = lazy(() => import('@/features/whatsapp-senders/page
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
 const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
 const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
+const CampaignRequestsIndex = lazy(() => import('@/features/campaign-requests/pages/CampaignRequestsIndex').then(m => ({ default: m.CampaignRequestsIndex })));
 const CatalogServicesIndex = lazy(() => import('@/features/catalog-services/pages/CatalogServicesIndex').then(m => ({ default: m.CatalogServicesIndex })));
 const TrackingPage        = lazy(() => import('@/features/tracking/pages/TrackingPage').then(m => ({ default: m.TrackingPage })));
 const CartModerationPage  = lazy(() => import('@/features/cart/pages/CartModerationPage').then(m => ({ default: m.CartModerationPage })));
@@ -160,6 +161,7 @@ export function AppRoutes() {
               <Route path="ai-center" element={<AiCenterPage />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />
+              <Route path="campaign-requests" element={<CampaignRequestsIndex />} />
               <Route path="catalog-services" element={<CatalogServicesIndex />} />
               <Route path="clinic-reports" element={<AdminClinicReportsIndex />} />
               <Route path="customer-reports" element={<AdminCustomerReportsIndex />} />

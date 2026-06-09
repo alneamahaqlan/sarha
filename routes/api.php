@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Admin\ArticleController as AdminArticleControlle
 use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\CampaignRequestController as AdminCampaignRequestController;
 use App\Http\Controllers\Api\V1\Admin\CategoryRequestController as AdminCategoryRequestController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ClinicController;
@@ -208,6 +209,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('category-requests', [AdminCategoryRequestController::class, 'index'])->name('category-requests.index');
         Route::post('category-requests/{categoryRequest}/approve', [AdminCategoryRequestController::class, 'approve'])->name('category-requests.approve');
         Route::post('category-requests/{categoryRequest}/reject', [AdminCategoryRequestController::class, 'reject'])->name('category-requests.reject');
+
+        // Managed-campaign requests — complexes ask the platform to run a
+        // prepared campaign (image+text+audience) externally. Intake queue +
+        // recipient CSV export + close. No sending happens in-system.
+        Route::get('campaign-requests', [AdminCampaignRequestController::class, 'index'])->name('campaign-requests.index');
+        Route::get('campaign-requests/{campaign}', [AdminCampaignRequestController::class, 'show'])->name('campaign-requests.show');
+        Route::get('campaign-requests/{campaign}/export', [AdminCampaignRequestController::class, 'export'])->name('campaign-requests.export');
+        Route::post('campaign-requests/{campaign}/close', [AdminCampaignRequestController::class, 'close'])->name('campaign-requests.close');
 
         // Unified service catalog — review queue for clinic-proposed canonical
         // services. Approve flips the entry active + un-hides linked services.

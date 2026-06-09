@@ -44,6 +44,7 @@ const adminNav = [
     group: 'nav.group.sales',
     items: [
       { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter, badge: 'sales_followups_overdue' as keyof AdminNavBadges },
+      { to: '/admin/campaign-requests', label: 'nav.campaign_requests', icon: Megaphone, badge: 'campaign_requests' as keyof AdminNavBadges },
       { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
       { to: '/admin/subscription-packages', label: 'nav.subscription_packages', icon: Package },
     ],

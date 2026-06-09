@@ -53,6 +53,7 @@
     "clinic_reports": "Complex reports",
     "customer_reports": "Customer reports",
     "sales_leads": "Sales leads",
+    "campaign_requests": "Campaign requests",
     "clinics": "Complexes",
     "subscriptions": "Subscriptions",
     "subscription_packages": "Packages",
@@ -1167,6 +1168,20 @@
       "active": "Active",
       "completed": "Completed"
     },
+    "type": {
+      "self": "Send it myself",
+      "managed": "Ask the platform to run it"
+    },
+    "managed": {
+      "hint": "You prepare the campaign (image, text, audience) and the platform team runs it — they'll contact you with the cost before launch.",
+      "submit": "Submit request to platform",
+      "submitted": "Campaign request sent to the platform",
+      "runner_hint": "This is a platform-managed campaign — the platform team runs it externally after contacting you."
+    },
+    "managed_status": {
+      "submitted": "Awaiting platform",
+      "closed": "Closed"
+    },
     "segment": {
       "vip": "VIP customers",
       "repeat": "Repeat",
@@ -1191,7 +1206,9 @@
       "audience": "Target audience",
       "message": "Message",
       "message_placeholder": "e.g. Hi {{name}}, we miss you! Book your next visit and enjoy a special discount.",
-      "message_hint": "Use {{name}} to insert the customer's name when sending."
+      "message_hint": "Use {{name}} to insert the customer's name when sending.",
+      "image": "Campaign image",
+      "image_pick": "Choose an image"
     },
     "create": {
       "title": "New campaign",
@@ -1217,7 +1234,25 @@
     "errors": {
       "no_name": "Enter a campaign name",
       "no_message": "Enter a message",
-      "no_recipients": "No recipients in this segment"
+      "no_recipients": "No recipients in this segment",
+      "no_image": "Attach a campaign image"
+    }
+  },
+  "campaign_requests": {
+    "title": "Campaign requests",
+    "subtitle": "Campaigns complexes prepared and asked the platform to run. Export the recipient data, run it externally, then close the request.",
+    "name": "Campaign",
+    "clinic": "Complex",
+    "recipients": "Recipients",
+    "status_label": "Status",
+    "date": "Date",
+    "view": "Details",
+    "export": "Export CSV",
+    "close": "Close request",
+    "closed_by": "Closed by {{name}}",
+    "status": {
+      "submitted": "Awaiting run",
+      "closed": "Closed"
     }
   },
   "cart": {

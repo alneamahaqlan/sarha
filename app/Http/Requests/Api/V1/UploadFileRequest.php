@@ -18,6 +18,7 @@ class UploadFileRequest extends FormRequest
         'before-after',  // before/after photos
         'articles',      // article cover images
         'banners',       // homepage banner slides
+        'campaigns',     // managed-campaign creative images
     ];
 
     public function authorize(): bool

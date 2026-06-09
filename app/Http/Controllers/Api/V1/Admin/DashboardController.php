@@ -141,6 +141,9 @@ class DashboardController extends Controller
                 'category_requests'      => \App\Models\CategoryRequest::where('status', 'pending')->count(),
                 // New canonical-service requests pending admin review (catalog).
                 'catalog_requests'       => \App\Models\CatalogService::where('status', 'pending')->count(),
+                // Managed-campaign requests submitted by complexes, awaiting run.
+                'campaign_requests'      => \App\Models\ClinicCampaign::where('type', 'managed')
+                    ->where('managed_status', 'submitted')->count(),
                 // Clinic-side platform reports waiting for review.
                 'clinic_reports'         => \App\Models\ClinicReport::whereIn('status', ['new', 'in_review'])->count(),
                 // Customer-side platform reports waiting for review.

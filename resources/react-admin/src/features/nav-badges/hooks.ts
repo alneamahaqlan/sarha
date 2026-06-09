@@ -8,6 +8,7 @@ export interface AdminNavBadges {
   subscriptions_expiring: number;
   category_requests: number;
   catalog_requests: number;
+  campaign_requests: number;
   clinic_reports: number;
   customer_reports: number;
   tracking_pending: number;

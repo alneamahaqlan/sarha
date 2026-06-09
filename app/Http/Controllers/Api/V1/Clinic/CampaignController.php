@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\StoreCampaignRequest;
 use App\Http\Resources\Api\V1\CampaignRecipientResource;
 use App\Http\Resources\Api\V1\ClinicCampaignResource;
+use App\Models\Admin;
 use App\Models\CampaignRecipient;
 use App\Models\ClinicCampaign;
 use App\Models\Customer;
+use App\Models\PlatformNotification;
 use App\Services\ClinicActivityLogger;
 use App\Services\CustomerSegmentFilter;
 use App\Support\ActingClinicUser;
@@ -63,12 +65,18 @@ class CampaignController extends Controller
             ->limit(self::MAX_RECIPIENTS)
             ->get(['id', 'name', 'phone']);
 
+        $isManaged = ($validated['type'] ?? ClinicCampaign::TYPE_SELF) === ClinicCampaign::TYPE_MANAGED;
+
         $campaign = ClinicCampaign::create([
             'clinic_id'        => $clinicId,
+            'type'             => $isManaged ? ClinicCampaign::TYPE_MANAGED : ClinicCampaign::TYPE_SELF,
             'name'             => trim($validated['name']),
             'message_template' => trim($validated['message_template']),
+            'image_path'       => $isManaged ? ($validated['image_path'] ?? null) : null,
             'audience'         => $criteria,
             'status'           => ClinicCampaign::STATUS_ACTIVE,
+            // Managed campaigns enter the platform admin queue; self ones don't.
+            'managed_status'   => $isManaged ? ClinicCampaign::MANAGED_SUBMITTED : null,
             'total_recipients' => $customers->count(),
             'sent_count'       => 0,
             'created_by_type'  => ActingClinicUser::actorType(),
@@ -95,7 +103,12 @@ class CampaignController extends Controller
         $this->activity->log('campaign.created', $campaign, [
             'name'       => $campaign->name,
             'recipients' => $campaign->total_recipients,
+            'type'       => $campaign->type,
         ]);
+
+        if ($isManaged) {
+            $this->notifyAdminsOfManagedRequest($campaign);
+        }
 
         return response()->json([
             'data' => (new ClinicCampaignResource($campaign))->resolve(),
@@ -132,6 +145,9 @@ class CampaignController extends Controller
     {
         $this->ensureOwns($campaign);
         abort_unless($recipient->campaign_id === $campaign->id, 404);
+        // Managed campaigns are run by the platform externally — the clinic
+        // never marks recipients on them.
+        abort_if($campaign->isManaged(), 422, 'هذه حملة مُدارة عبر المنصة — يشغّلها فريق المنصة خارجياً.');
 
         $status = (string) $request->input('status');
         abort_unless(in_array($status, [
@@ -190,5 +206,28 @@ class CampaignController extends Controller
     private function ensureOwns(ClinicCampaign $campaign): void
     {
         abort_unless($campaign->clinic_id === (int) auth('clinic')->id(), 404);
+    }
+
+    /**
+     * Notify every active admin that a clinic submitted a managed-campaign
+     * request to run externally. Mirrors the CategoryRequest intake pattern.
+     */
+    private function notifyAdminsOfManagedRequest(ClinicCampaign $campaign): void
+    {
+        $clinicName = $campaign->clinic?->name ?? ActingClinicUser::actorName() ?? '—';
+
+        foreach (Admin::where('is_active', true)->get(['id']) as $admin) {
+            PlatformNotification::create([
+                'notifiable_type' => Admin::class,
+                'notifiable_id'   => $admin->id,
+                'type'            => 'managed_campaign.submitted',
+                'icon'            => 'heroicon-o-megaphone',
+                'url'             => '/app/admin/campaign-requests',
+                'priority'        => 'normal',
+                'title'           => 'طلب تشغيل حملة عبر المنصة',
+                'body'            => "{$clinicName} طلب تشغيل حملة «{$campaign->name}» ({$campaign->total_recipients} مستلم)",
+                'data'            => ['campaign_id' => $campaign->id],
+            ]);
+        }
     }
 }

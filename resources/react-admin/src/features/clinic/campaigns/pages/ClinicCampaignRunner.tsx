@@ -44,6 +44,39 @@ export function ClinicCampaignRunner() {
   if (isLoading) return <div className="p-6 text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</div>;
   if (!campaign) return <div className="p-6 text-sm text-rose-700">{t('clinic_campaigns.not_found')}</div>;
 
+  // Managed campaigns are run by the platform externally — show a read-only
+  // summary instead of the manual per-recipient sender.
+  if (campaign.type === 'managed') {
+    const closed = campaign.managed_status === 'closed';
+    return (
+      <div className="space-y-4">
+        <Link to="/clinic/campaigns" className="inline-flex items-center gap-1.5 text-sm text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]">
+          <ArrowBack className="h-4 w-4" />
+          {t('clinic_campaigns.back')}
+        </Link>
+        <div className="rounded-lg border border-[var(--color-border)] bg-white p-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-xl font-semibold">{campaign.name}</h1>
+            <Badge variant="default">{t('clinic_campaigns.type.managed')}</Badge>
+            <Badge variant={closed ? 'success' : 'warning'}>
+              {t(`clinic_campaigns.managed_status.${campaign.managed_status ?? 'submitted'}`)}
+            </Badge>
+          </div>
+          <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_campaigns.managed.runner_hint')}</p>
+          {campaign.image_url && (
+            <img src={campaign.image_url} alt="" className="max-h-64 w-auto rounded-lg border border-[var(--color-border)] object-contain" />
+          )}
+          <div className="rounded-md bg-[var(--color-muted)]/40 p-2 text-sm whitespace-pre-wrap">
+            {campaign.message_template}
+          </div>
+          <div className="text-sm text-[var(--color-muted-foreground)]">
+            {t('clinic_campaigns.recipient_count', { count: campaign.total_recipients })}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function send(r: CampaignRecipient) {
     if (r.phone) {
       window.open(waLink(r.phone, campaign!.message_template, r.name), '_blank', 'noopener');
