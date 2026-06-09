@@ -412,6 +412,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
 
+        // Import customers/leads from a public Google Sheet (preview → commit)
+        // plus saved sources for re-pulling campaign sheets.
+        Route::post('bookings/imports/preview', [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'preview'])->name('clinic.bookings.imports.preview');
+        Route::post('bookings/imports/commit',  [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'commit'])->name('clinic.bookings.imports.commit');
+        Route::get('bookings/imports/sources',  [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'sources'])->name('clinic.bookings.imports.sources');
+        Route::get('bookings/imports/sources/{source}',    [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'showSource'])->name('clinic.bookings.imports.sources.show');
+        Route::delete('bookings/imports/sources/{source}', [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'destroySource'])->name('clinic.bookings.imports.sources.destroy');
+
         // CSV export + customisable Kanban stages (per-clinic columns).
         Route::get('bookings/export', [\App\Http\Controllers\Api\V1\Clinic\BookingExportController::class, 'export'])->name('clinic.bookings.export');
         Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'index'])->name('clinic.bookings.stages.index');

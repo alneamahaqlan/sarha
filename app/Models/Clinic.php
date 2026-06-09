@@ -254,6 +254,11 @@ class Clinic extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function importSources()
+    {
+        return $this->hasMany(ClinicImportSource::class);
+    }
+
     public function customers()
     {
         return $this->hasMany(Customer::class);

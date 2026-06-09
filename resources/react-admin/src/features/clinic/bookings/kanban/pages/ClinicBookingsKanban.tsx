@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal, Lightbulb } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal, Lightbulb, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { KanbanBoard } from '../components/KanbanBoard';
@@ -8,6 +8,7 @@ import { KanbanFiltersBar } from '../components/KanbanFilters';
 import { BookingTableView } from '../components/BookingTableView';
 import { BookingCalendarView } from '../components/BookingCalendarView';
 import { CreateBookingDialog } from '../components/CreateBookingDialog';
+import { ImportSheetDialog } from '../components/ImportSheetDialog';
 import { StagesManagerDialog } from '../components/StagesManagerDialog';
 import { SuggestionSettingsDialog } from '../components/SuggestionSettingsDialog';
 import { ExportDialog } from '../components/ExportDialog';
@@ -26,6 +27,7 @@ export function ClinicBookingsKanban() {
   const [filters, setFilters] = useState<KanbanFilters>({});
   const [openCard, setOpenCard] = useState<KanbanCard | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [stagesOpen, setStagesOpen] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
@@ -45,6 +47,10 @@ export function ClinicBookingsKanban() {
           <Button onClick={() => setCreateOpen(true)} className="gap-1.5">
             <Plus className="h-4 w-4" />
             <span>{t('clinic_bookings_kanban.create.cta')}</span>
+          </Button>
+          <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-1.5">
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">{t('clinic_bookings_kanban.import.cta')}</span>
           </Button>
           <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-1.5">
             <Download className="h-4 w-4" />
@@ -94,6 +100,7 @@ export function ClinicBookingsKanban() {
       </Suspense>
 
       {createOpen && <CreateBookingDialog open onClose={() => setCreateOpen(false)} />}
+      {importOpen && <ImportSheetDialog onClose={() => setImportOpen(false)} />}
       {stagesOpen && <StagesManagerDialog onClose={() => setStagesOpen(false)} />}
       {suggestionsOpen && <SuggestionSettingsDialog onClose={() => setSuggestionsOpen(false)} />}
       {exportOpen && <ExportDialog filters={filters} onClose={() => setExportOpen(false)} />}
