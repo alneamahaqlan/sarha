@@ -56,6 +56,20 @@ Route::post('/cart/add/verify', [CartController::class, 'addVerify'])->middlewar
 Route::post('/track/click', [TrackingController::class, 'click'])
     ->middleware('throttle:120,1')
     ->name('track.click');
+// Landing pages (صفحات الهبوط). Registered before /clinic and the /{slug}
+// catch-all so /l/... always resolves here. Tracking beacons are CSRF-excluded
+// (see bootstrap/app.php) and throttled.
+Route::get('/l/{slug}', [\App\Http\Controllers\Public\LandingPageController::class, 'show'])
+    ->where('slug', '[a-z0-9-]+')->name('landing.show');
+Route::post('/l/{slug}/book', [\App\Http\Controllers\Public\LandingPageController::class, 'book'])
+    ->middleware('throttle:12,1')->name('landing.book');
+Route::post('/l/track/visit', [\App\Http\Controllers\Public\LandingTrackingController::class, 'visit'])
+    ->middleware('throttle:60,1')->name('landing.track.visit');
+Route::post('/l/track/event', [\App\Http\Controllers\Public\LandingTrackingController::class, 'event'])
+    ->middleware('throttle:120,1')->name('landing.track.event');
+Route::post('/l/track/leave', [\App\Http\Controllers\Public\LandingTrackingController::class, 'leave'])
+    ->middleware('throttle:60,1')->name('landing.track.leave');
+
 Route::get('/clinic/{slug}', [ClinicController::class, 'show'])->name('clinic.show');
 Route::get('/clinic/{slug}/book', [ClinicController::class, 'bookingForm'])->name('clinic.book.form');
 Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->middleware('throttle:12,1')->name('clinic.book');

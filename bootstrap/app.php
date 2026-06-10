@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Abandoned-cart nudges — hourly; the command only picks up items
         // aged past the configured window (default 24h) and never re-nudges.
         $schedule->command('saerha:dispatch-cart-reminders')->hourly();
+        // Self-heal yesterday's landing-page analytics rollup overnight.
+        $schedule->command('saerha:rollup-landing-stats')->dailyAt('02:30');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
@@ -48,8 +50,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->statefulApi();
 
-        // sendBeacon click tracker can't carry a CSRF token.
-        $middleware->validateCsrfTokens(except: ['track/click']);
+        // sendBeacon trackers can't carry a CSRF token.
+        $middleware->validateCsrfTokens(except: ['track/click', 'l/track/*']);
 
         $middleware->alias([
             'api.guard'   => \App\Http\Middleware\EnsureApiGuard::class,

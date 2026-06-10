@@ -26,6 +26,8 @@ use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
 use App\Http\Controllers\Api\V1\Admin\NavigationLinkController;
 use App\Http\Controllers\Api\V1\Admin\StaticPageController;
+use App\Http\Controllers\Api\V1\Admin\LandingPageController;
+use App\Http\Controllers\Api\V1\Admin\LandingPageBlockController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserProfileController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
@@ -152,6 +154,19 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('static-pages', StaticPageController::class)->parameters(['static-pages' => 'static_page']);
         Route::post('navigation-links/reorder', [NavigationLinkController::class, 'reorder'])->name('navigation-links.reorder');
         Route::apiResource('navigation-links', NavigationLinkController::class)->parameters(['navigation-links' => 'navigation_link']);
+
+        // ── Landing Pages (صفحات الهبوط) — super-admin builder. CRUD for the
+        // page + nested CRUD/reorder for its drag-and-drop content blocks.
+        // Block routes are declared before the apiResource so /blocks and
+        // /blocks/reorder are not swallowed by the {landing_page} binding.
+        Route::get('landing-pages/{landing_page}/blocks', [LandingPageBlockController::class, 'index'])->name('landing-pages.blocks.index');
+        Route::post('landing-pages/{landing_page}/blocks/reorder', [LandingPageBlockController::class, 'reorder'])->name('landing-pages.blocks.reorder');
+        Route::post('landing-pages/{landing_page}/blocks', [LandingPageBlockController::class, 'store'])->name('landing-pages.blocks.store');
+        Route::patch('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'update'])->name('landing-pages.blocks.update');
+        Route::delete('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'destroy'])->name('landing-pages.blocks.destroy');
+        Route::get('landing-pages/{landing_page}/stats', [\App\Http\Controllers\Api\V1\Admin\LandingPageStatsController::class, 'show'])->name('landing-pages.stats');
+        Route::post('landing-pages/generate', [\App\Http\Controllers\Api\V1\Admin\LandingPageAiController::class, 'generate'])->middleware('throttle:20,1')->name('landing-pages.generate');
+        Route::apiResource('landing-pages', LandingPageController::class)->parameters(['landing-pages' => 'landing_page']);
 
         // Subscription packages catalogue — full CRUD for the super-admin.
         // Deletion is rejected at controller level if any clinic is on the package.

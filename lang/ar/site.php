@@ -655,4 +655,22 @@ return [
     'footer_for_clinics' => 'هل تملك مجمع؟',
     'footer_for_clinics_desc' => 'انضم إلى منصة دليل المجمعات الطبية واعرض خدماتك لآلاف العملاء.',
     'footer_rights' => '© :year دليل المجمعات الطبية. جميع الحقوق محفوظة.',
+
+    // Landing pages (صفحات الهبوط)
+    'lp_book_now'        => 'احجز الآن',
+    'lp_send_booking'    => 'إرسال الطلب',
+    'lp_call_label'      => 'اتصل بنا',
+    'lp_directions'      => 'الاتجاهات',
+    'lp_location_title'  => 'الموقع',
+    'lp_faq_title'       => 'الأسئلة الشائعة',
+    'lp_notes'           => 'ملاحظات (اختياري)',
+    'lp_offer_ended'     => 'انتهى العرض',
+    'lp_days'            => 'يوم',
+    'lp_hours'           => 'ساعة',
+    'lp_minutes'         => 'دقيقة',
+    'lp_seconds'         => 'ثانية',
+    'lp_register_title'   => 'تم إرسال طلبك بنجاح',
+    'lp_register_body'    => 'رقم جوالك :phone غير مسجّل في المنصة. سجّل الآن لمتابعة طلبك وتسهيل حجوزاتك القادمة.',
+    'lp_register_cta'     => 'سجّل في المنصة الآن',
+    'lp_register_dismiss' => 'لاحقاً',
 ];

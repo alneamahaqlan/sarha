@@ -19,6 +19,7 @@ class UploadFileRequest extends FormRequest
         'articles',      // article cover images
         'banners',       // homepage banner slides
         'campaigns',     // managed-campaign creative images
+        'landing-pages', // landing page cover + social + block images
     ];
 
     public function authorize(): bool

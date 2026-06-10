@@ -38,6 +38,8 @@ const CategoriesIndex        = lazy(() => import('@/features/categories/pages/Ca
 const HomepageSectionsIndex  = lazy(() => import('@/features/homepage-sections/pages/HomepageSectionsIndex').then(m => ({ default: m.HomepageSectionsIndex })));
 const StaticPagesIndex       = lazy(() => import('@/features/static-pages/pages/StaticPagesIndex').then(m => ({ default: m.StaticPagesIndex })));
 const NavigationLinksIndex   = lazy(() => import('@/features/navigation-links/pages/NavigationLinksIndex').then(m => ({ default: m.NavigationLinksIndex })));
+const LandingPagesIndex      = lazy(() => import('@/features/landing-pages/pages/LandingPagesIndex').then(m => ({ default: m.LandingPagesIndex })));
+const LandingPageEditor      = lazy(() => import('@/features/landing-pages/pages/LandingPageEditor').then(m => ({ default: m.LandingPageEditor })));
 const AiCenterPage           = lazy(() => import('@/features/ai-center/pages/AiCenterPage').then(m => ({ default: m.AiCenterPage })));
 const UsersIndex          = lazy(() => import('@/features/users/pages/UsersIndex').then(m => ({ default: m.UsersIndex })));
 const UserProfilePage     = lazy(() => import('@/features/users/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
@@ -155,6 +157,8 @@ export function AppRoutes() {
               <Route path="categories" element={<CategoriesIndex />} />
               <Route path="homepage-sections" element={<HomepageSectionsIndex />} />
               <Route path="static-pages" element={<StaticPagesIndex />} />
+              <Route path="landing-pages" element={<LandingPagesIndex />} />
+              <Route path="landing-pages/:id" element={<LandingPageEditor />} />
               <Route path="navigation-links" element={<NavigationLinksIndex />} />
               <Route path="admins" element={<AdminsIndex />} />
               <Route path="subscriptions" element={<SubscriptionsIndex />} />

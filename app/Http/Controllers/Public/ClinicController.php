@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\ImpressionSource;
+use App\Http\Controllers\Concerns\CreatesBooking;
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -21,7 +22,7 @@ use Illuminate\Http\Request;
 
 class ClinicController extends Controller
 {
-    use IdentifiesCustomer;
+    use IdentifiesCustomer, CreatesBooking;
 
     public function show(string $slug, ClinicPageBuilderService $builder, FeatureGate $gate, SimilarityService $similarity)
     {
@@ -333,46 +334,6 @@ class ClinicController extends Controller
             'customer_name'  => $relative->name,
             'customer_phone' => $relative->phone,
         ];
-    }
-
-    /** Create the booking, attaching/creating the customer user for persistence. */
-    private function createBooking(Clinic $clinic, array $data): Booking
-    {
-        // user_id is the account that OWNS the booking (where it shows
-        // up under /account/bookings). For relative-mode it's the
-        // booker, not the relative — spec: "القريب نفسه لا يرى الحجز
-        // في حسابه (لتجنّب الازدواجية)".
-        $relativeId = $data['relative_id'] ?? null;
-        $bookerId   = $data['booker_user_id'] ?? null;
-
-        if ($relativeId) {
-            // Relative-mode always carries booker_user_id (resolveBookingTarget
-            // sets both). user_id = the booker so the booking is filed
-            // under the right account.
-            $userId = $bookerId;
-        } else {
-            // Self-mode: auth user OR a freshly-resolved customer from
-            // the typed phone (guest path, same as before).
-            $userId = auth('web')->id()
-                ?? $this->resolveCustomerUser($data['customer_name'], $data['customer_phone'])->id;
-        }
-
-        $booking = Booking::create([
-            'clinic_id'      => $clinic->id,
-            'user_id'        => $userId,
-            'booker_user_id' => $bookerId,
-            'relative_id'    => $data['relative_id'] ?? null,
-            'service_id'     => $data['service_id'] ?? null,
-            'customer_name'  => $data['customer_name'],
-            'customer_phone' => $data['customer_phone'],
-            'notes'          => $data['notes'] ?? null,
-            'status'         => 'new',
-            'source'         => 'website',
-        ]);
-
-        ClinicStat::bump($clinic->id, 'bookings_count');
-
-        return $booking;
     }
 
     public function bookingConfirmation(string $reference)

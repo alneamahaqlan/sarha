@@ -10,7 +10,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 interface Props {
   value: string | null | undefined;
   onChange: (path: string | null) => void;
-  directory: 'logos' | 'gallery' | 'doctors' | 'services' | 'offers' | 'before-after' | 'articles' | 'banners';
+  directory: 'logos' | 'gallery' | 'doctors' | 'services' | 'offers' | 'before-after' | 'articles' | 'banners' | 'landing-pages';
   disabled?: boolean;
   label?: string;
 }

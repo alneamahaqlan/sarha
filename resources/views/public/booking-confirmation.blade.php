@@ -64,4 +64,28 @@ window.sarhaTrack && window.sarhaTrack('submit_booking', { clinic_id: {{ (int) $
         </div>
     </div>
 </div>
+
+{{-- Post-booking "register now" prompt — only for guests who booked from a
+     landing page and have no account yet. The standard OTP login links the
+     account to the unverified customer record by phone (no duplicate). --}}
+@if(session('lp_register_prompt') && ! auth('web')->check())
+    <div x-data="{ open: true }" x-show="open" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="background: rgba(0,0,0,.5)">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-7 text-center" @click.outside="open = false">
+            <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
+            <h2 class="text-xl font-bold text-gray-900 mb-2">@lang('site.lp_register_title')</h2>
+            <p class="text-gray-600 mb-6">{{ __('site.lp_register_body', ['phone' => session('lp_register_prompt')]) }}</p>
+            <div class="flex flex-col gap-2">
+                <a href="{{ route('login', ['redirect' => route('home')]) }}"
+                   class="bg-sage-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sage-700 transition">
+                    @lang('site.lp_register_cta')
+                </a>
+                <button type="button" @click="open = false" class="text-gray-500 px-6 py-2 rounded-lg font-medium hover:text-gray-700 transition">
+                    @lang('site.lp_register_dismiss')
+                </button>
+            </div>
+        </div>
+    </div>
+@endif
 @endsection

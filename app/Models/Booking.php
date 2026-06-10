@@ -86,6 +86,7 @@ class Booking extends Model
         'clinic_notes', 'appointment_at', 'source', 'acquisition_source',
         'assignee_type', 'assignee_id', 'stage_id',
         'created_by_type', 'created_by_id', 'created_by_name',
+        'landing_page_id', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
     ];
 
     protected function casts(): array
@@ -131,6 +132,12 @@ class Booking extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    /** The landing page this booking originated from, if any. */
+    public function landingPage()
+    {
+        return $this->belongsTo(LandingPage::class);
     }
 
     public function customer()

@@ -11,7 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', __('site.brand')) — @lang('site.tagline')</title>
     <meta name="description" content="@yield('description', __('site.meta_description'))">
-    <link rel="canonical" href="{{ url()->current() }}">
+    <link rel="canonical" href="@yield('canonical', url()->current())">
+    @hasSection('meta_robots')
+        <meta name="robots" content="@yield('meta_robots')">
+    @endif
 
     {{-- Open Graph (pages override via @section('og_*'); image falls back to the platform default) --}}
     <meta property="og:type" content="@yield('og_type', 'website')">

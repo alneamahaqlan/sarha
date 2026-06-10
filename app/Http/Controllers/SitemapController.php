@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Article;
 use App\Models\Clinic;
+use App\Models\LandingPage;
 use App\Models\StaticPage;
 use Illuminate\Http\Response;
 
@@ -63,6 +64,23 @@ class SitemapController extends Controller
                 'priority'   => '0.6',
                 'changefreq' => 'monthly',
                 'lastmod'    => $article->updated_at?->toIso8601String() ?? now()->toIso8601String(),
+            ]);
+        }
+
+        // Published landing pages opted into the sitemap.
+        $landingPages = LandingPage::publiclyLive()
+            ->where('in_sitemap', true)
+            ->select(['slug', 'updated_at'])
+            ->latest('updated_at')
+            ->limit(5000)
+            ->get();
+
+        foreach ($landingPages as $lp) {
+            $urls->push([
+                'loc'        => route('landing.show', $lp->slug),
+                'priority'   => '0.7',
+                'changefreq' => 'weekly',
+                'lastmod'    => $lp->updated_at?->toIso8601String() ?? now()->toIso8601String(),
             ]);
         }
 
