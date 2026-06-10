@@ -18,6 +18,8 @@ export interface AnalyticsSpecialty {
 export interface AnalyticsSummary {
   impressions_total: number;
   impressions: Partial<Record<ImpressionSource, number>>;
+  /** Distinct visitors (de-duplicated per 3-hour window) across the platform. */
+  unique_views: number;
   page_views: number;
   bookings: number;
   quote_requests: number;
@@ -42,6 +44,7 @@ export interface AnalyticsPlatform {
 /** Percentage change vs the immediately preceding window; null when no baseline. */
 export interface AnalyticsDeltas {
   impressions: number | null;
+  unique_views: number | null;
   page_views: number | null;
   bookings: number | null;
   quote_requests: number | null;
@@ -61,6 +64,7 @@ export interface AnalyticsFunnel {
 export interface AnalyticsTrendPoint {
   date: string;
   impressions: number;
+  unique_views: number;
   page_views: number;
   bookings: number;
   quote_requests: number;

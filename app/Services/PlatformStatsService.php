@@ -72,12 +72,20 @@ class PlatformStatsService
             }
         }
 
+        // Unique viewers ("المشاهدات") platform-wide: distinct visitors
+        // de-duplicated per 3-hour window, summed across every clinic. Each
+        // clinic_views row is already one unique visitor per window.
+        $uniqueViews = (int) DB::table('clinic_views')
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->count();
+
         $contacts = (int) $t->wa + (int) $t->cl + (int) $t->bc;
         $conversions = $bk + $qr;
 
         $summary = [
             'impressions_total' => $impressionsTotal,
             'impressions'       => $bySource,
+            'unique_views'      => $uniqueViews,
             'page_views'        => $pv,
             'bookings'          => $bk,
             'quote_requests'    => $qr,
@@ -107,7 +115,7 @@ class PlatformStatsService
         $deltas = $this->deltas(
             $prevFrom->toDateString(), $prevTo->toDateString(),
             $prevFrom->copy()->startOfDay(), $prevTo->copy()->endOfDay(),
-            $impressionsTotal, $pv, $bk, $qr, $platform['revenue']
+            $impressionsTotal, $pv, $bk, $qr, $platform['revenue'], $uniqueViews
         );
 
         // ---- acquisition funnel: impressions → views → contacts → conversions ----
@@ -160,18 +168,20 @@ class PlatformStatsService
      * Previous-window totals → percentage change for each headline metric.
      * Returns null for a metric whose previous value was 0 (no baseline).
      */
-    private function deltas(string $pFrom, string $pTo, Carbon $pStart, Carbon $pEnd, int $imp, int $pv, int $bk, int $qr, float $rev): array
+    private function deltas(string $pFrom, string $pTo, Carbon $pStart, Carbon $pEnd, int $imp, int $pv, int $bk, int $qr, float $rev, int $uv): array
     {
         $s = ClinicStat::whereBetween('date', [$pFrom, $pTo])->selectRaw(
             'COALESCE(SUM(page_views),0) pv, COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr'
         )->first();
         $pImp = (int) DB::table('clinic_impressions')->whereBetween('date', [$pFrom, $pTo])->sum('count');
+        $pUv = (int) DB::table('clinic_views')->whereBetween('date', [$pFrom, $pTo])->count();
         $pRev = (float) Subscription::where('status', 'active')->whereBetween('created_at', [$pStart, $pEnd])->sum('amount');
 
         $pct = fn ($cur, $prev) => $prev > 0 ? (int) round((($cur - $prev) / $prev) * 100) : null;
 
         return [
             'impressions'    => $pct($imp, $pImp),
+            'unique_views'   => $pct($uv, $pUv),
             'page_views'     => $pct($pv, (int) $s->pv),
             'bookings'       => $pct($bk, (int) $s->bk),
             'quote_requests' => $pct($qr, (int) $s->qr),
@@ -189,6 +199,9 @@ class PlatformStatsService
         $imp = DB::table('clinic_impressions')->whereBetween('date', [$fromDate, $toDate])
             ->selectRaw('date, COALESCE(SUM(count),0) c')->groupBy('date')->pluck('c', 'date');
 
+        $uv = DB::table('clinic_views')->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('date, COUNT(*) c')->groupBy('date')->pluck('c', 'date');
+
         $stats = ClinicStat::whereBetween('date', [$fromDate, $toDate])
             ->selectRaw('date, COALESCE(SUM(page_views),0) pv, COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr')
             ->groupBy('date')->get()->keyBy(fn ($r) => $r->date->toDateString());
@@ -201,6 +214,7 @@ class PlatformStatsService
             $out[] = [
                 'date'           => $d,
                 'impressions'    => (int) ($imp[$d] ?? 0),
+                'unique_views'   => (int) ($uv[$d] ?? 0),
                 'page_views'     => (int) ($row->pv ?? 0),
                 'bookings'       => (int) ($row->bk ?? 0),
                 'quote_requests' => (int) ($row->qr ?? 0),

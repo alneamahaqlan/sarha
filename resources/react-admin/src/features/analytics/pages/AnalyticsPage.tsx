@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
-  BarChart3, Bell, DollarSign, Eye, MousePointerClick, MessageCircle, MessageSquare,
-  Navigation, Phone, Search, Sparkles, TrendingUp, Users, Building2, CreditCard, Filter,
+  BarChart3, Bell, DollarSign, Eye, Info, MousePointerClick, MessageCircle, MessageSquare,
+  Navigation, Phone, Search, Sparkles, TrendingUp, Users, UserCheck, Building2, CreditCard, Filter,
 } from 'lucide-react';
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -69,32 +69,45 @@ function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.
       {/* Platform overview — revenue & growth */}
       <SectionTitle icon={Building2}>{t('analytics.platform_overview')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={DollarSign} tone="success" label={t('analytics.revenue')} value={<Money value={p.revenue} locale={locale} />} delta={d.revenue} />
+        <Card icon={DollarSign} tone="success" label={t('analytics.revenue')} value={<Money value={p.revenue} locale={locale} />} delta={d.revenue}
+          tooltip={t('analytics.revenue_tooltip')} />
         <Card icon={CreditCard} tone="primary" label={t('analytics.active_subscriptions')} value={nf.format(p.active_subscriptions)}
-          hint={t('analytics.new_subscriptions_hint', { count: p.new_subscriptions })} />
+          hint={t('analytics.new_subscriptions_hint', { count: p.new_subscriptions })} tooltip={t('analytics.active_subscriptions_tooltip')} />
         <Card icon={Building2} tone="info" label={t('analytics.active_clinics')} value={nf.format(p.active_clinics)}
-          hint={t('analytics.total_clinics_hint', { count: p.total_clinics })} />
-        <Card icon={Users} tone="warning" label={t('analytics.new_clinics')} value={nf.format(p.new_clinics)} />
+          hint={t('analytics.total_clinics_hint', { count: p.total_clinics })} tooltip={t('analytics.active_clinics_tooltip')} />
+        <Card icon={Users} tone="warning" label={t('analytics.new_clinics')} value={nf.format(p.new_clinics)}
+          tooltip={t('analytics.new_clinics_tooltip')} />
       </div>
 
       {/* Visibility & engagement KPIs */}
       <SectionTitle icon={TrendingUp}>{t('analytics.engagement_title')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Search} tone="info" label={t('clinic_stats.impressions_total')} value={nf.format(s.impressions_total)} delta={d.impressions} />
-        <Card icon={Eye} tone="primary" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={d.page_views} />
-        <Card icon={Bell} tone="success" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={d.bookings} />
-        <Card icon={MessageSquare} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} delta={d.quote_requests} />
+        <Card icon={Search} tone="info" label={t('clinic_stats.impressions_total')} value={nf.format(s.impressions_total)} delta={d.impressions}
+          tooltip={t('clinic_stats.impressions_total_tooltip')} />
+        <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)} delta={d.unique_views}
+          tooltip={t('clinic_stats.unique_views_tooltip')} />
+        <Card icon={Eye} tone="primary" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={d.page_views}
+          tooltip={t('clinic_stats.page_views_tooltip')} />
+        <Card icon={Bell} tone="success" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={d.bookings}
+          tooltip={t('clinic_stats.bookings_tooltip')} />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
+        <Card icon={MessageSquare} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} delta={d.quote_requests}
+          tooltip={t('clinic_stats.quote_requests_tooltip')} />
+        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
+          tooltip={t('clinic_stats.conversion_rate_tooltip')} />
         <Card icon={Eye} tone="info" label={t('analytics.engagement_rate')} value={`${s.engagement_rate}%`}
-          hint={t('analytics.engagement_rate_hint')} />
-        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
-        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
+          hint={t('analytics.engagement_rate_hint')} tooltip={t('analytics.engagement_rate_tooltip')} />
+        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
+          tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
-        <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')} value={nf.format(s.booking_clicks)} />
+        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
+          tooltip={t('clinic_stats.call_clicks_tooltip')} />
+        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
+          tooltip={t('clinic_stats.directions_clicks_tooltip')} />
+        <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')} value={nf.format(s.booking_clicks)}
+          tooltip={t('clinic_stats.booking_page_opens_tooltip')} />
       </div>
 
       {/* Acquisition funnel */}
@@ -111,6 +124,7 @@ function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="impressions" name={t('clinic_stats.impressions_total')} stroke="#8b5cf6" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="unique_views" name={t('clinic_stats.unique_views')} stroke="#10b981" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="page_views" name={t('clinic_stats.page_views')} stroke="#0ea5e9" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="bookings" name={t('clinic_stats.bookings')} stroke="#0066cc" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="quote_requests" name={t('clinic_stats.quote_requests')} stroke="#f59e0b" strokeWidth={2} dot={false} />
@@ -308,17 +322,24 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Card({
-  icon: Icon, tone, label, value, delta, hint,
+  icon: Icon, tone, label, value, delta, hint, tooltip,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; hint?: string;
+  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; hint?: string; tooltip?: string;
 }) {
   const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <div className="text-xs text-[var(--color-muted-foreground)]">{label}</div>
+          <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+            <span>{label}</span>
+            {tooltip && (
+              <span title={tooltip} className="cursor-help">
+                <Info className="h-3 w-3" />
+              </span>
+            )}
+          </div>
           <div className="mt-1 text-2xl font-semibold">{value}</div>
           {delta !== undefined && delta !== null && (
             <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>

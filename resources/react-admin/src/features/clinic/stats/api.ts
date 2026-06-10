@@ -19,6 +19,8 @@ export interface StatsSummary {
    * when `ai` is hidden — that's the deliberate "silent contribution".
    */
   impressions: Partial<Record<ImpressionSource, number>>;
+  /** Distinct visitors (de-duplicated per 3-hour window) — the headcount behind impressions. */
+  unique_views: number;
   page_views: number;
   bookings: number;
   quote_requests: number;
@@ -54,6 +56,7 @@ export interface StatsComparison {
 export interface StatsTrendPoint {
   date: string;
   search_appearances: number;
+  unique_views: number;
   page_views: number;
   bookings: number;
   quote_requests: number;

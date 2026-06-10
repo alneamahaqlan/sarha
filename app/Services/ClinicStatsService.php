@@ -96,6 +96,10 @@ class ClinicStatsService
         $impressions = $this->impressionBreakdown($clinic->id, $fromDate, $toDate, $showAi);
         $impressionsTotal = $impressions['total'];
 
+        // Unique viewers ("المشاهدات"): distinct visitors, de-duplicated per
+        // 3-hour window — the headcount behind the raw impression total.
+        $uniqueViews = $this->uniqueViews($clinic->id, $fromDate, $toDate);
+
         $summary = [
             // Legacy alias — kept so existing back-compat consumers
             // (e.g. comparison rank) keep working; equal to the
@@ -103,6 +107,7 @@ class ClinicStatsService
             'search_appearances' => $impressionsTotal,
             'impressions_total'  => $impressionsTotal,
             'impressions'        => $impressions['by_source'],
+            'unique_views'       => $uniqueViews,
             'page_views'         => $pv,
             'bookings'           => $bk,
             'quote_requests'     => $qr,
@@ -340,6 +345,7 @@ class ClinicStatsService
 
         return [
             'impressions'    => $impressions['total'],
+            'unique_views'   => $this->uniqueViews($clinicId, $fromDate, $toDate),
             'page_views'     => (int) $t->pv,
             'bookings'       => (int) $t->bk,
             'quote_requests' => (int) $t->qr,
@@ -404,6 +410,13 @@ class ClinicStatsService
             ->groupBy('date')
             ->pluck('c', 'date');
 
+        $uniqueViewsByDate = DB::table('clinic_views')
+            ->where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('date, COUNT(*) AS c')
+            ->groupBy('date')
+            ->pluck('c', 'date');
+
         return ClinicStat::where('clinic_id', $clinicId)
             ->whereBetween('date', [$fromDate, $toDate])
             ->orderBy('date')
@@ -411,10 +424,25 @@ class ClinicStatsService
             ->map(fn (ClinicStat $s) => [
                 'date'               => $s->date?->toDateString(),
                 'search_appearances' => (int) ($impressionsByDate[$s->date?->toDateString()] ?? 0),
+                'unique_views'       => (int) ($uniqueViewsByDate[$s->date?->toDateString()] ?? 0),
                 'page_views'         => (int) $s->page_views,
                 'bookings'           => (int) $s->bookings_count,
                 'quote_requests'     => (int) $s->quote_requests_count,
             ])->values()->all();
+    }
+
+    /**
+     * Distinct-visitor count for one clinic over the range. Each
+     * clinic_views row is already one unique visitor per 3-hour window
+     * (see ImpressionTrackerService), so a straight COUNT over the range
+     * yields "المشاهدات" — the de-duplicated headcount behind impressions.
+     */
+    private function uniqueViews(int $clinicId, string $fromDate, string $toDate): int
+    {
+        return (int) DB::table('clinic_views')
+            ->where('clinic_id', $clinicId)
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->count();
     }
 
     /**

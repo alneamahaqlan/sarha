@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -27,14 +27,20 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
       {/* Summary cards — top row: impressions card is now expandable */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
-        <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct} />
-        <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct} />
-        <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} />
+        <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)}
+          tooltip={t('clinic_stats.unique_views_tooltip')} />
+        <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct}
+          tooltip={t('clinic_stats.page_views_tooltip')} />
+        <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct}
+          tooltip={t('clinic_stats.bookings_tooltip')} />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
-        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
-        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
+        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
+          tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
+        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
+          tooltip={t('clinic_stats.call_clicks_tooltip')} />
+        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
+          tooltip={t('clinic_stats.directions_clicks_tooltip')} />
         {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
             with a tooltip clarifying it is NOT a completed booking. */}
         <Card
@@ -46,8 +52,11 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
             'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
         />
       </div>
-      <div className="grid grid-cols-1">
-        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)}
+          tooltip={t('clinic_stats.quote_requests_tooltip')} />
+        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
+          tooltip={t('clinic_stats.conversion_rate_tooltip')} />
       </div>
 
       {/* Comparison */}
@@ -84,6 +93,7 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
+              <Line type="monotone" dataKey="unique_views" name={t('clinic_stats.unique_views')} stroke="#10b981" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="page_views" name={t('clinic_stats.page_views')} stroke="#0ea5e9" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="bookings" name={t('clinic_stats.bookings')} stroke="#0066cc" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="quote_requests" name={t('clinic_stats.quote_requests')} stroke="#f59e0b" strokeWidth={2} dot={false} />
@@ -264,8 +274,11 @@ function ImpressionsCard({
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-[var(--color-muted-foreground)]">
-            {t('clinic_stats.impressions_total', 'إجمالي الظهور')}
+          <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+            <span>{t('clinic_stats.impressions_total', 'إجمالي الظهور')}</span>
+            <span title={t('clinic_stats.impressions_total_tooltip')} className="cursor-help">
+              <Info className="h-3 w-3" />
+            </span>
           </div>
           <div className="mt-1 text-2xl font-semibold">{nf.format(summary.impressions_total)}</div>
           {delta !== undefined && delta !== null && (
