@@ -13,6 +13,7 @@ export interface AdminNavBadges {
   customer_reports: number;
   tracking_pending: number;
   cart_pending: number;
+  access_center: number;
   sales_followups_overdue: number;
 }
 

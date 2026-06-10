@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 
 class Clinic extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, HasDemoData;
 
     /**
      * Below this many total impressions the public "عدد الظهور" badge is
@@ -66,6 +67,10 @@ class Clinic extends Authenticatable
         // own show/hide switch once active.
         'cart_status', 'cart_rejection_reason', 'cart_requested_at',
         'cart_reviewed_by', 'cart_storefront_enabled',
+        // Price-quote reply gate (default active; admin can disable). The clinic
+        // always SEES broadcast requests but may only REPLY while status='active'.
+        'price_quote_status', 'price_quote_rejection_reason',
+        'price_quote_requested_at', 'price_quote_reviewed_by',
     ];
 
     protected $hidden = ['password', 'password_plaintext', 'remember_token'];
@@ -88,6 +93,7 @@ class Clinic extends Authenticatable
             'tracking_requested_at' => 'datetime',
             'cart_requested_at' => 'datetime',
             'cart_storefront_enabled' => 'boolean',
+            'price_quote_requested_at' => 'datetime',
         ];
     }
 
@@ -95,6 +101,12 @@ class Clinic extends Authenticatable
     public function cartActive(): bool
     {
         return $this->cart_status === 'active';
+    }
+
+    /** Clinic may post replies to broadcast price-quote requests. */
+    public function priceQuoteReplyActive(): bool
+    {
+        return $this->price_quote_status === 'active';
     }
 
     /** Cart button should render on this clinic's public pages. */

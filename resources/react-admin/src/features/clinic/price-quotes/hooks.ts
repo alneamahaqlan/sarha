@@ -14,3 +14,15 @@ export function useReplyClinicQuote(id: number) {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useQuoteAccess() {
+  return useQuery({ queryKey: [...KEY, 'access'], queryFn: () => clinicQuotesApi.access() });
+}
+
+export function useRequestQuoteAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => clinicQuotesApi.requestAccess(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...KEY, 'access'] }),
+  });
+}

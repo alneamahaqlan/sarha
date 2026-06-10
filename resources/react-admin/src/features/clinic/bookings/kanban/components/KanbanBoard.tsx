@@ -39,6 +39,13 @@ const REP_STATUS: Record<StageKind, string> = {
 
 const TERMINAL: StageKind[] = ['completed', 'cancelled'];
 
+// Fixed column window: each stage shows ~7 cards before its internal scroll
+// kicks in — same height on every device. CARD_SLOT_PX ≈ one card + the gap
+// below it; tweak VISIBLE_CARDS to change how many show at once.
+const VISIBLE_CARDS = 7;
+const CARD_SLOT_PX = 136;
+const BOARD_PX = 54 + VISIBLE_CARDS * CARD_SLOT_PX; // column header + padding + N cards
+
 type MovePayload = {
   stage_id: number;
   status?: string;
@@ -191,7 +198,7 @@ export function KanbanBoard({ filters, onOpenCard, stages }: Props) {
   return (
     <>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex h-[calc(100vh-280px)] min-h-[480px] gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2" style={{ height: BOARD_PX }}>
           {stages.map((stage) => {
             const payload = data?.[String(stage.id)];
             return (

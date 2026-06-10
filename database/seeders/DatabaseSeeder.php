@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\SystemSetting;
+use App\Support\DemoBatch;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -50,7 +51,10 @@ class DatabaseSeeder extends Seeder
         // Fill out every other table (users, services, articles, bookings,
         // quotes, reviews, subscriptions, stats, leads, complaints, audit log,
         // notifications, …) so the platform looks alive on a fresh install.
-        $this->call(DemoSeeder::class);
+        // DemoBatch::wrap stamps every row this seeder inserts with the batch
+        // label so the Seeder Center (مركز السيدر) can later hide/restore/purge
+        // it without touching real, app-entered data. (config/demo_seed.php)
+        DemoBatch::wrap('demo', fn () => $this->call(DemoSeeder::class));
 
         // The 16 homepage sections + 3 demo banner slides — REQUIRED, the
         // public landing page renders empty without these rows.
@@ -63,10 +67,10 @@ class DatabaseSeeder extends Seeder
 
         // ── Heavy demo data — opt out via SEED_HEAVY=0 in .env ─────────────
         if (env('SEED_HEAVY', true)) {
-            $this->call(MassiveCityCoverageSeeder::class);
+            DemoBatch::wrap('massive_city', fn () => $this->call(MassiveCityCoverageSeeder::class));
             $this->call(BackfillClinicCoordinatesSeeder::class);
-            $this->call(YearOfUsageSeeder::class);
-            $this->call(EdgeCaseScenarioSeeder::class);
+            DemoBatch::wrap('year_of_usage', fn () => $this->call(YearOfUsageSeeder::class));
+            DemoBatch::wrap('edge_cases', fn () => $this->call(EdgeCaseScenarioSeeder::class));
         }
 
         // Subscription packages (Free/Standard/Premium) + back-fill of
@@ -78,30 +82,35 @@ class DatabaseSeeder extends Seeder
         // Saved relatives + a few proxy bookings so the "حجز لأحد أقاربي"
         // filter and the clinic-side "بالنيابة" badge have data to render.
         // Lives outside the heavy block — light, idempotent, always wanted.
-        $this->call(RelativesAndProxyBookingsSeeder::class);
+        DemoBatch::wrap('relatives_proxy', fn () => $this->call(RelativesAndProxyBookingsSeeder::class));
 
         // 5 behavioural archetypes × 4 users so the super-admin
         // "comprehensive user profile" screen has realistic timelines,
         // visit histories, and risk-flag triggers on a fresh seed.
-        $this->call(UserActivityPatternsSeeder::class);
+        DemoBatch::wrap('user_activity', fn () => $this->call(UserActivityPatternsSeeder::class));
 
         // Team members + activity-log rows for a sample of clinics so
         // the new "فريقي" + "نشاط الفريق" screens have content on a
         // fresh seed. Lightweight & idempotent (skips if rows exist).
-        $this->call(ClinicTeamSeeder::class);
+        DemoBatch::wrap('clinic_team', fn () => $this->call(ClinicTeamSeeder::class));
 
         // CRM-shaped bookings data: assignees, VIP customers, cancel-
         // risk customers, tags, and activity-log rows so the new
         // Kanban "لوحة الحجوزات" has signals to render (VIP badges,
         // smart suggestions, Timeline entries). Depends on ClinicTeam-
         // Seeder (needs team members to assign to).
-        $this->call(BookingsCrmSeeder::class);
+        DemoBatch::wrap('crm', fn () => $this->call(BookingsCrmSeeder::class));
 
         // Phase 1 foundation: walk every booking / complaint /
         // price-quote and link it to the unified Customer entity
         // (creating Customers along the way). Must run LAST — sees
         // the full data picture produced by every seeder above.
         $this->call(CustomersBackfillSeeder::class);
+
+        // Unify those per-clinic Customer rows into one platform-wide
+        // identity per phone (canonical name, verification, name aliases).
+        // Runs right after — it consumes the Customer rows above.
+        $this->call(PlatformCustomerBackfillSeeder::class);
     }
 
     private function seedAdmins(): void

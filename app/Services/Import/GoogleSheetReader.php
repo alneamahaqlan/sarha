@@ -16,6 +16,8 @@ use RuntimeException;
  */
 class GoogleSheetReader
 {
+    use MapsTabularRows;
+
     /** Hard cap on rows pulled in a single import (synchronous). */
     public const MAX_ROWS = 1000;
 
@@ -29,12 +31,7 @@ class GoogleSheetReader
      */
     public function read(string $sheetUrl, array $columnMap, int $rowFrom, int $rowTo): array
     {
-        if ($rowFrom < 1 || $rowTo < $rowFrom) {
-            throw new RuntimeException('import.invalid_range');
-        }
-        if (($rowTo - $rowFrom + 1) > self::MAX_ROWS) {
-            throw new RuntimeException('import.range_too_large');
-        }
+        $this->validateRange($rowFrom, $rowTo);
 
         $csvUrl = $this->toCsvExportUrl($sheetUrl);
 
@@ -51,27 +48,7 @@ class GoogleSheetReader
             throw new RuntimeException('import.sheet_empty');
         }
 
-        // Resolve each field's column letter to a 0-based index once.
-        $indexMap = [];
-        foreach ($columnMap as $field => $letter) {
-            if (is_string($letter) && trim($letter) !== '') {
-                $indexMap[$field] = $this->columnLetterToIndex(trim($letter));
-            }
-        }
-
-        $out = [];
-        // Sheet row N is at $lines[N-1]; clamp to what the sheet actually has.
-        $lastRow = min($rowTo, count($lines));
-        for ($row = $rowFrom; $row <= $lastRow; $row++) {
-            $cells = $lines[$row - 1];
-            $values = [];
-            foreach ($indexMap as $field => $idx) {
-                $values[$field] = isset($cells[$idx]) ? trim((string) $cells[$idx]) : '';
-            }
-            $out[] = ['row' => $row, 'values' => $values];
-        }
-
-        return $out;
+        return $this->mapLines($lines, $columnMap, $rowFrom, $rowTo);
     }
 
     /**
@@ -91,47 +68,5 @@ class GoogleSheetReader
         }
 
         return "https://docs.google.com/spreadsheets/d/{$id}/export?format=csv&gid={$gid}";
-    }
-
-    /**
-     * Spreadsheet column letter → 0-based index. A→0, B→1, Z→25, AA→26.
-     */
-    public function columnLetterToIndex(string $letter): int
-    {
-        $letter = strtoupper(preg_replace('/[^A-Za-z]/', '', $letter) ?? '');
-        if ($letter === '') {
-            throw new RuntimeException('import.invalid_column');
-        }
-        $index = 0;
-        foreach (str_split($letter) as $ch) {
-            $index = $index * 26 + (ord($ch) - ord('A') + 1);
-        }
-
-        return $index - 1;
-    }
-
-    /**
-     * Parse CSV text into rows of cells. Uses PHP's str_getcsv per line via a
-     * temp stream so quoted commas/newlines inside fields are handled.
-     *
-     * @return array<int,array<int,string>>
-     */
-    private function parseCsv(string $body): array
-    {
-        // Strip a UTF-8 BOM that Google sometimes prepends.
-        $body = preg_replace('/^\xEF\xBB\xBF/', '', $body) ?? $body;
-
-        $rows = [];
-        $stream = fopen('php://temp', 'r+');
-        fwrite($stream, $body);
-        rewind($stream);
-        while (($cells = fgetcsv($stream)) !== false) {
-            // fgetcsv yields [null] for a truly blank line — keep it as empty
-            // row so row numbers stay aligned with the sheet.
-            $rows[] = ($cells === [null]) ? [] : $cells;
-        }
-        fclose($stream);
-
-        return $rows;
     }
 }

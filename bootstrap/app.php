@@ -22,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('saerha:dispatch-contact-reminders')->everyTenMinutes();
         // Overdue sales-lead follow-ups — hourly is plenty for date-based cues.
         $schedule->command('saerha:notify-sales-followups')->hourly();
+        // Abandoned-cart nudges — hourly; the command only picks up items
+        // aged past the configured window (default 24h) and never re-nudges.
+        $schedule->command('saerha:dispatch-cart-reminders')->hourly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR

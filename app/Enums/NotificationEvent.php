@@ -43,6 +43,8 @@ enum NotificationEvent: string
     case BOOKING_CONFIRMED          = 'booking_confirmed';
     case COMPLAINT_REPLIED          = 'complaint_replied';
     case QUOTE_REPLIED              = 'quote_replied';
+    // The customer left items unbooked in their cart — gentle nudge to finish.
+    case CART_REMINDER_DUE          = 'cart_reminder_due';
 
     // ── Admin-side events ──────────────────────────────────────────
     case CLINIC_PENDING_APPROVAL    = 'clinic_pending_approval';
@@ -70,7 +72,8 @@ enum NotificationEvent: string
 
             self::BOOKING_CONFIRMED,
             self::COMPLAINT_REPLIED,
-            self::QUOTE_REPLIED => User::class,
+            self::QUOTE_REPLIED,
+            self::CART_REMINDER_DUE => User::class,
 
             self::CLINIC_PENDING_APPROVAL,
             self::AI_EMERGENCY,
@@ -92,6 +95,7 @@ enum NotificationEvent: string
             self::CONTACT_REMINDER_DUE,
             self::TASK_REMINDER_DUE,
             self::SALES_FOLLOWUP_DUE,
+            self::CART_REMINDER_DUE,
             self::SUBSCRIPTION_EXPIRING_SOON => NotificationPriority::HIGH,
 
             self::QUOTE_CREATED,
@@ -112,6 +116,7 @@ enum NotificationEvent: string
             self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
             self::CONTACT_REMINDER_DUE                       => 'phone-call',
             self::TASK_REMINDER_DUE                          => 'list-checks',
+            self::CART_REMINDER_DUE                          => 'shopping-bag',
             self::CLINIC_PENDING_APPROVAL                    => 'building-2',
             self::AI_EMERGENCY                               => 'siren',
             self::SALES_FOLLOWUP_DUE                         => 'phone-call',
@@ -163,6 +168,7 @@ enum NotificationEvent: string
             self::BOOKING_CONFIRMED  => '/account/bookings',
             self::COMPLAINT_REPLIED  => '/account/complaints',
             self::QUOTE_REPLIED      => '/account/quotes',
+            self::CART_REMINDER_DUE  => '/cart',
 
             self::CLINIC_PENDING_APPROVAL => '/app/admin/clinics?status=pending',
 

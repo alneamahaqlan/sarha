@@ -81,6 +81,7 @@ const clinicNav: NavEntry[] = [
       { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop, requires: 'page_builder.view' },
       { to: '/clinic/tracking', label: 'clinic_nav.tracking', icon: Radar, requires: 'tracking.view' },
       { to: '/clinic/cart', label: 'clinic_nav.cart', icon: ShoppingCart, requires: 'cart.view' },
+      { to: '/clinic/abandoned-carts', label: 'clinic_nav.abandoned_carts', icon: ShoppingCart, requires: 'cart_leads.view' },
       { to: '/clinic/subscription', label: 'clinic_nav.subscription', icon: CreditCard, badge: 'subscription_expiring' as keyof ClinicNavBadges, requires: 'subscription.view' },
       { to: '/clinic/profile', label: 'clinic_nav.profile', icon: Building2, requires: 'profile.view' },
     ],

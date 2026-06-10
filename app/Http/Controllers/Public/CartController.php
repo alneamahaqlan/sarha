@@ -175,6 +175,35 @@ class CartController extends Controller
             ->withCookie($this->identityCookie($pending['name'], $pending['phone']));
     }
 
+    /**
+     * Book-from-cart: stamps `booked_at` (the conversion signal that lifts the
+     * item out of "abandoned") then forwards to the same per-type target the
+     * cart page would have linked to directly.
+     */
+    public function book(Request $request, CartItem $cartItem)
+    {
+        // Id-guess guard — a user may only book their own rows.
+        abort_unless($cartItem->user_id === $request->user('web')->id, 404);
+
+        $cartItem->loadMissing(['cartable', 'clinic']);
+        $cartable = $cartItem->cartable;
+        $clinic   = $cartItem->clinic;
+
+        // Target gone (deleted) or clinic missing → nothing to forward to.
+        $deleted = ! $cartable || (method_exists($cartable, 'trashed') && $cartable->trashed());
+        if ($deleted || ! $clinic) {
+            return back()->withErrors(['cart' => __('site.cart_unavailable')]);
+        }
+
+        if (is_null($cartItem->booked_at)) {
+            $cartItem->update(['booked_at' => now()]);
+        }
+
+        $target = $this->bookTarget($cartItem->cartable_type, $cartable, $clinic);
+
+        return redirect()->away($target['href']);
+    }
+
     public function remove(Request $request, CartItem $cartItem)
     {
         // Id-guess guard — a user may only remove their own rows.

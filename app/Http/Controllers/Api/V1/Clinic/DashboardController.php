@@ -31,6 +31,9 @@ class DashboardController extends Controller
             ->count();
         $totalServices = Service::where('clinic_id', $clinicId)->where('is_active', true)->count();
 
+        // Services/offers/packages this clinic's visitors left unbooked in carts.
+        $abandonedCartItems = \App\Models\CartItem::abandoned()->where('clinic_id', $clinicId)->count();
+
         // Google rating — averaged across synced reviews (null when none yet).
         $reviews = GoogleReview::where('clinic_id', $clinicId);
         $reviewsCount = (clone $reviews)->count();
@@ -69,6 +72,7 @@ class DashboardController extends Controller
                 'new_bookings'             => $newBookings,
                 'month_bookings'           => $monthBookings,
                 'active_services'          => $totalServices,
+                'abandoned_carts_items'    => $abandonedCartItems,
                 'subscription_type'        => $clinic->subscription_type,
                 'subscription_ends_at'     => $clinic->subscription_ends_at?->toIso8601String(),
                 'is_subscription_active'   => method_exists($clinic, 'isSubscriptionActive')

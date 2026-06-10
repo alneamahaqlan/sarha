@@ -32,12 +32,20 @@ class CustomerProfileController extends Controller
         $customer = Customer::query()
             ->where('clinic_id', $clinicId)
             ->where('phone', $normalized)
+            ->with('platformCustomer.aliases')
             ->first();
 
         if (! $customer) {
             // Defensive fallback: no Customer row yet (legacy / race).
             return response()->json(['data' => $this->emptyShape($phone)]);
         }
+
+        // Name shown to THIS clinic: the customer's self-registered name
+        // once verified, otherwise the earliest name this clinic gave.
+        // "Alternative names" are the OTHER names this clinic entered —
+        // never names from other clinics (those stay private to them).
+        [$displayName, $isVerified, $alternatives] =
+            $this->resolveClinicNames($customer, $clinicId);
 
         $bookings = Booking::query()
             ->where('customer_id', $customer->id)
@@ -74,7 +82,12 @@ class CustomerProfileController extends Controller
             'data' => [
                 'customer_id'   => $customer->id,
                 'phone'         => $customer->phone,
-                'name'          => $customer->name,
+                'name'          => $displayName,
+                // True when the displayed name is the customer's own
+                // OTP-verified platform name (adopted over clinic input).
+                'name_verified' => $isVerified,
+                // Other names THIS clinic recorded for the same number.
+                'alternative_names' => $alternatives,
                 'email'         => $customer->email,
                 // Phase 3: notes are a thread now. Surface up to 3
                 // pinned-first entries for the side panel's quick view.
@@ -128,12 +141,46 @@ class CustomerProfileController extends Controller
         ]);
     }
 
+    /**
+     * Resolve what name this clinic should see plus its own alternatives.
+     *
+     * @return array{0:string,1:bool,2:list<string>}  [displayName, isVerified, alternatives]
+     */
+    private function resolveClinicNames(Customer $customer, int $clinicId): array
+    {
+        $platform = $customer->platformCustomer;
+
+        // No unified identity yet (legacy row): fall back to the
+        // per-clinic name, no alternatives.
+        if (! $platform) {
+            return [$customer->name ?: '—', false, []];
+        }
+
+        $verified    = (bool) $platform->is_phone_verified;
+        $displayName = $platform->displayNameForClinic($clinicId);
+
+        // This clinic's own names, earliest first, excluding whatever is
+        // currently shown as the primary. Deduped, order preserved.
+        $alternatives = $platform->aliases
+            ->where('clinic_id', $clinicId)
+            ->sortBy('created_at')
+            ->pluck('name')
+            ->reject(fn (string $n) => $n === $displayName || $n === '—')
+            ->unique()
+            ->values()
+            ->all();
+
+        return [$displayName ?: '—', $verified, $alternatives];
+    }
+
     private function emptyShape(string $phone): array
     {
         return [
             'customer_id'  => null,
             'phone'        => $phone,
             'name'         => '—',
+            'name_verified'     => false,
+            'alternative_names' => [],
             'email'        => null,
             'pinned_notes' => [],
             'summary'      => [

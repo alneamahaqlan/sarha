@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 
 class GoogleReview extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'reviewer_name', 'reviewer_photo', 'rating',
         'review_text', 'google_review_id', 'reviewed_at', 'is_visible',

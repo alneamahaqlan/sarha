@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Clinic;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Clinic\ImportCommitRequest;
+use App\Http\Requests\Api\V1\Clinic\ImportFileCommitRequest;
+use App\Http\Requests\Api\V1\Clinic\ImportFilePreviewRequest;
 use App\Http\Requests\Api\V1\Clinic\ImportPreviewRequest;
 use App\Models\Booking;
 use App\Models\ClinicImportRun;
@@ -12,6 +14,8 @@ use App\Services\ClinicActivityLogger;
 use App\Services\Import\BookingImportService;
 use App\Support\ActingClinicUser;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -87,6 +91,97 @@ class BookingImportController extends Controller
         return response()->json(['data' => $result], 201);
     }
 
+    /**
+     * Dry-run for an uploaded CSV/XLSX file. Stores the file so the matching
+     * commit can re-read it server-side, and returns a file_token handle.
+     */
+    public function previewFile(ImportFilePreviewRequest $request): JsonResponse
+    {
+        $this->authorize('create', Booking::class);
+        $clinicId = (int) ActingClinicUser::clinicId();
+        $data = $request->validated();
+
+        // Persist under a per-clinic dir with a random name; keep the real
+        // extension so the reader can pick its parser.
+        $ext   = strtolower($request->file('file')->getClientOriginalExtension() ?: 'csv');
+        $token = Str::uuid()->toString() . '.' . $ext;
+        $request->file('file')->storeAs($this->importDir($clinicId), $token, 'local');
+
+        try {
+            $result = $this->service->previewFile(
+                $clinicId,
+                $this->tokenPath($clinicId, $token),
+                $data['column_map'],
+                (int) $data['row_from'],
+                (int) $data['row_to'],
+            );
+        } catch (RuntimeException $e) {
+            @unlink($this->tokenPath($clinicId, $token));
+            return response()->json(['message' => $this->humanError($e->getMessage())], 422);
+        }
+
+        $result['file_token'] = $token;
+        $result['overlap'] = [];
+
+        return response()->json(['data' => $result]);
+    }
+
+    /** Execute a file import referenced by the preview's file_token. */
+    public function commitFile(ImportFileCommitRequest $request): JsonResponse
+    {
+        $this->authorize('create', Booking::class);
+        $clinicId = (int) ActingClinicUser::clinicId();
+        $data = $request->validated();
+
+        $path = $this->tokenPath($clinicId, $data['file_token']);
+        if (! is_file($path)) {
+            return response()->json(['message' => 'انتهت صلاحية الملف المرفوع — أعد رفعه ثم المعاينة.'], 422);
+        }
+
+        try {
+            $result = $this->service->commitFile(
+                clinicId: $clinicId,
+                filePath: $path,
+                columnMap: $data['column_map'],
+                rowFrom: (int) $data['row_from'],
+                rowTo: (int) $data['row_to'],
+                defaults: $data['defaults'] ?? [],
+                resolutions: $data['service_resolutions'] ?? [],
+            );
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $this->humanError($e->getMessage())], 422);
+        } finally {
+            // Single-use: drop the upload once the commit resolves either way
+            // (validation failures keep it so the clinic can retry mapping).
+            if (isset($result)) {
+                @unlink($path);
+            }
+        }
+
+        $this->activity->log('bookings.imported', null, [
+            'rows_imported' => $result['rows_imported'],
+            'rows_skipped'  => $result['rows_skipped'],
+            'source_id'     => null,
+        ]);
+
+        return response()->json(['data' => $result], 201);
+    }
+
+    /** Per-clinic storage dir (relative to the local disk root). */
+    private function importDir(int $clinicId): string
+    {
+        return "imports/{$clinicId}";
+    }
+
+    /** Absolute path for a stored upload token, hardened against traversal. */
+    private function tokenPath(int $clinicId, string $token): string
+    {
+        // Resolve through the SAME 'local' disk storeAs() wrote to, so the
+        // path always matches its configured root (storage/app/private on
+        // Laravel 11+). basename strips any traversal; the regex constrains it.
+        return Storage::disk('local')->path($this->importDir($clinicId) . '/' . basename($token));
+    }
+
     /** Saved sources for this clinic (most recent first). */
     public function sources(): JsonResponse
     {
@@ -159,6 +254,9 @@ class BookingImportController extends Controller
             'import.invalid_range'    => 'نطاق الصفوف غير صحيح.',
             'import.range_too_large'  => 'النطاق كبير جداً — الحد الأقصى ' . \App\Services\Import\GoogleSheetReader::MAX_ROWS . ' صف في الاستيراد الواحد.',
             'import.invalid_column'   => 'حرف عمود غير صالح في خريطة الأعمدة.',
+            'import.file_unreadable'  => 'تعذّر قراءة الملف. تأكد أنه CSV أو XLSX سليم.',
+            'import.file_unsupported' => 'صيغة الملف غير مدعومة — استخدم CSV أو XLSX.',
+            'import.file_empty'       => 'الملف فارغ.',
         ][$key] ?? 'تعذّر إتمام الاستيراد.';
     }
 }

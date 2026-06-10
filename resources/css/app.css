@@ -270,3 +270,97 @@
     .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
     .shine-host:hover::after { animation: none !important; }
 }
+
+/* ==========================================================================
+ | Before/After comparison slider (public)
+ |--------------------------------------------------------------------------
+ | Drag-to-compare component enhanced by resources/js/before-after-slider.js
+ | (mouse + touch + keyboard, RTL-aware). The empty custom properties below
+ | are intentional override hooks for the new elements (divider / handle /
+ | labels) — fill them to re-skin without touching the existing defaults.
+ ========================================================================== */
+.ba-slider {
+    --ba-divider-color: ;
+    --ba-divider-width: ;
+    --ba-handle-bg: ;
+    --ba-handle-color: ;
+    --ba-handle-size: ;
+    --ba-label-bg: ;
+    --ba-label-color: ;
+
+    position: relative;
+    overflow: hidden;
+    touch-action: pan-y;          /* let the page scroll vertically; JS handles horizontal */
+    user-select: none;
+    -webkit-user-select: none;
+}
+.ba-slider__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    -webkit-user-drag: none;
+}
+/* Before image sits on top, clipped to ~50% from the inline-start edge until
+   JS takes over (graceful pre-enhancement state, correct in LTR and RTL). */
+.ba-slider__img--before { clip-path: inset(0 50% 0 0); }
+[dir="rtl"] .ba-slider__img--before { clip-path: inset(0 0 0 50%); }
+
+.ba-slider__label {
+    position: absolute;
+    top: 0.75rem;
+    z-index: 2;
+    font-size: 0.75rem;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    color: var(--ba-label-color, #ffffff);
+    pointer-events: none;
+}
+.ba-slider__label--before {
+    inset-inline-start: 0.75rem;
+    background: var(--ba-label-bg, rgba(0, 0, 0, 0.6));
+}
+.ba-slider__label--after {
+    inset-inline-end: 0.75rem;
+    background: var(--ba-label-bg, rgba(45, 106, 92, 0.85)); /* sage-600/85 */
+}
+
+.ba-slider__divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    inset-inline-start: 50%;                                       /* JS overrides */
+    width: var(--ba-divider-width, 2px);
+    margin-inline-start: calc(var(--ba-divider-width, 2px) / -2);  /* centre on the position */
+    background: var(--ba-divider-color, #ffffff);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.25);
+    z-index: 3;
+    pointer-events: none;                                          /* only the handle is interactive */
+}
+.ba-slider__handle {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    width: var(--ba-handle-size, 2.25rem);
+    height: var(--ba-handle-size, 2.25rem);
+    border: none;
+    border-radius: 9999px;
+    background: var(--ba-handle-bg, #ffffff);
+    color: var(--ba-handle-color, #2d6a5c);                       /* sage-600 */
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    cursor: ew-resize;
+    pointer-events: auto;
+    touch-action: none;                                           /* drag the handle without scrolling */
+}
+.ba-slider__handle:focus-visible {
+    outline: 2px solid var(--ba-handle-color, #2d6a5c);
+    outline-offset: 2px;
+}
+.ba-slider.is-dragging { cursor: ew-resize; }

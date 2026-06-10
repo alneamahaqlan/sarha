@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Bell, Building2, Calendar, Clock, CreditCard, Eye, MapPin, MessageSquare, Search, TrendingUp, Users } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, Calendar, Clock, CreditCard, Eye, MapPin, MessageSquare, Search, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
@@ -99,6 +99,15 @@ export function DashboardPage() {
           icon={Users}
           tone="info"
         />
+        <Link to="/admin/abandoned-carts" className="block transition-shadow hover:shadow-sm">
+          <StatCard
+            label={t('dashboard.abandoned_carts')}
+            value={stats ? fmt.format(stats.abandoned_carts_items) : '—'}
+            hint={t('dashboard.abandoned_carts_hint')}
+            icon={ShoppingCart}
+            tone="warning"
+          />
+        </Link>
       </div>
 
       {/* AI Assistant summary — Phase 2 widget. Same row dimensions as

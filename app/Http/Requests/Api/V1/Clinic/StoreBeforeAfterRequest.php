@@ -20,6 +20,7 @@ class StoreBeforeAfterRequest extends FormRequest
             'title'         => ['nullable', 'string', 'max:255'],
             'before_image'  => ['required', 'string', 'max:2048'],
             'after_image'   => ['required', 'string', 'max:2048'],
+            'display_mode'  => ['nullable', 'string', Rule::in(['side_by_side', 'slider'])],
             // Optional links — must belong to the authenticated complex.
             'sub_clinic_id' => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
             'service_id'    => ['nullable', 'integer', Rule::exists('services', 'id')->where('clinic_id', $clinicId)],

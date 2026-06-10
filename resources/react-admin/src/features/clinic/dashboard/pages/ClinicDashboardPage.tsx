@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 import {
   Bell, Calendar, CreditCard, Sparkles, Star, Eye, Search, MousePointerClick,
-  AlertTriangle, Tag, MessageSquare, ChevronLeft, ChevronRight,
+  AlertTriangle, Tag, MessageSquare, ChevronLeft, ChevronRight, ShoppingCart,
 } from 'lucide-react';
 
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { Money } from '@/lib/money';
-import { useAuth } from '@/app/providers/AuthProvider';
+import { useAuth, useCan } from '@/app/providers/AuthProvider';
 import { useClinicNavBadges } from '@/features/nav-badges/hooks';
 
 import { useClinicStats } from '../hooks';
@@ -155,6 +155,7 @@ export function ClinicDashboardPage() {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const { user } = useAuth();
+  const canViewCarts = useCan('cart_leads.view');
   const { data: stats } = useClinicStats();
 
   const fmt = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
@@ -216,6 +217,25 @@ export function ClinicDashboardPage() {
           icon={CreditCard}
           tone={stats?.is_subscription_active ? 'success' : 'danger'}
         />
+        {canViewCarts ? (
+          <Link to="/clinic/abandoned-carts" className="block transition-shadow hover:shadow-sm">
+            <StatCard
+              label={t('clinic_dashboard.abandoned_carts')}
+              value={stats ? fmt.format(stats.abandoned_carts_items) : '—'}
+              hint={t('clinic_dashboard.abandoned_carts_hint')}
+              icon={ShoppingCart}
+              tone="warning"
+            />
+          </Link>
+        ) : (
+          <StatCard
+            label={t('clinic_dashboard.abandoned_carts')}
+            value={stats ? fmt.format(stats.abandoned_carts_items) : '—'}
+            hint={t('clinic_dashboard.abandoned_carts_hint')}
+            icon={ShoppingCart}
+            tone="warning"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">

@@ -48,9 +48,18 @@ export function CreateBookingDialog({ open, onClose }: Props) {
     setV((prev) => ({ ...prev, [key]: value }));
   }
 
+  // Same Saudi-mobile policy enforced by the backend + the public flows.
+  const phone = v.customer_phone.trim();
+  const phoneValid = /^05\d{8}$/.test(phone);
+  const phoneError = phone.length > 0 && !phoneValid;
+
   async function onSubmit() {
-    if (!v.customer_name.trim() || !v.customer_phone.trim()) {
+    if (!v.customer_name.trim() || !phone) {
       toast.error(t('clinic_bookings_kanban.create.missing_fields'));
+      return;
+    }
+    if (!phoneValid) {
+      toast.error(t('clinic_bookings_kanban.create.phone_invalid'));
       return;
     }
     try {
@@ -86,7 +95,21 @@ export function CreateBookingDialog({ open, onClose }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="cb-phone">{t('clinic_bookings.customer_phone')}</Label>
-            <Input id="cb-phone" value={v.customer_phone} onChange={(e) => patch('customer_phone', e.target.value)} dir="ltr" />
+            <Input
+              id="cb-phone"
+              value={v.customer_phone}
+              onChange={(e) => patch('customer_phone', e.target.value)}
+              dir="ltr"
+              inputMode="numeric"
+              placeholder="05XXXXXXXX"
+              aria-invalid={phoneError}
+              className={phoneError ? 'border-rose-400 focus-visible:ring-rose-400' : undefined}
+            />
+            <p className={`text-[11px] ${phoneError ? 'text-rose-600' : 'text-[var(--color-muted-foreground)]'}`}>
+              {phoneError
+                ? t('clinic_bookings_kanban.create.phone_invalid')
+                : t('clinic_bookings_kanban.create.phone_hint')}
+            </p>
           </div>
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="cb-service">{t('clinic_bookings.service')}</Label>
@@ -158,7 +181,7 @@ export function CreateBookingDialog({ open, onClose }: Props) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
-          <Button onClick={onSubmit} disabled={mut.isPending}>
+          <Button onClick={onSubmit} disabled={mut.isPending || phoneError}>
             {mut.isPending ? t('common.loading') : t('common.save')}
           </Button>
         </DialogFooter>

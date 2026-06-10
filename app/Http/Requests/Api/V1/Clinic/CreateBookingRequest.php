@@ -25,7 +25,10 @@ class CreateBookingRequest extends FormRequest
     {
         return [
             'customer_name'  => ['required', 'string', 'max:120'],
-            'customer_phone' => ['required', 'string', 'max:32'],
+            // Same Saudi-mobile policy the public booking / OTP / cart flows
+            // enforce (^05XXXXXXXX) — clinic staff must enter a valid number,
+            // not a partial or malformed one.
+            'customer_phone' => ['required', 'string', 'max:20', 'regex:/^05\d{8}$/'],
             'service_id'     => ['nullable', 'integer', 'exists:services,id'],
             'appointment_at' => ['nullable', 'date'],
             'notes'          => ['nullable', 'string', 'max:1000'],
@@ -35,5 +38,20 @@ class CreateBookingRequest extends FormRequest
             'assignee_type'  => ['nullable', Rule::in(['Clinic', 'ClinicTeamMember'])],
             'assignee_id'    => ['nullable', 'integer'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'customer_phone.regex' => __('site.phone_invalid'),
+        ];
+    }
+
+    /** Trim the phone so trailing spaces never trip the strict regex. */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('customer_phone')) {
+            $this->merge(['customer_phone' => trim((string) $this->input('customer_phone'))]);
+        }
     }
 }

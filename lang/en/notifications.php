@@ -59,6 +59,10 @@ return [
             'title' => 'Reply on your quote',
             'body'  => ':clinic replied to your price request for :service.',
         ],
+        'cart_reminder_due' => [
+            'title' => 'You have items in your cart',
+            'body'  => 'You have :count item(s) waiting in your cart — finish booking now.',
+        ],
 
         // ── Admin-side ────────────────────────────────────────────────
         'clinic_pending_approval' => [
@@ -93,6 +97,7 @@ return [
         'booking_confirmed'         => 'Your booking was confirmed',
         'complaint_replied'         => 'Your complaint got a reply',
         'quote_replied'             => 'Your quote request got a reply',
+        'cart_reminder_due'         => 'You have items waiting in your cart',
         'clinic_pending_approval'   => 'A new complex is awaiting approval',
         'ai_emergency'              => 'Alert: AI emergency conversation',
         'sales_followup_due'        => 'You have an overdue lead follow-up',

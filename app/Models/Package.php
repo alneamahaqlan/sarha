@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 
 class Package extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'name', 'description', 'price', 'old_price',
         'expires_at', 'is_active', 'sort_order',

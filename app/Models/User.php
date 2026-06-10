@@ -100,6 +100,12 @@ class User extends Authenticatable
         return $this->hasMany(CartItem::class);
     }
 
+    /** Abandoned-cart outreach this user received from clinics. */
+    public function cartContacts()
+    {
+        return $this->hasMany(CartContact::class);
+    }
+
     public function cartCount(): int
     {
         return $this->cartItems()->count();

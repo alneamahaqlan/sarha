@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Concerns;
 
 use App\Models\User;
+use App\Services\PlatformCustomerResolver;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Cookie;
 
@@ -45,9 +46,16 @@ trait IdentifiesCustomer
     /** Find or register the customer user (no password — OTP-based). */
     protected function resolveCustomerUser(string $name, string $phone): User
     {
-        return User::firstOrCreate(
+        $user = User::firstOrCreate(
             ['phone' => $phone],
             ['name' => $name, 'is_active' => true],
         );
+
+        // The customer just proved this phone via OTP — adopt their name
+        // as the canonical platform identity and mark the phone verified,
+        // unifying any clinic-entered records under the same person.
+        app(PlatformCustomerResolver::class)->attachUser($user);
+
+        return $user;
     }
 }

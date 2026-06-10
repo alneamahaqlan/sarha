@@ -34,6 +34,7 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { BookingForm } from '../components/BookingForm';
 import { BookingExportDialog } from '../components/BookingExportDialog';
 import { BookingStatusBadge } from '../components/StatusBadge';
+import { CustomerIdentityDialog } from '../components/CustomerIdentityDialog';
 import { BOOKING_STATUSES, type Booking, type BookingStatus } from '../types';
 import type { TrashedFilter } from '../api/bookings.api';
 
@@ -51,6 +52,7 @@ export function BookingsIndex() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<Booking | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [identityPhone, setIdentityPhone] = useState<string | null>(null);
 
   const debouncedSearch = useDebouncedValue(search, 300);
 
@@ -250,7 +252,14 @@ export function BookingsIndex() {
                 <TableCell className="text-[var(--color-muted-foreground)]">{booking.clinic?.name ?? '—'}</TableCell>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-1.5">
-                    <span>{booking.customer_name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setIdentityPhone(booking.customer_phone)}
+                      className="text-start hover:text-[var(--color-primary)] hover:underline"
+                      title={t('bookings.identity.title')}
+                    >
+                      {booking.customer_name}
+                    </button>
                     {booking.is_for_relative && (
                       <Badge variant="info" className="text-[10px]">{t('bookings.booked_by_proxy_badge')}</Badge>
                     )}
@@ -344,6 +353,8 @@ export function BookingsIndex() {
           onClose={() => setExporting(false)}
         />
       )}
+
+      <CustomerIdentityDialog phone={identityPhone} onClose={() => setIdentityPhone(null)} />
 
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>

@@ -13,7 +13,8 @@ export interface QuoteReply {
 export interface BroadcastQuote {
   id: number;
   customer_name: string;
-  customer_phone: string;
+  // customer_phone is intentionally not exposed: clinics reply in-platform
+  // and never receive the customer's contact channel.
   service_name: string;
   description: string | null;
   status: string;
@@ -21,6 +22,14 @@ export interface BroadcastQuote {
   cities: { id: number; name: string }[];
   replies_count: number;
   my_reply: QuoteReply | null;
+}
+
+export type QuoteAccessStatus = 'active' | 'disabled' | 'pending' | 'rejected';
+
+export interface QuoteAccessState {
+  price_quote_status: QuoteAccessStatus;
+  price_quote_rejection_reason: string | null;
+  price_quote_requested_at: string | null;
 }
 
 export interface QuoteReplyValues {
@@ -52,6 +61,14 @@ export const clinicQuotesApi = {
   },
   reply: async (id: number, values: QuoteReplyValues) => {
     const res = await apiClient.post<SingleResponse<BroadcastQuote>>(`/clinic/price-quotes/${id}/reply`, values);
+    return res.data.data;
+  },
+  access: async () => {
+    const res = await apiClient.get<SingleResponse<QuoteAccessState>>('/clinic/price-quotes/access');
+    return res.data.data;
+  },
+  requestAccess: async () => {
+    const res = await apiClient.post<SingleResponse<QuoteAccessState>>('/clinic/price-quotes/access/request');
     return res.data.data;
   },
 };

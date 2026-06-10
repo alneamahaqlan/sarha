@@ -99,6 +99,7 @@ export type AcquisitionSource =
   | 'twitter'
   | 'facebook'
   | 'google_maps'
+  | 'cart'
   | 'other';
 
 export const ACQUISITION_SOURCES: AcquisitionSource[] = [
@@ -113,6 +114,7 @@ export const ACQUISITION_SOURCES: AcquisitionSource[] = [
   'twitter',
   'facebook',
   'google_maps',
+  'cart',
   'other',
 ];
 
@@ -219,6 +221,10 @@ export interface CustomerProfile {
   customer_id: number | null;
   phone: string;
   name: string;
+  /** True when `name` is the customer's own OTP-verified platform name. */
+  name_verified?: boolean;
+  /** Other names THIS clinic recorded for the same number. */
+  alternative_names?: string[];
   email?: string | null;
   pinned_notes?: Array<{
     id: number;

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class Doctor extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'sub_clinic_id', 'name', 'specialty', 'gender', 'photo',
         'bio', 'qualifications', 'years_experience', 'university', 'languages',

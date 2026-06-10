@@ -71,6 +71,10 @@ return [
             'title' => 'رد على طلب سعرك',
             'body'  => 'المجمع :clinic رد على طلب السعر لـ :service.',
         ],
+        'cart_reminder_due' => [
+            'title' => 'لديك عناصر في السلة',
+            'body'  => 'لديك :count عنصر في سلتك بانتظار الحجز — أكمل حجزك الآن.',
+        ],
 
         // ── Admin-side ────────────────────────────────────────────────
         'clinic_pending_approval' => [
@@ -109,6 +113,7 @@ return [
         'booking_confirmed'         => 'تم تأكيد حجزك',
         'complaint_replied'         => 'تم الرد على شكواك',
         'quote_replied'             => 'تم الرد على طلب سعرك',
+        'cart_reminder_due'         => 'لديك عناصر في سلتك بانتظار الحجز',
         'clinic_pending_approval'   => 'تسجيل مجمع جديد ينتظر الموافقة',
         'ai_emergency'              => 'تنبيه: محادثة طوارئ من المساعد الذكي',
         'sales_followup_due'        => 'لديك متابعة عميل محتمل متأخرة',

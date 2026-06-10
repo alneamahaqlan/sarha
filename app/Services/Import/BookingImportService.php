@@ -24,6 +24,7 @@ class BookingImportService
 {
     public function __construct(
         private readonly GoogleSheetReader $reader,
+        private readonly SpreadsheetFileReader $fileReader,
         private readonly ServiceMatcher $matcher,
         private readonly CatalogMatchService $catalog,
         private readonly CatalogServiceResolver $catalogResolver,
@@ -38,6 +39,29 @@ class BookingImportService
     {
         $rows = $this->reader->read($sheetUrl, $columnMap, $rowFrom, $rowTo);
 
+        return $this->analyzeRows($clinicId, $rows);
+    }
+
+    /**
+     * Dry-run for an uploaded CSV/XLSX file (same shape as preview()).
+     *
+     * @return array{rows:array<int,array<string,mixed>>, services:array<int,mixed>, total:int}
+     */
+    public function previewFile(int $clinicId, string $filePath, array $columnMap, int $rowFrom, int $rowTo): array
+    {
+        $rows = $this->fileReader->read($filePath, $columnMap, $rowFrom, $rowTo);
+
+        return $this->analyzeRows($clinicId, $rows);
+    }
+
+    /**
+     * Shared preview projection: mapped rows + service-match analysis.
+     *
+     * @param  array<int,array{row:int,values:array<string,string>}>  $rows
+     * @return array{rows:array<int,array<string,mixed>>, services:array<int,mixed>, total:int}
+     */
+    private function analyzeRows(int $clinicId, array $rows): array
+    {
         $serviceNames = collect($rows)
             ->map(fn ($r) => $r['values']['service'] ?? '')
             ->all();
@@ -81,44 +105,7 @@ class BookingImportService
             $rows, $serviceMap, $clinicId, $defaults, $sheetUrl, $columnMap,
             $rowFrom, $rowTo, $resolutions, $saveSource, $sourceName, $importSourceId, &$imported, &$skipped
         ) {
-            foreach ($rows as $r) {
-                $v = $r['values'];
-                $name  = trim((string) ($v['customer_name'] ?? ''));
-                $phone = trim((string) ($v['customer_phone'] ?? ''));
-
-                // A row without a name or phone is unusable — skip, don't fail.
-                if ($name === '' || $phone === '') {
-                    $skipped++;
-                    continue;
-                }
-
-                $serviceCell = trim((string) ($v['service'] ?? ''));
-                $serviceId = $serviceCell === ''
-                    ? null
-                    : ($serviceMap[$this->catalog->normalize($serviceCell)] ?? null);
-
-                $payload = [
-                    'clinic_id'          => $clinicId,
-                    'customer_name'      => mb_substr($name, 0, 120),
-                    'customer_phone'     => mb_substr($phone, 0, 32),
-                    'service_id'         => $serviceId,
-                    'appointment_at'     => $this->parseDate($v['appointment_at'] ?? null),
-                    'clinic_notes'       => $this->trimOrNull($v['notes'] ?? null, 1000),
-                    'status'             => $defaults['status'] ?? 'new',
-                    'source'             => 'import',
-                    'acquisition_source' => $defaults['acquisition_source'] ?? 'other',
-                ];
-
-                if (! empty($defaults['assignee_type']) && ! empty($defaults['assignee_id'])) {
-                    $payload['assignee_type'] = $defaults['assignee_type'] === 'Clinic'
-                        ? \App\Models\Clinic::class
-                        : \App\Models\ClinicTeamMember::class;
-                    $payload['assignee_id'] = (int) $defaults['assignee_id'];
-                }
-
-                Booking::create($payload);
-                $imported++;
-            }
+            [$imported, $skipped] = $this->createBookingsFromRows($rows, $serviceMap, $clinicId, $defaults);
 
             // 3. Persist / update the saved source (for re-pulls).
             $source = $this->persistSource(
@@ -145,6 +132,107 @@ class BookingImportService
         });
 
         return array_merge($result, ['rows_imported' => $imported, 'rows_skipped' => $skipped]);
+    }
+
+    /**
+     * Execute an import from an already-uploaded CSV/XLSX file. Mirrors
+     * commit() but the source is a local file (re-read here so the commit
+     * never trusts client rows) and there is no re-pullable saved source —
+     * just a recorded run. Customer dedup/linking happens downstream via
+     * BookingCustomerLinkObserver, exactly like the sheet path.
+     *
+     * @param  array<int,array{name:string,action:string,service_id?:int,sub_clinic_id?:int,category_ids?:array<int,int>}>  $resolutions
+     * @return array{rows_imported:int, rows_skipped:int, run_id:int, source_id:?int}
+     */
+    public function commitFile(
+        int $clinicId,
+        string $filePath,
+        array $columnMap,
+        int $rowFrom,
+        int $rowTo,
+        array $defaults,
+        array $resolutions = [],
+    ): array {
+        $rows = $this->fileReader->read($filePath, $columnMap, $rowFrom, $rowTo);
+        $serviceMap = $this->buildServiceMap($clinicId, $rows, $resolutions);
+
+        return DB::transaction(function () use ($rows, $serviceMap, $clinicId, $defaults, $rowFrom, $rowTo) {
+            [$imported, $skipped] = $this->createBookingsFromRows($rows, $serviceMap, $clinicId, $defaults);
+
+            $run = ClinicImportRun::create([
+                'import_source_id' => null,
+                'clinic_id'        => $clinicId,
+                'row_from'         => $rowFrom,
+                'row_to'           => $rowTo,
+                'rows_imported'    => $imported,
+                'rows_skipped'     => $skipped,
+                'created_by_type'  => ActingClinicUser::actorType(),
+                'created_by_id'    => ActingClinicUser::actorId(),
+                'created_by_name'  => ActingClinicUser::actorName(),
+            ]);
+
+            return [
+                'run_id'        => $run->id,
+                'source_id'     => null,
+                'rows_imported' => $imported,
+                'rows_skipped'  => $skipped,
+            ];
+        });
+    }
+
+    /**
+     * Create bookings for every usable row (name + phone present). Rows
+     * missing either are skipped, not failed. Returns [imported, skipped].
+     *
+     * @param  array<int,array{row:int,values:array<string,string>}>  $rows
+     * @param  array<string,int>  $serviceMap
+     * @return array{0:int,1:int}
+     */
+    private function createBookingsFromRows(array $rows, array $serviceMap, int $clinicId, array $defaults): array
+    {
+        $imported = 0;
+        $skipped  = 0;
+
+        foreach ($rows as $r) {
+            $v = $r['values'];
+            $name  = trim((string) ($v['customer_name'] ?? ''));
+            $phone = trim((string) ($v['customer_phone'] ?? ''));
+
+            // A row without a name or phone is unusable — skip, don't fail.
+            if ($name === '' || $phone === '') {
+                $skipped++;
+                continue;
+            }
+
+            $serviceCell = trim((string) ($v['service'] ?? ''));
+            $serviceId = $serviceCell === ''
+                ? null
+                : ($serviceMap[$this->catalog->normalize($serviceCell)] ?? null);
+
+            $payload = [
+                'clinic_id'          => $clinicId,
+                'customer_name'      => mb_substr($name, 0, 120),
+                'customer_phone'     => mb_substr($phone, 0, 32),
+                'service_id'         => $serviceId,
+                'appointment_at'     => $this->parseDate($v['appointment_at'] ?? null),
+                'clinic_notes'       => $this->trimOrNull($v['notes'] ?? null, 1000),
+                'status'             => $defaults['status'] ?? 'new',
+                'source'             => 'import',
+                'acquisition_source' => $defaults['acquisition_source'] ?? 'other',
+            ];
+
+            if (! empty($defaults['assignee_type']) && ! empty($defaults['assignee_id'])) {
+                $payload['assignee_type'] = $defaults['assignee_type'] === 'Clinic'
+                    ? \App\Models\Clinic::class
+                    : \App\Models\ClinicTeamMember::class;
+                $payload['assignee_id'] = (int) $defaults['assignee_id'];
+            }
+
+            Booking::create($payload);
+            $imported++;
+        }
+
+        return [$imported, $skipped];
     }
 
     /**
@@ -293,6 +381,21 @@ class BookingImportService
         if ($value === '') {
             return null;
         }
+
+        // XLSX stores dates as serial numbers (days since 1899-12-30, with a
+        // fractional time-of-day). A bare number in a date column is therefore
+        // an Excel serial, not a literal year — convert it. Sheet/CSV dates
+        // arrive as ISO strings and skip this branch.
+        if (is_numeric($value)) {
+            $serial = (float) $value;
+            if ($serial >= 1 && $serial < 60000) { // ~1900-01-01 … 2064
+                // Anchor in UTC — a localized 1899 base picks up a historical
+                // LMT offset that can shift the result across midnight.
+                return Carbon::create(1899, 12, 30, 0, 0, 0, 'UTC')
+                    ->addSeconds((int) round($serial * 86400));
+            }
+        }
+
         try {
             return Carbon::parse($value);
         } catch (\Throwable) {

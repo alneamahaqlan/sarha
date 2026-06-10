@@ -1,4 +1,6 @@
-import { Search, X } from 'lucide-react';
+import { useState } from 'react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
@@ -20,20 +22,49 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
   const { data: tagLabels } = useTagLabels();
   const { data: subClinics } = useSubClinicLookup();
   const { data: services } = useClinicServices({ per_page: 100 });
-  const active = Object.values(filters).some((v) => v != null && v !== '' && v !== false);
+  const activeCount = Object.values(filters).filter((v) => v != null && v !== '' && v !== false).length;
+  const active = activeCount > 0;
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-3">
-      <div className="relative flex-1">
-        <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 start-2.5 text-[var(--color-muted-foreground)]" />
-        <Input
-          value={filters.search ?? ''}
-          onChange={(e) => onChange({ search: e.target.value || undefined })}
-          placeholder={t('clinic_bookings_kanban.filters.search_placeholder')}
-          className="ps-8"
-        />
+    <div className="space-y-2">
+      {/* Search stays visible at all times; on mobile the filter controls are
+          tucked behind a toggle so the board isn't pushed off-screen. */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute top-1/2 h-4 w-4 -translate-y-1/2 start-2.5 text-[var(--color-muted-foreground)]" />
+          <Input
+            value={filters.search ?? ''}
+            onChange={(e) => onChange({ search: e.target.value || undefined })}
+            placeholder={t('clinic_bookings_kanban.filters.search_placeholder')}
+            className="ps-8"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => setOpen((o) => !o)}
+          className="shrink-0 gap-1.5 lg:hidden"
+          aria-expanded={open}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          {t('clinic_bookings_kanban.filters.toggle')}
+          {activeCount > 0 && (
+            <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[11px] font-bold text-white">
+              {activeCount}
+            </span>
+          )}
+        </Button>
       </div>
 
+      {/* Filters: collapsed on mobile (toggled above), always inline + wrapped
+          on desktop. */}
+      <div
+        className={cn(
+          'flex-col gap-2 lg:flex lg:flex-row lg:flex-wrap lg:items-center lg:gap-3',
+          open ? 'flex' : 'hidden',
+        )}
+      >
       <Select
         value={filters.sub_clinic_id ?? ''}
         onChange={(e) => onChange({ sub_clinic_id: e.target.value ? Number(e.target.value) : undefined })}
@@ -144,6 +175,7 @@ export function KanbanFiltersBar({ filters, onChange, onClear }: Props) {
           {t('common.reset')}
         </Button>
       )}
+      </div>
     </div>
   );
 }

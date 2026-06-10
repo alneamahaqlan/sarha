@@ -124,6 +124,8 @@ Route::middleware('auth:web')->group(function () {
     // Shopping cart — viewing + removing require a logged-in customer
     // (adding lives outside this group so guests can OTP in).
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    // Book-from-cart: stamps booked_at (conversion signal) then forwards to the real target.
+    Route::get('/cart/{cartItem}/book', [CartController::class, 'book'])->name('cart.book');
     Route::delete('/cart/{cartItem}', [CartController::class, 'remove'])->name('cart.remove');
 
     // Saved relatives — managed inline from the booking form (no

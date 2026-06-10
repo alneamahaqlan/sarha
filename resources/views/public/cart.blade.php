@@ -67,7 +67,7 @@
                                 <div class="flex items-center gap-2 shrink-0">
                                     {{-- Book now (per item, per type). Hidden for deleted targets or a paused clinic. --}}
                                     @if($row['book'] && $group['active'])
-                                        <a href="{{ $row['book']['href'] }}"
+                                        <a href="{{ route('cart.book', $item->id) }}"
                                            @if($row['book']['newTab']) target="_blank" rel="noopener" @endif
                                            @if($row['book']['mode'] === 'contact')
                                                data-track="contact" data-clinic="{{ $clinic->id }}"

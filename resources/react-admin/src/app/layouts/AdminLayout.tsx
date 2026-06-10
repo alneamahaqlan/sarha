@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2, ShoppingCart } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2, ShoppingCart, Heart, Database } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -22,7 +22,9 @@ const adminNav = [
     group: 'nav.group.clinics',
     items: [
       { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
-      { to: '/admin/cart', label: 'nav.cart', icon: ShoppingCart, badge: 'cart_pending' as keyof AdminNavBadges },
+      { to: '/admin/access-center', label: 'nav.access_center', icon: ShieldCheck, badge: 'access_center' as keyof AdminNavBadges },
+      { to: '/admin/abandoned-carts', label: 'nav.abandoned_carts', icon: ShoppingCart },
+      { to: '/admin/favorites', label: 'nav.favorites', icon: Heart },
       { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
       { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
       { to: '/admin/clinic-reports', label: 'nav.clinic_reports', icon: MessageSquareWarning, badge: 'clinic_reports' as keyof AdminNavBadges },
@@ -70,6 +72,7 @@ const adminNav = [
     group: 'nav.group.system',
     items: [
       { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/seeder-center', label: 'nav.seeder_center', icon: Database },
       { to: '/admin/admins', label: 'nav.admins', icon: Shield },
       { to: '/admin/static-pages', label: 'nav.static_pages', icon: FileStack },
       { to: '/admin/navigation-links', label: 'nav.navigation_links', icon: Link2 },

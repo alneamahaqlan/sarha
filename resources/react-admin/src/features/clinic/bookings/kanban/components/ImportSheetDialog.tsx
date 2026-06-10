@@ -18,6 +18,8 @@ import { useAssignees } from '../hooks';
 import { ACQUISITION_SOURCES } from '../types';
 import {
   useImportCommit,
+  useImportFileCommit,
+  useImportFilePreview,
   useImportPreview,
   useImportSources,
   type ImportColumnMap,
@@ -31,6 +33,7 @@ interface Props {
 }
 
 type Step = 'source' | 'mapping' | 'preview';
+type SourceMode = 'sheet' | 'file';
 
 const EMPTY_MAP: ImportColumnMap = { customer_name: 'B', customer_phone: 'C', service: '', appointment_at: '', notes: '' };
 
@@ -39,7 +42,10 @@ export function ImportSheetDialog({ onClose }: Props) {
   const qc = useQueryClient();
 
   const [step, setStep] = useState<Step>('source');
+  const [sourceMode, setSourceMode] = useState<SourceMode>('sheet');
   const [sheetUrl, setSheetUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [fileToken, setFileToken] = useState<string | null>(null);
   const [rowFrom, setRowFrom] = useState(2);
   const [rowTo, setRowTo] = useState(100);
   const [sourceId, setSourceId] = useState<number | null>(null);
@@ -61,6 +67,12 @@ export function ImportSheetDialog({ onClose }: Props) {
 
   const previewMut = useImportPreview();
   const commitMut = useImportCommit();
+  const filePreviewMut = useImportFilePreview();
+  const fileCommitMut = useImportFileCommit();
+
+  const isFile = sourceMode === 'file';
+  const previewPending = previewMut.isPending || filePreviewMut.isPending;
+  const commitPending = commitMut.isPending || fileCommitMut.isPending;
 
   function loadSaved(id: number) {
     const s = savedSources?.find((x) => x.id === id);
@@ -72,19 +84,17 @@ export function ImportSheetDialog({ onClose }: Props) {
   }
 
   async function runPreview() {
-    if (!sheetUrl.trim() || !map.customer_name.trim() || !map.customer_phone.trim()) {
+    const sourceReady = isFile ? !!file : !!sheetUrl.trim();
+    if (!sourceReady || !map.customer_name.trim() || !map.customer_phone.trim()) {
       toast.error(t('clinic_bookings_kanban.create.missing_fields'));
       return;
     }
     try {
-      const result = await previewMut.mutateAsync({
-        sheet_url: sheetUrl.trim(),
-        column_map: map,
-        row_from: rowFrom,
-        row_to: rowTo,
-        import_source_id: sourceId,
-      });
+      const result = isFile
+        ? await filePreviewMut.mutateAsync({ file: file as File, column_map: map, row_from: rowFrom, row_to: rowTo })
+        : await previewMut.mutateAsync({ sheet_url: sheetUrl.trim(), column_map: map, row_from: rowFrom, row_to: rowTo, import_source_id: sourceId });
       setPreview(result);
+      setFileToken(result.file_token ?? null);
       setResolutions({});
       setStep('preview');
     } catch (err) {
@@ -149,17 +159,26 @@ export function ImportSheetDialog({ onClose }: Props) {
       return;
     }
     try {
-      const result = await commitMut.mutateAsync({
-        sheet_url: sheetUrl.trim(),
-        column_map: map,
-        row_from: rowFrom,
-        row_to: rowTo,
-        defaults,
-        service_resolutions: Object.values(resolutions),
-        save_source: saveSource,
-        source_name: saveSource ? sourceName.trim() : undefined,
-        import_source_id: sourceId,
-      });
+      const result = isFile
+        ? await fileCommitMut.mutateAsync({
+            file_token: fileToken as string,
+            column_map: map,
+            row_from: rowFrom,
+            row_to: rowTo,
+            defaults,
+            service_resolutions: Object.values(resolutions),
+          })
+        : await commitMut.mutateAsync({
+            sheet_url: sheetUrl.trim(),
+            column_map: map,
+            row_from: rowFrom,
+            row_to: rowTo,
+            defaults,
+            service_resolutions: Object.values(resolutions),
+            save_source: saveSource,
+            source_name: saveSource ? sourceName.trim() : undefined,
+            import_source_id: sourceId,
+          });
       toast.success(
         t('clinic_bookings_kanban.import.success', { imported: result.rows_imported, skipped: result.rows_skipped }),
       );
@@ -183,7 +202,26 @@ export function ImportSheetDialog({ onClose }: Props) {
         {/* ── Step: source ─────────────────────────────────────────── */}
         {step === 'source' && (
           <div className="space-y-4">
-            {(savedSources?.length ?? 0) > 0 && (
+            {/* Source kind toggle: Google Sheet vs uploaded CSV/XLSX file. */}
+            <div className="grid grid-cols-2 gap-2">
+              {(['sheet', 'file'] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setSourceMode(mode)}
+                  className={
+                    'rounded-md border px-3 py-2 text-sm transition ' +
+                    (sourceMode === mode
+                      ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+                      : 'border-[var(--color-border)] text-[var(--color-muted-foreground)] hover:bg-[var(--color-muted)]')
+                  }
+                >
+                  {t(k(mode === 'sheet' ? 'mode_sheet' : 'mode_file'))}
+                </button>
+              ))}
+            </div>
+
+            {!isFile && (savedSources?.length ?? 0) > 0 && (
               <div className="space-y-1.5">
                 <Label>{t(k('pick_saved'))}</Label>
                 <Select value={sourceId ? String(sourceId) : ''} onChange={(e) => (e.target.value ? loadSaved(Number(e.target.value)) : setSourceId(null))}>
@@ -194,11 +232,25 @@ export function ImportSheetDialog({ onClose }: Props) {
                 </Select>
               </div>
             )}
-            <div className="space-y-1.5">
-              <Label htmlFor="imp-url">{t(k('sheet_url'))}</Label>
-              <Input id="imp-url" dir="ltr" value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/…" />
-              <p className="text-xs text-[var(--color-muted-foreground)]">{t(k('sheet_url_hint'))}</p>
-            </div>
+
+            {isFile ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="imp-file">{t(k('file_label'))}</Label>
+                <Input
+                  id="imp-file"
+                  type="file"
+                  accept=".csv,.txt,.xlsx"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                <p className="text-xs text-[var(--color-muted-foreground)]">{t(k('file_hint'))}</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label htmlFor="imp-url">{t(k('sheet_url'))}</Label>
+                <Input id="imp-url" dir="ltr" value={sheetUrl} onChange={(e) => setSheetUrl(e.target.value)} placeholder="https://docs.google.com/spreadsheets/d/…" />
+                <p className="text-xs text-[var(--color-muted-foreground)]">{t(k('sheet_url_hint'))}</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="imp-from">{t(k('row_from'))}</Label>
@@ -397,15 +449,18 @@ export function ImportSheetDialog({ onClose }: Props) {
               </div>
             )}
 
-            <div className="space-y-2 border-t border-[var(--color-border)] pt-3">
-              <div className="flex items-center gap-2">
-                <Switch checked={saveSource} onCheckedChange={setSaveSource} id="imp-save" />
-                <Label htmlFor="imp-save" className="cursor-pointer">{t(k('save_source'))}</Label>
+            {/* Saving a re-pullable source only applies to sheets. */}
+            {!isFile && (
+              <div className="space-y-2 border-t border-[var(--color-border)] pt-3">
+                <div className="flex items-center gap-2">
+                  <Switch checked={saveSource} onCheckedChange={setSaveSource} id="imp-save" />
+                  <Label htmlFor="imp-save" className="cursor-pointer">{t(k('save_source'))}</Label>
+                </div>
+                {saveSource && (
+                  <Input value={sourceName} onChange={(e) => setSourceName(e.target.value)} placeholder={t(k('source_name'))} />
+                )}
               </div>
-              {saveSource && (
-                <Input value={sourceName} onChange={(e) => setSourceName(e.target.value)} placeholder={t(k('source_name'))} />
-              )}
-            </div>
+            )}
 
             <p className="text-xs text-[var(--color-muted-foreground)]">{t(k('audit_hint'))}</p>
           </div>
@@ -415,7 +470,7 @@ export function ImportSheetDialog({ onClose }: Props) {
           {step === 'source' && (
             <>
               <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
-              <Button className="gap-1" onClick={() => setStep('mapping')} disabled={!sheetUrl.trim()}>
+              <Button className="gap-1" onClick={() => setStep('mapping')} disabled={isFile ? !file : !sheetUrl.trim()}>
                 {t(k('next'))} <ArrowLeft className="h-4 w-4" />
               </Button>
             </>
@@ -425,8 +480,8 @@ export function ImportSheetDialog({ onClose }: Props) {
               <Button variant="outline" className="gap-1" onClick={() => setStep('source')}>
                 <ArrowRight className="h-4 w-4" /> {t(k('back'))}
               </Button>
-              <Button className="gap-1" onClick={runPreview} disabled={previewMut.isPending}>
-                {previewMut.isPending ? t(k('analyzing')) : t(k('analyze'))}
+              <Button className="gap-1" onClick={runPreview} disabled={previewPending}>
+                {previewPending ? t(k('analyzing')) : t(k('analyze'))}
               </Button>
             </>
           )}
@@ -435,8 +490,8 @@ export function ImportSheetDialog({ onClose }: Props) {
               <Button variant="outline" className="gap-1" onClick={() => setStep('mapping')}>
                 <ArrowRight className="h-4 w-4" /> {t(k('back'))}
               </Button>
-              <Button onClick={runCommit} disabled={!allResolved || commitMut.isPending}>
-                {commitMut.isPending ? t(k('committing')) : t(k('commit'))}
+              <Button onClick={runCommit} disabled={!allResolved || commitPending}>
+                {commitPending ? t(k('committing')) : t(k('commit'))}
               </Button>
             </>
           )}

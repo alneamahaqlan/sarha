@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Plus, Trash2, ArrowUp, ArrowDown, Check } from 'lucide-react';
+import { Plus, Trash2, ArrowUp, ArrowDown, Check, X, AlertTriangle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,11 @@ import { STAGE_COLORS, STAGE_KINDS, type BookingStage, type StageColor, type Sta
 const COLOR_DOT: Record<StageColor, string> = {
   rose: 'bg-rose-400', amber: 'bg-amber-400', emerald: 'bg-emerald-400',
   sky: 'bg-sky-400', violet: 'bg-violet-400', slate: 'bg-slate-400',
+};
+
+// Each of the 4 fixed kinds shown in its base colour (mirrors ClinicBookingStage::DEFAULTS).
+const KIND_DOT: Record<StageKind, string> = {
+  new: 'bg-sky-400', confirmed: 'bg-emerald-400', completed: 'bg-violet-400', cancelled: 'bg-rose-400',
 };
 
 /** Per-clinic Kanban stages: add, rename, recolour, reorder, delete. */
@@ -118,7 +123,27 @@ export function StagesManagerDialog({ onClose }: { onClose: () => void }) {
 
         <div className="rounded-lg border border-dashed border-[var(--color-border)] p-3">
           <Label className="text-xs">{t('clinic_bookings_kanban.stages.add_new')}</Label>
-          <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-end">
+
+          {/* The stage you add MUST fall under one of the 4 fixed kinds. */}
+          <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2.5 text-amber-900">
+            <p className="flex items-center gap-1.5 text-xs font-semibold">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              {t('clinic_bookings_kanban.stages.warning.title')}
+            </p>
+            <p className="mt-1 text-[11px] leading-relaxed text-amber-800">
+              {t('clinic_bookings_kanban.stages.warning.intro')}
+            </p>
+            <ul className="mt-1.5 space-y-1 text-[11px] text-amber-900">
+              {STAGE_KINDS.map((k) => (
+                <li key={k} className="flex items-start gap-1.5">
+                  <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${KIND_DOT[k]}`} />
+                  <span>{t(`clinic_bookings_kanban.stages.warning.criteria.${k}`)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="flex-1">
               <Input
                 value={newName}
@@ -148,9 +173,28 @@ export function StagesManagerDialog({ onClose }: { onClose: () => void }) {
               {t('common.add')}
             </Button>
           </div>
-          <p className="mt-2 text-[11px] text-[var(--color-muted-foreground)]">
-            {t('clinic_bookings_kanban.stages.kind_hint')}
-          </p>
+          {/* Correct/incorrect examples that follow the currently selected scope. */}
+          <div className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-muted)]/40 p-2 text-[11px]">
+            <p className="mb-1 font-medium text-[var(--color-muted-foreground)]">
+              {t('clinic_bookings_kanban.stages.warning.example_for', {
+                kind: t(`clinic_bookings_kanban.column.${newKind}`),
+              })}
+            </p>
+            <p className="flex items-start gap-1.5 text-emerald-700">
+              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                <b>{t('clinic_bookings_kanban.stages.warning.correct')}:</b>{' '}
+                {t(`clinic_bookings_kanban.stages.warning.examples.${newKind}.correct`)}
+              </span>
+            </p>
+            <p className="mt-0.5 flex items-start gap-1.5 text-rose-700">
+              <X className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span>
+                <b>{t('clinic_bookings_kanban.stages.warning.incorrect')}:</b>{' '}
+                {t(`clinic_bookings_kanban.stages.warning.examples.${newKind}.incorrect`)}
+              </span>
+            </p>
+          </div>
         </div>
 
         <DialogFooter>

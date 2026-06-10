@@ -29,7 +29,7 @@ class Customer extends Model
     public const TYPE_QUOTE_REQUEST = 'quote_request';
 
     protected $fillable = [
-        'clinic_id', 'phone', 'name', 'email', 'user_id',
+        'clinic_id', 'platform_customer_id', 'phone', 'name', 'email', 'user_id',
         'marketing_opt_out',
         'first_seen_at', 'last_seen_at',
         'last_interaction_at', 'last_interaction_type',
@@ -58,6 +58,12 @@ class Customer extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    /** The shared platform-wide identity this per-clinic row belongs to. */
+    public function platformCustomer()
+    {
+        return $this->belongsTo(PlatformCustomer::class);
     }
 
     public function user()

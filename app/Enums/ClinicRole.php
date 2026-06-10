@@ -33,6 +33,8 @@ enum ClinicRole: string
                 // Day-to-day operations
                 'bookings.*', 'complaints.*', 'price_quotes.*',
                 'customers.*', 'reminders.*', 'campaigns.*',
+                // Abandoned-cart follow-up (view + outreach + convert)
+                'cart_leads.*',
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
@@ -49,6 +51,8 @@ enum ClinicRole: string
                 // Reception drives day-to-day follow-up, so it can set,
                 // complete, and cancel contact reminders.
                 'reminders.*',
+                // Reception also chases abandoned carts (view + outreach + convert).
+                'cart_leads.*',
                 'profile.view',
             ],
         };
@@ -122,6 +126,9 @@ enum ClinicRole: string
             // Cart feature — owner-only (affects the public storefront +
             // is gated/approved by the platform admin).
             'cart.view', 'cart.manage',
+            // Abandoned-cart follow-up (view list + contact/convert). Available
+            // to owner, coordinator, and reception — they drive follow-up.
+            'cart_leads.view', 'cart_leads.contact',
             // Customer Hub (phase 3)
             'customers.view', 'customers.manage',
             'customers.notes.create', 'customers.notes.manage',

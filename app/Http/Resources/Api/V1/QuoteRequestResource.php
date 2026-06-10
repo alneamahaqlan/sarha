@@ -19,7 +19,8 @@ class QuoteRequestResource extends JsonResource
         return [
             'id'             => $this->id,
             'customer_name'  => $this->customer_name,
-            'customer_phone' => $this->customer_phone,
+            // Phone is intentionally NOT exposed: clinics compete by replying
+            // inside the platform and never get the customer's contact channel.
             'service_name'   => $this->service_name,
             'description'    => $this->description,
             'status'         => $this->status,

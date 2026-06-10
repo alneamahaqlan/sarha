@@ -234,6 +234,8 @@ return [
     'before' => 'قبل',
     'after' => 'بعد',
     'no_before_after' => 'لا توجد صور قبل/بعد بعد',
+    'before_after_compare' => 'اسحب للمقارنة بين قبل وبعد',
+    'before_after_view' => 'عرض التفاصيل',
     'no_doctors_yet' => 'لا توجد بيانات أطباء بعد',
     'years_experience' => ':count سنوات خبرة',
     'doctor_gender_male' => 'ذكر',
@@ -563,6 +565,7 @@ return [
     'cart_clinic_paused' => 'السلة موقوفة مؤقتاً لهذا المجمع',
     'cart_remove_item' => 'حذف من السلة',
     'cart_deleted' => 'محذوف',
+    'cart_reminder_sms' => 'لديك :count عنصر في سلّتك بانتظار الحجز. أكمل حجزك الآن.',
     'close' => 'إغلاق',
 
     'verify_and_enter' => 'تحقق وادخل',
@@ -572,6 +575,7 @@ return [
     'dev_code' => '[تطوير: :code]',
     'account_blocked' => 'حسابك معلّق، يرجى التواصل مع الإدارة',
     'phone_invalid' => 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام',
+    'price_quote_reply_locked' => 'خدمة الرد على طلبات التسعير موقوفة لمجمعكم. اطلب التفعيل من إدارة المنصة.',
 
     // Book for a relative — booking form picker, account history column, errors.
     'booking_for_label' => 'الحجز لمن؟',

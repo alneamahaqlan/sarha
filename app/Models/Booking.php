@@ -58,6 +58,7 @@ class Booking extends Model
         'twitter',
         'facebook',
         'google_maps',
+        'cart',
         'other',
     ];
 
@@ -74,6 +75,7 @@ class Booking extends Model
         'twitter'            => 'تويتر (X)',
         'facebook'           => 'فيسبوك',
         'google_maps'        => 'جوجل ماب',
+        'cart'               => 'سلة متروكة',
         'other'              => 'أخرى',
     ];
 
