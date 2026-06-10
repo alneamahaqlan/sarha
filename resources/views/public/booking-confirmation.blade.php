@@ -48,13 +48,19 @@ window.sarhaTrack && window.sarhaTrack('submit_booking', { clinic_id: {{ (int) $
             </div>
         </div>
 
-        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3 justify-center">
             <a href="{{ route('home') }}" class="bg-sage-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-sage-700 transition-colors">
                 @lang('site.booking_back_home')
+            </a>
+            <a href="{{ route('clinic.show', $booking->clinic->slug) }}" class="bg-white border border-sage-200 text-sage-700 px-6 py-3 rounded-lg font-semibold hover:bg-sage-50 transition-colors">
+                @lang('site.booking_continue_clinic')
             </a>
             <a href="{{ route('search') }}" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
                 @lang('site.booking_browse_more')
             </a>
+            <button type="button" onclick="history.back()" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors">
+                @lang('site.booking_back')
+            </button>
         </div>
     </div>
 </div>

@@ -83,7 +83,9 @@
     "submit": "Sign in",
     "admin": "Admin",
     "clinic": "Complex",
-    "logging_in": "Signing in..."
+    "logging_in": "Signing in...",
+    "no_account": "Don't have a complex account?",
+    "create_clinic_account": "Create a new complex account"
   },
   "cities": {
     "title": "Cities",

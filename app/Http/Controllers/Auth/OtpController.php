@@ -11,9 +11,44 @@ use Illuminate\Http\Request;
 
 class OtpController extends Controller
 {
-    public function showLogin()
+    public function showLogin(Request $request)
     {
+        // Remember the page the guest was browsing so we can return them there
+        // after a successful OTP login (verifyOtp uses redirect()->intended()).
+        // Prefer an explicit ?redirect= param, then fall back to the referrer.
+        $target = $request->query('redirect') ?: $request->headers->get('referer');
+        if ($this->isSafeReturnUrl($target)) {
+            $request->session()->put('url.intended', $target);
+        }
+
         return view('auth.login');
+    }
+
+    /**
+     * Only return-to URLs on this site, and never an auth page (which would
+     * bounce the user back to the login screen instead of their content).
+     */
+    protected function isSafeReturnUrl(?string $url): bool
+    {
+        if (! $url) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+
+        // Reject anything pointing at a different host (open-redirect guard).
+        if (isset($parts['host']) && $parts['host'] !== request()->getHost()) {
+            return false;
+        }
+
+        $path = $parts['path'] ?? '/';
+        foreach (['/login', '/register-clinic', '/logout'] as $authPath) {
+            if (str_starts_with($path, $authPath)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function sendOtp(Request $request, OtpDispatcher $dispatcher)
@@ -29,6 +64,14 @@ class OtpController extends Controller
         $existing = User::where('phone', $phone)->first();
         if ($existing && ! $existing->is_active) {
             return back()->withErrors(['phone' => __('site.account_blocked')])->withInput();
+        }
+
+        // Per-phone send guard: stops a number from being SMS-bombed even
+        // across rotating IPs (route throttle only covers per-IP).
+        if ($wait = OtpCode::throttleSend($phone, 'login')) {
+            return back()
+                ->withErrors(['phone' => __('site.otp_too_many', ['seconds' => $wait])])
+                ->withInput();
         }
 
         $otp = OtpCode::generate($phone);

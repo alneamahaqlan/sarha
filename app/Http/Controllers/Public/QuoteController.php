@@ -57,6 +57,12 @@ class QuoteController extends Controller
                 ->withCookie($this->identityCookie($validated['customer_name'], $validated['customer_phone']));
         }
 
+        // Per-phone send guard against SMS-bombing a victim's number.
+        if ($wait = OtpCode::throttleSend($validated['customer_phone'], 'quote')) {
+            return back()
+                ->withErrors(['customer_phone' => __('site.otp_too_many', ['seconds' => $wait])])
+                ->withInput();
+        }
         $otp = OtpCode::generate($validated['customer_phone'], 'quote');
         app(SmsService::class)->send($validated['customer_phone'], __('site.otp_sms', ['code' => $otp->code]));
         session()->put('pending_quote', $validated);

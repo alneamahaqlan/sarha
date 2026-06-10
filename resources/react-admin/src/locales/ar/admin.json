@@ -83,7 +83,9 @@
     "submit": "دخول",
     "admin": "مدير",
     "clinic": "مجمع",
-    "logging_in": "جاري تسجيل الدخول..."
+    "logging_in": "جاري تسجيل الدخول...",
+    "no_account": "ليس لديك حساب مجمع؟",
+    "create_clinic_account": "إنشاء حساب مجمع جديد"
   },
   "cities": {
     "title": "المدن",

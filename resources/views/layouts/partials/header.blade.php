@@ -60,7 +60,7 @@
                         <button type="submit" class="inline-flex items-center min-h-touch text-sm text-gray-500 hover:text-red-500">@lang('site.nav_logout')</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
+                    <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="inline-flex items-center justify-center min-h-touch bg-sage-600 text-white px-4 rounded-lg text-sm hover:bg-sage-700 transition-colors">
                         @lang('site.nav_login')
                     </a>
                 @endauth
@@ -82,7 +82,7 @@
                 <a href="{{ route('account.bookings') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_bookings')</a>
                 <a href="{{ route('account.favorites') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.account_my_favorites')</a>
             @else
-                <a href="{{ route('login') }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
+                <a href="{{ route('login', ['redirect' => url()->current()]) }}" class="flex items-center min-h-touch px-2 text-gray-700 hover:text-sage-600">@lang('site.nav_login')</a>
             @endauth
         </div>
     </div>

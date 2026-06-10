@@ -62,6 +62,17 @@
                     <a href="{{ route('login') }}" class="text-sm text-gray-500 hover:text-sage-600">@lang('site.change_phone')</a>
                 </div>
             @endif
+
+            {{-- Create clinic account --}}
+            <div class="mt-6 pt-6 border-t border-gray-100 text-center">
+                <a href="{{ route('clinic.register') }}"
+                   class="inline-flex items-center justify-center gap-2 w-full border border-sage-200 text-sage-700 py-3 rounded-xl font-semibold hover:bg-sage-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    @lang('site.create_clinic_account')
+                </a>
+            </div>
         </div>
     </div>
 </div>

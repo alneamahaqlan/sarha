@@ -42,7 +42,7 @@
         </button>
     </form>
 @else
-    <a href="{{ route('login') }}"
+    <a href="{{ route('login', ['redirect' => url()->current()]) }}"
        title="{{ __('site.saved_login_prompt') }}"
        aria-label="{{ __('site.saved_login_prompt') }}"
        class="{{ $base }} {{ $class }}">

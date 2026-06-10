@@ -49,8 +49,8 @@ Route::get('/search/suggest', [SearchController::class, 'suggest'])->middleware(
 Route::get('/compare', [CompareController::class, 'index'])->name('compare');
 
 // Cart add is OUTSIDE auth so a guest can add → OTP-verify → log in mid-flow.
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/add/verify', [CartController::class, 'addVerify'])->name('cart.add.verify');
+Route::post('/cart/add', [CartController::class, 'add'])->middleware('throttle:12,1')->name('cart.add');
+Route::post('/cart/add/verify', [CartController::class, 'addVerify'])->middleware('throttle:15,1')->name('cart.add.verify');
 
 // Fire-and-forget click tracking for clinic action buttons (sendBeacon, CSRF-excluded).
 Route::post('/track/click', [TrackingController::class, 'click'])
@@ -58,9 +58,9 @@ Route::post('/track/click', [TrackingController::class, 'click'])
     ->name('track.click');
 Route::get('/clinic/{slug}', [ClinicController::class, 'show'])->name('clinic.show');
 Route::get('/clinic/{slug}/book', [ClinicController::class, 'bookingForm'])->name('clinic.book.form');
-Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->name('clinic.book');
-Route::post('/clinic/{slug}/book/verify', [ClinicController::class, 'bookVerify'])->name('clinic.book.verify');
-Route::post('/clinic/{slug}/quote', [ClinicController::class, 'priceQuote'])->name('clinic.quote');
+Route::post('/clinic/{slug}/book', [ClinicController::class, 'book'])->middleware('throttle:12,1')->name('clinic.book');
+Route::post('/clinic/{slug}/book/verify', [ClinicController::class, 'bookVerify'])->middleware('throttle:15,1')->name('clinic.book.verify');
+Route::post('/clinic/{slug}/quote', [ClinicController::class, 'priceQuote'])->middleware('throttle:12,1')->name('clinic.quote');
 Route::get('/booking/{reference}', [ClinicController::class, 'bookingConfirmation'])
     ->where('reference', '[A-Z0-9-]+')
     ->name('booking.confirmation');
@@ -78,8 +78,8 @@ Route::get('/clinic/{slug}/before-after/{photo}', [BeforeAfterController::class,
 // Broadcast price-quote requests (not tied to a single clinic).
 Route::get('/quotes', [QuoteController::class, 'board'])->name('quotes.board');
 Route::get('/quotes/new', [QuoteController::class, 'requestForm'])->name('quotes.request');
-Route::post('/quotes', [QuoteController::class, 'store'])->name('quotes.store');
-Route::post('/quotes/verify', [QuoteController::class, 'storeVerify'])->name('quotes.verify');
+Route::post('/quotes', [QuoteController::class, 'store'])->middleware('throttle:12,1')->name('quotes.store');
+Route::post('/quotes/verify', [QuoteController::class, 'storeVerify'])->middleware('throttle:15,1')->name('quotes.verify');
 Route::get('/quotes/{quoteRequest}', [QuoteController::class, 'show'])->whereNumber('quoteRequest')->name('quotes.show');
 
 // Blog: index (all published articles) + standalone article page (SEO).
@@ -99,8 +99,8 @@ Route::post('/register-clinic', [ClinicRegistrationController::class, 'store'])
 // Customer OTP auth
 Route::middleware('guest:web')->group(function () {
     Route::get('/login', [OtpController::class, 'showLogin'])->name('login');
-    Route::post('/login/send-otp', [OtpController::class, 'sendOtp'])->name('login.otp');
-    Route::post('/login/verify', [OtpController::class, 'verifyOtp'])->name('login.verify');
+    Route::post('/login/send-otp', [OtpController::class, 'sendOtp'])->middleware('throttle:8,1')->name('login.otp');
+    Route::post('/login/verify', [OtpController::class, 'verifyOtp'])->middleware('throttle:15,1')->name('login.verify');
 });
 Route::post('/logout', [OtpController::class, 'logout'])->name('logout');
 

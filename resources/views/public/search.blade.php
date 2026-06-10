@@ -226,7 +226,7 @@
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" title="{{ __('site.saved_login_prompt') }}"
+                        <a href="{{ route('login', ['redirect' => url()->full()]) }}" title="{{ __('site.saved_login_prompt') }}"
                            class="absolute bottom-3 end-3 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/95 text-gray-400 shadow-sm ring-1 ring-gray-100 hover:text-red-500 hover:bg-red-50 transition-colors">
                             <x-icon name="heart" class="w-4 h-4" />
                         </a>

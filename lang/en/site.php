@@ -125,6 +125,8 @@ return [
     'booking_reference_label' => 'Reference',
     'booking_back_home' => 'Back to home',
     'booking_browse_more' => 'Browse more complexes',
+    'booking_back' => 'Back',
+    'booking_continue_clinic' => 'Keep browsing the complex',
 
     // Price quote modal
     'request_price_quote' => 'Request a custom price quote',
@@ -486,6 +488,7 @@ return [
     'otp_verify_submit' => 'Confirm & continue booking',
     'otp_sent_to' => 'A verification code was sent to :phone',
     'booking_session_expired' => 'Your session expired, please re-enter your booking details.',
+    'otp_too_many' => 'You have requested the verification code too many times. Please wait :seconds seconds and try again.',
     'featured' => 'Featured',
     'booking_success' => 'Booking request sent successfully! The complex will contact you shortly.',
 
@@ -566,6 +569,7 @@ Do not share this code with anyone. Valid for 5 minutes.',
 
     'verify_and_enter' => 'Verify & enter',
     'change_phone' => 'Change phone number',
+    'create_clinic_account' => 'Create a new clinic account',
     'otp_invalid' => 'Invalid or expired verification code',
     'dev_code' => '[dev: :code]',
     'account_blocked' => 'Your account is suspended. Please contact support.',

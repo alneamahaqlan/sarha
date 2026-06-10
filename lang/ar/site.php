@@ -125,6 +125,8 @@ return [
     'booking_reference_label' => 'رقم الطلب',
     'booking_back_home' => 'العودة للرئيسية',
     'booking_browse_more' => 'تصفّح مجمعات أخرى',
+    'booking_back' => 'رجوع',
+    'booking_continue_clinic' => 'مواصلة تصفّح المجمع',
 
     // Price quote modal
     'request_price_quote' => 'اطلب عرض سعر مخصص',
@@ -484,6 +486,7 @@ return [
     'otp_verify_submit' => 'تأكيد ومتابعة الحجز',
     'otp_sent_to' => 'تم إرسال رمز التحقق إلى :phone',
     'booking_session_expired' => 'انتهت صلاحية الجلسة، يرجى إعادة إدخال بيانات الحجز.',
+    'otp_too_many' => 'لقد طلبت رمز التحقق عدة مرات. يرجى الانتظار :seconds ثانية ثم المحاولة مرة أخرى.',
     'featured' => 'مميزة',
     'booking_success' => 'تم إرسال طلب الحجز بنجاح! سيتواصل معك فريق المجمع قريباً.',
 
@@ -564,6 +567,7 @@ return [
 
     'verify_and_enter' => 'تحقق وادخل',
     'change_phone' => 'تغيير رقم الهاتف',
+    'create_clinic_account' => 'إنشاء حساب مجمع جديد',
     'otp_invalid' => 'رمز التحقق غير صحيح أو منتهي الصلاحية',
     'dev_code' => '[تطوير: :code]',
     'account_blocked' => 'حسابك معلّق، يرجى التواصل مع الإدارة',

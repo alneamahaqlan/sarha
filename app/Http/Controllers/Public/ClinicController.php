@@ -202,6 +202,12 @@ class ClinicController extends Controller
         }
 
         // First-time: generate + send OTP, stash the pending booking, show the step.
+        // Per-phone send guard stops a victim's number from being SMS-bombed.
+        if ($wait = OtpCode::throttleSend($validated['customer_phone'], 'booking')) {
+            return back()
+                ->withErrors(['customer_phone' => __('site.otp_too_many', ['seconds' => $wait])])
+                ->withInput();
+        }
         $otp = OtpCode::generate($validated['customer_phone'], 'booking');
         app(SmsService::class)->send($validated['customer_phone'], __('site.otp_sms', ['code' => $otp->code]));
         session()->put('pending_booking', $validated + ['slug' => $slug]);
