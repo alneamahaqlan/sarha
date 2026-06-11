@@ -17,21 +17,35 @@ class LandingPageController extends Controller
 
     public function show(string $slug, LandingPageRenderService $render)
     {
-        $page = LandingPage::publiclyLive()->where('slug', $slug)->firstOrFail();
+        $page = LandingPage::where('slug', $slug)->firstOrFail();
+
+        // Only published pages within their window are public. A logged-in
+        // admin may PREVIEW any page (draft / scheduled / archived) so they can
+        // build it before publishing — everyone else gets a 404.
+        $isLive = LandingPage::publiclyLive()->whereKey($page->id)->exists();
+        $isPreview = false;
+        if (! $isLive) {
+            abort_unless(auth('admin')->check(), 404);
+            $isPreview = true;
+        }
 
         $vm = $render->viewModel($page);
+        $vm['isPreview'] = $isPreview;
 
-        // Page-view counters — never let analytics break the page.
-        try {
-            $page->increment('total_views');
-            LandingPageStat::bump($page->id, 'page_views');
-            // Roll a clinic page-view up to the linked complex too, so landing
-            // traffic shows in the clinic's own stats (same path as a profile view).
-            if ($vm['clinic']) {
-                ClinicStat::bump($vm['clinic']->id, 'page_views');
+        // Page-view counters — real visits only (never inflate stats on an
+        // admin preview), and never let analytics break the page.
+        if (! $isPreview) {
+            try {
+                $page->increment('total_views');
+                LandingPageStat::bump($page->id, 'page_views');
+                // Roll a clinic page-view up to the linked complex too, so landing
+                // traffic shows in the clinic's own stats (same as a profile view).
+                if ($vm['clinic']) {
+                    ClinicStat::bump($vm['clinic']->id, 'page_views');
+                }
+            } catch (\Throwable) {
+                // swallow
             }
-        } catch (\Throwable) {
-            // swallow
         }
 
         return view('public.landing.show', $vm);

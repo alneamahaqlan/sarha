@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -77,7 +79,7 @@ export function CategoryForm({ category, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="name">{t('categories.name')}</Label>
@@ -92,25 +94,19 @@ export function CategoryForm({ category, onSuccess, onCancel }: Props) {
               },
             })}
           />
-          {form.formState.errors.name && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="name_en">{t('categories.name_en')}</Label>
           <Input id="name_en" {...form.register('name_en')} />
-          {form.formState.errors.name_en && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name_en.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name_en?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="slug">{t('categories.slug')}</Label>
           <Input id="slug" {...form.register('slug')} dir="ltr" />
-          {form.formState.errors.slug && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.slug.message}</p>
-          )}
+          <FieldError message={form.formState.errors.slug?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -136,6 +132,15 @@ export function CategoryForm({ category, onSuccess, onCancel }: Props) {
           <Label>{t('categories.is_active')}</Label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          name: t('categories.name'),
+          name_en: t('categories.name_en'),
+          slug: t('categories.slug'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

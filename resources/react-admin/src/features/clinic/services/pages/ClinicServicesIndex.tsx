@@ -25,6 +25,8 @@ import { Money } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import type { Service } from '@/features/services/types';
 import { useClinicSubClinics } from '@/features/clinic/sub-clinics/hooks';
 import { useClinicProfile } from '@/features/clinic/profile/hooks';
@@ -109,7 +111,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
           <DialogTitle>{service ? t('clinic_services.edit') : t('clinic_services.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_services.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_services.name')}</Label>
@@ -133,11 +135,13 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
                 categories={categories}
                 max={5}
               />
-              {form.formState.errors.category_ids && (
-                <p className="text-xs text-[var(--color-destructive)]">
-                  {t('clinic_services.categories_required', 'اختر تخصصاً واحداً على الأقل (وحتى 5).')}
-                </p>
-              )}
+              <FieldError
+                message={
+                  form.formState.errors.category_ids
+                    ? t('clinic_services.categories_required', 'اختر تخصصاً واحداً على الأقل (وحتى 5).')
+                    : undefined
+                }
+              />
               <p className="text-xs text-[var(--color-muted-foreground)]">
                 {t(
                   'clinic_services.categories_hint',
@@ -175,7 +179,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
             <div className="space-y-1.5">
               <Label htmlFor="price">{t('clinic_services.price')}</Label>
               <Input id="price" type="number" step="0.01" min={0} {...form.register('price', { valueAsNumber: true })} />
-              {form.formState.errors.price && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.price.message}</p>}
+              <FieldError message={form.formState.errors.price?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sort_order">{t('clinic_services.sort_order')}</Label>
@@ -201,6 +205,14 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               {t('clinic_services.offers_moved_hint', 'لإضافة سعر مخفّض على هذه الخدمة، انتقل إلى "العروض" من القائمة الجانبية.')}
             </p>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              name: t('clinic_services.name'),
+              category_ids: t('clinic_services.categories', 'التخصصات'),
+              price: t('clinic_services.price'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

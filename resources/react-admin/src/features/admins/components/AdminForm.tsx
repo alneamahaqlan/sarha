@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select } from '@/components/ui/select';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -83,22 +85,18 @@ export function AdminForm({ admin, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="name">{t('admins.name')}</Label>
           <Input id="name" {...form.register('name')} />
-          {form.formState.errors.name && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="email">{t('admins.email')}</Label>
           <Input id="email" type="email" dir="ltr" {...form.register('email')} />
-          {form.formState.errors.email && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>
-          )}
+          <FieldError message={form.formState.errors.email?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -108,9 +106,7 @@ export function AdminForm({ admin, onSuccess, onCancel }: Props) {
             <option value="admin">{t('admin')}</option>
             <option value="sales">{t('admins.role_support')}</option>
           </Select>
-          {form.formState.errors.role && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.role.message}</p>
-          )}
+          <FieldError message={form.formState.errors.role?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -119,9 +115,7 @@ export function AdminForm({ admin, onSuccess, onCancel }: Props) {
           {isEdit && (
             <p className="text-xs text-[var(--color-muted-foreground)]">{t('admins.password_optional_hint')}</p>
           )}
-          {form.formState.errors.password && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.password.message}</p>
-          )}
+          <FieldError message={form.formState.errors.password?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -132,11 +126,7 @@ export function AdminForm({ admin, onSuccess, onCancel }: Props) {
             autoComplete="new-password"
             {...form.register('password_confirmation')}
           />
-          {form.formState.errors.password_confirmation && (
-            <p className="text-xs text-[var(--color-destructive)]">
-              {form.formState.errors.password_confirmation.message}
-            </p>
-          )}
+          <FieldError message={form.formState.errors.password_confirmation?.message} />
         </div>
 
         <div className="flex items-end gap-3 pb-2 md:col-span-2">
@@ -147,6 +137,17 @@ export function AdminForm({ admin, onSuccess, onCancel }: Props) {
           <Label>{t('admins.is_active')}</Label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          name: t('admins.name'),
+          email: t('admins.email'),
+          role: t('admins.role'),
+          password: t('admins.password'),
+          password_confirmation: t('admins.password'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

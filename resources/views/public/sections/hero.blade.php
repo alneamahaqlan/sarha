@@ -48,12 +48,12 @@
                            @focus="focused = true" @blur="focused = false"
                            class="w-full border border-gray-200 rounded-xl ps-11 pe-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-sage-500">
                 </div>
-                <select name="city" class="border border-gray-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-500 md:min-w-40">
+                <x-form.select name="city" class="md:w-auto md:min-w-40">
                     <option value="">@lang('site.search_all_cities')</option>
                     @foreach(($data['cities'] ?? collect()) as $city)
                         <option value="{{ $city->id }}">{{ $city->display_name }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
                 <button type="submit" class="bg-sage-600 text-white px-7 py-3 rounded-xl font-semibold hover:bg-sage-700 active:scale-[0.98] transition-all whitespace-nowrap shadow-lg shadow-sage-900/30">
                     @lang('site.search_button')
                 </button>

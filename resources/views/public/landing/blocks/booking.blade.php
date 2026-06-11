@@ -15,7 +15,7 @@
                 <div class="mb-4 rounded-lg bg-sage-50 border border-sage-200 text-sage-900 p-4 text-sm">{{ session('success') }}</div>
             @endif
 
-            <form method="POST" action="{{ route('landing.book', $page->slug) }}" class="space-y-4 bg-gray-50 rounded-2xl p-6 ring-1 ring-gray-100"
+            <form novalidate method="POST" action="{{ route('landing.book', $page->slug) }}" class="space-y-4 bg-gray-50 rounded-2xl p-6 ring-1 ring-gray-100"
                   data-lp-track-form>
                 @csrf
                 {{-- Attribution carried into the booking + visit. --}}
@@ -42,12 +42,12 @@
                 @if($clinic->services->isNotEmpty())
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.requested_service')</label>
-                        <select name="service_id" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
+                        <x-form.select name="service_id">
                             <option value="">@lang('site.not_specified')</option>
                             @foreach($clinic->services as $svc)
                                 <option value="{{ $svc->id }}" @selected(old('service_id') == $svc->id)>{{ $svc->name }}</option>
                             @endforeach
-                        </select>
+                        </x-form.select>
                     </div>
                 @endif
 

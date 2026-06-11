@@ -54,7 +54,7 @@ export function SeoTab({ page }: Props) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 max-w-3xl">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 max-w-3xl">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="seo_title_ar">{t('landing_pages.seo_title_ar')}</Label>

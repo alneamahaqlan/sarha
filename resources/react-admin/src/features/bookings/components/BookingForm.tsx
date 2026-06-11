@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useClinicLookup } from '@/features/lookups/hooks';
@@ -93,7 +95,7 @@ export function BookingForm({ booking, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_id">{t('bookings.clinic')}</Label>
@@ -103,25 +105,19 @@ export function BookingForm({ booking, onSuccess, onCancel }: Props) {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
-          {form.formState.errors.clinic_id && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.clinic_id.message}</p>
-          )}
+          <FieldError message={form.formState.errors.clinic_id?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="customer_name">{t('bookings.customer_name')}</Label>
           <Input id="customer_name" {...form.register('customer_name')} />
-          {form.formState.errors.customer_name && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.customer_name.message}</p>
-          )}
+          <FieldError message={form.formState.errors.customer_name?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="customer_phone">{t('bookings.customer_phone')}</Label>
           <Input id="customer_phone" type="tel" dir="ltr" {...form.register('customer_phone')} />
-          {form.formState.errors.customer_phone && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.customer_phone.message}</p>
-          )}
+          <FieldError message={form.formState.errors.customer_phone?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -148,6 +144,15 @@ export function BookingForm({ booking, onSuccess, onCancel }: Props) {
           <Textarea id="clinic_notes" rows={2} {...form.register('clinic_notes')} />
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          clinic_id: t('bookings.clinic'),
+          customer_name: t('bookings.customer_name'),
+          customer_phone: t('bookings.customer_phone'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

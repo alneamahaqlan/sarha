@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useStaticPages } from '@/features/static-pages/hooks';
@@ -102,7 +104,7 @@ export function NavigationLinkForm({ link, defaultLocation = 'header', onSuccess
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="location">{t('navigation_links.location')}</Label>
@@ -126,9 +128,7 @@ export function NavigationLinkForm({ link, defaultLocation = 'header', onSuccess
         <div className="space-y-1.5">
           <Label htmlFor="label_ar">{t('navigation_links.label_ar')}</Label>
           <Input id="label_ar" {...form.register('label_ar')} />
-          {form.formState.errors.label_ar && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.label_ar.message}</p>
-          )}
+          <FieldError message={form.formState.errors.label_ar?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -200,6 +200,14 @@ export function NavigationLinkForm({ link, defaultLocation = 'header', onSuccess
           </label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          label_ar: t('navigation_links.label_ar'),
+          url: t('navigation_links.url'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

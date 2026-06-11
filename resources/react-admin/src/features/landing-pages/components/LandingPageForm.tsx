@@ -11,13 +11,15 @@ import { Switch } from '@/components/ui/switch';
 import { Select } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useClinicLookup, useCityLookup, useCategoryLookup } from '@/features/lookups/hooks';
 
 import { landingPageFormSchema, slugify, type LandingPageFormSchema } from '../schemas/landing-page.schema';
 import { useCreateLandingPage, useUpdateLandingPage } from '../hooks';
-import { LANDING_STATUSES, LANDING_TYPES, type LandingPage } from '../types';
+import { LANDING_STATUSES, LANDING_TYPES, type LandingPage, type LandingPageFormValues } from '../types';
 
 interface Props {
   page?: LandingPage | null;
@@ -93,24 +95,39 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
   };
 
   const onSubmit = async (values: LandingPageFormSchema) => {
-    // Normalize empty strings on dates to null so the backend 'date' rule passes.
-    const payload = {
-      ...values,
-      starts_at: values.starts_at || null,
-      ends_at: values.ends_at || null,
-    };
+    // Laravel's `nullable` only skips null — NOT an empty string. So an empty
+    // optional field like cta_url/canonical_url ("") still hits its `url` rule
+    // and fails with an error on a hidden field (silent rejection). Convert
+    // every blank optional string to null before sending. `type` and `slug`
+    // are required and never blank here.
+    const payload: Record<string, unknown> = { ...values };
+    for (const [k, v] of Object.entries(payload)) {
+      if (v === '') payload[k] = null;
+    }
+
+    // comparison_clinic_ids is `nullable|array|min:2` on the backend. An empty
+    // array is NOT null, so for every non-comparison page the default []
+    // tripped `min:2` and silently rejected the save. Only send it when this
+    // is a comparison page that actually has clinics selected; otherwise omit.
+    if (values.type !== 'comparison' || !(values.comparison_clinic_ids?.length)) {
+      delete payload.comparison_clinic_ids;
+    }
     try {
       const saved = isEdit
-        ? await update.mutateAsync(payload)
-        : await create.mutateAsync(payload);
+        ? await update.mutateAsync(payload as Partial<LandingPageFormValues>)
+        : await create.mutateAsync(payload as LandingPageFormValues);
       toast.success(isEdit ? t('landing_pages.updated') : t('landing_pages.created'));
       onSuccess?.(saved);
     } catch (err) {
       const validation = extractValidationErrors(err);
       if (validation) {
-        Object.entries(validation).forEach(([field, msgs]) => {
+        const entries = Object.entries(validation);
+        entries.forEach(([field, msgs]) => {
           form.setError(field as keyof LandingPageFormSchema, { message: msgs[0] });
         });
+        // Some failing fields are conditionally hidden (cta_url, comparison
+        // clinics), so always surface the first message as a toast too.
+        if (entries.length) toast.error(entries[0][1][0]);
       } else {
         toast.error(extractMessage(err, t('errors.generic')));
       }
@@ -121,7 +138,7 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
   const err = (k: keyof LandingPageFormSchema) => form.formState.errors[k]?.message as string | undefined;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label>{t('landing_pages.type')}</Label>
@@ -146,7 +163,7 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="slug">{t('landing_pages.slug')}</Label>
           <Input id="slug" dir="ltr" {...form.register('slug')} />
-          {err('slug') && <p className="text-xs text-[var(--color-destructive)]">{err('slug')}</p>}
+          <FieldError message={err('slug')} />
           <p className="text-xs text-[var(--color-muted-foreground)]" dir="ltr">/l/{form.watch('slug') || '...'}</p>
         </div>
       </div>
@@ -178,7 +195,7 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
             <option value="">—</option>
             {clinics?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </Select>
-          {err('clinic_id') && <p className="text-xs text-[var(--color-destructive)]">{err('clinic_id')}</p>}
+          <FieldError message={err('clinic_id')} />
         </div>
       )}
 
@@ -241,7 +258,7 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="ends_at">{t('landing_pages.ends_at')}</Label>
           <Input id="ends_at" type="datetime-local" dir="ltr" {...form.register('ends_at')} />
-          {err('ends_at') && <p className="text-xs text-[var(--color-destructive)]">{err('ends_at')}</p>}
+          <FieldError message={err('ends_at')} />
         </div>
       </div>
 
@@ -276,7 +293,7 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
           <div className="space-y-1.5">
             <Label htmlFor="cta_url">{t('landing_pages.cta_url')}</Label>
             <Input id="cta_url" dir="ltr" {...form.register('cta_url')} />
-            {err('cta_url') && <p className="text-xs text-[var(--color-destructive)]">{err('cta_url')}</p>}
+            <FieldError message={err('cta_url')} />
           </div>
         )}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -296,6 +313,16 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
           </div>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          slug: t('landing_pages.slug'),
+          clinic_id: t('landing_pages.linked_clinic'),
+          ends_at: t('landing_pages.ends_at'),
+          cta_url: t('landing_pages.cta_url'),
+        }}
+      />
 
       <div className="flex justify-end gap-2">
         {onCancel && (

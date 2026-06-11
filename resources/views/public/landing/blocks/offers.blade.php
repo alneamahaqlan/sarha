@@ -1,11 +1,16 @@
-{{-- Offers block — running offers from the linked complex. --}}
+{{-- Offers block — auto (running offers) or a manually-picked subset. --}}
 @if($clinic)
     @php
-        $limit = (int) ($cfg['item_limit'] ?? 6);
-        $activeOffers = $clinic->offers
-            ->filter(fn ($o) => $o->is_active && $o->starts_at <= now() && $o->ends_at >= now())
-            ->take($limit)
-            ->values();
+        $limit  = (int) ($cfg['item_limit'] ?? 6);
+        $source = $cfg['source'] ?? 'auto';
+        $manualIds = array_map('intval', (array) ($cfg['manual_ids'] ?? []));
+
+        $activeOffers = ($source === 'manual' && $manualIds)
+            ? collect($manualIds)->map(fn ($id) => $clinic->offers->firstWhere('id', $id))->filter()->values()
+            : $clinic->offers
+                ->filter(fn ($o) => $o->is_active && $o->starts_at <= now() && $o->ends_at >= now())
+                ->take($limit)
+                ->values();
     @endphp
     @if($activeOffers->isNotEmpty())
         <section class="max-w-5xl mx-auto px-4 py-12">

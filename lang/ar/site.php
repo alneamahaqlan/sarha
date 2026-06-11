@@ -23,6 +23,11 @@ return [
     'hero_title' => 'ابحث عن أفضل المجمعات',
     'hero_subtitle' => 'قارن الأسعار والخدمات واحجز موعدك بسهولة',
     'search_placeholder' => 'ابحث عن تخصص أو مجمع...',
+    // Shared form controls (x-form.select / x-form.errors)
+    'form_select_placeholder' => 'اختر...',
+    'form_search' => 'بحث...',
+    'form_no_results' => 'لا توجد نتائج',
+    'form_errors_title' => 'يرجى تعبئة الحقول الإجبارية التالية:',
     'search_all_cities' => 'كل المدن',
     'search_all_categories' => 'كل التخصصات',
     'search_button' => 'بحث',
@@ -673,4 +678,8 @@ return [
     'lp_register_body'    => 'رقم جوالك :phone غير مسجّل في المنصة. سجّل الآن لمتابعة طلبك وتسهيل حجوزاتك القادمة.',
     'lp_register_cta'     => 'سجّل في المنصة الآن',
     'lp_register_dismiss' => 'لاحقاً',
+    'lp_preview_banner'   => 'معاينة (غير منشورة للزوار) — هذه الصفحة مرئية لك كأدمن فقط',
+    'lp_status_draft'     => 'مسودة',
+    'lp_status_published' => 'منشورة',
+    'lp_status_archived'  => 'مؤرشفة',
 ];

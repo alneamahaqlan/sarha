@@ -11,6 +11,8 @@
     "edit": "Edit",
     "create": "Create",
     "search": "Search...",
+    "select": "Select...",
+    "no_results": "No results",
     "loading": "Loading...",
     "no_data": "No data",
     "confirm": "Confirm",
@@ -35,6 +37,9 @@
     "toggle_language": "Toggle language",
     "copy": "Copy",
     "saved": "Saved"
+  },
+  "forms": {
+    "required_summary": "Please fill in the following required fields:"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -233,8 +238,12 @@
     "cfg_show_cta": "Show CTA button",
     "cfg_source": "Data source",
     "cfg_source_auto": "Automatic (from complex)",
-    "cfg_source_manual": "Manual",
+    "cfg_source_manual": "Manual (specific picks)",
     "cfg_item_limit": "Max items",
+    "cfg_manual_pick": "Choose the items to show",
+    "cfg_manual_hint": "Only these items show, in this order. The items themselves are managed from the complex page.",
+    "cfg_manual_empty": "This complex has no items.",
+    "cfg_manual_no_clinic": "Link the page to a complex first (Settings tab) to pick manually.",
     "cfg_countdown_target": "Countdown ends at",
     "cfg_faq_items": "Questions & answers",
     "cfg_faq_q": "Question",

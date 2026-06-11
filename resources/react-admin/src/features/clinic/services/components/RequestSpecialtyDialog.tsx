@@ -50,7 +50,7 @@ export function RequestSpecialtyDialog({ open, onClose, serviceId }: Props) {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <form onSubmit={submit} className="space-y-4">
+        <form noValidate onSubmit={submit} className="space-y-4">
           <DialogHeader>
             <DialogTitle>
               {t('clinic_services.request_specialty_title', 'اقترح تخصصاً جديداً')}

@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -69,7 +71,7 @@ export function MassNotifyPage() {
         <p className="text-sm text-[var(--color-muted-foreground)]">{t('mass_notify.subtitle')}</p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-[var(--color-border)] bg-white p-6">
+      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-[var(--color-border)] bg-white p-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="audience">{t('mass_notify.audience')}</Label>
@@ -94,18 +96,25 @@ export function MassNotifyPage() {
         <div className="space-y-1.5">
           <Label htmlFor="title">{t('mass_notify.subject')}</Label>
           <Input id="title" maxLength={255} {...form.register('title')} />
-          {form.formState.errors.title && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.title.message}</p>
-          )}
+          <FieldError message={form.formState.errors.title?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="body">{t('mass_notify.body')}</Label>
           <Textarea id="body" rows={4} maxLength={2000} {...form.register('body')} />
-          {form.formState.errors.body && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.body.message}</p>
-          )}
+          <FieldError message={form.formState.errors.body?.message} />
         </div>
+
+        <FormErrorSummary
+          errors={form.formState.errors}
+          labels={{
+            audience: t('mass_notify.audience'),
+            priority: t('mass_notify.priority'),
+            channel: t('mass_notify.channel'),
+            title: t('mass_notify.subject'),
+            body: t('mass_notify.body'),
+          }}
+        />
 
         <div className="border-t border-[var(--color-border)] pt-4">
           <Button type="submit" disabled={mutation.isPending}>

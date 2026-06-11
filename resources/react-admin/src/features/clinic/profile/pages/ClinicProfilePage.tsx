@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { FileUpload } from '@/components/forms/FileUpload';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 
 import { useClinicProfile, useClinicReviews, useExtractCoords, useSyncReviews, useUpdateClinicProfile } from '../hooks';
 import { WorkingHoursSection } from '../components/WorkingHoursSection';
@@ -129,17 +131,17 @@ export function ClinicProfilePage() {
         <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_profile.subtitle')}</p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-[var(--color-border)] bg-white p-6">
+      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 rounded-lg border border-[var(--color-border)] bg-white p-6">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="name">{t('clinic_profile.name')}</Label>
             <Input id="name" {...form.register('name')} />
-            {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+            <FieldError message={form.formState.errors.name?.message} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="phone">{t('clinic_profile.phone')}</Label>
             <Input id="phone" type="tel" dir="ltr" {...form.register('phone')} />
-            {form.formState.errors.phone && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.phone.message}</p>}
+            <FieldError message={form.formState.errors.phone?.message} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">{t('clinic_profile.email')}</Label>
@@ -148,7 +150,7 @@ export function ClinicProfilePage() {
           <div className="space-y-1.5">
             <Label htmlFor="district">{t('clinic_profile.district')}</Label>
             <Input id="district" {...form.register('district')} />
-            {form.formState.errors.district && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.district.message}</p>}
+            <FieldError message={form.formState.errors.district?.message} />
           </div>
           <div className="space-y-1.5 md:col-span-2">
             <Label htmlFor="address">{t('clinic_profile.address')}</Label>
@@ -238,9 +240,21 @@ export function ClinicProfilePage() {
             <Label htmlFor="password">{t('clinic_profile.new_password')}</Label>
             <Input id="password" type="password" autoComplete="new-password" {...form.register('password')} />
             <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_profile.password_hint')}</p>
-            {form.formState.errors.password && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.password.message}</p>}
+            <FieldError message={form.formState.errors.password?.message} />
           </div>
         </div>
+
+        <FormErrorSummary
+          errors={form.formState.errors}
+          labels={{
+            name: t('clinic_profile.name'),
+            phone: t('clinic_profile.phone'),
+            email: t('clinic_profile.email'),
+            district: t('clinic_profile.district'),
+            website: t('clinic_profile.website'),
+            password: t('clinic_profile.new_password'),
+          }}
+        />
 
         <div className="border-t border-[var(--color-border)] pt-4">
           <Button type="submit" disabled={mut.isPending}>{mut.isPending ? t('common.loading') : t('clinic_profile.save')}</Button>

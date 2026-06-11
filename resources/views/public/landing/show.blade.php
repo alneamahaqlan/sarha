@@ -35,6 +35,12 @@
 @endpush
 
 @section('content')
+    @if($isPreview ?? false)
+        <div class="bg-amber-500 text-white text-center text-sm py-2 px-4 font-medium">
+            {{ __('site.lp_preview_banner') }} — {{ __('site.lp_status_' . $page->status) }}
+        </div>
+    @endif
+
     <main class="bg-gray-50 min-h-screen"
           data-lp-id="{{ $page->id }}"
           data-lp-track-root>
@@ -63,6 +69,9 @@
         @include('public.partials.floating-actions', ['clinic' => $clinic])
     @endif
 
-    {{-- Behavioral tracking beacons (visit / scroll / dwell / clicks / leave). --}}
-    @include('public.landing.partials.tracking', ['page' => $page])
+    {{-- Behavioral tracking beacons (visit / scroll / dwell / clicks / leave).
+         Skipped in admin preview so drafts never create visit/stat rows. --}}
+    @unless($isPreview ?? false)
+        @include('public.landing.partials.tracking', ['page' => $page])
+    @endunless
 @endsection

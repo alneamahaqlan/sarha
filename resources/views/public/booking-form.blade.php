@@ -48,13 +48,7 @@
                     {{ __('site.booking_page_title', ['clinic' => $clinic->name]) }}
                 </h1>
 
-                @if($errors->any())
-                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm mb-5">
-                        @foreach($errors->all() as $error)
-                            <p>{{ $error }}</p>
-                        @endforeach
-                    </div>
-                @endif
+                <div class="mb-5"><x-form.errors /></div>
 
                 @if(session('otp_required'))
                     {{-- One-time verification step (first booking → registers the customer). --}}
@@ -67,7 +61,7 @@
                         @endif
                     </div>
 
-                    <form method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
+                    <form novalidate method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
                         @csrf
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
@@ -81,7 +75,7 @@
                         </button>
                     </form>
                 @else
-                <form method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5" id="bookingForm">
+                <form novalidate method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5" id="bookingForm">
                     @csrf
 
                     @auth('web')
@@ -273,12 +267,12 @@
                     @if($clinic->services->isNotEmpty())
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.requested_service')</label>
-                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
+                            <x-form.select name="service_id">
                                 <option value="">@lang('site.not_specified')</option>
                                 @foreach($clinic->services as $svc)
                                     <option value="{{ $svc->id }}" @selected(old('service_id', $service?->id) == $svc->id)>{{ $svc->name }}</option>
                                 @endforeach
-                            </select>
+                            </x-form.select>
                         </div>
                     @endif
 

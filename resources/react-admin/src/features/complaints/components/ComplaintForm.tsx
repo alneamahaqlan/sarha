@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useAdminLookup, useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
@@ -77,7 +79,7 @@ export function ComplaintForm({ onSuccess, onCancel }: Props) {
   const submitting = create.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_id">{t('complaints.form.clinic')}</Label>
@@ -94,19 +96,19 @@ export function ComplaintForm({ onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="customer_name">{t('complaints.form.customer_name')}</Label>
           <Input id="customer_name" {...form.register('customer_name')} />
-          {form.formState.errors.customer_name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.customer_name.message}</p>}
+          <FieldError message={form.formState.errors.customer_name?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="customer_phone">{t('complaints.form.customer_phone')}</Label>
           <Input id="customer_phone" type="tel" dir="ltr" {...form.register('customer_phone')} />
-          {form.formState.errors.customer_phone && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.customer_phone.message}</p>}
+          <FieldError message={form.formState.errors.customer_phone?.message} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="customer_email">{t('complaints.form.customer_email')}</Label>
           <Input id="customer_email" type="email" dir="ltr" {...form.register('customer_email')} />
-          {form.formState.errors.customer_email && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.customer_email.message}</p>}
+          <FieldError message={form.formState.errors.customer_email?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -157,13 +159,13 @@ export function ComplaintForm({ onSuccess, onCancel }: Props) {
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="subject">{t('complaints.form.subject')}</Label>
           <Input id="subject" {...form.register('subject')} />
-          {form.formState.errors.subject && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.subject.message}</p>}
+          <FieldError message={form.formState.errors.subject?.message} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="description">{t('complaints.form.description')}</Label>
           <Textarea id="description" rows={4} {...form.register('description')} />
-          {form.formState.errors.description && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.description.message}</p>}
+          <FieldError message={form.formState.errors.description?.message} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
@@ -176,6 +178,17 @@ export function ComplaintForm({ onSuccess, onCancel }: Props) {
           <Textarea id="resolution" rows={3} {...form.register('resolution')} />
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          customer_name: t('complaints.form.customer_name'),
+          customer_phone: t('complaints.form.customer_phone'),
+          customer_email: t('complaints.form.customer_email'),
+          subject: t('complaints.form.subject'),
+          description: t('complaints.form.description'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

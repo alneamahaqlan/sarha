@@ -6,6 +6,7 @@ export interface CategoryLookup { id: number; name: string; name_en: string | nu
 export interface AdminLookup { id: number; name: string; role: string | null }
 export interface SubClinicLookup { id: number; name: string }
 export interface ServiceLookup { id: number; name: string }
+export interface NamedLookup { id: number; name: string }
 
 export const lookupsApi = {
   clinics: async (search?: string): Promise<ClinicLookup[]> => {
@@ -33,6 +34,18 @@ export const lookupsApi = {
   },
   services: async (clinicId: number): Promise<ServiceLookup[]> => {
     const res = await apiClient.get<{ data: ServiceLookup[] }>('/lookups/services', { params: { clinic_id: clinicId } });
+    return res.data.data;
+  },
+  offers: async (clinicId: number): Promise<NamedLookup[]> => {
+    const res = await apiClient.get<{ data: NamedLookup[] }>('/lookups/offers', { params: { clinic_id: clinicId } });
+    return res.data.data;
+  },
+  doctors: async (clinicId: number): Promise<NamedLookup[]> => {
+    const res = await apiClient.get<{ data: NamedLookup[] }>('/lookups/doctors', { params: { clinic_id: clinicId } });
+    return res.data.data;
+  },
+  beforeAfter: async (clinicId: number): Promise<NamedLookup[]> => {
+    const res = await apiClient.get<{ data: NamedLookup[] }>('/lookups/before-after', { params: { clinic_id: clinicId } });
     return res.data.data;
   },
 };

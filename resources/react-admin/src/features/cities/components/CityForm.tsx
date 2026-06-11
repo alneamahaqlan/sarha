@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { cityFormSchema, type CityFormSchema } from '../schemas/city.schema';
@@ -70,30 +72,24 @@ export function CityForm({ city, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="name">{t('cities.name')}</Label>
           <Input id="name" {...form.register('name')} />
-          {form.formState.errors.name && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="name_en">{t('cities.name_en')}</Label>
           <Input id="name_en" {...form.register('name_en')} />
-          {form.formState.errors.name_en && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name_en.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name_en?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="sort_order">{t('cities.sort_order')}</Label>
           <Input id="sort_order" type="number" {...form.register('sort_order', { valueAsNumber: true })} />
-          {form.formState.errors.sort_order && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.sort_order.message}</p>
-          )}
+          <FieldError message={form.formState.errors.sort_order?.message} />
         </div>
 
         <div className="flex items-end gap-3 pb-2">
@@ -104,6 +100,15 @@ export function CityForm({ city, onSuccess, onCancel }: Props) {
           <Label>{t('cities.is_active')}</Label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          name: t('cities.name'),
+          name_en: t('cities.name_en'),
+          sort_order: t('cities.sort_order'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

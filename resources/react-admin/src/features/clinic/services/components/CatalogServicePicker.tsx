@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Check, Sparkle } from 'lucide-react';
 
+import { FieldError } from '@/components/forms/FieldError';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { useCatalogSuggest } from '../hooks';
@@ -102,7 +103,7 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
         </p>
       ) : null}
 
-      {error && <p className="text-xs text-[var(--color-destructive)]">{error}</p>}
+      <FieldError message={error} />
     </div>
   );
 }

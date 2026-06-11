@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -67,7 +69,7 @@ function ReportDialog({ onClose }: { onClose: () => void }) {
           <DialogTitle>{t('clinic_reports.create')}</DialogTitle>
           <DialogDescription>{t('clinic_reports.dialog_desc')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="type">{t('clinic_reports.type')}</Label>
@@ -85,13 +87,21 @@ function ReportDialog({ onClose }: { onClose: () => void }) {
           <div className="space-y-1.5">
             <Label htmlFor="subject">{t('clinic_reports.subject')}</Label>
             <Input id="subject" {...form.register('subject')} />
-            {form.formState.errors.subject && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.subject.message}</p>}
+            <FieldError message={form.formState.errors.subject?.message} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="description">{t('clinic_reports.description')}</Label>
             <Textarea id="description" rows={5} placeholder={t('clinic_reports.description_placeholder')} {...form.register('description')} />
-            {form.formState.errors.description && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.description.message}</p>}
+            <FieldError message={form.formState.errors.description?.message} />
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              type: t('clinic_reports.type'),
+              subject: t('clinic_reports.subject'),
+              description: t('clinic_reports.description'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={create.isPending}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={create.isPending}>{create.isPending ? t('common.loading') : t('clinic_reports.send')}</Button>

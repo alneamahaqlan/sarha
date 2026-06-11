@@ -18,32 +18,28 @@
                 <h2 class="text-lg font-bold text-gray-800 mb-1">@lang('site.complaint_new_title')</h2>
                 <p class="text-sm text-gray-500 mb-4">@lang('site.complaint_new_subtitle')</p>
 
-                @if($errors->any())
-                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm mb-4">
-                        @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
-                    </div>
-                @endif
+                <div class="mb-4"><x-form.errors /></div>
 
-                <form method="POST" action="{{ route('account.complaints.store') }}" class="space-y-4">
+                <form novalidate method="POST" action="{{ route('account.complaints.store') }}" class="space-y-4">
                     @csrf
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_type') <span class="text-red-500">*</span></label>
-                            <select name="type" required class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
+                            <x-form.select name="type" required>
                                 @foreach(\App\Models\Complaint::TYPES as $t)
                                     <option value="{{ $t }}" @selected(old('type') === $t)>@lang('site.complaint_type_' . $t)</option>
                                 @endforeach
-                            </select>
+                            </x-form.select>
                         </div>
                         @if($clinics->isNotEmpty())
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_about_clinic')</label>
-                                <select name="clinic_id" class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
+                                <x-form.select name="clinic_id">
                                     <option value="">—</option>
                                     @foreach($clinics as $c)
                                         <option value="{{ $c->id }}" @selected((int) old('clinic_id') === $c->id)>{{ $c->name }}</option>
                                     @endforeach
-                                </select>
+                                </x-form.select>
                             </div>
                         @endif
                     </div>

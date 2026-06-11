@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { whatsappSenderFormSchema, type WhatsAppSenderFormSchema } from '../schemas/whatsapp-sender.schema';
@@ -75,29 +77,25 @@ export function WhatsAppSenderForm({ sender, onSuccess, onCancel }: Props) {
   const err = form.formState.errors;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="label">{t('whatsapp_senders.label')}</Label>
           <Input id="label" {...form.register('label')} placeholder={t('whatsapp_senders.label_placeholder')} />
-          {err.label && <p className="text-xs text-[var(--color-destructive)]">{err.label.message}</p>}
+          <FieldError message={err.label?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="phone">{t('whatsapp_senders.phone')}</Label>
           <Input id="phone" dir="ltr" {...form.register('phone')} placeholder="+9665XXXXXXXX" />
-          {err.phone && (
-            <p className="text-xs text-[var(--color-destructive)]">
-              {err.phone.message === 'phone_invalid' ? t('whatsapp_senders.phone_invalid') : err.phone.message}
-            </p>
-          )}
+          <FieldError message={err.phone ? (err.phone.message === 'phone_invalid' ? t('whatsapp_senders.phone_invalid') : err.phone.message) : undefined} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="profile_id">{t('whatsapp_senders.profile_id')}</Label>
           <Input id="profile_id" dir="ltr" {...form.register('profile_id')} />
           <p className="text-xs text-[var(--color-muted-foreground)]">{t('whatsapp_senders.profile_id_help')}</p>
-          {err.profile_id && <p className="text-xs text-[var(--color-destructive)]">{err.profile_id.message}</p>}
+          <FieldError message={err.profile_id?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -113,14 +111,14 @@ export function WhatsAppSenderForm({ sender, onSuccess, onCancel }: Props) {
           <p className="text-xs text-[var(--color-muted-foreground)]">
             {sender ? t('whatsapp_senders.token_keep_help') : t('whatsapp_senders.token_help')}
           </p>
-          {err.token && <p className="text-xs text-[var(--color-destructive)]">{err.token.message}</p>}
+          <FieldError message={err.token?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="priority">{t('whatsapp_senders.priority')}</Label>
           <Input id="priority" type="number" {...form.register('priority', { valueAsNumber: true })} />
           <p className="text-xs text-[var(--color-muted-foreground)]">{t('whatsapp_senders.priority_help')}</p>
-          {err.priority && <p className="text-xs text-[var(--color-destructive)]">{err.priority.message}</p>}
+          <FieldError message={err.priority?.message} />
         </div>
 
         <div className="flex items-end gap-3 pb-2">
@@ -131,6 +129,17 @@ export function WhatsAppSenderForm({ sender, onSuccess, onCancel }: Props) {
           <Label>{t('whatsapp_senders.is_active')}</Label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          label: t('whatsapp_senders.label'),
+          phone: t('whatsapp_senders.phone'),
+          profile_id: t('whatsapp_senders.profile_id'),
+          token: t('whatsapp_senders.token'),
+          priority: t('whatsapp_senders.priority'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

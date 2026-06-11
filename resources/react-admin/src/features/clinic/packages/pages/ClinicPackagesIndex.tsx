@@ -23,6 +23,8 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useClinicServices } from '@/features/clinic/services/hooks';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 
 import { useClinicPackages, useCreateClinicPackage, useDeleteClinicPackage, useUpdateClinicPackage } from '../hooks';
 import type { ClinicPackage } from '../api';
@@ -104,12 +106,12 @@ function PackageDialog({ pkg, onClose }: { pkg: ClinicPackage | null; onClose: (
           <DialogTitle>{pkg ? t('clinic_packages.edit') : t('clinic_packages.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_packages.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_packages.name')}</Label>
               <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <FieldError message={form.formState.errors.name?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="price">{t('clinic_packages.price')}</Label>
@@ -158,13 +160,21 @@ function PackageDialog({ pkg, onClose }: { pkg: ClinicPackage | null; onClose: (
                   ))
                 )}
               </div>
-              {form.formState.errors.service_ids && <p className="text-xs text-[var(--color-destructive)]">{t('clinic_packages.services_required')}</p>}
+              <FieldError message={form.formState.errors.service_ids ? t('clinic_packages.services_required') : undefined} />
             </div>
             <div className="flex items-end gap-3 pb-2">
               <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
               <Label>{t('clinic_packages.is_active')}</Label>
             </div>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              name: t('clinic_packages.name'),
+              price: t('clinic_packages.price'),
+              service_ids: t('clinic_packages.services'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

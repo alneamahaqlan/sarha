@@ -58,7 +58,7 @@ export function LandingPageEditor() {
           <LandingPageForm page={page} />
         </TabsContent>
         <TabsContent value="builder" className="pt-4">
-          <BlockBuilder pageId={page.id} />
+          <BlockBuilder pageId={page.id} clinicId={page.clinic_id} />
         </TabsContent>
         <TabsContent value="seo" className="pt-4">
           <SeoTab page={page} />

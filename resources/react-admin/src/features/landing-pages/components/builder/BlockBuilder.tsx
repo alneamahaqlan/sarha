@@ -21,9 +21,10 @@ import { BlockConfigEditor } from './BlockConfigEditor';
 
 interface Props {
   pageId: number;
+  clinicId: number | null;
 }
 
-export function BlockBuilder({ pageId }: Props) {
+export function BlockBuilder({ pageId, clinicId }: Props) {
   const { t } = useTranslation();
   const { data: serverBlocks, isLoading } = useLandingPageBlocks(pageId);
   const reorder = useReorderBlocks(pageId);
@@ -92,6 +93,7 @@ export function BlockBuilder({ pageId }: Props) {
                 <SortableBlockCard
                   key={block.id}
                   pageId={pageId}
+                  clinicId={clinicId}
                   block={block}
                   onDelete={() => del.mutate(block.id)}
                 />
@@ -104,7 +106,7 @@ export function BlockBuilder({ pageId }: Props) {
   );
 }
 
-function SortableBlockCard({ pageId, block, onDelete }: { pageId: number; block: LandingPageBlock; onDelete: () => void }) {
+function SortableBlockCard({ pageId, clinicId, block, onDelete }: { pageId: number; clinicId: number | null; block: LandingPageBlock; onDelete: () => void }) {
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: block.id });
   const update = useUpdateBlock(pageId);
@@ -139,7 +141,7 @@ function SortableBlockCard({ pageId, block, onDelete }: { pageId: number; block:
 
       {open && (
         <div className="border-t border-[var(--color-border)] p-4">
-          <BlockConfigEditor pageId={pageId} block={block} />
+          <BlockConfigEditor pageId={pageId} clinicId={clinicId} block={block} />
         </div>
       )}
     </div>

@@ -11,6 +11,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DialogFooter } from '@/components/ui/dialog';
 import { RichEditor } from '@/components/forms/RichEditor';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -79,7 +81,7 @@ export function StaticPageForm({ page, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="slug">{t('static_pages.slug')}</Label>
@@ -90,9 +92,7 @@ export function StaticPageForm({ page, onSuccess, onCancel }: Props) {
             {...form.register('slug')}
           />
           {isSystem && <p className="text-xs text-[var(--color-muted-foreground)]">{t('static_pages.slug_locked')}</p>}
-          {form.formState.errors.slug && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.slug.message}</p>
-          )}
+          <FieldError message={form.formState.errors.slug?.message} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="sort_order">{t('static_pages.sort_order')}</Label>
@@ -119,9 +119,7 @@ export function StaticPageForm({ page, onSuccess, onCancel }: Props) {
                 },
               })}
             />
-            {form.formState.errors.title_ar && (
-              <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.title_ar.message}</p>
-            )}
+            <FieldError message={form.formState.errors.title_ar?.message} />
           </div>
           <div className="space-y-1.5">
             <Label>{t('static_pages.body_ar')}</Label>
@@ -156,6 +154,14 @@ export function StaticPageForm({ page, onSuccess, onCancel }: Props) {
         />
         <Label>{t('static_pages.is_active')}</Label>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          slug: t('static_pages.slug'),
+          title_ar: t('static_pages.title_ar'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

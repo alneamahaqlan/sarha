@@ -22,7 +22,7 @@
         <p class="text-sm text-slate-warm mb-4">@lang('site.cart_otp_intro')</p>
 
         {{-- Step 1: collect name + phone --}}
-        <form method="POST" action="{{ route('cart.add') }}" class="space-y-3" data-cart-step="collect"
+        <form novalidate method="POST" action="{{ route('cart.add') }}" class="space-y-3" data-cart-step="collect"
               @if($cartOtp) hidden @endif>
             @csrf
             <input type="hidden" name="type" data-cart-type-field>
@@ -44,7 +44,7 @@
         </form>
 
         {{-- Step 2: verify OTP (auto-shown when the server asks for it) --}}
-        <form method="POST" action="{{ route('cart.add.verify') }}" class="space-y-3" data-cart-step="verify"
+        <form novalidate method="POST" action="{{ route('cart.add.verify') }}" class="space-y-3" data-cart-step="verify"
               @unless($cartOtp) hidden @endunless>
             @csrf
             <div class="bg-sage-50 border border-sage-200 text-sage-900 rounded-lg p-3 text-sm space-y-1">

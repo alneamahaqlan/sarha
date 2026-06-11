@@ -13,6 +13,8 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useClinicLookup } from '@/features/lookups/hooks';
 
 import { serviceFormSchema, type ServiceFormSchema } from '../schemas/service.schema';
@@ -86,7 +88,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_id">{t('services.clinic')}</Label>
@@ -96,17 +98,13 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
-          {form.formState.errors.clinic_id && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.clinic_id.message}</p>
-          )}
+          <FieldError message={form.formState.errors.clinic_id?.message} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="name">{t('services.name')}</Label>
           <Input id="name" {...form.register('name')} />
-          {form.formState.errors.name && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>
-          )}
+          <FieldError message={form.formState.errors.name?.message} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
@@ -126,9 +124,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="price">{t('services.price')}</Label>
           <Input id="price" type="number" step="0.01" min={0} {...form.register('price', { valueAsNumber: true })} />
-          {form.formState.errors.price && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.price.message}</p>
-          )}
+          <FieldError message={form.formState.errors.price?.message} />
         </div>
 
         <div className="flex items-center gap-3 md:col-span-2">
@@ -157,6 +153,15 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
           <Label>{t('services.is_active')}</Label>
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          clinic_id: t('services.clinic'),
+          name: t('services.name'),
+          price: t('services.price'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>

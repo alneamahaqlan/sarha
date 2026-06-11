@@ -102,6 +102,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/admins', [LookupController::class, 'admins']);
         Route::get('lookups/sub-clinics', [LookupController::class, 'subClinics']);
         Route::get('lookups/services', [LookupController::class, 'services']);
+        Route::get('lookups/offers', [LookupController::class, 'offers']);
+        Route::get('lookups/doctors', [LookupController::class, 'doctors']);
+        Route::get('lookups/before-after', [LookupController::class, 'beforeAfter']);
 
         // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
         Route::get('notifications', [NotificationController::class, 'index']);

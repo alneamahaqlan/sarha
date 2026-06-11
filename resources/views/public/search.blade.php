@@ -60,27 +60,27 @@
                     </template>
                 </div>
             </div>
-            <select name="city" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <x-form.select name="city" class="md:col-span-2">
                 <option value="">@lang('site.search_all_cities')</option>
                 @foreach($cities as $city)
                     <option value="{{ $city->id }}" @selected(request('city') == $city->id)>{{ $city->display_name }}</option>
                 @endforeach
-            </select>
-            <select name="category" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            </x-form.select>
+            <x-form.select name="category" class="md:col-span-2">
                 <option value="">@lang('site.search_all_categories')</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>
                         {{ $cat->display_name }}
                     </option>
                 @endforeach
-            </select>
-            <select name="sort" id="search-sort" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            </x-form.select>
+            <x-form.select name="sort" id="search-sort" class="md:col-span-2">
                 <option value="featured" @selected(($sort ?? 'featured') === 'featured')>@lang('site.sort_featured')</option>
                 <option value="top_rated" @selected(($sort ?? '') === 'top_rated')>@lang('site.sort_top_rated')</option>
                 <option value="cheapest" @selected(($sort ?? '') === 'cheapest')>@lang('site.sort_cheapest')</option>
                 <option value="most_booked" @selected(($sort ?? '') === 'most_booked')>@lang('site.sort_most_booked')</option>
                 <option value="nearest" @selected(($sort ?? '') === 'nearest')>@lang('site.sort_nearest')</option>
-            </select>
+            </x-form.select>
             {{-- Preserve geolocation for "nearest" across pagination / re-submits. --}}
             <input type="hidden" name="lat" id="search-lat" value="{{ request('lat') }}">
             <input type="hidden" name="lng" id="search-lng" value="{{ request('lng') }}">
@@ -92,19 +92,19 @@
         {{-- Secondary filters: district · rating · max price --}}
         <div class="mt-3 flex flex-wrap gap-3">
             @if($districts->isNotEmpty())
-                <select name="district" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 min-w-44">
+                <x-form.select name="district" onchange="this.form.submit()" class="md:w-auto min-w-44">
                     <option value="">@lang('site.filter_any_district')</option>
                     @foreach($districts as $d)
                         <option value="{{ $d }}" @selected(request('district') == $d)>{{ $d }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
             @endif
-            <select name="min_rating" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 min-w-40">
+            <x-form.select name="min_rating" onchange="this.form.submit()" class="md:w-auto min-w-40">
                 <option value="">@lang('site.filter_rating_any')</option>
                 <option value="4.5" @selected(request('min_rating') === '4.5')>★ 4.5+</option>
                 <option value="4" @selected(request('min_rating') === '4')>★ 4+</option>
                 <option value="3" @selected(request('min_rating') === '3')>★ 3+</option>
-            </select>
+            </x-form.select>
             <input type="number" name="price_max" value="{{ request('price_max') }}" min="0" step="50"
                    onchange="this.form.submit()" placeholder="@lang('site.filter_price_max')"
                    class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 w-44">

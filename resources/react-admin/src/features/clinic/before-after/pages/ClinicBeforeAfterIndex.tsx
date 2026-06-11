@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -87,7 +88,7 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
           <DialogTitle>{photo ? t('clinic_before_after.edit') : t('clinic_before_after.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_before_after.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>{t('clinic_before_after.before')}</Label>
@@ -130,6 +131,14 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
             <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
             <Label>{t('clinic_before_after.is_active')}</Label>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              before_image: t('clinic_before_after.before'),
+              after_image: t('clinic_before_after.after'),
+              display_mode: t('clinic_before_after.display_mode'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

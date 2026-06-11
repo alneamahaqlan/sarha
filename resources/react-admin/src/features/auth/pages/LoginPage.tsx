@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { apiClient, extractValidationErrors, extractMessage } from '@/lib/api-client';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
@@ -90,32 +92,35 @@ export function LoginPage() {
           ))}
         </div>
 
-        <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
+        <form noValidate onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-3">
           {guard === 'admin' ? (
             <div className="space-y-1">
               <Label htmlFor="email">{t('auth.email')}</Label>
               <Input id="email" type="email" autoComplete="email" {...form.register('email')} />
-              {form.formState.errors.email && (
-                <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>
-              )}
+              <FieldError message={form.formState.errors.email?.message} />
             </div>
           ) : (
             <div className="space-y-1">
               <Label htmlFor="phone">{t('auth.phone')}</Label>
               <Input id="phone" autoComplete="tel" {...form.register('phone')} />
-              {form.formState.errors.phone && (
-                <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.phone.message}</p>
-              )}
+              <FieldError message={form.formState.errors.phone?.message} />
             </div>
           )}
 
           <div className="space-y-1">
             <Label htmlFor="password">{t('auth.password')}</Label>
             <Input id="password" type="password" autoComplete="current-password" {...form.register('password')} />
-            {form.formState.errors.password && (
-              <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.password.message}</p>
-            )}
+            <FieldError message={form.formState.errors.password?.message} />
           </div>
+
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              email: t('auth.email'),
+              phone: t('auth.phone'),
+              password: t('auth.password'),
+            }}
+          />
 
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
             {mutation.isPending ? t('auth.logging_in') : t('auth.submit')}

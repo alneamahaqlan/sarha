@@ -52,3 +52,33 @@ export function useServiceLookup(clinicId?: number) {
     staleTime: 5 * 60_000,
   });
 }
+
+/** Offers of a complex — for landing-page manual block selection. */
+export function useOfferLookup(clinicId?: number) {
+  return useQuery({
+    enabled: !!clinicId,
+    queryKey: ['lookups', 'offers', clinicId ?? 0],
+    queryFn: () => lookupsApi.offers(clinicId!),
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Doctors of a complex — for landing-page manual block selection. */
+export function useDoctorLookup(clinicId?: number) {
+  return useQuery({
+    enabled: !!clinicId,
+    queryKey: ['lookups', 'doctors', clinicId ?? 0],
+    queryFn: () => lookupsApi.doctors(clinicId!),
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Before/after cases of a complex — for landing-page manual gallery. */
+export function useBeforeAfterLookup(clinicId?: number) {
+  return useQuery({
+    enabled: !!clinicId,
+    queryKey: ['lookups', 'before-after', clinicId ?? 0],
+    queryFn: () => lookupsApi.beforeAfter(clinicId!),
+    staleTime: 5 * 60_000,
+  });
+}

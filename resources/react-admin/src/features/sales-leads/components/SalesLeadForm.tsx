@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useAdminLookup, useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
@@ -123,12 +125,12 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_name">{t('sales_leads.form.clinic_name')}</Label>
           <Input id="clinic_name" {...form.register('clinic_name')} />
-          {form.formState.errors.clinic_name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.clinic_name.message}</p>}
+          <FieldError message={form.formState.errors.clinic_name?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -139,13 +141,13 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="phone">{t('sales_leads.form.phone')}</Label>
           <Input id="phone" type="tel" dir="ltr" {...form.register('phone')} />
-          {form.formState.errors.phone && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.phone.message}</p>}
+          <FieldError message={form.formState.errors.phone?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="email">{t('sales_leads.form.email')}</Label>
           <Input id="email" type="email" dir="ltr" {...form.register('email')} />
-          {form.formState.errors.email && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>}
+          <FieldError message={form.formState.errors.email?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -250,6 +252,15 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
           <Textarea id="sales_notes" rows={3} {...form.register('sales_notes')} />
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          clinic_name: t('sales_leads.form.clinic_name'),
+          phone: t('sales_leads.form.phone'),
+          email: t('sales_leads.form.email'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

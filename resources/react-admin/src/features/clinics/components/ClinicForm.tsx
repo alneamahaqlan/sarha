@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useCategoryLookup, useCityLookup } from '@/features/lookups/hooks';
@@ -246,7 +248,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinics.form.name')}</Label>
               <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <FieldError message={form.formState.errors.name?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="slug">{t('clinics.form.slug')}</Label>
@@ -255,12 +257,12 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="phone">{t('clinics.form.phone')}</Label>
               <Input id="phone" type="tel" dir="ltr" {...form.register('phone')} />
-              {form.formState.errors.phone && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.phone.message}</p>}
+              <FieldError message={form.formState.errors.phone?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">{t('clinics.form.email')}</Label>
               <Input id="email" type="email" dir="ltr" {...form.register('email')} />
-              {form.formState.errors.email && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>}
+              <FieldError message={form.formState.errors.email?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="license_number">{t('clinics.form.license_number')}</Label>
@@ -278,7 +280,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
               <Label htmlFor="password">{clinic ? t('clinics.form.new_password') : t('clinics.form.password')}</Label>
               <Input id="password" type="password" autoComplete="new-password" {...form.register('password')} />
               {clinic && <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.password_hint')}</p>}
-              {form.formState.errors.password && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.password.message}</p>}
+              <FieldError message={form.formState.errors.password?.message} />
             </div>
             {/* Reveal / regenerate the login password — super-admin only. */}
             {clinic && isSuperAdmin && (
@@ -294,7 +296,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
                 <option value="">—</option>
                 {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </Select>
-              {form.formState.errors.city_id && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.city_id.message}</p>}
+              <FieldError message={form.formState.errors.city_id?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="district">{t('clinics.form.district')}</Label>
@@ -307,12 +309,12 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="latitude">{t('clinics.form.latitude')}</Label>
               <Input id="latitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="24.7136" {...form.register('latitude')} />
-              {form.formState.errors.latitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.latitude.message}</p>}
+              <FieldError message={form.formState.errors.latitude?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="longitude">{t('clinics.form.longitude')}</Label>
               <Input id="longitude" type="number" step="any" inputMode="decimal" dir="ltr" placeholder="46.6753" {...form.register('longitude')} />
-              {form.formState.errors.longitude && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.longitude.message}</p>}
+              <FieldError message={form.formState.errors.longitude?.message} />
             </div>
             <div className="md:col-span-2 -mt-1">
               <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.coords_hint')}</p>
@@ -399,7 +401,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="website">{t('clinics.form.website')}</Label>
               <Input id="website" type="url" dir="ltr" {...form.register('website')} />
-              {form.formState.errors.website && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.website.message}</p>}
+              <FieldError message={form.formState.errors.website?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="instagram">{t('clinics.form.instagram')}</Label>
@@ -420,7 +422,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="maps_url">{t('clinics.form.maps_url')}</Label>
               <Input id="maps_url" type="url" dir="ltr" placeholder="https://maps.app.goo.gl/…" {...form.register('maps_url')} />
-              {form.formState.errors.maps_url && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.maps_url.message}</p>}
+              <FieldError message={form.formState.errors.maps_url?.message} />
               <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinics.form.maps_url_hint')}</p>
             </div>
             <div className="space-y-1.5 md:col-span-2">
@@ -475,6 +477,41 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
           </div>
         </TabsContent>
       </Tabs>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          name: t('clinics.form.name'),
+          slug: t('clinics.form.slug'),
+          phone: t('clinics.form.phone'),
+          email: t('clinics.form.email'),
+          license_number: t('clinics.form.license_number'),
+          tax_number: t('clinics.form.tax_number'),
+          commercial_registration: t('clinics.form.commercial_registration'),
+          password: clinic ? t('clinics.form.new_password') : t('clinics.form.password'),
+          city_id: t('clinics.form.city'),
+          district: t('clinics.form.district'),
+          address: t('clinics.form.address'),
+          latitude: t('clinics.form.latitude'),
+          longitude: t('clinics.form.longitude'),
+          description: t('clinics.form.description'),
+          status: t('clinics.form.status'),
+          subscription_type: t('clinics.form.subscription_type'),
+          subscription_starts_at: t('clinics.form.subscription_starts_at'),
+          subscription_ends_at: t('clinics.form.subscription_ends_at'),
+          is_featured: t('clinics.form.is_featured'),
+          rejection_reason: t('clinics.form.rejection_reason'),
+          website: t('clinics.form.website'),
+          instagram: t('clinics.form.instagram'),
+          twitter: t('clinics.form.twitter'),
+          snapchat: t('clinics.form.snapchat'),
+          tiktok: t('clinics.form.tiktok'),
+          maps_url: t('clinics.form.maps_url'),
+          google_place_id: t('clinics.form.google_place_id'),
+          logo: t('clinics.form.logo'),
+          gallery: t('clinics.form.gallery'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

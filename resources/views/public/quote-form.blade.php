@@ -31,7 +31,7 @@
                     <p class="text-xs font-mono bg-white inline-block px-2 py-1 rounded border border-sage-200">DEV: {{ session('dev_code') }}</p>
                 @endif
             </div>
-            <form method="POST" action="{{ route('quotes.verify') }}" class="space-y-5">
+            <form novalidate method="POST" action="{{ route('quotes.verify') }}" class="space-y-5">
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
@@ -44,7 +44,7 @@
                 </button>
             </form>
         @else
-            <form method="POST" action="{{ route('quotes.store') }}" class="space-y-5">
+            <form novalidate method="POST" action="{{ route('quotes.store') }}" class="space-y-5">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>

@@ -10,19 +10,48 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
+import { useServiceLookup, useOfferLookup, useDoctorLookup, useBeforeAfterLookup } from '@/features/lookups/hooks';
 
 import { useUpdateBlock } from '../../hooks';
 import type { LandingPageBlock } from '../../types';
 
 interface Props {
   pageId: number;
+  clinicId: number | null;
   block: LandingPageBlock;
+}
+
+interface NamedItem { id: number; name: string }
+
+/** Manual multi-select of the linked complex's items for a content block. */
+function ManualPicker({ items, selected, onChange, emptyHint }: {
+  items: NamedItem[] | undefined;
+  selected: number[];
+  onChange: (ids: number[]) => void;
+  emptyHint: string;
+}) {
+  const toggle = (id: number) =>
+    onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+
+  if (!items || items.length === 0) {
+    return <p className="text-xs text-[var(--color-muted-foreground)]">{emptyHint}</p>;
+  }
+  return (
+    <div className="max-h-52 space-y-1 overflow-y-auto rounded-md border border-[var(--color-border)] p-2">
+      {items.map((it) => (
+        <label key={it.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-[var(--color-muted)]">
+          <input type="checkbox" checked={selected.includes(it.id)} onChange={() => toggle(it.id)} />
+          <span className="text-sm">{it.name}</span>
+        </label>
+      ))}
+    </div>
+  );
 }
 
 type Cfg = Record<string, unknown>;
 interface FaqItem { q: string; a: string }
 
-export function BlockConfigEditor({ pageId, block }: Props) {
+export function BlockConfigEditor({ pageId, clinicId, block }: Props) {
   const { t } = useTranslation();
   const update = useUpdateBlock(pageId);
   const [cfg, setCfg] = useState<Cfg>(block.config ?? {});
@@ -33,6 +62,22 @@ export function BlockConfigEditor({ pageId, block }: Props) {
   const str = (k: string) => (cfg[k] as string) ?? '';
   const num = (k: string, d = 6) => (cfg[k] as number) ?? d;
 
+  const isManual = (cfg.source ?? 'auto') === 'manual';
+  const manualIds = Array.isArray(cfg.manual_ids) ? (cfg.manual_ids as number[]) : [];
+  const cid = clinicId ?? undefined;
+
+  // Only the active block's lookup actually fetches (enabled by clinic id).
+  const services = useServiceLookup(block.type === 'services' && isManual ? cid : undefined);
+  const offers = useOfferLookup(block.type === 'offers' && isManual ? cid : undefined);
+  const doctors = useDoctorLookup(block.type === 'doctors' && isManual ? cid : undefined);
+  const gallery = useBeforeAfterLookup(block.type === 'gallery' && isManual ? cid : undefined);
+
+  const manualItems =
+    block.type === 'services' ? services.data :
+    block.type === 'offers' ? offers.data :
+    block.type === 'doctors' ? doctors.data :
+    block.type === 'gallery' ? gallery.data : undefined;
+
   const save = async () => {
     try {
       await update.mutateAsync({ blockId: block.id, values: { config: cfg } });
@@ -42,7 +87,10 @@ export function BlockConfigEditor({ pageId, block }: Props) {
     }
   };
 
-  const hasSource = ['services', 'offers', 'doctors', 'gallery', 'reviews'].includes(block.type);
+  // Reviews are Google reviews (can't cherry-pick), so they're auto-only with
+  // just a limit. The other content blocks support auto/manual selection.
+  const hasManual = ['services', 'offers', 'doctors', 'gallery'].includes(block.type);
+  const hasLimit = hasManual || block.type === 'reviews';
   const faqItems: FaqItem[] = Array.isArray(cfg.items) ? (cfg.items as FaqItem[]) : [];
 
   return (
@@ -67,19 +115,41 @@ export function BlockConfigEditor({ pageId, block }: Props) {
         </>
       )}
 
-      {hasSource && (
+      {(hasManual || hasLimit) && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>{t('landing_pages.cfg_source')}</Label>
-            <Select value={str('source') || 'auto'} onChange={(e) => set('source', e.target.value)}>
-              <option value="auto">{t('landing_pages.cfg_source_auto')}</option>
-              <option value="manual">{t('landing_pages.cfg_source_manual')}</option>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t('landing_pages.cfg_item_limit')}</Label>
-            <Input type="number" min={1} max={24} value={num('item_limit')} onChange={(e) => set('item_limit', Number(e.target.value))} />
-          </div>
+          {hasManual && (
+            <div className="space-y-1.5">
+              <Label>{t('landing_pages.cfg_source')}</Label>
+              <Select value={str('source') || 'auto'} onChange={(e) => set('source', e.target.value)}>
+                <option value="auto">{t('landing_pages.cfg_source_auto')}</option>
+                <option value="manual">{t('landing_pages.cfg_source_manual')}</option>
+              </Select>
+            </div>
+          )}
+          {/* Item limit applies to auto mode (manual shows exactly what's picked). */}
+          {(!isManual || !hasManual) && (
+            <div className="space-y-1.5">
+              <Label>{t('landing_pages.cfg_item_limit')}</Label>
+              <Input type="number" min={1} max={24} value={num('item_limit')} onChange={(e) => set('item_limit', Number(e.target.value))} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {hasManual && isManual && (
+        <div className="space-y-1.5">
+          <Label>{t('landing_pages.cfg_manual_pick')}</Label>
+          {!clinicId ? (
+            <p className="text-xs text-[var(--color-muted-foreground)]">{t('landing_pages.cfg_manual_no_clinic')}</p>
+          ) : (
+            <ManualPicker
+              items={manualItems}
+              selected={manualIds}
+              onChange={(ids) => set('manual_ids', ids)}
+              emptyHint={t('landing_pages.cfg_manual_empty')}
+            />
+          )}
+          <p className="text-xs text-[var(--color-muted-foreground)]">{t('landing_pages.cfg_manual_hint')}</p>
         </div>
       )}
 

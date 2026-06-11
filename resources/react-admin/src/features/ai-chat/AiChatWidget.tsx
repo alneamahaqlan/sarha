@@ -112,7 +112,7 @@ export function AiChatWidget() {
             )}
           </div>
 
-          <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-[var(--color-border)] p-2">
+          <form noValidate onSubmit={onSubmit} className="flex items-center gap-2 border-t border-[var(--color-border)] p-2">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
