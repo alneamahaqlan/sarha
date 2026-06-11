@@ -84,4 +84,16 @@ class Service extends Model
     {
         return $this->hasMany(Offer::class);
     }
+
+    /** Purchase line items referencing this service (across bookings). */
+    public function bookingServices(): HasMany
+    {
+        return $this->hasMany(BookingService::class);
+    }
+
+    /** Interest records referencing this service. */
+    public function interestedCustomers(): HasMany
+    {
+        return $this->hasMany(CustomerInterestedService::class);
+    }
 }

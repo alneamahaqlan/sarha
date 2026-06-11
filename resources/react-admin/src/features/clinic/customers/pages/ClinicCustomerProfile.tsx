@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
 import { useCustomer } from '../hooks';
 import { CustomerProfileHeader } from '../components/CustomerProfileHeader';
 import { CustomerTabs } from '../components/CustomerTabs';
+import { InterestedServicesEditor } from '../components/InterestedServicesEditor';
 import { RiyalSymbol } from '@/lib/money';
 
 function fmtDate(iso: string | null, locale: string) {
@@ -37,6 +38,13 @@ export function ClinicCustomerProfile() {
         {t('clinic_customers.profile.back_to_list')}
       </Link>
 
+      {customer.totals.incomplete_bookings > 0 && (
+        <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {t('clinic_customers.banner.incomplete', { count: customer.totals.incomplete_bookings })}
+        </div>
+      )}
+
       <CustomerProfileHeader customer={customer} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -49,6 +57,10 @@ export function ClinicCustomerProfile() {
         {/* Price-quote count intentionally omitted — the clinic must not see the customer's quote-request history. */}
         <SummaryCard label={t('clinic_customers.summary.complaints')} value={String(customer.totals.complaints)} />
         <SummaryCard label={t('clinic_customers.summary.service_value')} value={<>{customer.totals.service_value.toFixed(0)} <RiyalSymbol /></>} hint={t('clinic_customers.summary.first_seen', { date: fmtDate(customer.first_seen_at, locale) })} />
+      </div>
+
+      <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
+        <InterestedServicesEditor customerId={customer.id} interested={customer.interested_services} />
       </div>
 
       <CustomerTabs customerId={customer.id} />

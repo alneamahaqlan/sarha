@@ -11,6 +11,7 @@ import { LandingPageForm } from '../components/LandingPageForm';
 import { SeoTab } from '../components/SeoTab';
 import { BlockBuilder } from '../components/builder/BlockBuilder';
 import { LandingStatsTab } from '../components/LandingStatsTab';
+import { LandingCustomersTab } from '../components/LandingCustomersTab';
 import { AiGenerateButton } from '../components/AiGenerateButton';
 
 export function LandingPageEditor() {
@@ -52,6 +53,7 @@ export function LandingPageEditor() {
           <TabsTrigger value="builder">{t('landing_pages.tab_builder')}</TabsTrigger>
           <TabsTrigger value="seo">{t('landing_pages.tab_seo')}</TabsTrigger>
           <TabsTrigger value="analytics">{t('landing_pages.tab_analytics')}</TabsTrigger>
+          <TabsTrigger value="customers">{t('landing_pages.tab_customers')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="pt-4">
@@ -65,6 +67,9 @@ export function LandingPageEditor() {
         </TabsContent>
         <TabsContent value="analytics" className="pt-4">
           <LandingStatsTab pageId={page.id} />
+        </TabsContent>
+        <TabsContent value="customers" className="pt-4">
+          <LandingCustomersTab pageId={page.id} />
         </TabsContent>
       </Tabs>
     </div>

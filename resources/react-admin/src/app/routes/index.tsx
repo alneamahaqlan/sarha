@@ -96,6 +96,7 @@ const ClinicTeamIndex = lazy(() => import('@/features/clinic/team/pages/ClinicTe
 const ClinicTeamActivityPage = lazy(() => import('@/features/clinic/team/pages/ClinicTeamActivityPage').then(m => ({ default: m.ClinicTeamActivityPage })));
 const ClinicCustomersIndex = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomersIndex').then(m => ({ default: m.ClinicCustomersIndex })));
 const ClinicCustomerProfile = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomerProfile').then(m => ({ default: m.ClinicCustomerProfile })));
+const ClinicServiceReportsIndex = lazy(() => import('@/features/clinic/service-reports/pages/ClinicServiceReportsIndex').then(m => ({ default: m.ClinicServiceReportsIndex })));
 const ClinicRemindersIndex = lazy(() => import('@/features/clinic/reminders/pages/ClinicRemindersIndex').then(m => ({ default: m.ClinicRemindersIndex })));
 const ClinicCampaignsIndex = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignsIndex').then(m => ({ default: m.ClinicCampaignsIndex })));
 const ClinicCampaignRunner = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignRunner').then(m => ({ default: m.ClinicCampaignRunner })));
@@ -211,6 +212,7 @@ export function AppRoutes() {
               <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
               <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />
               <Route path="customers/:id" element={<RoleGuard ability="customers.view"><ClinicCustomerProfile /></RoleGuard>} />
+              <Route path="service-reports" element={<RoleGuard ability="customers.view"><ClinicServiceReportsIndex /></RoleGuard>} />
               <Route path="reminders" element={<RoleGuard ability="reminders.view"><ClinicRemindersIndex /></RoleGuard>} />
               <Route path="campaigns" element={<RoleGuard ability="campaigns.view"><ClinicCampaignsIndex /></RoleGuard>} />
               <Route path="campaigns/:id" element={<RoleGuard ability="campaigns.view"><ClinicCampaignRunner /></RoleGuard>} />

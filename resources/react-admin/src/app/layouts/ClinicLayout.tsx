@@ -64,6 +64,7 @@ const clinicNav: NavEntry[] = [
     items: [
       { to: '/clinic/bookings', label: 'clinic_nav.bookings', icon: Calendar, requires: 'bookings.view' },
       { to: '/clinic/customers', label: 'clinic_nav.customers', icon: Users, requires: 'customers.view' },
+      { to: '/clinic/service-reports', label: 'clinic_nav.service_reports', icon: BarChart3, requires: 'customers.view' },
       { to: '/clinic/reminders', label: 'clinic_nav.reminders', icon: BellRing, badge: 'reminders_overdue' as keyof ClinicNavBadges, requires: 'reminders.view' },
       { to: '/clinic/campaigns', label: 'clinic_nav.campaigns', icon: Megaphone, requires: 'campaigns.view' },
       { to: '/clinic/price-quotes', label: 'clinic_nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof ClinicNavBadges, requires: 'price_quotes.view' },

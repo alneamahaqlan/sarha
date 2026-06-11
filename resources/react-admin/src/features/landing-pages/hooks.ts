@@ -102,3 +102,11 @@ export function useGenerateLanding() {
       landingPagesApi.generate(input),
   });
 }
+
+export function useLandingCustomers(pageId: number | null, params: { page?: number; per_page?: number; search?: string; status?: string } = {}) {
+  return useQuery({
+    queryKey: [...KEY, 'customers', pageId, params],
+    queryFn: () => landingPagesApi.customers(pageId as number, params),
+    enabled: pageId !== null,
+  });
+}

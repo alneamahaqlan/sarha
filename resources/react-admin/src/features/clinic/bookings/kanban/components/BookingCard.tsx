@@ -1,12 +1,13 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Check, Clock, User, UserCheck } from 'lucide-react';
+import { AlertTriangle, Check, Clock, User, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { useCan } from '@/app/providers/AuthProvider';
 import { Badge } from '@/components/ui/badge';
 import { extractMessage } from '@/lib/api-client';
+import { Money } from '@/lib/money';
 import { bookingKanbanApi } from '../api';
 import { CardAutoTags } from './CardAutoTags';
 import { CardSuggestions } from './CardSuggestions';
@@ -128,8 +129,20 @@ export function BookingCard({ card, onOpen }: Props) {
 
         <CardAutoTags tags={card.auto_tags} />
 
-        {card.service && (
-          <div className="text-xs text-[var(--color-foreground)]">{card.service.name}</div>
+        {card.is_incomplete ? (
+          <div className="flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+            <AlertTriangle className="h-3 w-3" />
+            {t('clinic_bookings_kanban.services.incomplete_badge')}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-xs">
+            {card.service && <span className="truncate text-[var(--color-foreground)]">{card.service.name}</span>}
+            {card.value > 0 && (
+              <span className="shrink-0 font-semibold text-[var(--color-primary)]">
+                <Money value={card.value} locale={locale} />
+              </span>
+            )}
+          </div>
         )}
 
         {card.appointment_at && (

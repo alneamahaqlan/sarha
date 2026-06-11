@@ -125,6 +125,11 @@ export interface KanbanCard {
   customer_name: string;
   customer_phone: string;
   service: { id: number; name: string } | null;
+  /** Net value of the services taken on this card (sum of net_price). */
+  value: number;
+  services_count: number;
+  /** True when the card is active but has no services recorded yet. */
+  is_incomplete: boolean;
   status: BookingStatus;
   kanban_column: KanbanColumn;
   sub_badge: SubBadge | null;
@@ -147,6 +152,17 @@ export interface KanbanColumnPayload {
   next_cursor: string | null;
   has_more: boolean;
   total: number;
+  /** Total net value of all cards in this stage. */
+  value_total: number;
+}
+
+/** A single service line item taken on a booking card. */
+export interface BookingServiceLine {
+  id: number;
+  service_id: number;
+  service_name: string | null;
+  list_price: number | null;
+  net_price: number;
 }
 
 /** Board payload keyed by stage id (string). */
@@ -157,6 +173,8 @@ export interface KanbanStats {
   yesterday_no_show: number;
   needs_urgent_confirm: number;
   weekly_confirm_rate: number | null;
+  /** Active cards with no services recorded (missing-data alert). */
+  incomplete_services: number;
 }
 
 export interface KanbanFilters {
@@ -173,6 +191,8 @@ export interface KanbanFilters {
   /** Acquisition channel the patient came from */
   acquisition_source?: AcquisitionSource;
   mine_only?: boolean;
+  /** Show only active cards with no services recorded yet. */
+  incomplete?: boolean;
 }
 
 export interface CreateBookingInput {
@@ -242,7 +262,10 @@ export interface CustomerProfile {
     is_new: boolean;
     has_open_complaint: boolean;
     cancel_risk: boolean;
+    service_value: number;
+    incomplete_bookings: number;
   };
+  interested_services: Array<{ id: number; name: string | null }>;
   bookings: Array<{
     id: number;
     reference_code: string;
@@ -287,6 +310,10 @@ export interface BookingDetail {
   acquisition_source: AcquisitionSource;
   is_for_relative: boolean;
   service: { id: number; name: string; price: number | null } | null;
+  /** Service line items taken on this card + the card's net value. */
+  services: BookingServiceLine[];
+  value: number;
+  is_incomplete: boolean;
   booker: { id: number; name: string; phone: string } | null;
   relative: { id: number; name: string; relationship_type: string; relationship_label: string | null; phone: string } | null;
   assignee: AssigneePayload | null;

@@ -207,6 +207,7 @@ export function KanbanBoard({ filters, onOpenCard, stages }: Props) {
                   stage={stage}
                   items={payload?.items ?? []}
                   total={payload?.total ?? 0}
+                  valueTotal={payload?.value_total ?? 0}
                   onOpen={onOpenCard}
                 />
               </div>

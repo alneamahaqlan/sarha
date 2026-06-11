@@ -29,6 +29,21 @@ export interface StatsSummary {
   directions_clicks: number;
   booking_clicks: number;
   conversion_rate: number;
+  /** Realized service income = SUM(net_price) of completed bookings in range. */
+  service_income: number;
+  completed_bookings: number;
+  /** Average value per completed booking. */
+  avg_ticket: number;
+  /** Count of service line items taken on completed bookings. */
+  services_taken: number;
+  /** Distinct customers who took at least one service (completed). */
+  customers_served: number;
+  /** Net value of services on cancelled/no-show bookings (lost revenue). */
+  lost_income: number;
+  lost_services: number;
+  /** Net value + count of services on still-open bookings (booked, not yet taken). */
+  pending_income: number;
+  pending_services: number;
 }
 
 /** One row in the "top services by impressions" table. */
@@ -60,6 +75,7 @@ export interface StatsTrendPoint {
   page_views: number;
   bookings: number;
   quote_requests: number;
+  income: number;
 }
 
 export interface StatsServiceRow {
@@ -67,6 +83,7 @@ export interface StatsServiceRow {
   name: string;
   price: number;
   bookings: number;
+  income: number;
   quote_requests: number;
 }
 
@@ -86,6 +103,7 @@ export interface ClinicStatsFull {
   bookings_by_status: Record<string, number>;
   bookings_by_source: Record<string, number>;
   bookings_by_acquisition_source: Record<string, number>;
+  income_by_acquisition_source: Record<string, number>;
   quotes_by_status: Record<string, number>;
   quotes_top_services: { name: string; count: number }[];
   services_performance: StatsServiceRow[];

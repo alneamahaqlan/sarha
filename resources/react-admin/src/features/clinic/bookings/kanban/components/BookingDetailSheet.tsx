@@ -21,6 +21,7 @@ import { ActivityTimeline } from './ActivityTimeline';
 import { AssigneePicker } from './AssigneePicker';
 import { TagsManager } from './TagsManager';
 import { Customer360Panel } from './Customer360Panel';
+import { BookingServicesEditor } from './BookingServicesEditor';
 import { EditBookingDialog } from './EditBookingDialog';
 import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
 import { FollowUpStars } from '@/features/clinic/customers/components/FollowUpStars';
@@ -101,9 +102,6 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                     </div>
                     <CardAutoTags tags={data.auto_tags} />
                     <CardSuggestions suggestions={data.suggestions} />
-                    {data.service && (
-                      <div className="text-sm">{data.service.name}{data.service.price ? ` — ${data.service.price}` : ''}</div>
-                    )}
                     {data.appointment_at && (
                       <div className="flex items-center gap-1 text-xs">
                         <Clock className="h-3 w-3" />{fmtDate(data.appointment_at, locale)}
@@ -152,6 +150,8 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                   </div>
                   <CardHeatBar heat={data.heat} />
                 </div>
+
+                <BookingServicesEditor bookingId={data.id} services={data.services} value={data.value} />
 
                 <section className="space-y-2">
                   <div className="text-xs font-semibold">{t('clinic_bookings_kanban.detail.quick_actions')}</div>

@@ -1,9 +1,11 @@
-import { ExternalLink, Calendar, AlertOctagon, FileQuestion, BadgeCheck } from 'lucide-react';
+import { ExternalLink, Calendar, AlertOctagon, AlertTriangle, FileQuestion, BadgeCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Badge } from '@/components/ui/badge';
+import { Money } from '@/lib/money';
 import { useCustomerProfile } from '../hooks';
 import { CustomerNotesThread } from '@/features/clinic/customers/components/CustomerNotesThread';
+import { InterestedServicesEditor } from '@/features/clinic/customers/components/InterestedServicesEditor';
 
 interface Props {
   phone: string;
@@ -74,14 +76,30 @@ export function Customer360Panel({ phone }: Props) {
             <div className="text-[10px] text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.c360.completed')}</div>
             <div className="text-sm font-semibold">{s.completed_count}</div>
           </div>
+          <div className="rounded-md bg-[var(--color-muted)]/40 p-2">
+            <div className="text-[10px] text-[var(--color-muted-foreground)]">{t('clinic_customers.summary.service_value')}</div>
+            <div className="text-sm font-semibold"><Money value={s.service_value} locale={locale} /></div>
+          </div>
           {s.first_seen && (
-            <div className="col-span-2 rounded-md bg-[var(--color-muted)]/40 p-2">
+            <div className="rounded-md bg-[var(--color-muted)]/40 p-2">
               <div className="text-[10px] text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.c360.first_seen')}</div>
               <div className="text-xs">{fmt(s.first_seen, locale)}</div>
             </div>
           )}
         </div>
+        {s.incomplete_bookings > 0 && (
+          <div className="mt-2 flex items-center gap-1.5 rounded-md bg-amber-50 p-2 text-[11px] text-amber-800">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            {t('clinic_customers.banner.incomplete', { count: s.incomplete_bookings })}
+          </div>
+        )}
       </div>
+
+      {data.customer_id && (
+        <div className="rounded-lg border border-[var(--color-border)] bg-white p-3">
+          <InterestedServicesEditor customerId={data.customer_id} interested={data.interested_services} />
+        </div>
+      )}
 
       <section className="space-y-1.5">
         <div className="flex items-center gap-1.5 text-xs font-semibold">

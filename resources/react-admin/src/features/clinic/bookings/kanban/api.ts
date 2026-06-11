@@ -4,6 +4,7 @@ import type {
   AssigneeOption,
   BookingActivity,
   BookingDetail,
+  BookingServiceLine,
   BookingStage,
   CreateBookingInput,
   CustomerProfile,
@@ -33,6 +34,7 @@ function flattenFilters(f: KanbanFilters, cursors?: Record<string, string | null
   if (f.custom_tag) out.custom_tag = f.custom_tag;
   if (f.acquisition_source) out.acquisition_source = f.acquisition_source;
   if (f.mine_only) out.mine_only = '1';
+  if (f.incomplete) out.incomplete = '1';
   if (cursors) {
     for (const k of Object.keys(cursors)) {
       const v = cursors[k];
@@ -93,6 +95,20 @@ export const bookingKanbanApi = {
       assignee_id: assigneeId,
     });
     return res.data;
+  },
+
+  addService: async (bookingId: number, payload: { service_id: number; net_price: number }): Promise<BookingServiceLine> => {
+    const res = await apiClient.post<{ data: BookingServiceLine }>(`/clinic/bookings/${bookingId}/services`, payload);
+    return res.data.data;
+  },
+
+  updateService: async (bookingId: number, lineId: number, net_price: number): Promise<BookingServiceLine> => {
+    const res = await apiClient.patch<{ data: BookingServiceLine }>(`/clinic/bookings/${bookingId}/services/${lineId}`, { net_price });
+    return res.data.data;
+  },
+
+  removeService: async (bookingId: number, lineId: number) => {
+    await apiClient.delete(`/clinic/bookings/${bookingId}/services/${lineId}`);
   },
 
   customerProfile: async (phone: string): Promise<CustomerProfile> => {

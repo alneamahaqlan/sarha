@@ -77,7 +77,9 @@ export interface CustomerProfile {
     complaints: number;
     quote_requests: number;
     service_value: number;
+    incomplete_bookings: number;
   };
+  interested_services: Array<{ id: number; name: string | null }>;
   last_booking: {
     id: number;
     reference_code: string;

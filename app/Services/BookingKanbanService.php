@@ -124,11 +124,20 @@ class BookingKanbanService
             ? round(((int) $weeklyTotals->confirmed) / ((int) $weeklyTotals->total), 2)
             : null;
 
+        // Active cards (not cancelled/no-show) with no service line items —
+        // the "missing data" alert count surfaced in the board stats bar.
+        $incompleteServices = Booking::query()
+            ->where('clinic_id', $clinicId)
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+            ->whereDoesntHave('services')
+            ->count();
+
         return [
             'today_count'         => $todayCount,
             'yesterday_no_show'   => $yesterdayNoShow,
             'needs_urgent_confirm'=> $needsUrgent,
             'weekly_confirm_rate' => $rate,
+            'incomplete_services' => $incompleteServices,
         ];
     }
 
@@ -140,7 +149,9 @@ class BookingKanbanService
     {
         $q = Booking::query()
             ->where('clinic_id', $clinicId)
-            ->with(['service:id,name', 'assignee', 'tags', 'customer:id,follow_up_priority']);
+            ->with(['service:id,name', 'assignee', 'tags', 'customer:id,follow_up_priority'])
+            ->withSum('services as services_value', 'net_price')
+            ->withCount('services');
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
             $q->where(function ($w) use ($search) {
@@ -212,6 +223,13 @@ class BookingKanbanService
         // came from (instagram, whatsapp, walk_in, …).
         if ($acqSource = $filters['acquisition_source'] ?? null) {
             $q->where('acquisition_source', $acqSource);
+        }
+
+        // "Missing data" filter: active cards (not cancelled/no-show) with
+        // no service line items yet — the rows the team must complete.
+        if (! empty($filters['incomplete'])) {
+            $q->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+              ->whereDoesntHave('services');
         }
 
         // Custom-tag filter: matches a tag label across BOTH scopes

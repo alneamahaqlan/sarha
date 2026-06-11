@@ -75,7 +75,38 @@ export const landingPagesApi = {
     const res = await apiClient.post<{ data: AiDraft }>('/admin/landing-pages/generate', input);
     return res.data.data;
   },
+
+  customers: async (pageId: number, params: { page?: number; per_page?: number; search?: string; status?: string } = {}) => {
+    const p: Record<string, string | number> = {};
+    if (params.page) p.page = params.page;
+    if (params.per_page) p.per_page = params.per_page;
+    if (params.search) p.search = params.search;
+    if (params.status) p['filter[status]'] = params.status;
+    const res = await apiClient.get<LandingCustomersResponse>(`/admin/landing-pages/${pageId}/customers`, { params: p });
+    return res.data;
+  },
 };
+
+export interface LandingCustomerRow {
+  id: number;
+  reference_code: string;
+  customer_name: string;
+  customer_phone: string;
+  service: string | null;
+  status: string;
+  acquisition: string | null;
+  utm_source: string | null;
+  utm_campaign: string | null;
+  is_registered: boolean;
+  customer_id: number | null;
+  created_at: string | null;
+}
+
+export interface LandingCustomersResponse {
+  data: LandingCustomerRow[];
+  meta: { current_page: number; from: number | null; to: number | null; last_page: number; per_page: number; total: number };
+  totals: { total: number; registered: number; completed: number };
+}
 
 export interface AiDraft {
   title: string;

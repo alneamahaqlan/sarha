@@ -109,7 +109,19 @@ class CustomerProfileController extends Controller
                     'cancel_risk'        => Booking::where('customer_id', $customer->id)
                         ->whereIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
                         ->count() >= 2,
+                    'service_value'      => (float) \App\Models\BookingService::query()
+                        ->whereIn('booking_id', Booking::where('customer_id', $customer->id)
+                            ->where('status', Booking::STATUS_COMPLETED)->select('id'))
+                        ->sum('net_price'),
+                    'incomplete_bookings'=> Booking::where('customer_id', $customer->id)
+                        ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+                        ->whereDoesntHave('services')
+                        ->count(),
                 ],
+                'interested_services' => $customer->interestedServices()
+                    ->with('service:id,name')->get()
+                    ->map(fn($i) => ['id' => $i->service_id, 'name' => $i->service?->name])
+                    ->all(),
                 'bookings' => $bookings->map(fn(Booking $b) => [
                     'id'             => $b->id,
                     'reference_code' => $b->reference_code,
@@ -187,7 +199,9 @@ class CustomerProfileController extends Controller
                 'total_bookings'     => 0, 'completed_count' => 0, 'first_seen' => null,
                 'is_vip' => false, 'is_repeat' => false, 'is_new' => true,
                 'has_open_complaint' => false, 'cancel_risk' => false,
+                'service_value' => 0, 'incomplete_bookings' => 0,
             ],
+            'interested_services' => [],
             'bookings'     => [],
             'complaints'   => [],
             'price_quotes' => [],

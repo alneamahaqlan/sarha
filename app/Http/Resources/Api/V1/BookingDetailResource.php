@@ -44,6 +44,16 @@ class BookingDetailResource extends JsonResource
                 'name' => $this->service->name,
                 'price'=> $this->service->price ?? null,
             ] : null),
+            // Service line items taken on this card + the card's net value.
+            'services'       => $this->whenLoaded('services', fn() => $this->services->map(fn($ln) => [
+                'id'           => $ln->id,
+                'service_id'   => $ln->service_id,
+                'service_name' => $ln->service?->name,
+                'list_price'   => $ln->list_price !== null ? (float) $ln->list_price : null,
+                'net_price'    => (float) $ln->net_price,
+            ])->all(), []),
+            'value'          => (float) ($this->relationLoaded('services') ? $this->services->sum('net_price') : 0),
+            'is_incomplete'  => $this->isIncomplete(),
             'booker'         => $this->whenLoaded('booker', fn() => $this->booker ? [
                 'id'    => $this->booker->id,
                 'name'  => $this->booker->name,

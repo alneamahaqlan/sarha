@@ -99,6 +99,31 @@ export function useAssign(id: number) {
   });
 }
 
+export function useAddBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { service_id: number; net_price: number }) => bookingKanbanApi.addService(id, input),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useUpdateBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { lineId: number; net_price: number }) =>
+      bookingKanbanApi.updateService(id, input.lineId, input.net_price),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useRemoveBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lineId: number) => bookingKanbanApi.removeService(id, lineId),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
 export function useUpdateBookingStatus(id: number) {
   const qc = useQueryClient();
   return useMutation({

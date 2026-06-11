@@ -168,6 +168,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::patch('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'update'])->name('landing-pages.blocks.update');
         Route::delete('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'destroy'])->name('landing-pages.blocks.destroy');
         Route::get('landing-pages/{landing_page}/stats', [\App\Http\Controllers\Api\V1\Admin\LandingPageStatsController::class, 'show'])->name('landing-pages.stats');
+        Route::get('landing-pages/{landing_page}/customers', [\App\Http\Controllers\Api\V1\Admin\LandingPageCustomersController::class, 'index'])->name('landing-pages.customers');
         Route::post('landing-pages/generate', [\App\Http\Controllers\Api\V1\Admin\LandingPageAiController::class, 'generate'])->middleware('throttle:20,1')->name('landing-pages.generate');
         Route::apiResource('landing-pages', LandingPageController::class)->parameters(['landing-pages' => 'landing_page']);
 
@@ -513,6 +514,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Assignment.
         Route::patch('bookings/{booking}/assignee', [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'update'])->name('clinic.bookings.assignee.update');
 
+        // Service line items taken on a card (purchased services + per-customer
+        // net price). Card value = sum of these. Same write gate as booking edits.
+        Route::post('bookings/{booking}/services',                       [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'store'])->name('clinic.bookings.services.store');
+        Route::patch('bookings/{booking}/services/{bookingService}',     [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'update'])->name('clinic.bookings.services.update');
+        Route::delete('bookings/{booking}/services/{bookingService}',    [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'destroy'])->name('clinic.bookings.services.destroy');
+
         // Customer 360 in the Kanban side panel — keyed by phone for
         // back-compat with the existing widget.
         Route::get('customers/by-phone/{phone}', [\App\Http\Controllers\Api\V1\Clinic\CustomerProfileController::class, 'show'])
@@ -534,9 +541,20 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::post('customers/{customer}/notes',                [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'store'])->name('clinic.customers.notes.store');
             Route::patch('customers/{customer}/notes/{note}',        [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'update'])->name('clinic.customers.notes.update');
             Route::delete('customers/{customer}/notes/{note}',       [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'destroy'])->name('clinic.customers.notes.destroy');
+
+            // Service value / interest reports — best-selling, most-interested,
+            // who is interested in a service, and who bought it.
+            Route::get('service-reports/best-selling',         [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'bestSelling'])->name('clinic.service-reports.best-selling');
+            Route::get('service-reports/most-interested',      [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'mostInterested'])->name('clinic.service-reports.most-interested');
+            Route::get('service-reports/interested-customers', [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'interestedCustomers'])->name('clinic.service-reports.interested-customers');
+            Route::get('service-reports/buyers',               [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'serviceBuyers'])->name('clinic.service-reports.buyers');
         });
         Route::middleware('clinic.role:customers.manage')->group(function () {
             Route::patch('customers/{customer}', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'update'])->name('clinic.customers.update');
+
+            // Customer interested-services list (intent, not purchases).
+            Route::post('customers/{customer}/interested-services',             [\App\Http\Controllers\Api\V1\Clinic\CustomerInterestedServiceController::class, 'store'])->name('clinic.customers.interested.store');
+            Route::delete('customers/{customer}/interested-services/{service}', [\App\Http\Controllers\Api\V1\Clinic\CustomerInterestedServiceController::class, 'destroy'])->name('clinic.customers.interested.destroy');
         });
 
         // Contact reminders — "call this patient at X". A scheduler rings

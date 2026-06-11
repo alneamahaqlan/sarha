@@ -1,7 +1,8 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { Badge } from '@/components/ui/badge';
+import { Money } from '@/lib/money';
 import { BookingCard } from './BookingCard';
 import type { BookingStage, KanbanCard, StageColor } from '../types';
 
@@ -9,6 +10,7 @@ interface Props {
   stage: BookingStage;
   items: KanbanCard[];
   total: number;
+  valueTotal?: number;
   onOpen: (card: KanbanCard) => void;
 }
 
@@ -30,16 +32,22 @@ const HEADER_TONES: Record<StageColor, string> = {
   slate:   'text-slate-700',
 };
 
-export function KanbanColumnView({ stage, items, total, onOpen }: Props) {
+export function KanbanColumnView({ stage, items, total, valueTotal = 0, onOpen }: Props) {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const { setNodeRef, isOver } = useDroppable({ id: `column:${stage.id}`, data: { stageId: stage.id } });
   const tone = TONES[stage.color] ?? TONES.slate;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className={`flex items-center justify-between rounded-t-lg border border-b-0 px-3 py-2 ${tone}`}>
-        <div className={`truncate text-sm font-semibold ${HEADER_TONES[stage.color] ?? HEADER_TONES.slate}`}>
-          {stage.name}
+        <div className={`flex min-w-0 flex-col ${HEADER_TONES[stage.color] ?? HEADER_TONES.slate}`}>
+          <div className="truncate text-sm font-semibold">{stage.name}</div>
+          {valueTotal > 0 && (
+            <div className="text-[11px] font-medium opacity-80">
+              <Money value={valueTotal} locale={locale} />
+            </div>
+          )}
         </div>
         <Badge variant="muted">{total}</Badge>
       </div>

@@ -156,6 +156,39 @@ class Booking extends Model
     }
 
     /**
+     * The service line items taken on this booking (the card's purchased
+     * services). Card value = sum of their net_price.
+     */
+    public function services()
+    {
+        return $this->hasMany(BookingService::class);
+    }
+
+    /** Total net value of the services taken on this booking. */
+    public function getValueAttribute(): float
+    {
+        // Prefer the eager-loaded withSum alias when present to avoid a query.
+        if (! is_null($this->services_value ?? null)) {
+            return (float) $this->services_value;
+        }
+        return (float) $this->services()->sum('net_price');
+    }
+
+    /**
+     * A booking is "incomplete" (missing the service-value data the team
+     * must enter) when it sits in an active stage — anything other than
+     * cancelled/no-show — yet has no service line items recorded.
+     */
+    public function isIncomplete(): bool
+    {
+        if (in_array($this->status, [self::STATUS_CANCELLED, self::STATUS_NO_SHOW], true)) {
+            return false;
+        }
+        $count = $this->services_count ?? $this->services()->count();
+        return (int) $count === 0;
+    }
+
+    /**
      * The account holder who actually placed the booking. Null for
      * legacy rows (pre-feature) — fall back to user() when reading.
      */

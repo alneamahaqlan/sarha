@@ -45,6 +45,13 @@ class BookingKanbanController extends Controller
                 'next_cursor' => $result['next_cursor'],
                 'has_more'    => $result['has_more'],
                 'total'       => $this->kanban->baseQuery($clinicId, $filters)->forStage($stage, $isPrimary)->count(),
+                // Total net value of all cards in this stage — sum of the
+                // services' net_price over the bookings in the column.
+                'value_total' => (float) \App\Models\BookingService::query()
+                    ->whereIn('booking_id', $this->kanban->baseQuery($clinicId, $filters)
+                        ->forStage($stage, $isPrimary)
+                        ->select('bookings.id'))
+                    ->sum('net_price'),
             ];
         }
 
@@ -68,7 +75,8 @@ class BookingKanbanController extends Controller
     public function show(Booking $booking): BookingDetailResource
     {
         $this->authorize('view', $booking);
-        $booking->load(['service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags', 'customer:id,follow_up_priority']);
+        $booking->load(['service:id,name,price', 'services.service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags', 'customer:id,follow_up_priority']);
+        $booking->loadCount('services');
         return new BookingDetailResource($booking);
     }
 

@@ -3,8 +3,8 @@
     Lists Laravel validation errors after a failed submit. Shows nothing when valid.
 
     Usage:
-      <x-form.errors />                      {{-- all errors --}}
-      <x-form.errors :only="['phone','city_id']" />   {{-- only these fields --}}
+      <x-form.errors />                                 (all errors)
+      <x-form.errors :only="['phone','city_id']" />     (only these fields)
 --}}
 @props(['only' => null])
 

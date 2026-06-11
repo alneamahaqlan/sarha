@@ -95,4 +95,16 @@ export const customersApi = {
   deleteNote: async (id: number, noteId: number) => {
     await apiClient.delete(`/clinic/customers/${id}/notes/${noteId}`);
   },
+
+  // Interested services (intent list, not purchases).
+  addInterestedService: async (id: number, serviceId: number) => {
+    const res = await apiClient.post<{ data: { id: number; name: string } }>(
+      `/clinic/customers/${id}/interested-services`,
+      { service_id: serviceId },
+    );
+    return res.data.data;
+  },
+  removeInterestedService: async (id: number, serviceId: number) => {
+    await apiClient.delete(`/clinic/customers/${id}/interested-services/${serviceId}`);
+  },
 };

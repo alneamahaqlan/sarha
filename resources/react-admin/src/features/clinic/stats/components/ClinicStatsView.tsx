@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck } from 'lucide-react';
+import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, Coins, Wallet, CheckCircle2, PackageCheck, Users2, Hourglass, XCircle } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
-import { Money } from '@/lib/money';
+import { Money, fmtMoney } from '@/lib/money';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
@@ -59,6 +59,37 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
           tooltip={t('clinic_stats.conversion_rate_tooltip')} />
       </div>
 
+      {/* Income (realized revenue from completed bookings' net prices) */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card icon={Coins} tone="success" label={t('clinic_stats.service_income')}
+          value={<Money value={s.service_income} locale={locale} />}
+          tooltip={t('clinic_stats.service_income_tooltip')} />
+        <Card icon={Wallet} tone="primary" label={t('clinic_stats.avg_ticket')}
+          value={<Money value={s.avg_ticket} locale={locale} />}
+          tooltip={t('clinic_stats.avg_ticket_tooltip')} />
+        <Card icon={CheckCircle2} tone="info" label={t('clinic_stats.completed_bookings')}
+          value={nf.format(s.completed_bookings)}
+          tooltip={t('clinic_stats.completed_bookings_tooltip')} />
+      </div>
+
+      {/* Taken / served / pending / lost */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card icon={PackageCheck} tone="success" label={t('clinic_stats.services_taken')}
+          value={nf.format(s.services_taken)}
+          tooltip={t('clinic_stats.services_taken_tooltip')} />
+        <Card icon={Users2} tone="info" label={t('clinic_stats.customers_served')}
+          value={nf.format(s.customers_served)}
+          tooltip={t('clinic_stats.customers_served_tooltip')} />
+        <Card icon={Hourglass} tone="warning" label={t('clinic_stats.pending_services')}
+          value={nf.format(s.pending_services)}
+          hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(s.pending_income, locale) })}
+          tooltip={t('clinic_stats.pending_tooltip')} />
+        <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')}
+          value={<Money value={s.lost_income} locale={locale} />}
+          hint={t('clinic_stats.lost_services_hint', { count: s.lost_services })}
+          tooltip={t('clinic_stats.lost_income_tooltip')} />
+      </div>
+
       {/* Comparison */}
       <div className="rounded-lg border border-[var(--color-border)] bg-gradient-to-l from-[color-mix(in_oklab,var(--color-primary),white_92%)] to-white p-5">
         <h2 className="text-sm font-semibold">{t('clinic_stats.comparison_title')}</h2>
@@ -102,6 +133,23 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
         </div>
       </div>
 
+      {/* Income trend — its own chart (money scale differs from counts) */}
+      <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">{t('clinic_stats.income_trend')}</h2>
+        <div className="h-56 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data.trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} width={70}
+                tickFormatter={(v) => nf.format(v as number)} />
+              <Tooltip formatter={(v) => nf.format(v as number)} />
+              <Line type="monotone" dataKey="income" name={t('clinic_stats.service_income')} stroke="#10b981" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       {/* Distributions */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DistributionBars
@@ -116,7 +164,7 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
         />
       </div>
 
-      {/* Bookings by acquisition source */}
+      {/* Bookings + income by acquisition source */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DistributionBars
           title={t('clinic_stats.bookings_by_acquisition_source')}
@@ -124,6 +172,14 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
             .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.bookings_by_acquisition_source?.[k] ?? 0 }))
             .filter((r) => r.value > 0)}
           empty={t('common.no_data')}
+        />
+        <DistributionBars
+          title={t('clinic_stats.income_by_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.income_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
+          empty={t('common.no_data')}
+          money
         />
       </div>
 
@@ -146,12 +202,13 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
                 <TableHead>{t('clinic_stats.service')}</TableHead>
                 <TableHead>{t('clinic_stats.price')}</TableHead>
                 <TableHead>{t('clinic_stats.bookings')}</TableHead>
+                <TableHead>{t('clinic_stats.income')}</TableHead>
                 <TableHead>{t('clinic_stats.quote_requests')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.services_performance.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="py-6 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="py-6 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
               ) : (
                 data.services_performance.map((row, i) => (
                   <TableRow key={row.id}>
@@ -161,6 +218,7 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
                     </TableCell>
                     <TableCell><Money value={row.price} locale={locale} /></TableCell>
                     <TableCell>{nf.format(row.bookings)}</TableCell>
+                    <TableCell className="font-medium"><Money value={row.income} locale={locale} /></TableCell>
                     <TableCell>{nf.format(row.quote_requests)}</TableCell>
                   </TableRow>
                 ))
@@ -223,10 +281,10 @@ const TONE: Record<Tone, string> = {
 };
 
 function Card({
-  icon: Icon, tone, label, value, delta, tooltip,
+  icon: Icon, tone, label, value, delta, tooltip, hint,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: string | number; delta?: number | null; tooltip?: string;
+  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; tooltip?: string; hint?: string;
 }) {
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
@@ -241,6 +299,7 @@ function Card({
             )}
           </div>
           <div className="mt-1 text-2xl font-semibold">{value}</div>
+          {hint && <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">{hint}</div>}
           {delta !== undefined && delta !== null && (
             <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
               {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}%
@@ -380,7 +439,8 @@ function TopServicesByImpressions({ rows }: { rows: ClinicStatsFull['top_service
   );
 }
 
-function DistributionBars({ title, rows, empty }: { title: string; rows: { label: string; value: number }[]; empty: string }) {
+function DistributionBars({ title, rows, empty, money }: { title: string; rows: { label: string; value: number }[]; empty: string; money?: boolean }) {
+  const { locale } = useLocale();
   const total = rows.reduce((sum, r) => sum + r.value, 0);
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
@@ -395,7 +455,9 @@ function DistributionBars({ title, rows, empty }: { title: string; rows: { label
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
                 <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${total > 0 ? (r.value / total) * 100 : 0}%` }} />
               </div>
-              <span className="w-8 shrink-0 text-end font-medium">{r.value}</span>
+              <span className={`${money ? 'w-20' : 'w-8'} shrink-0 text-end font-medium`}>
+                {money ? <Money value={r.value} locale={locale} /> : r.value}
+              </span>
             </div>
           ))}
         </div>

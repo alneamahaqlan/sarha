@@ -105,3 +105,24 @@ export function useDeleteCustomerNote(id: number) {
     },
   });
 }
+
+function invalidateInterest(qc: ReturnType<typeof useQueryClient>, id: number) {
+  qc.invalidateQueries({ queryKey: [...KEY, 'show', id] });
+  qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban', 'customer'] });
+}
+
+export function useAddInterestedService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: number) => customersApi.addInterestedService(id, serviceId),
+    onSuccess: () => invalidateInterest(qc, id),
+  });
+}
+
+export function useRemoveInterestedService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: number) => customersApi.removeInterestedService(id, serviceId),
+    onSuccess: () => invalidateInterest(qc, id),
+  });
+}

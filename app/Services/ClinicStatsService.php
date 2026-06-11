@@ -153,6 +153,40 @@ class ClinicStatsService
             ->groupBy('service_name')->orderByDesc('c')->limit(3)->get()
             ->map(fn ($r) => ['name' => $r->service_name, 'count' => (int) $r->c])->values();
 
+        // ---- service income (realized revenue) ----
+        // Net price of services taken on COMPLETED bookings in the range.
+        // Reflects the per-customer discounts the team entered, not the
+        // catalog price. Basis = bookings.created_at, like every other
+        // distribution on this page.
+        $income = $this->serviceIncome($clinic->id, $startAt, $endAt);
+        $completedCount = (int) ($bookingsByStatus['completed'] ?? 0);
+
+        $summary['service_income']     = $income['total'];
+        $summary['completed_bookings'] = $completedCount;
+        $summary['avg_ticket']         = $completedCount > 0 ? round($income['total'] / $completedCount, 2) : 0.0;
+        // Services actually taken (completed line items) + distinct people served.
+        $summary['services_taken']     = $income['count'];
+        $summary['customers_served']   = $income['customers'];
+
+        // Lost value — services on CANCELLED or NO-SHOW bookings (revenue
+        // that won't be realized).
+        $lost = $this->statusValue($clinic->id, $startAt, $endAt,
+            [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW], true);
+        $summary['lost_income']   = $lost['value'];
+        $summary['lost_services'] = $lost['count'];
+
+        // Booked-but-not-yet-taken — services on still-open bookings
+        // (everything other than completed/no-show/cancelled).
+        $pending = $this->statusValue($clinic->id, $startAt, $endAt,
+            [Booking::STATUS_COMPLETED, Booking::STATUS_NO_SHOW, Booking::STATUS_CANCELLED], false);
+        $summary['pending_income']   = $pending['value'];
+        $summary['pending_services'] = $pending['count'];
+
+        // Income per acquisition channel, zero-filled across all channels.
+        $incomeByAcquisitionSource = collect(Booking::ACQUISITION_SOURCES)
+            ->mapWithKeys(fn ($s) => [$s => (float) ($income['by_source'][$s] ?? 0)])
+            ->all();
+
         // ---- services performance ----
         $bookingsByService = (clone $bookings)->whereNotNull('service_id')
             ->selectRaw('service_id, COUNT(*) c')->groupBy('service_id')->pluck('c', 'service_id');
@@ -164,6 +198,7 @@ class ClinicStatsService
                 'name'           => $s->name,
                 'price'          => (float) $s->price,
                 'bookings'       => (int) ($bookingsByService[$s->id] ?? 0),
+                'income'         => (float) ($income['by_service'][$s->id] ?? 0),
                 'quote_requests' => (int) (clone $quotes)->where('service_name', $s->name)->count(),
             ])
             ->sortByDesc('bookings')->values();
@@ -193,6 +228,7 @@ class ClinicStatsService
             'bookings_by_status'    => $bookingsByStatus,
             'bookings_by_source'    => $bookingsBySource,
             'bookings_by_acquisition_source' => $bookingsByAcquisitionSource,
+            'income_by_acquisition_source'   => $incomeByAcquisitionSource,
             'quotes_by_status'      => $quotesByStatus,
             'quotes_top_services'   => $quotesTopServices,
             'services_performance'  => $servicesPerf,
@@ -204,6 +240,57 @@ class ClinicStatsService
             'cards' => ['page_views' => $pv, 'bookings' => $bk, 'quote_requests' => $qr, 'search_appearances' => $impressionsTotal],
             'kpis'  => ['this_clinic_bookings' => $bk, 'avg_bookings_platform' => $comparison['avg_bookings']],
         ];
+    }
+
+    /**
+     * Realized service income for one clinic over a range: SUM of the net
+     * price of services taken on COMPLETED bookings, plus per-service and
+     * per-acquisition-source breakdowns. Single base query, cloned.
+     *
+     * @return array{total: float, by_service: \Illuminate\Support\Collection, by_source: \Illuminate\Support\Collection}
+     */
+    private function serviceIncome(int $clinicId, Carbon $startAt, Carbon $endAt): array
+    {
+        $base = DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->where('bs.clinic_id', $clinicId)
+            ->where('b.status', Booking::STATUS_COMPLETED)
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$startAt, $endAt]);
+
+        $counts = (clone $base)->selectRaw('COUNT(*) c, COUNT(DISTINCT b.customer_id) cust')->first();
+
+        return [
+            'total'      => (float) (clone $base)->sum('bs.net_price'),
+            'count'      => (int) ($counts->c ?? 0),
+            'customers'  => (int) ($counts->cust ?? 0),
+            'by_service' => (clone $base)->selectRaw('bs.service_id, SUM(bs.net_price) v')
+                ->groupBy('bs.service_id')->pluck('v', 'bs.service_id'),
+            'by_source'  => (clone $base)->selectRaw('b.acquisition_source, SUM(bs.net_price) v')
+                ->groupBy('b.acquisition_source')->pluck('v', 'b.acquisition_source'),
+        ];
+    }
+
+    /**
+     * Service line-item count + net value for one clinic over a range,
+     * filtered by booking status (IN or NOT IN the given set). Powers the
+     * "lost" (cancelled/no-show) and "pending" (still-open) tiles.
+     *
+     * @return array{count: int, value: float}
+     */
+    private function statusValue(int $clinicId, Carbon $startAt, Carbon $endAt, array $statuses, bool $in): array
+    {
+        $q = DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->where('bs.clinic_id', $clinicId)
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$startAt, $endAt]);
+
+        $in ? $q->whereIn('b.status', $statuses) : $q->whereNotIn('b.status', $statuses);
+
+        $r = $q->selectRaw('COUNT(*) c, COALESCE(SUM(bs.net_price),0) v')->first();
+
+        return ['count' => (int) $r->c, 'value' => (float) $r->v];
     }
 
     private function comparison(Clinic $clinic, string $from, string $to, int $bookings, int $visits, int $appearances): array
@@ -417,6 +504,17 @@ class ClinicStatsService
             ->groupBy('date')
             ->pluck('c', 'date');
 
+        // Per-day realized service income (completed bookings' net price).
+        $incomeByDate = DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->where('bs.clinic_id', $clinicId)
+            ->where('b.status', Booking::STATUS_COMPLETED)
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$fromDate . ' 00:00:00', $toDate . ' 23:59:59'])
+            ->selectRaw('DATE(b.created_at) d, SUM(bs.net_price) v')
+            ->groupBy('d')
+            ->pluck('v', 'd');
+
         return ClinicStat::where('clinic_id', $clinicId)
             ->whereBetween('date', [$fromDate, $toDate])
             ->orderBy('date')
@@ -428,6 +526,7 @@ class ClinicStatsService
                 'page_views'         => (int) $s->page_views,
                 'bookings'           => (int) $s->bookings_count,
                 'quote_requests'     => (int) $s->quote_requests_count,
+                'income'             => (float) ($incomeByDate[$s->date?->toDateString()] ?? 0),
             ])->values()->all();
     }
 

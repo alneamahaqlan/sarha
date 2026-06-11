@@ -91,6 +91,12 @@ class Customer extends Model
         return $this->hasMany(CustomerTag::class);
     }
 
+    /** Services this customer is interested in (intent list, not purchases). */
+    public function interestedServices()
+    {
+        return $this->hasMany(CustomerInterestedService::class);
+    }
+
     public function notes()
     {
         return $this->hasMany(CustomerNote::class)
