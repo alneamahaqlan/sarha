@@ -67,7 +67,7 @@ class SearchController extends Controller
                 ->where('name', 'like', $like)
                 ->orWhere('description', 'like', $like)
                 ->orWhere('address', 'like', $like)
-                ->orWhereHas('services', fn($s) => $s->where('is_active', true)->where('approval_status', 'approved')->where('name', 'like', $like))
+                ->orWhereHas('services', fn($s) => $s->where('is_active', true)->where('approval_status', 'approved')->notCatchall()->where('name', 'like', $like))
                 ->orWhereHas('doctors', fn($d) => $d->where('name', 'like', $like))
                 ->orWhereHas('categories', fn($c) => $c
                     ->where('categories.name', 'like', $like)
@@ -279,6 +279,7 @@ class SearchController extends Controller
 
         $services = \App\Models\Service::where('is_active', true)
             ->where('approval_status', 'approved')
+            ->notCatchall()
             ->where('name', 'like', $like)
             ->whereHas('clinic', fn ($q) => $q->publiclyVisible())
             ->with('clinic:id,name,slug')

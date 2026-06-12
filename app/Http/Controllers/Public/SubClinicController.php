@@ -70,6 +70,11 @@ class SubClinicController extends Controller
 
         $similarSubClinics = $similarity->similarSubClinics($subClinic);
 
+        // Appearing in another clinic's "similar clinics" strip counts as a
+        // SIMILAR appearance for each surfaced sub-clinic's complex.
+        app(ImpressionTrackerService::class)
+            ->trackManyClinics($similarSubClinics->pluck('clinic_id')->all(), ImpressionSource::SIMILAR);
+
         return view('public.sub-clinic', compact(
             'clinic', 'subClinic', 'offers', 'packages', 'services', 'doctors', 'similarSubClinics',
         ));

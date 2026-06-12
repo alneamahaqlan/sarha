@@ -109,6 +109,9 @@ class AppServiceProvider extends ServiceProvider
         Complaint::observe(ComplaintCustomerLinkObserver::class);
         PriceQuoteRequest::observe(PriceQuoteCustomerLinkObserver::class);
 
+        // Every new clinic gets its "خدمات أخرى" catch-all service.
+        Clinic::observe(\App\Observers\ClinicCatchallServiceObserver::class);
+
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);
 

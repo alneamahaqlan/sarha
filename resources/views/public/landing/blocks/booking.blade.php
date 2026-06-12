@@ -48,6 +48,7 @@
                                 <option value="{{ $svc->id }}" @selected(old('service_id') == $svc->id)>{{ $svc->name }}</option>
                             @endforeach
                         </x-form.select>
+                        <p class="text-xs text-gray-500 mt-1.5">@lang('site.requested_service_other_hint')</p>
                     </div>
                 @endif
 

@@ -33,7 +33,7 @@ class ClinicController extends Controller
                 'categories',
                 // Live Instagram-style stories (ring around the logo).
                 'stories',
-                'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
+                'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->notCatchall()->orderBy('sort_order'),
                 'services.inlineOffer',
                 // Specialty (category) ids power the click-to-filter chips in
                 // the hero — every filterable entity carries its own ids.
@@ -125,6 +125,11 @@ class ClinicController extends Controller
         // overlapping specialties, other complexes).
         $similarClinics = $similarity->similarClinics($clinic);
 
+        // Surfacing other complexes in the "similar complexes" strip counts as
+        // a SIMILAR appearance for each surfaced complex.
+        app(ImpressionTrackerService::class)
+            ->trackManyClinics($similarClinics->pluck('id')->all(), ImpressionSource::SIMILAR);
+
         return view('public.clinic', compact('clinic', 'similarClinics', 'pageSections', 'builder'));
     }
 
@@ -139,6 +144,13 @@ class ClinicController extends Controller
             ? $clinic->services->firstWhere('id', $request->integer('service'))
             : null;
 
+        // Arrived from an offer card → load it (scoped to this clinic) so the
+        // form can show a "this booking is about offer X" banner and seed the
+        // notes. General offers carry no service, so the customer picks one.
+        $offer = $request->filled('offer')
+            ? $clinic->offers()->whereKey($request->integer('offer'))->first()
+            : null;
+
         // Returning customer's saved identity (from a prior verified booking).
         $identity = $this->customerIdentity($request);
 
@@ -151,7 +163,7 @@ class ClinicController extends Controller
         $relativeTypes = Relative::TYPES;
 
         return view('public.booking-form', compact(
-            'clinic', 'service', 'identity', 'relatives', 'relativeTypes',
+            'clinic', 'service', 'offer', 'identity', 'relatives', 'relativeTypes',
         ));
     }
 

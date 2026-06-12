@@ -41,6 +41,11 @@ class ServiceController extends Controller
 
         $similarServices = $similarity->similarServices($service);
 
+        // Surfacing other complexes' services in the "similar services" strip
+        // counts as a SIMILAR appearance for each (cascades to its complex).
+        app(ImpressionTrackerService::class)
+            ->trackManyServices($similarServices->all(), ImpressionSource::SIMILAR);
+
         return view('public.service', compact('clinic', 'service', 'similarServices'));
     }
 }

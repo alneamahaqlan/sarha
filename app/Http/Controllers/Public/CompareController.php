@@ -58,7 +58,7 @@ class CompareController extends Controller
                 ->with(['city', 'categories'])
                 ->withAvg('googleReviews', 'rating')
                 ->withCount(['googleReviews', 'bookings'])
-                ->withCount(['services as active_services_count' => fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')])
+                ->withCount(['services as active_services_count' => fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->notCatchall()])
                 ->withMin(['services as min_price' => $minPrice], 'price')
                 ->get();
             $clinics = $this->inSelectedOrder($clinics, $ids);

@@ -34,6 +34,21 @@
         </div>
     @endif
 
+    {{-- Offer banner — appears when the customer arrived from an offer card.
+         Confirms which offer the booking is about; the notes below are
+         pre-seeded with the same reference so the clinic sees it too. --}}
+    @if(! empty($offer))
+        <div class="bg-gold-whisper border border-gold-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+            <span class="shrink-0 mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gold-500 text-white">
+                <x-icon name="star" class="w-5 h-5" />
+            </span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-800">@lang('site.booking_about_offer_title')</p>
+                <p class="text-sm text-gray-700 mt-0.5">{{ $offer->title }}</p>
+            </div>
+        </div>
+    @endif
+
     {{-- Notice --}}
     <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 mb-6 text-sm">
         @lang('site.booking_page_notice')
@@ -273,13 +288,21 @@
                                     <option value="{{ $svc->id }}" @selected(old('service_id', $service?->id) == $svc->id)>{{ $svc->name }}</option>
                                 @endforeach
                             </x-form.select>
+                            <p class="text-xs text-gray-500 mt-1.5">@lang('site.requested_service_other_hint')</p>
                         </div>
                     @endif
 
+                    @php
+                        // Seed the notes with the offer reference when arriving from
+                        // an offer (only when the customer hasn't typed anything yet).
+                        $notesPrefill = ! empty($offer)
+                            ? __('site.booking_offer_note_prefix', ['offer' => $offer->title])
+                            : '';
+                    @endphp
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.notes_optional')</label>
                         <textarea name="notes" rows="4" maxlength="1000"
-                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes') }}</textarea>
+                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes', $notesPrefill) }}</textarea>
                     </div>
 
                     @guest('web')

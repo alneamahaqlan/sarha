@@ -43,6 +43,10 @@ class OfferController extends Controller
 
         $similarOffers = $similarity->similarOffers($offer);
 
+        // Surfacing other complexes' offers in the "similar offers" strip
+        // counts as a SIMILAR appearance for each surfaced complex.
+        $tracker->trackManyClinics($similarOffers->pluck('clinic_id')->all(), ImpressionSource::SIMILAR);
+
         return view('public.offer', compact('clinic', 'offer', 'similarOffers'));
     }
 }

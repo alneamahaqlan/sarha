@@ -50,6 +50,11 @@ class DoctorController extends Controller
 
         $similarDoctors = $similarity->similarDoctors($doctor);
 
+        // Appearing in another doctor's "similar doctors" strip counts as a
+        // SIMILAR appearance for each surfaced doctor's complex.
+        app(ImpressionTrackerService::class)
+            ->trackManyClinics($similarDoctors->pluck('clinic_id')->all(), ImpressionSource::SIMILAR);
+
         return view('public.doctor', compact('clinic', 'doctor', 'services', 'similarDoctors'));
     }
 }

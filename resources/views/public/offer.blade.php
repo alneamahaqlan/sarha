@@ -14,9 +14,14 @@
     $imageUrl = $offer->effectiveImage() ? Storage::url($offer->effectiveImage()) : null;
     $discount = $offer->discountPercentage();
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
-    $ctaHref = $isServiceLinked
-        ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $offer->service_id])
-        : ($clinic->whatsappLink() ?: ($clinic->phone ? 'tel:' . $clinic->phone : '#'));
+    // Every offer now opens the booking form. A service-linked offer pre-selects
+    // its service; a general offer lets the customer pick one (or "خدمات أخرى").
+    // The offer id is carried so the form can show a banner + stamp the notes.
+    $ctaHref = route('clinic.book.form', array_filter([
+        'slug'    => $clinic->slug,
+        'service' => $isServiceLinked ? $offer->service_id : null,
+        'offer'   => $offer->id,
+    ]));
 @endphp
 
 @section('content')
@@ -78,11 +83,10 @@
 
             <div class="mt-6 flex flex-wrap items-center gap-3">
                 <a href="{{ $ctaHref }}"
-                   @if(! $isServiceLinked) target="_blank" rel="noopener" @endif
-                   data-track="{{ $isServiceLinked ? 'booking' : 'contact' }}" data-clinic="{{ $clinic->id }}"
+                   data-track="booking" data-clinic="{{ $clinic->id }}"
                    class="inline-flex items-center justify-center gap-2 min-h-touch bg-sage-600 hover:bg-sage-700 text-white font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors">
-                    <x-icon name="{{ $isServiceLinked ? 'calendar' : 'phone' }}" class="w-5 h-5" />
-                    {{ $isServiceLinked ? __('site.book_now_label') : __('site.contact_for_inquiry') }}
+                    <x-icon name="calendar" class="w-5 h-5" />
+                    {{ __('site.book_now_label') }}
                 </a>
                 <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" />
                 @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])

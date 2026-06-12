@@ -256,6 +256,31 @@ class Clinic extends Authenticatable
         return $this->hasMany(Service::class);
     }
 
+    /**
+     * The clinic's single "خدمات أخرى" (other services) catch-all service,
+     * created on demand. A real, active+approved Service so it appears in the
+     * booking/quote service dropdowns and counts in service reports like any
+     * other service — but flagged is_catchall so it's hidden from the public
+     * showcase and locked in management. Matched on (clinic_id, is_catchall)
+     * so re-running never makes a duplicate regardless of the stored name.
+     */
+    public function catchallService(): Service
+    {
+        return $this->services()->firstOrCreate(
+            ['is_catchall' => true],
+            [
+                'name'            => 'خدمات أخرى',
+                // Null (not 0) so it never drags down any "starts from"
+                // min_price calculation, which all filter on whereNotNull('price').
+                'price'           => null,
+                'is_active'       => true,
+                'approval_status' => Service::APPROVAL_APPROVED,
+                // Sort last so it sits at the bottom of every dropdown.
+                'sort_order'      => 9999,
+            ],
+        );
+    }
+
     public function articles()
     {
         return $this->hasMany(Article::class);

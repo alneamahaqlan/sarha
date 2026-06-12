@@ -23,16 +23,36 @@ class Service extends Model
         'clinic_id', 'sub_clinic_id', 'catalog_service_id',
         'name', 'description',
         'price', 'price_from', 'price_includes', 'price_excludes', 'image',
-        'is_active', 'approval_status', 'sort_order',
+        'is_active', 'approval_status', 'sort_order', 'is_catchall',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'      => 'decimal:2',
-            'price_from' => 'boolean',
-            'is_active'  => 'boolean',
+            'price'       => 'decimal:2',
+            'price_from'  => 'boolean',
+            'is_active'   => 'boolean',
+            'is_catchall' => 'boolean',
         ];
+    }
+
+    /**
+     * The fixed name used for every clinic's catch-all "other services" row.
+     * Resolved lazily so the bound translation reflects the request locale.
+     */
+    public static function catchallName(): string
+    {
+        return __('site.catchall_service_name');
+    }
+
+    /**
+     * Exclude the per-clinic catch-all "other services" row. Apply to the
+     * public services showcase and anywhere a real service catalogue is
+     * listed — the catch-all is a booking/report target only, not a card.
+     */
+    public function scopeNotCatchall(Builder $q): Builder
+    {
+        return $q->where('is_catchall', false);
     }
 
     public function clinic()
