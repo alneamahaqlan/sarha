@@ -155,12 +155,12 @@ export function ClinicLayout() {
   );
 
   return (
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[var(--color-background)]">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)]">
       <ImpersonationBanner />
-      <div className="flex min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 overflow-hidden">
         <Sidebar items={visibleNav} badges={badges} footer={sidebarFooter} />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <header className="flex h-12 sm:h-14 items-center gap-2 border-b border-[var(--color-border)] bg-white px-3 sm:px-4">
             <div className="flex min-w-0 items-center gap-2 md:hidden">
               <MobileNav items={visibleNav} title={user?.user.name ?? t('clinic_brand')} badges={badges} />
@@ -210,7 +210,7 @@ export function ClinicLayout() {
               </AlertDialog>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+          <main className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 lg:p-6">
             <RouteErrorBoundary resetKey={location.pathname}>
               <Outlet />
             </RouteErrorBoundary>

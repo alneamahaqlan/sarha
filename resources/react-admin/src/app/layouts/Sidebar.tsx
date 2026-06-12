@@ -103,7 +103,7 @@ export function Sidebar({ items, badges, footer }: SidebarProps) {
         </button>
       </div>
 
-      <nav className={cn('flex-1 overflow-y-auto', collapsed ? 'p-2 space-y-1' : 'p-2 space-y-2')}>
+      <nav className={cn('flex-1 min-h-0 overflow-y-auto', collapsed ? 'p-2 space-y-1' : 'p-2 space-y-2')}>
         {items.map((entry, idx) =>
           isGroup(entry) ? (
             <SidebarGroup

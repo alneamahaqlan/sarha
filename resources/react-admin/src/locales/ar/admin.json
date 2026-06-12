@@ -1306,7 +1306,7 @@
   "clinic_brand": "لوحة المجمع",
   "clinic_nav": {
     "dashboard": "لوحة المعلومات",
-    "stats": "إحصاءاتي",
+    "stats": "إحصائياتي",
     "sub_clinics": "عياداتي",
     "doctors": "الأطباء",
     "services": "خدماتي",
@@ -1794,8 +1794,12 @@
     }
   },
   "clinic_stats": {
-    "title": "إحصاءاتي",
+    "title": "إحصائياتي",
     "subtitle": "كيف تجلب لك المنصّة الزيارات والاهتمام",
+    "section_reach": "الظهور والوصول",
+    "section_engagement": "التفاعل والنقرات",
+    "section_leads": "الطلبات والتحويل",
+    "section_revenue": "الإيرادات والخدمات",
     "period_days": "{{count}} يوم",
     "custom": "مخصّص",
     "apply": "تطبيق",

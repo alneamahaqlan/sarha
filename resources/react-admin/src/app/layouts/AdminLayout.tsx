@@ -116,14 +116,14 @@ export function AdminLayout() {
     // single descendant misses a min-w-0 (a chart, a table, a long
     // word in RTL) the document-level horizontal scroll is still
     // suppressed. Standard pattern for admin shells.
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[var(--color-background)]">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)]">
       <ImpersonationBanner />
-      <div className="flex min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 overflow-hidden">
         {/* Dual-mode sidebar — hidden on mobile, icon-rail on tablet,
             full on desktop. MobileNav (Sheet) covers the mobile path. */}
         <Sidebar items={adminNav} badges={badges} footer={sidebarFooter} />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <header className="flex h-12 sm:h-14 items-center gap-2 border-b border-[var(--color-border)] bg-white px-3 sm:px-4">
             {/* Mobile brand block: min-w-0 + truncate so a long brand
                 name shrinks instead of pushing the action buttons off
@@ -170,7 +170,7 @@ export function AdminLayout() {
               </button>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-4 lg:p-6">
+          <main className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 lg:p-6">
             <RouteErrorBoundary resetKey={location.pathname}>
               <Outlet />
             </RouteErrorBoundary>

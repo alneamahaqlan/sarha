@@ -24,73 +24,85 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards — top row: impressions card is now expandable */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
-        <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)}
-          tooltip={t('clinic_stats.unique_views_tooltip')} />
-        <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct}
-          tooltip={t('clinic_stats.page_views_tooltip')} />
-        <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct}
-          tooltip={t('clinic_stats.bookings_tooltip')} />
-      </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
-          tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
-        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
-          tooltip={t('clinic_stats.call_clicks_tooltip')} />
-        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
-          tooltip={t('clinic_stats.directions_clicks_tooltip')} />
-        {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
-            with a tooltip clarifying it is NOT a completed booking. */}
-        <Card
-          icon={MousePointerClick}
-          tone="warning"
-          label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')}
-          value={nf.format(s.booking_clicks)}
-          tooltip={t('clinic_stats.booking_page_opens_tooltip',
-            'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)}
-          tooltip={t('clinic_stats.quote_requests_tooltip')} />
-        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
-          tooltip={t('clinic_stats.conversion_rate_tooltip')} />
-        <Card icon={Clapperboard} tone="info" label={t('clinic_stats.story_views')} value={nf.format(s.story_views)}
-          tooltip={t('clinic_stats.story_views_tooltip')} />
-      </div>
+      {/* ── 1) الظهور والوصول — how many people reached the clinic ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_reach')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
+          <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)}
+            tooltip={t('clinic_stats.unique_views_tooltip')} />
+          <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct}
+            tooltip={t('clinic_stats.page_views_tooltip')} />
+          <Card icon={Clapperboard} tone="info" label={t('clinic_stats.story_views')} value={nf.format(s.story_views)}
+            tooltip={t('clinic_stats.story_views_tooltip')} />
+        </div>
+      </section>
 
-      {/* Income (realized revenue from completed bookings' net prices) */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Coins} tone="success" label={t('clinic_stats.service_income')}
-          value={<Money value={s.service_income} locale={locale} />}
-          tooltip={t('clinic_stats.service_income_tooltip')} />
-        <Card icon={Wallet} tone="primary" label={t('clinic_stats.avg_ticket')}
-          value={<Money value={s.avg_ticket} locale={locale} />}
-          tooltip={t('clinic_stats.avg_ticket_tooltip')} />
-        <Card icon={CheckCircle2} tone="info" label={t('clinic_stats.completed_bookings')}
-          value={nf.format(s.completed_bookings)}
-          tooltip={t('clinic_stats.completed_bookings_tooltip')} />
-      </div>
+      {/* ── 2) التفاعل والنقرات — what visitors did on the page ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_engagement')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
+              with a tooltip clarifying it is NOT a completed booking. */}
+          <Card
+            icon={MousePointerClick}
+            tone="warning"
+            label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')}
+            value={nf.format(s.booking_clicks)}
+            tooltip={t('clinic_stats.booking_page_opens_tooltip',
+              'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
+          />
+          <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
+            tooltip={t('clinic_stats.directions_clicks_tooltip')} />
+          <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
+            tooltip={t('clinic_stats.call_clicks_tooltip')} />
+          <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
+            tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
+        </div>
+      </section>
 
-      {/* Taken / served / pending / lost */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={PackageCheck} tone="success" label={t('clinic_stats.services_taken')}
-          value={nf.format(s.services_taken)}
-          tooltip={t('clinic_stats.services_taken_tooltip')} />
-        <Card icon={Users2} tone="info" label={t('clinic_stats.customers_served')}
-          value={nf.format(s.customers_served)}
-          tooltip={t('clinic_stats.customers_served_tooltip')} />
-        <Card icon={Hourglass} tone="warning" label={t('clinic_stats.pending_services')}
-          value={nf.format(s.pending_services)}
-          hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(s.pending_income, locale) })}
-          tooltip={t('clinic_stats.pending_tooltip')} />
-        <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')}
-          value={<Money value={s.lost_income} locale={locale} />}
-          hint={t('clinic_stats.lost_services_hint', { count: s.lost_services })}
-          tooltip={t('clinic_stats.lost_income_tooltip')} />
-      </div>
+      {/* ── 3) الطلبات والتحويل — leads generated ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_leads')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct}
+            tooltip={t('clinic_stats.bookings_tooltip')} />
+          <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)}
+            tooltip={t('clinic_stats.quote_requests_tooltip')} />
+          <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
+            tooltip={t('clinic_stats.conversion_rate_tooltip')} />
+        </div>
+      </section>
+
+      {/* ── 4) الإيرادات والخدمات — financial results & service execution ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_revenue')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card icon={CheckCircle2} tone="info" label={t('clinic_stats.completed_bookings')}
+            value={nf.format(s.completed_bookings)}
+            tooltip={t('clinic_stats.completed_bookings_tooltip')} />
+          <Card icon={Wallet} tone="primary" label={t('clinic_stats.avg_ticket')}
+            value={<Money value={s.avg_ticket} locale={locale} />}
+            tooltip={t('clinic_stats.avg_ticket_tooltip')} />
+          <Card icon={Coins} tone="success" label={t('clinic_stats.service_income')}
+            value={<Money value={s.service_income} locale={locale} />}
+            tooltip={t('clinic_stats.service_income_tooltip')} />
+          <Card icon={PackageCheck} tone="success" label={t('clinic_stats.services_taken')}
+            value={nf.format(s.services_taken)}
+            tooltip={t('clinic_stats.services_taken_tooltip')} />
+          <Card icon={Users2} tone="info" label={t('clinic_stats.customers_served')}
+            value={nf.format(s.customers_served)}
+            tooltip={t('clinic_stats.customers_served_tooltip')} />
+          <Card icon={Hourglass} tone="warning" label={t('clinic_stats.pending_services')}
+            value={nf.format(s.pending_services)}
+            hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(s.pending_income, locale) })}
+            tooltip={t('clinic_stats.pending_tooltip')} />
+          <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')}
+            value={<Money value={s.lost_income} locale={locale} />}
+            hint={t('clinic_stats.lost_services_hint', { count: s.lost_services })}
+            tooltip={t('clinic_stats.lost_income_tooltip')} />
+        </div>
+      </section>
 
       {/* Comparison */}
       <div className="rounded-lg border border-[var(--color-border)] bg-gradient-to-l from-[color-mix(in_oklab,var(--color-primary),white_92%)] to-white p-5">

@@ -1796,6 +1796,10 @@
   "clinic_stats": {
     "title": "My stats",
     "subtitle": "How the platform brings you traffic and interest",
+    "section_reach": "Reach & Visibility",
+    "section_engagement": "Engagement & Clicks",
+    "section_leads": "Leads & Conversion",
+    "section_revenue": "Revenue & Services",
     "period_days": "{{count}} days",
     "custom": "Custom",
     "apply": "Apply",
