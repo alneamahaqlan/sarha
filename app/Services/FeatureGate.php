@@ -82,7 +82,9 @@ class FeatureGate
 
     public function servicesUsed(Clinic $clinic): int
     {
-        return Service::where('clinic_id', $clinic->id)->count();
+        // The system-managed "خدمات أخرى" catch-all never counts against the
+        // clinic's plan quota.
+        return Service::where('clinic_id', $clinic->id)->notCatchall()->count();
     }
 
     public function articlesUsedThisMonth(Clinic $clinic): int

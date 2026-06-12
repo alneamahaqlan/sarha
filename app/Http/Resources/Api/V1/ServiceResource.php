@@ -44,6 +44,8 @@ class ServiceResource extends JsonResource
             'offer_price'        => $this->whenLoaded('inlineOffer', fn () => $this->inlineOffer ? (float) $this->inlineOffer->price : null),
             'offer_ends_at'      => $this->whenLoaded('inlineOffer', fn () => $this->inlineOffer?->ends_at?->toDateString()),
             'is_active'          => (bool) $this->is_active,
+            // System-managed "خدمات أخرى" catch-all: shown locked (no edit/delete).
+            'is_catchall'        => (bool) $this->is_catchall,
             // Moderation gate: 'approved' shows publicly; 'pending' is hidden
             // until an admin approves the catalog request it belongs to.
             'approval_status'    => $this->approval_status,

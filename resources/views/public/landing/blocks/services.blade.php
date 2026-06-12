@@ -5,9 +5,13 @@
         $source = $cfg['source'] ?? 'auto';
         $manualIds = array_map('intval', (array) ($cfg['manual_ids'] ?? []));
 
+        // The eager-loaded services include the "خدمات أخرى" catch-all (it
+        // must appear in the booking dropdown), so reject it from this showcase.
+        $showcase = $clinic->services->reject(fn ($s) => $s->is_catchall)->values();
+
         $services = ($source === 'manual' && $manualIds)
-            ? collect($manualIds)->map(fn ($id) => $clinic->services->firstWhere('id', $id))->filter()->values()
-            : $clinic->services->take($limit);
+            ? collect($manualIds)->map(fn ($id) => $showcase->firstWhere('id', $id))->filter()->values()
+            : $showcase->take($limit);
 
         $heading = $cfg['heading'] ?? __('site.tab_services');
     @endphp

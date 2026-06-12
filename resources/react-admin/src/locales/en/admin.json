@@ -1926,6 +1926,7 @@
     "aliases_hint": "Type one alias per line. Helps link services and power search/comparison."
   },
   "clinic_services": {
+    "catchall_badge": "Auto",
     "title": "My services",
     "subtitle": "Manage your complex services and pricing",
     "create": "Add service",

@@ -32,6 +32,8 @@ export interface Service {
   price_excludes?: string | null;
   image: string | null;
   is_active: boolean;
+  /** System-managed "خدمات أخرى" catch-all — locked from edit/delete. */
+  is_catchall?: boolean;
   /** 'approved' shows publicly; 'pending' is hidden until an admin approves
    *  the catalog request this service belongs to. */
   approval_status?: 'approved' | 'pending';

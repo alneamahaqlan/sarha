@@ -6,6 +6,7 @@ return [
     // ============================================
     'admin_brand' => 'Medical Complexes Directory — Admin Panel',
     'clinic_brand' => 'Medical Complexes Directory — Complex Panel',
+    'catchall_service_locked' => 'The "Other services" service is system-managed and cannot be edited or deleted.',
 
     // ============================================
     // Navigation groups (admin)

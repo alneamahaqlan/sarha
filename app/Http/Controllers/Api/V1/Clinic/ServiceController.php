@@ -87,6 +87,9 @@ class ServiceController extends Controller
 
     public function update(UpdateServiceRequest $request, Service $service): ServiceApiResource
     {
+        // The "خدمات أخرى" catch-all is system-managed and cannot be edited.
+        abort_if($service->is_catchall, 403, __('admin.catchall_service_locked'));
+
         // clinic_id never changes; ownership enforced in the request's authorize().
         $data = $request->validated();
         $categoryIds = $data['category_ids'] ?? null;
@@ -155,6 +158,9 @@ class ServiceController extends Controller
     public function destroy(Service $service): JsonResponse
     {
         $this->authorize('delete', $service);
+
+        // The "خدمات أخرى" catch-all is system-managed and cannot be deleted.
+        abort_if($service->is_catchall, 403, __('admin.catchall_service_locked'));
 
         $service->delete();
 

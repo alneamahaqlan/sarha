@@ -336,14 +336,19 @@ export function ClinicServicesIndex() {
 
   const renderRow = (s: Service, showSubClinic: boolean) => (
     <TableRow key={s.id}>
-      <TableCell className="font-medium">{s.name}</TableCell>
+      <TableCell className="font-medium">
+        <span className="inline-flex items-center gap-2">
+          {s.name}
+          {s.is_catchall && <Badge variant="muted">{t('clinic_services.catchall_badge')}</Badge>}
+        </span>
+      </TableCell>
       {showSubClinic && (
         <TableCell className="text-sm text-[var(--color-muted-foreground)]">
           {s.sub_clinic_id ? subClinicName.get(s.sub_clinic_id) ?? '—' : '—'}
         </TableCell>
       )}
       <TableCell>
-        <Money value={s.price} locale={locale} className="font-medium" />
+        {s.is_catchall ? <span className="text-[var(--color-muted-foreground)]">—</span> : <Money value={s.price} locale={locale} className="font-medium" />}
       </TableCell>
       <TableCell>
         {s.approval_status === 'pending'
@@ -363,8 +368,13 @@ export function ClinicServicesIndex() {
               <ExternalLink className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
-          <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
+          {/* The system-managed "خدمات أخرى" catch-all is locked. */}
+          {!s.is_catchall && (
+            <>
+              <Button variant="ghost" size="icon" onClick={() => setEditing(s)} aria-label={t('common.edit')}><Pencil className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => setDeleting(s)} aria-label={t('common.delete')} className="text-[var(--color-destructive)]"><Trash2 className="h-4 w-4" /></Button>
+            </>
+          )}
         </div>
       </TableCell>
     </TableRow>
