@@ -38,7 +38,7 @@ enum ClinicRole: string
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
-                'articles.*', 'before_after.*',
+                'articles.*', 'before_after.*', 'stories.*',
                 'category_requests.*',
                 'page_builder.*', 'profile.view',
             ],
@@ -117,6 +117,7 @@ enum ClinicRole: string
             'packages.view', 'packages.manage',
             'articles.view', 'articles.manage',
             'before_after.view', 'before_after.manage',
+            'stories.view', 'stories.manage',
             'category_requests.view',
             'page_builder.view', 'page_builder.manage',
             'profile.view', 'profile.manage',

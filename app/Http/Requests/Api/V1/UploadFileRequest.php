@@ -20,6 +20,8 @@ class UploadFileRequest extends FormRequest
         'banners',       // homepage banner slides
         'campaigns',     // managed-campaign creative images
         'landing-pages', // landing page cover + social + block images
+        'category-icons',// specialization (category) custom icons
+        'stories',       // Instagram-style clinic story images
     ];
 
     public function authorize(): bool
@@ -30,8 +32,15 @@ class UploadFileRequest extends FormRequest
 
     public function rules(): array
     {
+        // Category icons are small vectors/glyphs: allow SVG (Laravel's `image`
+        // rule drops SVG by default) alongside raster formats, capped at 1 MB.
+        // Every other upload kind stays on the stricter raster-image rule.
+        $fileRule = $this->input('directory') === 'category-icons'
+            ? ['required', 'file', 'mimes:svg,png,webp,jpg,jpeg', 'max:1024']
+            : ['required', 'file', 'image', 'max:4096'];
+
         return [
-            'file'      => ['required', 'file', 'image', 'max:4096'],
+            'file'      => $fileRule,
             'directory' => ['required', 'in:' . implode(',', self::ALLOWED_DIRECTORIES)],
         ];
     }

@@ -118,6 +118,7 @@ export function ServiceForm({ service, onSuccess, onCancel }: Props) {
             value={form.watch('image')}
             onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
             directory="services"
+            hint={t('services.image_hint')}
           />
         </div>
 

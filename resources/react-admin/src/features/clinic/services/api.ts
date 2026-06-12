@@ -8,9 +8,15 @@ export interface ClinicServiceFormValues {
    *  typeahead → links + publishes instantly. Null → backend files a request. */
   catalog_service_id?: number | null;
   category_ids: number[];
+  /** Doctors who provide this service. */
+  doctor_ids?: number[];
   sub_clinic_id?: number | null;
   description?: string | null;
   price: number;
+  /** Optional discounted price → backend creates/updates a real service offer. */
+  offer_price?: number | null;
+  /** Date (YYYY-MM-DD) the discount ends. */
+  offer_ends_at?: string | null;
   price_from?: boolean;
   price_includes?: string | null;
   price_excludes?: string | null;

@@ -74,6 +74,22 @@
                 </div>
 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">@lang('site.quote_categories_label') <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-auto border border-gray-100 rounded-lg p-3">
+                        @foreach($categories as $category)
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="checkbox" name="category_ids[]" value="{{ $category->id }}"
+                                       @checked(collect(old('category_ids'))->contains($category->id))
+                                       class="h-4 w-4 rounded border-gray-300 text-sage-600">
+                                <x-category-icon :emoji="$category->emoji" :icon="$category->icon" class="w-4 h-4 text-sage-600 shrink-0" />
+                                <span>{{ $category->display_name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">@lang('site.quote_categories_hint')</p>
+                </div>
+
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">@lang('site.quote_cities_label') <span class="text-red-500">*</span></label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-auto border border-gray-100 rounded-lg p-3">
                         @foreach($cities as $city)

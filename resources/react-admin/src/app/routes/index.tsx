@@ -83,6 +83,7 @@ const ClinicReportsIndex = lazy(() => import('@/features/clinic/reports/pages/Cl
 const AdminClinicReportsIndex = lazy(() => import('@/features/clinic-reports/pages/AdminClinicReportsIndex').then(m => ({ default: m.AdminClinicReportsIndex })));
 const AdminCustomerReportsIndex = lazy(() => import('@/features/customer-reports/pages/AdminCustomerReportsIndex').then(m => ({ default: m.AdminCustomerReportsIndex })));
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
+const ClinicStoriesIndex = lazy(() => import('@/features/clinic/stories/pages/ClinicStoriesIndex').then(m => ({ default: m.ClinicStoriesIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
 const ClinicBookingsKanban = lazy(() => import('@/features/clinic/bookings/kanban/pages/ClinicBookingsKanban').then(m => ({ default: m.ClinicBookingsKanban })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
@@ -208,6 +209,7 @@ export function AppRoutes() {
               <Route path="packages" element={<RoleGuard ability="packages.view"><ClinicPackagesIndex /></RoleGuard>} />
               <Route path="offers" element={<RoleGuard ability="offers.view"><ClinicOffersIndex /></RoleGuard>} />
               <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
+              <Route path="stories" element={<RoleGuard ability="stories.view"><ClinicStoriesIndex /></RoleGuard>} />
               <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
               <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
               <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />

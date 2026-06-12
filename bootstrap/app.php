@@ -51,7 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->statefulApi();
 
         // sendBeacon trackers can't carry a CSRF token.
-        $middleware->validateCsrfTokens(except: ['track/click', 'l/track/*']);
+        $middleware->validateCsrfTokens(except: ['track/click', 'track/story', 'l/track/*']);
 
         $middleware->alias([
             'api.guard'   => \App\Http\Middleware\EnsureApiGuard::class,

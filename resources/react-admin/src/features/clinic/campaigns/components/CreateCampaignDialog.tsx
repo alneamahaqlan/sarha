@@ -224,6 +224,7 @@ export function CreateCampaignDialog({ open, onClose, onCreated }: Props) {
                   />
                 </label>
               )}
+              <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">{t('clinic_campaigns.fields.image_hint')}</p>
             </div>
           )}
         </div>

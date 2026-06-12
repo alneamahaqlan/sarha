@@ -36,6 +36,16 @@ class PriceQuoteRequest extends Model
         return $this->belongsToMany(City::class, 'price_quote_request_city');
     }
 
+    /**
+     * Specializations this request targets. The broadcast reaches only clinics
+     * that hold at least one of these categories, so a request never lands on a
+     * complex that can't serve it. Empty = no specialization filter (legacy).
+     */
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'price_quote_request_category');
+    }
+
     public function replies()
     {
         return $this->hasMany(PriceQuoteReply::class);

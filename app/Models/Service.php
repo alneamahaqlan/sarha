@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Service extends Model
@@ -77,12 +79,32 @@ class Service extends Model
     }
 
     /**
+     * Doctors who provide this service. Many-to-many: a service may be done
+     * by several doctors, and a doctor performs several services. Picked on
+     * the clinic "add service" form; mirrored on each doctor's profile.
+     */
+    public function doctors(): BelongsToMany
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_service')->withTimestamps();
+    }
+
+    /**
      * Promotional offers for this service. Offers live in their own table
      * now — clinic admins manage them on a dedicated page builder.
      */
     public function offers(): HasMany
     {
         return $this->hasMany(Offer::class);
+    }
+
+    /**
+     * The single offer (if any) created from the inline "سعر العرض" field on
+     * the service form. Kept separate from manually-built offers via the
+     * origin marker so the form upserts/deletes only this one.
+     */
+    public function inlineOffer(): HasOne
+    {
+        return $this->hasOne(Offer::class)->where('origin', Offer::ORIGIN_SERVICE_FORM);
     }
 
     /** Purchase line items referencing this service (across bookings). */

@@ -35,6 +35,15 @@ class Doctor extends Model
         return $this->belongsTo(SubClinic::class);
     }
 
+    /**
+     * Services this doctor provides (many-to-many). Surfaced on the doctor's
+     * public profile and selected on the clinic "add service" form.
+     */
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'doctor_service')->withTimestamps();
+    }
+
     public function getPhotoUrlAttribute(): ?string
     {
         return $this->photo ? Storage::url($this->photo) : null;

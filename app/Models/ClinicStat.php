@@ -19,6 +19,7 @@ class ClinicStat extends Model
         'clinic_id', 'date', 'search_appearances',
         'page_views', 'bookings_count', 'quote_requests_count',
         'whatsapp_clicks', 'call_clicks', 'booking_clicks', 'directions_clicks',
+        'story_views',
     ];
 
     protected function casts(): array

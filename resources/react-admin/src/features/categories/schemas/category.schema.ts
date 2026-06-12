@@ -10,7 +10,7 @@ export const categoryFormSchema = z.object({
     .max(255)
     .regex(/^[a-z0-9-]+$/, 'must be lowercase letters, digits and dashes'),
   emoji: z.string().max(5).nullish(),
-  icon: z.string().max(100).nullish(),
+  icon: z.string().max(255).nullish(),
   is_active: z.boolean(),
   sort_order: z.number().int().min(0),
 });

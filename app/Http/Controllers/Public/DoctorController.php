@@ -30,14 +30,23 @@ class DoctorController extends Controller
         // feeds the public «عدد الظهور» badge; failure-isolated in the tracker.
         app(ImpressionTrackerService::class)->trackClinic($clinic->id, ImpressionSource::PROFILE);
 
-        // Optional: services of the doctor's sub-clinic (their specialty area).
-        $services = $doctor->sub_clinic_id
-            ? Service::query()
+        // Services the clinic explicitly linked to this doctor take priority.
+        // When none are linked we fall back to the doctor's sub-clinic services
+        // (their specialty area) so existing profiles don't go blank.
+        $services = $doctor->services()
+            ->approvedPublic()
+            ->with(['inlineOffer'])
+            ->orderBy('sort_order')
+            ->get();
+
+        if ($services->isEmpty() && $doctor->sub_clinic_id) {
+            $services = Service::query()
                 ->where('sub_clinic_id', $doctor->sub_clinic_id)
                 ->approvedPublic()
+                ->with(['inlineOffer'])
                 ->orderBy('sort_order')
-                ->get()
-            : collect();
+                ->get();
+        }
 
         $similarDoctors = $similarity->similarDoctors($doctor);
 

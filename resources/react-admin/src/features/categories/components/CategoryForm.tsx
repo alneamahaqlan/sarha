@@ -15,6 +15,7 @@ import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
 import { categoryFormSchema, slugify, type CategoryFormSchema } from '../schemas/category.schema';
 import { useCreateCategory, useUpdateCategory } from '../hooks';
+import { IconPicker } from './IconPicker';
 import type { Category } from '../types';
 
 interface Props {
@@ -114,9 +115,14 @@ export function CategoryForm({ category, onSuccess, onCancel }: Props) {
           <Input id="emoji" maxLength={5} {...form.register('emoji')} />
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="icon">{t('categories.icon')}</Label>
-          <Input id="icon" {...form.register('icon')} />
+        <div className="space-y-1.5 md:col-span-2">
+          <Label>{t('categories.icon')}</Label>
+          <IconPicker
+            value={form.watch('icon')}
+            emoji={form.watch('emoji')}
+            onChange={(icon) => form.setValue('icon', icon, { shouldDirty: true })}
+            disabled={submitting}
+          />
         </div>
 
         <div className="space-y-1.5">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, Coins, Wallet, CheckCircle2, PackageCheck, Users2, Hourglass, XCircle } from 'lucide-react';
+import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, Coins, Wallet, CheckCircle2, PackageCheck, Users2, Hourglass, XCircle, Clapperboard } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -57,6 +57,8 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
           tooltip={t('clinic_stats.quote_requests_tooltip')} />
         <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
           tooltip={t('clinic_stats.conversion_rate_tooltip')} />
+        <Card icon={Clapperboard} tone="info" label={t('clinic_stats.story_views')} value={nf.format(s.story_views)}
+          tooltip={t('clinic_stats.story_views_tooltip')} />
       </div>
 
       {/* Income (realized revenue from completed bookings' net prices) */}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
@@ -25,9 +26,10 @@ class QuoteController extends Controller
     public function requestForm(Request $request)
     {
         $cities = City::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'name_en']);
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'name_en', 'emoji']);
         $identity = $this->customerIdentity($request);
 
-        return view('public.quote-form', compact('cities', 'identity'));
+        return view('public.quote-form', compact('cities', 'categories', 'identity'));
     }
 
     public function store(Request $request)
@@ -135,7 +137,7 @@ class QuoteController extends Controller
 
     public function show(PriceQuoteRequest $quoteRequest)
     {
-        $quoteRequest->load(['cities:id,name,name_en', 'replies.clinic:id,name,slug']);
+        $quoteRequest->load(['cities:id,name,name_en', 'categories:id,name,name_en,emoji', 'replies.clinic:id,name,slug']);
 
         $isOwner = auth('web')->id() && auth('web')->id() === $quoteRequest->user_id;
         $hasPublicReplies = $quoteRequest->publicReplies()->exists();
@@ -166,9 +168,12 @@ class QuoteController extends Controller
             'description'    => 'required|string|min:10|max:2000',
             'city_ids'       => 'required|array|min:1',
             'city_ids.*'     => 'integer|exists:cities,id',
+            'category_ids'   => 'required|array|min:1',
+            'category_ids.*' => 'integer|exists:categories,id',
         ], [
-            'customer_phone.regex' => __('site.phone_invalid'),
-            'city_ids.required'    => __('site.quote_cities_required'),
+            'customer_phone.regex'  => __('site.phone_invalid'),
+            'city_ids.required'     => __('site.quote_cities_required'),
+            'category_ids.required' => __('site.quote_categories_required'),
         ]);
     }
 
@@ -188,9 +193,15 @@ class QuoteController extends Controller
         ]);
 
         $quote->cities()->sync($data['city_ids']);
+        $quote->categories()->sync($data['category_ids']);
 
-        // Every clinic in the targeted cities "received" this request.
-        Clinic::publiclyVisible()->whereIn('city_id', $data['city_ids'])->pluck('id')
+        // Only clinics in the targeted cities that ALSO offer one of the chosen
+        // specializations "received" this request — a request never lands on a
+        // complex that can't serve it.
+        Clinic::publiclyVisible()
+            ->whereIn('city_id', $data['city_ids'])
+            ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $data['category_ids']))
+            ->pluck('id')
             ->each(fn ($cid) => ClinicStat::bump($cid, 'quote_requests_count'));
 
         // Notify the targeted complexes (cities are attached now).

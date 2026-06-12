@@ -27,8 +27,13 @@ class Offer extends Model
     public const TYPE_SERVICE = 'service';
     public const TYPE_GENERAL = 'general';
 
+    /** Built on the dedicated Offers page (the default). */
+    public const ORIGIN_CLINIC = 'clinic';
+    /** Auto-managed by the inline "سعر العرض" field on the service form. */
+    public const ORIGIN_SERVICE_FORM = 'service_form';
+
     protected $fillable = [
-        'clinic_id', 'service_id', 'type', 'title', 'description', 'image',
+        'clinic_id', 'service_id', 'type', 'origin', 'title', 'description', 'image',
         'old_price', 'price', 'starts_at', 'ends_at',
         'is_featured', 'is_active', 'sort_order',
     ];
@@ -83,6 +88,12 @@ class Offer extends Model
         if ($this->starts_at?->gt($now))    { return 'scheduled'; }
         if ($this->ends_at?->lt($now))      { return 'expired'; }
         return 'active';
+    }
+
+    /** Live right now (active + inside the window). */
+    public function isRunning(): bool
+    {
+        return $this->status() === 'active';
     }
 
     /**

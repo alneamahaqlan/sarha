@@ -158,7 +158,7 @@ export function CategoriesIndex() {
                     </Button>
                   </div>
                 </TableCell>
-                <TableCell><CategoryIcon emoji={category.emoji} className="w-5 h-5 text-[var(--color-foreground)]" /></TableCell>
+                <TableCell><CategoryIcon emoji={category.emoji} icon={category.icon} className="w-5 h-5 text-[var(--color-foreground)]" /></TableCell>
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]" dir="ltr">{category.slug}</TableCell>
                 <TableCell>

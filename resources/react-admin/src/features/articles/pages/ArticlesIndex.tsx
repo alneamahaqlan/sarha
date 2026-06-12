@@ -138,6 +138,7 @@ function ArticleDialog({ article, onClose }: { article: AdminArticle | null; onC
             <div className="md:col-span-2">
               <FileUpload
                 label={t('admin_articles.cover_image')}
+                hint={t('admin_articles.cover_image_hint')}
                 value={form.watch('cover_image')}
                 onChange={(p) => form.setValue('cover_image', p, { shouldDirty: true })}
                 directory="articles"

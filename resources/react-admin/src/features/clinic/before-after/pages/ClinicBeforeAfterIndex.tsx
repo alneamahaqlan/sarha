@@ -99,6 +99,7 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
               <FileUpload value={form.watch('after_image')} onChange={(p) => form.setValue('after_image', p ?? '', { shouldDirty: true })} directory="before-after" />
             </div>
           </div>
+          <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">{t('clinic_before_after.image_hint')}</p>
           <div className="space-y-1.5">
             <Label htmlFor="title">{t('clinic_before_after.title_label')}</Label>
             <Input id="title" {...form.register('title')} />

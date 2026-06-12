@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
+use App\Models\Story;
 use App\Services\UserActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -41,6 +42,30 @@ class TrackingController extends Controller
                             $request, auth('web')->id(), $clinicId, $type,
                         );
                     }
+                }
+            } catch (\Throwable $e) {
+                // ignore — tracking must never surface an error
+            }
+        }
+
+        return response()->noContent();
+    }
+
+    /**
+     * Record one view of a single story: bumps the per-story lifetime
+     * counter and the clinic's daily `story_views` aggregate (so it shows
+     * in the stats centers). The client de-dupes per story per page load.
+     */
+    public function story(Request $request): Response
+    {
+        $storyId = (int) $request->input('story');
+
+        if ($storyId > 0) {
+            try {
+                $story = Story::find($storyId);
+                if ($story) {
+                    $story->increment('views_count');
+                    ClinicStat::bump($story->clinic_id, 'story_views');
                 }
             } catch (\Throwable $e) {
                 // ignore — tracking must never surface an error

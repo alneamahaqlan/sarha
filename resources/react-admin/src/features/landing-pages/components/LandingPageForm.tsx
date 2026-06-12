@@ -264,8 +264,8 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
 
       {/* Images */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <FileUpload label={t('landing_pages.cover_image')} directory="landing-pages" value={form.watch('cover_image')} onChange={(p) => form.setValue('cover_image', p ?? '', { shouldDirty: true })} />
-        <FileUpload label={t('landing_pages.social_image')} directory="landing-pages" value={form.watch('social_image')} onChange={(p) => form.setValue('social_image', p ?? '', { shouldDirty: true })} />
+        <FileUpload label={t('landing_pages.cover_image')} hint={t('landing_pages.cover_image_hint')} directory="landing-pages" value={form.watch('cover_image')} onChange={(p) => form.setValue('cover_image', p ?? '', { shouldDirty: true })} />
+        <FileUpload label={t('landing_pages.social_image')} hint={t('landing_pages.social_image_hint')} directory="landing-pages" value={form.watch('social_image')} onChange={(p) => form.setValue('social_image', p ?? '', { shouldDirty: true })} />
       </div>
 
       {/* CTA */}

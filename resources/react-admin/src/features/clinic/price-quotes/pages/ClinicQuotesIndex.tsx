@@ -52,6 +52,7 @@ function ReplyDialog({ quote, onClose }: { quote: BroadcastQuote; onClose: () =>
             <p className="font-semibold">{quote.service_name}</p>
             <p className="mt-1 text-[var(--color-muted-foreground)]">{quote.description}</p>
             <div className="mt-2 flex flex-wrap gap-1">
+              {quote.categories?.map((c) => <Badge key={`cat-${c.id}`} variant="default" className="text-[10px]">{c.name}</Badge>)}
               {quote.cities.map((c) => <Badge key={c.id} variant="muted" className="text-[10px]">{c.name}</Badge>)}
             </div>
           </div>
@@ -177,6 +178,11 @@ export function ClinicQuotesIndex() {
                 <TableCell className="font-medium">
                   {q.service_name}
                   <p className="text-xs text-[var(--color-muted-foreground)] max-w-xs truncate">{q.description}</p>
+                  {q.categories?.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {q.categories.map((c) => <Badge key={c.id} variant="default" className="text-[10px]">{c.name}</Badge>)}
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-sm">{q.customer_name}</TableCell>
                 <TableCell>

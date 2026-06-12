@@ -17,7 +17,7 @@
                     {{-- Floating glow that intensifies on hover. --}}
                     <span class="absolute -top-8 -end-8 w-24 h-24 rounded-full {{ $i % 2 === 0 ? 'bg-sage-primary/10' : 'bg-gold-primary/15' }} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></span>
                     <span class="relative mb-4 w-14 h-14 rounded-2xl bg-white shadow-soft text-sage-primary flex items-center justify-center group-hover:scale-110 group-hover:text-gold-deep transition-all duration-300">
-                        <x-category-icon :emoji="$category->emoji" class="w-7 h-7" />
+                        <x-category-icon :emoji="$category->emoji" :icon="$category->icon" class="w-7 h-7" />
                     </span>
                     <div class="relative">
                         <span class="block font-display font-bold text-charcoal group-hover:text-sage-deep transition-colors">{{ $category->display_name }}</span>

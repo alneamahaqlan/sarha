@@ -38,6 +38,7 @@ class PriceQuoteRequestController extends Controller
             ->whereHas('cities', fn ($q) => $q->where('cities.id', $clinic->city_id))
             ->with([
                 'cities:id,name,name_en',
+                'categories:id,name,name_en',
                 'replies' => fn ($q) => $q->where('clinic_id', $clinic->id),
             ])
             ->withCount('replies');
@@ -143,6 +144,7 @@ class PriceQuoteRequestController extends Controller
 
         $priceQuote->load([
             'cities:id,name,name_en',
+            'categories:id,name,name_en',
             'replies' => fn ($q) => $q->where('clinic_id', $clinic->id),
         ])->loadCount('replies');
 

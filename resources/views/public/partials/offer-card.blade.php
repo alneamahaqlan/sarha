@@ -19,9 +19,14 @@
     $endsAtIso = $offer->ends_at->toIso8601String();
     $offerHref = route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]);
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
+    // Specialty ids for the hero filter — an offer inherits its linked
+    // service's specialties; general offers have none (drop out when filtering).
+    $specCats = ($spec ?? false) && $offer->service && $offer->service->relationLoaded('categories')
+        ? $offer->service->categories->pluck('id')->all() : [];
 @endphp
 
-<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+     @if($spec ?? false) x-show="$store.spec.show(@js($specCats))" @endif>
     {{-- Save + compare are siblings of (not nested in) the navigation links so
          tapping them never triggers a page change. flex-col-reverse keeps the
          heart in its original bottom-corner spot with compare stacked above. --}}

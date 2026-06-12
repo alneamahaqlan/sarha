@@ -117,8 +117,17 @@ class NotificationService
             return;
         }
 
+        // Specialization targeting: notify only complexes that offer one of the
+        // chosen categories, so a dermatology complex never gets a dental
+        // request. A request with no categories (legacy) keeps the old reach.
+        $categoryIds = $quote->categories()->pluck('categories.id');
+
         Clinic::where('status', 'active')
             ->whereIn('city_id', $cityIds)
+            ->when($categoryIds->isNotEmpty(), fn ($q) => $q->whereHas(
+                'categories',
+                fn ($c) => $c->whereIn('categories.id', $categoryIds),
+            ))
             ->each(function (Clinic $clinic) use ($quote) {
                 $this->push(
                     $clinic,

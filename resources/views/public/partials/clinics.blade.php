@@ -17,12 +17,18 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->subClinics as $sub)
+            @php
+                $subCats = collect($sub->category_id ? [$sub->category_id] : [])
+                    ->merge($sub->services->flatMap(fn ($s) => $s->relationLoaded('categories') ? $s->categories->pluck('id') : []))
+                    ->unique()->values()->all();
+            @endphp
             <a href="{{ route('subclinic.show', ['slug' => $clinic->slug, 'subClinic' => $sub->id]) }}"
+               @if($spec ?? false) x-show="$store.spec.show(@js($subCats))" @endif
                class="group bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-md hover:ring-sage-200 transition-all p-5 flex flex-col">
                 <div class="flex items-start gap-3 mb-2">
                     @if($sub->category)
                         <div class="shrink-0 w-11 h-11 rounded-xl bg-sage-mist text-sage-primary flex items-center justify-center">
-                            <x-category-icon :emoji="$sub->category->emoji" class="w-6 h-6" />
+                            <x-category-icon :emoji="$sub->category->emoji" :icon="$sub->category->icon" class="w-6 h-6" />
                         </div>
                     @endif
                     <div class="min-w-0 flex-1">

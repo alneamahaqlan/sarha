@@ -121,6 +121,7 @@ export function BannerSlidesDialog({ section, onClose }: Props) {
               onChange={(p) => setDraft({ ...draft, image: p })}
               directory="banners"
               label={t('homepage_sections.slide_image', 'الصورة (jpg/png/gif/webp)')}
+              hint={t('homepage_sections.slide_image_hint')}
             />
             <div className="space-y-1.5">
               <Label htmlFor="new_link">{t('homepage_sections.slide_link', 'رابط عند الضغط (اختياري)')}</Label>

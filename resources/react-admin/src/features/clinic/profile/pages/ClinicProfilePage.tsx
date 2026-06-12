@@ -179,6 +179,7 @@ export function ClinicProfilePage() {
           <div className="md:col-span-2">
             <FileUpload
               label={t('clinic_profile.logo')}
+              hint={t('clinic_profile.logo_hint')}
               value={form.watch('logo')}
               onChange={(p) => form.setValue('logo', p, { shouldDirty: true })}
               directory="logos"

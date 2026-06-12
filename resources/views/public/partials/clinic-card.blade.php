@@ -85,7 +85,7 @@
             <div class="flex flex-wrap gap-1">
                 @foreach($clinic->categories->take(3) as $cat)
                     <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full">
-                        <x-category-icon :emoji="$cat->emoji" class="w-3 h-3" /> {{ $cat->display_name }}
+                        <x-category-icon :emoji="$cat->emoji" :icon="$cat->icon" class="w-3 h-3" /> {{ $cat->display_name }}
                     </span>
                 @endforeach
             </div>

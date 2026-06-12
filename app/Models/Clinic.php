@@ -409,6 +409,18 @@ class Clinic extends Authenticatable
         return $this->hasMany(Offer::class);
     }
 
+    /** Live (published + unexpired) Instagram-style stories, for the public page. */
+    public function stories()
+    {
+        return $this->hasMany(Story::class)->active()->orderBy('sort_order')->orderByDesc('id');
+    }
+
+    /** Unfiltered stories (active + inactive) — used by the clinic panel. */
+    public function storiesAll()
+    {
+        return $this->hasMany(Story::class)->orderBy('sort_order')->orderByDesc('id');
+    }
+
     /** Unfiltered packages (active + inactive) — used by the clinic panel. */
     public function packagesAll()
     {

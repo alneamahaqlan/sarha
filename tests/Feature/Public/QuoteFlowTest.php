@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Public;
 
+use App\Models\Category;
 use App\Models\City;
 use App\Models\PriceQuoteRequest;
 use App\Models\User;
@@ -27,6 +28,7 @@ class QuoteFlowTest extends TestCase
             'service_name'   => 'تنظيف الأسنان',
             'description'    => 'أرغب في معرفة سعر تنظيف الأسنان مع التلميع.',
             'city_ids'       => [$city->id],
+            'category_ids'   => [Category::factory()->create()->id],
         ];
     }
 

@@ -85,7 +85,7 @@
                             <td class="p-4 text-center">
                                 <div class="flex flex-wrap justify-center gap-1">
                                     @forelse($service->categories->take(3) as $cat)
-                                        <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
+                                        <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" :icon="$cat->icon" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
                                     @empty
                                         <span class="text-gray-400">—</span>
                                     @endforelse

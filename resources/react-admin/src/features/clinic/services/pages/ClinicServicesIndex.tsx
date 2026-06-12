@@ -37,8 +37,10 @@ import {
   useSubClinicLookup, useUpdateClinicService,
 } from '../hooks';
 import { MultiCategorySelect } from '../components/MultiCategorySelect';
+import { MultiDoctorSelect } from '../components/MultiDoctorSelect';
 import { CatalogServicePicker } from '../components/CatalogServicePicker';
 import { RequestSpecialtyDialog } from '../components/RequestSpecialtyDialog';
+import { useClinicDoctors } from '@/features/clinic/doctors/hooks';
 
 const schema = z
   .object({
@@ -49,16 +51,27 @@ const schema = z
     // 1–5 specialties — mirrors StoreServiceRequest / UpdateServiceRequest.
     // Each service must belong to at least one specialty, up to five.
     category_ids: z.array(z.number().int().positive()).min(1).max(5),
+    // Doctors who provide this service (optional, any number).
+    doctor_ids: z.array(z.number().int().positive()).default([]),
     sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
       .transform((v) => (v === '' || v === undefined ? null : (v as number))),
     description: z.string().nullish(),
     price: z.number().min(0),
+    // Optional discounted price → backend creates/updates a real service offer.
+    offer_price: z.union([z.number(), z.nan()]).nullish()
+      .transform((v) => (v === undefined || v === null || Number.isNaN(v) ? null : v)),
+    offer_ends_at: z.string().nullish(),
     price_from: z.boolean().default(false),
     price_includes: z.string().nullish(),
     price_excludes: z.string().nullish(),
     image: z.string().nullish(),
     is_active: z.boolean(),
     sort_order: z.number().int().min(0).default(0),
+  })
+  // The discounted price only makes sense below the regular price.
+  .refine((v) => v.offer_price == null || v.offer_price < v.price, {
+    path: ['offer_price'],
+    message: 'سعر العرض لازم يكون أقل من السعر الأساسي.',
   });
 type FormValues = z.infer<typeof schema>;
 
@@ -66,6 +79,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
   const { t } = useTranslation();
   const { data: subClinics } = useSubClinicLookup();
   const { data: categories } = useCategoryLookup();
+  const { data: doctorsPage } = useClinicDoctors();
   const create = useCreateClinicService();
   const update = useUpdateClinicService(service?.id ?? 0);
   const [requestOpen, setRequestOpen] = useState(false);
@@ -78,9 +92,12 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
       // single category_id if the row hasn't been resaved since the
       // many-to-many migration. Create mode: empty list.
       category_ids: service?.category_ids ?? [],
+      doctor_ids: service?.doctor_ids ?? [],
       sub_clinic_id: service?.sub_clinic_id ?? null,
       description: service?.description ?? '',
       price: service?.price ?? 0,
+      offer_price: service?.offer_price ?? null,
+      offer_ends_at: service?.offer_ends_at ?? '',
       price_from: service?.price_from ?? false,
       price_includes: service?.price_includes ?? '',
       price_excludes: service?.price_excludes ?? '',
@@ -165,6 +182,17 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               </Select>
             </div>
             <div className="space-y-1.5 md:col-span-2">
+              <Label>{t('clinic_services.doctors', 'الأطباء المقدّمون لهذه الخدمة')}</Label>
+              <MultiDoctorSelect
+                value={form.watch('doctor_ids') ?? []}
+                onChange={(ids) => form.setValue('doctor_ids', ids, { shouldDirty: true })}
+                doctors={(doctorsPage?.data ?? []).map((d) => ({ id: d.id, name: d.name, specialty: d.specialty }))}
+              />
+              <p className="text-xs text-[var(--color-muted-foreground)]">
+                {t('clinic_services.doctors_hint', 'تظهر هذه الخدمة في ملف كل طبيب تختاره.')}
+              </p>
+            </div>
+            <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="description">{t('clinic_services.description')}</Label>
               <Textarea id="description" rows={2} {...form.register('description')} />
             </div>
@@ -174,6 +202,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
                 value={form.watch('image')}
                 onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
                 directory="services"
+                hint={t('clinic_services.image_hint')}
               />
             </div>
             <div className="space-y-1.5">
@@ -189,6 +218,39 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               <Switch checked={form.watch('price_from')} onCheckedChange={(c) => form.setValue('price_from', c, { shouldDirty: true })} />
               <Label>{t('clinic_services.price_from', 'السعر يبدأ من (الحد الأدنى)')}</Label>
             </div>
+            {/* Inline offer: an optional discounted price that becomes a real
+                service offer (shows in the offers section, counts down, etc.). */}
+            <div className="md:col-span-2 rounded-lg border border-dashed border-[var(--color-border)] p-3 space-y-3">
+              <div className="flex items-center gap-1.5 text-sm font-medium">
+                <Sparkle className="h-4 w-4 text-[var(--color-primary)]" />
+                {t('clinic_services.offer_section', 'سعر العرض (اختياري)')}
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="offer_price">{t('clinic_services.offer_price', 'السعر بعد الخصم')}</Label>
+                  <Input
+                    id="offer_price"
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    placeholder={t('clinic_services.offer_price_ph', 'اتركه فارغاً إن لا يوجد عرض')}
+                    {...form.register('offer_price', { setValueAs: (v) => (v === '' || v === null ? null : Number(v)) })}
+                  />
+                  <FieldError message={form.formState.errors.offer_price?.message} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="offer_ends_at">{t('clinic_services.offer_ends_at', 'ينتهي العرض في')}</Label>
+                  <Input id="offer_ends_at" type="date" {...form.register('offer_ends_at')} />
+                </div>
+              </div>
+              {form.watch('offer_price') != null && form.watch('offer_price')! > 0 && form.watch('price') > 0 && form.watch('offer_price')! < form.watch('price') && (
+                <p className="text-xs text-emerald-700">
+                  {t('clinic_services.offer_discount_hint', 'خصم {{pct}}%', {
+                    pct: Math.floor(((form.watch('price') - form.watch('offer_price')!) / form.watch('price')) * 100),
+                  })}
+                </p>
+              )}
+            </div>
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="price_includes">{t('clinic_services.price_includes', 'ما يشمله السعر (اختياري)')}</Label>
               <Textarea id="price_includes" rows={2} placeholder={t('clinic_services.price_includes_ph', 'مثال: الكشف الأولي + استشارة الطبيب')} {...form.register('price_includes')} />
@@ -202,7 +264,7 @@ function ServiceDialog({ service, onClose }: { service: Service | null; onClose:
               <Label>{t('clinic_services.is_active')}</Label>
             </div>
             <p className="md:col-span-2 rounded-md bg-[var(--color-muted)] px-3 py-2 text-xs text-[var(--color-muted-foreground)]">
-              {t('clinic_services.offers_moved_hint', 'لإضافة سعر مخفّض على هذه الخدمة، انتقل إلى "العروض" من القائمة الجانبية.')}
+              {t('clinic_services.offers_moved_hint', 'سعر العرض هنا يظهر تلقائياً ضمن قسم "العروض"؛ لمزيد من إعدادات العرض افتح صفحة العروض.')}
             </p>
           </div>
           <FormErrorSummary

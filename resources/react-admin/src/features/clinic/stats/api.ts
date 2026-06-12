@@ -28,6 +28,8 @@ export interface StatsSummary {
   call_clicks: number;
   directions_clicks: number;
   booking_clicks: number;
+  /** Total story opens (Instagram-style stories) across the range. */
+  story_views: number;
   conversion_rate: number;
   /** Realized service income = SUM(net_price) of completed bookings in range. */
   service_income: number;

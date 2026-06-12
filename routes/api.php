@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardContr
 use App\Http\Controllers\Api\V1\Admin\SeederCenterController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BeforeAfterController as ClinicBeforeAfterController;
+use App\Http\Controllers\Api\V1\Clinic\StoryController as ClinicStoryController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
@@ -451,6 +452,13 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
                 ->only(['index', 'store', 'update', 'destroy'])
                 ->parameters(['before-after' => 'beforeAfter'])
                 ->names('clinic.before-after');
+        });
+
+        // Instagram-style stories shown as a ring around the clinic logo.
+        Route::middleware('clinic.role:stories.manage')->group(function () {
+            Route::apiResource('stories', ClinicStoryController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.stories');
         });
 
         Route::middleware('clinic.role:category_requests.view')->group(function () {

@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone, ShoppingCart } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone, ShoppingCart, Clapperboard } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -51,6 +51,7 @@ const clinicNav: NavEntry[] = [
       { to: '/clinic/offers', label: 'clinic_nav.offers', icon: BadgePercent, badge: 'offer_expiring' as keyof ClinicNavBadges, requires: 'offers.view' },
       { to: '/clinic/packages', label: 'clinic_nav.packages', icon: Package, requires: 'packages.view' },
       { to: '/clinic/before-after', label: 'clinic_nav.before_after', icon: Images, requires: 'before_after.view' },
+      { to: '/clinic/stories', label: 'clinic_nav.stories', icon: Clapperboard, requires: 'stories.view' },
       { to: '/clinic/category-requests', label: 'clinic_nav.category_requests', icon: Tags, requires: 'category_requests.view' },
       { to: '/clinic/import-services', label: 'clinic_nav.import_services', icon: ArrowUpFromLine, requires: 'services.manage' },
     ],

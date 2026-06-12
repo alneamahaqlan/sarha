@@ -68,7 +68,7 @@
             <h2 class="text-lg font-bold text-gray-800">@lang('site.featured_offers_title')</h2>
             <div class="grid grid-cols-1 lg:grid-cols-{{ min($featured->count(), 3) }} gap-4">
                 @foreach($featured as $offer)
-                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => true])
+                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => true, 'spec' => $spec ?? false])
                 @endforeach
             </div>
         </div>
@@ -81,7 +81,7 @@
             @endif
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 @foreach($regular as $offer)
-                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => false])
+                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => false, 'spec' => $spec ?? false])
                 @endforeach
             </div>
         </div>

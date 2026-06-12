@@ -11,7 +11,13 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->packages as $package)
+            @php
+                $pkgCats = $package->services
+                    ->flatMap(fn ($s) => $s->relationLoaded('categories') ? $s->categories->pluck('id') : [])
+                    ->unique()->values()->all();
+            @endphp
             <a href="{{ route('package.show', ['slug' => $clinic->slug, 'package' => $package->id]) }}"
+               @if($spec ?? false) x-show="$store.spec.show(@js($pkgCats))" @endif
                class="group block bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-sage-100 hover:border-sage-300 transition-all">
                 <div class="flex items-start justify-between gap-3">
                     <h3 class="font-bold text-gray-800 group-hover:text-sage-700 transition-colors">{{ $package->name }}</h3>

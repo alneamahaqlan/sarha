@@ -108,6 +108,14 @@ return [
     // In-complex search box
     'clinic_search_placeholder' => 'Search for a service, doctor, offer or package...',
     'clinic_search_no_results' => 'No matching results',
+    // Hero specialty (category) filter
+    'clinic_spec_filter_all' => 'All',
+    'clinic_spec_filter_active' => 'Specialty:',
+    'clinic_spec_filter_clear' => 'Clear filter',
+    // Instagram-style stories
+    'stories_view' => 'View stories',
+    'previous' => 'Previous',
+    'next' => 'Next',
     'search_type_offer' => 'Offer',
     'search_type_package' => 'Package',
     'search_type_service' => 'Service',
@@ -150,6 +158,9 @@ return [
     'quote_cities_label' => 'Target cities',
     'quote_cities_hint' => 'Your request will be shown to all complexes in the selected cities.',
     'quote_cities_required' => 'Select at least one city.',
+    'quote_categories_label' => 'Required specializations',
+    'quote_categories_hint' => 'Only complexes offering the chosen specialization receive your request — a dental request never reaches a dermatology clinic.',
+    'quote_categories_required' => 'Select at least one specialization.',
     'quote_submit' => 'Send request to complexes',
     'quotes_board_title' => 'Price quote requests',
     'quotes_board_subtitle' => 'Browse customer requests and complexes\' public replies.',

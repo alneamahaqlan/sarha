@@ -100,6 +100,7 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
               onChange={(p) => form.setValue('photo', p, { shouldDirty: true })}
               directory="doctors"
               label={t('clinic_doctors.photo')}
+              hint={t('clinic_doctors.photo_hint')}
             />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

@@ -79,6 +79,81 @@
 
 @push('scripts')
 <script>window.sarhaTrack && window.sarhaTrack('view_clinic', { clinic_id: {{ (int) $clinic->id }}, clinic_slug: @json($clinic->slug), city: @json(optional($clinic->city)->name) });</script>
+<script>
+    // Specialty filter store — clicking a category chip in the hero narrows
+    // every content section (offers, services, sub-clinics, doctors, packages)
+    // to items tagged with that specialty. `active` is the selected category
+    // id (or null = show all). Each filterable card calls show(itsCatIds).
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('spec', {
+            active: null,
+            names: {},                          // id -> display name (for the banner)
+            toggle(id) { this.active = this.active === id ? null : id; },
+            clear() { this.active = null; },
+            isActive(id) { return this.active === id; },
+            // A card shows when no filter is active, or its category list
+            // includes the active specialty. Cards with no specialty fall out
+            // while a filter is active (they aren't tied to this specialty).
+            show(cats) { return !this.active || (cats || []).includes(this.active); },
+            get activeName() { return this.active ? (this.names[this.active] || '') : ''; },
+        });
+    });
+
+    // Instagram-style story viewer: full-screen overlay with segmented
+    // progress bars, auto-advance, and tap-to-navigate.
+    function storyViewer(items) {
+        return {
+            items: items || [],
+            open: false,
+            index: 0,
+            progress: 0,
+            duration: 5000,   // ms per story
+            _timer: null,
+            _seen: new Set(),   // story ids already counted this page load
+            show(i = 0) {
+                if (!this.items.length) return;
+                this.index = i;
+                this.open = true;
+                document.body.style.overflow = 'hidden';
+                this.track();
+                this.play();
+            },
+            // Count a view once per story per page load (fire-and-forget).
+            track() {
+                const item = this.items[this.index];
+                if (!item || this._seen.has(item.id)) return;
+                this._seen.add(item.id);
+                try {
+                    const fd = new FormData();
+                    fd.append('story', item.id);
+                    navigator.sendBeacon(@json(route('track.story')), fd);
+                } catch (e) { /* tracking must never break the viewer */ }
+            },
+            play() {
+                this.progress = 0;
+                clearInterval(this._timer);
+                const step = 50;
+                this._timer = setInterval(() => {
+                    this.progress += (step / this.duration) * 100;
+                    if (this.progress >= 100) this.next();
+                }, step);
+            },
+            next() {
+                if (this.index < this.items.length - 1) { this.index++; this.track(); this.play(); }
+                else { this.close(); }
+            },
+            prev() {
+                if (this.index > 0) { this.index--; this.track(); }
+                this.play();
+            },
+            close() {
+                this.open = false;
+                clearInterval(this._timer);
+                document.body.style.overflow = '';
+            },
+        };
+    }
+</script>
 @endpush
 
 @section('content')
@@ -95,24 +170,46 @@
 
     {{-- Hero Card (protected — always renders) --}}
     @if($pageSections->has('hero'))
-    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
-        {{-- aspect-ratio so the hero area is reserved before the image
-             arrives — prevents the page header card below from shifting
-             down 224px when the logo decodes. 16/7 keeps a banner feel
-             close to the previous fixed h-56 on typical viewports. --}}
-        @if($clinic->logo)
-            <div class="aspect-[16/7] bg-gray-100">
-                {{-- Above-the-fold hero — eager loading + fetchpriority="high"
-                     so LCP fires fast. lazy here would defer the most
-                     visible asset and tank the page's perceived speed. --}}
-                <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}"
-                     fetchpriority="high" decoding="async"
-                     class="w-full h-full object-cover">
-            </div>
-        @endif
+    @php
+        $storyItems = $clinic->stories->map(fn ($s) => [
+            'id'      => $s->id,
+            'url'     => $s->image ? Storage::url($s->image) : null,
+            'caption' => $s->caption,
+        ])->filter(fn ($s) => $s['url'])->values();
+        $hasStories = $storyItems->isNotEmpty();
+    @endphp
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6" x-data="storyViewer(@js($storyItems))">
         <div class="p-6">
             <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div class="w-full sm:flex-1 min-w-0">
+                <div class="flex items-start gap-4 w-full sm:flex-1 min-w-0">
+                    {{-- Instagram-style circular logo avatar (uploaded from the
+                         clinic profile → "logo"). Falls back to the clinic's
+                         first letter so the header never looks empty. When the
+                         clinic has live stories, the avatar gets the gradient
+                         "story ring" and opens the story viewer on tap. --}}
+                    @if($hasStories)
+                        <button type="button" @click="show(0)" title="@lang('site.stories_view')"
+                                class="flex-shrink-0 rounded-full p-[3px] bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600">
+                            <span class="block rounded-full p-[2px] bg-white">
+                                @if($clinic->logo)
+                                    <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}"
+                                         fetchpriority="high" decoding="async"
+                                         class="block w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover">
+                                @else
+                                    <span class="block w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-sage-50 text-sage-600 flex items-center justify-center text-3xl font-bold">{{ mb_substr($clinic->name, 0, 1) }}</span>
+                                @endif
+                            </span>
+                        </button>
+                    @elseif($clinic->logo)
+                        <img src="{{ Storage::url($clinic->logo) }}" alt="{{ $clinic->name }}"
+                             fetchpriority="high" decoding="async"
+                             class="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-white shadow-md flex-shrink-0">
+                    @else
+                        <span class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-sage-50 text-sage-600 flex items-center justify-center text-3xl font-bold ring-4 ring-white shadow-md flex-shrink-0">
+                            {{ mb_substr($clinic->name, 0, 1) }}
+                        </span>
+                    @endif
+                <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2 flex-wrap mb-1">
                         <h1 class="text-2xl font-bold text-gray-900">{{ $clinic->name }}</h1>
                         {{-- Verified badge — package-driven, set in ClinicController::show via FeatureGate. --}}
@@ -159,19 +256,33 @@
                     </div>
 
                     @if($clinic->categories->isNotEmpty())
-                        <div class="flex flex-wrap gap-2 mt-3">
+                        {{-- Clickable specialty filter: tapping a chip narrows
+                             every content section below to that specialty.
+                             Tap again (or "الكل") to clear. --}}
+                        <div x-data x-init="$store.spec.names = @js($clinic->categories->pluck('display_name', 'id'))"
+                             class="flex flex-wrap items-center gap-2 mt-3">
+                            <button type="button" @click="$store.spec.clear()"
+                                    :class="!$store.spec.active ? 'bg-sage-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-colors">
+                                @lang('site.clinic_spec_filter_all')
+                            </button>
                             @foreach($clinic->categories as $cat)
-                                <span class="inline-flex items-center gap-1.5 bg-sage-50 text-sage-700 px-3 py-1 rounded-full text-sm">
-                                    <x-category-icon :emoji="$cat->emoji" class="w-4 h-4" /> {{ $cat->display_name }}
-                                </span>
+                                <button type="button" @click="$store.spec.toggle({{ $cat->id }})"
+                                        :class="$store.spec.isActive({{ $cat->id }}) ? 'bg-sage-600 text-white ring-2 ring-sage-400' : 'bg-sage-50 text-sage-700 hover:bg-sage-100'"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm transition-colors">
+                                    <x-category-icon :emoji="$cat->emoji" :icon="$cat->icon" class="w-4 h-4" /> {{ $cat->display_name }}
+                                </button>
                             @endforeach
                         </div>
                     @endif
                 </div>
+                </div>{{-- /avatar + name flex wrapper --}}
 
-                {{-- Share + Favorite + Book CTA --}}
+                {{-- Social media (follow) + Favorite + Book CTA. Sharing moved
+                     to the sidebar; the hero now leads with the clinic's own
+                     social channels. --}}
                 <div class="flex flex-col gap-3 items-end">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 flex-wrap justify-end">
                         @auth('web')
                             @php $isFavorited = auth('web')->user()->hasFavorited($clinic); @endphp
                             <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="js-save-form">
@@ -190,7 +301,7 @@
                                 </button>
                             </form>
                         @endauth
-                        @include('public.partials.share-buttons')
+                        @include('public.partials.social-bar', ['variant' => 'inline'])
                     </div>
                     <a href="{{ route('clinic.book.form', $clinic->slug) }}"
                        data-track="booking" data-clinic="{{ $clinic->id }}"
@@ -205,6 +316,12 @@
                 @include('public.partials.action-bar')
             </div>
         </div>
+
+        {{-- Instagram-style full-screen story viewer (Alpine scope = this hero
+             card via storyViewer()). Renders only when there are stories. --}}
+        @if($hasStories)
+            @include('public.partials.story-viewer', ['clinic' => $clinic])
+        @endif
     </div>
     @endif
 
@@ -279,6 +396,19 @@
             }
          }" class="mb-8">
 
+        {{-- Active specialty filter banner — shows which specialty the hero
+             chips narrowed the page to, with a one-tap clear. --}}
+        <div x-show="$store.spec.active" x-cloak
+             class="mb-4 flex items-center justify-between gap-3 bg-sage-50 border border-sage-100 rounded-xl px-4 py-3">
+            <span class="text-sm text-sage-800">
+                @lang('site.clinic_spec_filter_active') <b x-text="$store.spec.activeName"></b>
+            </span>
+            <button type="button" @click="$store.spec.clear()"
+                    class="text-sm font-semibold text-sage-700 hover:text-sage-800 inline-flex items-center gap-1 whitespace-nowrap">
+                <x-icon name="x" class="w-4 h-4" /> @lang('site.clinic_spec_filter_clear')
+            </button>
+        </div>
+
         {{-- In-complex search: filters services / doctors / offers / packages
              instantly (client-side). Empty query → normal tabs. --}}
         <div class="relative mb-5">
@@ -337,31 +467,31 @@
 
                 @if($pageSections->has('offers'))
                 <div x-show="tab === 'offers'" x-cloak class="space-y-6">
-                    @include('public.partials.offers', ['activeOffers' => $activeOffers])
+                    @include('public.partials.offers', ['activeOffers' => $activeOffers, 'spec' => true])
                 </div>
                 @endif
 
                 @if($pageSections->has('packages'))
                 <div x-show="tab === 'packages'" x-cloak class="space-y-6">
-                    @include('public.partials.packages')
+                    @include('public.partials.packages', ['spec' => true])
                 </div>
                 @endif
 
                 @if($pageSections->has('services'))
                 <div x-show="tab === 'services'" x-cloak class="space-y-6">
-                    @include('public.partials.sub-clinics')
+                    @include('public.partials.sub-clinics', ['spec' => true])
                 </div>
                 @endif
 
                 @if($pageSections->has('sub_clinics'))
                 <div x-show="tab === 'sub_clinics'" x-cloak class="space-y-6">
-                    @include('public.partials.clinics')
+                    @include('public.partials.clinics', ['spec' => true])
                 </div>
                 @endif
 
                 @if($pageSections->has('doctors'))
                 <div x-show="tab === 'doctors'" x-cloak class="space-y-6">
-                    @include('public.partials.doctors')
+                    @include('public.partials.doctors', ['spec' => true])
                 </div>
                 @endif
 
@@ -463,7 +593,12 @@
                             @break
 
                         @case('social_links')
-                            @include('public.partials.social-bar', ['sidebarTitleOverride' => $sidebarTitleOverride])
+                            {{-- Sharing lives here now (swapped with the hero's
+                                 social icons): a sidebar card of share targets. --}}
+                            <div class="bg-white rounded-xl shadow-sm p-6">
+                                <h3 class="font-bold text-gray-800 mb-4">{{ $sidebarTitleOverride ?? __('site.share') }}</h3>
+                                @include('public.partials.share-buttons', ['variant' => 'bare'])
+                            </div>
                             @break
                     @endswitch
                 @endforeach

@@ -20,6 +20,7 @@ export interface BroadcastQuote {
   status: string;
   created_at: string | null;
   cities: { id: number; name: string }[];
+  categories: { id: number; name: string }[];
   replies_count: number;
   my_reply: QuoteReply | null;
 }

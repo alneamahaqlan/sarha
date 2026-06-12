@@ -29,6 +29,10 @@ class QuoteRequestResource extends JsonResource
                 'id'   => $c->id,
                 'name' => $c->name,
             ])->values()),
+            'categories'     => $this->whenLoaded('categories', fn () => $this->categories->map(fn ($c) => [
+                'id'   => $c->id,
+                'name' => $c->name,
+            ])->values()),
             'replies_count'  => $this->whenCounted('replies'),
             'my_reply'       => $myReply ? [
                 'id'        => $myReply->id,

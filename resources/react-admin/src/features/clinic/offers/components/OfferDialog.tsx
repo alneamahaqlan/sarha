@@ -268,6 +268,7 @@ export function OfferDialog({ offer, onClose }: Props) {
               value={form.watch('image')}
               onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
               directory="offers"
+              hint={t('clinic_offers.image_size_hint')}
             />
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {t('clinic_offers.image_hint', 'اتركها فارغة لاستخدام صورة الخدمة المرتبطة.')}

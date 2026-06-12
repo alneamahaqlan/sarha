@@ -108,6 +108,14 @@ return [
     // In-complex search box
     'clinic_search_placeholder' => 'ابحث عن خدمة أو طبيب أو عرض أو باقة...',
     'clinic_search_no_results' => 'لا توجد نتائج مطابقة',
+    // Hero specialty (category) filter
+    'clinic_spec_filter_all' => 'الكل',
+    'clinic_spec_filter_active' => 'عرض تخصص:',
+    'clinic_spec_filter_clear' => 'إلغاء التصفية',
+    // Instagram-style stories
+    'stories_view' => 'مشاهدة القصص',
+    'previous' => 'السابق',
+    'next' => 'التالي',
     'search_type_offer' => 'عرض',
     'search_type_package' => 'باقة',
     'search_type_service' => 'خدمة',
@@ -150,6 +158,9 @@ return [
     'quote_cities_label' => 'المدن المستهدفة',
     'quote_cities_hint' => 'سيظهر طلبك لكل المجمعات في المدن المختارة.',
     'quote_cities_required' => 'اختر مدينة واحدة على الأقل.',
+    'quote_categories_label' => 'التخصصات المطلوبة',
+    'quote_categories_hint' => 'لن يصل طلبك إلا للمجمعات التي تقدّم التخصص المختار، فلا يصل طلب أسنان لعيادة جلدية.',
+    'quote_categories_required' => 'اختر تخصصًا واحدًا على الأقل.',
     'quote_submit' => 'إرسال الطلب للمجمعات',
     'quotes_board_title' => 'طلبات عروض الأسعار',
     'quotes_board_subtitle' => 'تصفّح طلبات العملاء وردود المجمعات العلنية.',

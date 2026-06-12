@@ -15,9 +15,17 @@ export interface Service {
   categories?: ServiceCategoryRef[];
   /** Convenience array of just the ids — used to seed edit form defaults. */
   category_ids?: number[];
+  /** Doctors who provide this service (many-to-many). */
+  doctors?: { id: number; name: string }[];
+  /** Convenience array of just the doctor ids — seeds edit form defaults. */
+  doctor_ids?: number[];
   name: string;
   description: string | null;
   price: number;
+  /** Inline discounted price (the service's own offer), when set. */
+  offer_price?: number | null;
+  /** ISO date (YYYY-MM-DD) the inline offer ends. */
+  offer_ends_at?: string | null;
   /** When true the price is a "starting from" minimum. */
   price_from?: boolean;
   price_includes?: string | null;

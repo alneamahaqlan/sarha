@@ -436,6 +436,7 @@ export function ClinicForm({ clinic, onSuccess, onCancel }: Props) {
           <div className="space-y-4">
             <FileUpload
               label={t('clinics.form.logo')}
+              hint={t('clinics.form.logo_hint')}
               value={form.watch('logo')}
               onChange={(p) => form.setValue('logo', p, { shouldDirty: true })}
               directory="logos"

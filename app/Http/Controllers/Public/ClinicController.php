@@ -31,19 +31,30 @@ class ClinicController extends Controller
             ->with([
                 'city',
                 'categories',
+                // Live Instagram-style stories (ring around the logo).
+                'stories',
                 'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
+                'services.inlineOffer',
+                // Specialty (category) ids power the click-to-filter chips in
+                // the hero — every filterable entity carries its own ids.
+                'services.categories:id',
                 // Sub-clinics + their active services for the nested services tab.
                 'subClinics.category',
                 'subClinics.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
+                'subClinics.services.inlineOffer',
+                'subClinics.services.categories:id',
                 // Doctors showcase + packages (with their services) for their tabs.
                 'doctors.subClinic',
+                'doctors.services.categories:id',
                 'packages.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved'),
+                'packages.services.categories:id',
                 // Promotional offers — model filter further narrows to the
                 // running window in the blade so the relation hands back
                 // the full list (active+scheduled+expired) and the view
                 // shows only what's live now.
                 'offers' => fn($q) => $q->orderByDesc('is_featured')->orderByDesc('starts_at'),
                 'offers.service:id,name,price,image',
+                'offers.service.categories:id',
                 // Before/after gallery (with optional service/sub-clinic links).
                 'beforeAfterPhotos.service:id,name',
                 'beforeAfterPhotos.subClinic:id,name,name_en',

@@ -56,6 +56,10 @@ Route::post('/cart/add/verify', [CartController::class, 'addVerify'])->middlewar
 Route::post('/track/click', [TrackingController::class, 'click'])
     ->middleware('throttle:120,1')
     ->name('track.click');
+// Story view tracking (sendBeacon, CSRF-excluded).
+Route::post('/track/story', [TrackingController::class, 'story'])
+    ->middleware('throttle:120,1')
+    ->name('track.story');
 // Landing pages (صفحات الهبوط). Registered before /clinic and the /{slug}
 // catch-all so /l/... always resolves here. Tracking beacons are CSRF-excluded
 // (see bootstrap/app.php) and throttled.
