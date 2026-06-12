@@ -33,6 +33,36 @@ class UpdateHomepageSectionRequest extends FormRequest
             'config.min_discount'     => ['nullable', 'integer', 'min:0', 'max:90'],
             'config.only_published'   => ['nullable', 'boolean'],
             'config.interval'         => ['nullable', 'integer', 'min:2', 'max:30'],
+
+            // `faqs` type: up to FAQ_LIMIT { question, answer } rows authored
+            // by the admin and rendered as an accordion on the landing page.
+            'config.faqs'             => ['nullable', 'array', 'max:'.HomepageSection::FAQ_LIMIT],
+            'config.faqs.*.question'  => ['required_with:config.faqs.*.answer', 'nullable', 'string', 'max:255'],
+            'config.faqs.*.answer'    => ['required_with:config.faqs.*.question', 'nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /**
+     * Strip blank FAQ rows before validation so the admin can leave unused
+     * slots empty without tripping required_with, and we never persist empty
+     * placeholders the public page would render.
+     */
+    protected function prepareForValidation(): void
+    {
+        $config = $this->input('config');
+        if (! is_array($config) || ! isset($config['faqs']) || ! is_array($config['faqs'])) {
+            return;
+        }
+
+        $config['faqs'] = collect($config['faqs'])
+            ->map(fn ($row) => [
+                'question' => is_array($row) ? trim((string) ($row['question'] ?? '')) : '',
+                'answer'   => is_array($row) ? trim((string) ($row['answer'] ?? '')) : '',
+            ])
+            ->filter(fn ($row) => $row['question'] !== '' || $row['answer'] !== '')
+            ->values()
+            ->all();
+
+        $this->merge(['config' => $config]);
     }
 }

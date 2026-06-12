@@ -44,6 +44,10 @@ export interface AnalyticsPlatform {
   new_clinics: number;
   active_clinics: number;
   total_clinics: number;
+  /** All-time platform tallies, mirrored on clinic headers. */
+  total_followers: number;
+  total_customers: number;
+  total_bookings: number;
 }
 
 /** Percentage change vs the immediately preceding window; null when no baseline. */

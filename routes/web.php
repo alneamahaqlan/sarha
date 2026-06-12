@@ -93,6 +93,12 @@ Route::get('/clinic/{slug}/c/{subClinic}', [SubClinicController::class, 'show'])
 Route::get('/clinic/{slug}/doctor/{doctor}', [DoctorController::class, 'show'])->name('doctor.show');
 Route::get('/clinic/{slug}/before-after/{photo}', [BeforeAfterController::class, 'show'])->name('before-after.show');
 
+// Follow a complex (Instagram-style). Public route on purpose: a guest who
+// taps "Follow" is sent through the OTP login and the follow is applied on
+// return (handled in OtpController via the pending_follow session key).
+Route::post('/clinic/{clinic:slug}/follow', [AccountController::class, 'toggleFollow'])
+    ->name('clinic.follow.toggle');
+
 // Broadcast price-quote requests (not tied to a single clinic).
 Route::get('/quotes', [QuoteController::class, 'board'])->name('quotes.board');
 Route::get('/quotes/new', [QuoteController::class, 'requestForm'])->name('quotes.request');

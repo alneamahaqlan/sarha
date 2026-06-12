@@ -120,6 +120,12 @@ class OtpController extends Controller
 
         auth('web')->login($user, remember: true);
 
+        // A guest who tapped "Follow" on a complex is finishing login now —
+        // apply the stashed follow so the action they initiated completes.
+        if ($clinicId = session()->pull('pending_follow')) {
+            $user->following()->syncWithoutDetaching([$clinicId]);
+        }
+
         // Feed the super-admin "comprehensive user profile" timeline.
         $tracker = app(UserActivityLogger::class);
         $tracker->touchVisitSession($request, $user->id);

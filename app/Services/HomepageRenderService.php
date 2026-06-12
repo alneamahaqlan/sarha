@@ -49,10 +49,31 @@ class HomepageRenderService
             'category_offers' => $this->categoryOffersData($s),
             'clinic_list'     => $this->clinicListData($s),
             'map'             => ['mapClinics' => $this->mapClinics($s->item_limit ?? 200)],
+            'faqs'            => ['faqs' => $this->faqs($s)],
             // Static sections (hero already covered above; the rest are pure markup).
             'ai_highlight', 'how_it_works', 'cta' => [],
             default => [],
         };
+    }
+
+    /**
+     * Clean, fully-filled Q&A rows from the section's config bag, capped at
+     * HomepageSection::FAQ_LIMIT. Drops any half-filled / empty rows so the
+     * partial only ever renders complete pairs.
+     *
+     * @return array<int, array{question: string, answer: string}>
+     */
+    private function faqs(HomepageSection $s): array
+    {
+        return collect(data_get($s->config, 'faqs', []))
+            ->map(fn ($row) => [
+                'question' => trim((string) data_get($row, 'question', '')),
+                'answer'   => trim((string) data_get($row, 'answer', '')),
+            ])
+            ->filter(fn ($row) => $row['question'] !== '' && $row['answer'] !== '')
+            ->take(HomepageSection::FAQ_LIMIT)
+            ->values()
+            ->all();
     }
 
     // ── data builders ──────────────────────────────────────────────────────

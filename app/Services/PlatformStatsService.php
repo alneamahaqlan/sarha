@@ -113,6 +113,13 @@ class PlatformStatsService
             'new_clinics'   => (int) Clinic::whereBetween('created_at', [$startAt, $endAt])->count(),
             'active_clinics' => (int) Clinic::where('status', 'active')->count(),
             'total_clinics' => (int) Clinic::count(),
+            // Cumulative platform-wide tallies (all-time), mirrored on each
+            // clinic header + stats page. followers = clinic_follows rows,
+            // customers = unified customer rows (booked + CRM-imported),
+            // bookings = every booking ever placed.
+            'total_followers' => (int) DB::table('clinic_follows')->count(),
+            'total_customers' => (int) DB::table('customers')->count(),
+            'total_bookings'  => (int) Booking::count(),
         ];
 
         // ---- period-over-period deltas vs the immediately preceding window ----

@@ -12,11 +12,22 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 
 import { useUpdateClinicPageSection } from '../hooks';
-import type { ClinicPageSection, ClinicPageSectionFormValues } from '../types';
+import type { ClinicFaqItem, ClinicPageSection, ClinicPageSectionFormValues } from '../types';
+
+/** Max Q&A rows the FAQ section stores — mirrors ClinicPageSection::FAQ_LIMIT. */
+const FAQ_LIMIT = 5;
+
+/** Pad the stored FAQ rows out to FAQ_LIMIT fixed slots for editing. */
+function toFaqSlots(content: ClinicFaqItem[] | null): ClinicFaqItem[] {
+  const rows = Array.isArray(content) ? content.slice(0, FAQ_LIMIT) : [];
+  while (rows.length < FAQ_LIMIT) rows.push({ question: '', answer: '' });
+  return rows;
+}
 
 interface Props {
   section: ClinicPageSection;
@@ -37,11 +48,14 @@ export function ClinicPageSectionEditDialog({ section, friendlyName, onClose }: 
   const { t } = useTranslation();
   const update = useUpdateClinicPageSection(section.id);
 
+  const isFaq = section.key === 'faqs';
+
   const [form, setForm] = useState<ClinicPageSectionFormValues>({
     title_ar: section.title_ar ?? '',
     title_en: section.title_en ?? '',
     item_limit: section.item_limit,
   });
+  const [faqs, setFaqs] = useState<ClinicFaqItem[]>(() => toFaqSlots(section.content));
 
   useEffect(() => {
     setForm({
@@ -49,7 +63,11 @@ export function ClinicPageSectionEditDialog({ section, friendlyName, onClose }: 
       title_en: section.title_en ?? '',
       item_limit: section.item_limit,
     });
+    setFaqs(toFaqSlots(section.content));
   }, [section]);
+
+  const setFaq = (idx: number, field: keyof ClinicFaqItem, value: string) =>
+    setFaqs((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
 
   // Sections that render a collection and benefit from an item-limit cap.
   // Others (hero, about, contact_info, floating_ctas, social_links,
@@ -73,6 +91,12 @@ export function ClinicPageSectionEditDialog({ section, friendlyName, onClose }: 
         title_en: form.title_en?.trim() ? form.title_en : null,
         item_limit: hasItemLimit ? form.item_limit ?? null : null,
       };
+      if (isFaq) {
+        // Keep only fully-filled rows; the backend re-validates + strips too.
+        payload.content = faqs
+          .map((r) => ({ question: r.question.trim(), answer: r.answer.trim() }))
+          .filter((r) => r.question !== '' && r.answer !== '');
+      }
       await update.mutateAsync(payload);
       toast.success(t('common.saved', 'تم الحفظ'));
       onClose();
@@ -83,7 +107,7 @@ export function ClinicPageSectionEditDialog({ section, friendlyName, onClose }: 
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className={isFaq ? 'max-w-lg max-h-[85vh] overflow-y-auto' : 'max-w-md'}>
         <DialogHeader>
           <DialogTitle>
             {t('clinic_page_builder.edit_dialog_title', 'تخصيص القسم')}: {friendlyName}
@@ -119,6 +143,42 @@ export function ClinicPageSectionEditDialog({ section, friendlyName, onClose }: 
               dir="ltr"
             />
           </div>
+
+          {isFaq && (
+            <div className="space-y-3">
+              <div>
+                <Label>{t('clinic_page_builder.faqs_label', 'الأسئلة والأجوبة')}</Label>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                  {t(
+                    'clinic_page_builder.faqs_hint',
+                    'أضِف حتى 5 أسئلة شائعة. تظهر الأسئلة المكتملة فقط (سؤال + جواب) في صفحة مجمعك.',
+                  )}
+                </p>
+              </div>
+              {faqs.map((faq, idx) => (
+                <div key={idx} className="space-y-1.5 rounded-lg border border-[var(--color-border)] p-3">
+                  <Label htmlFor={`faq-q-${idx}`} className="text-xs">
+                    {t('clinic_page_builder.faq_question', 'السؤال')} {idx + 1}
+                  </Label>
+                  <Input
+                    id={`faq-q-${idx}`}
+                    value={faq.question}
+                    onChange={(e) => setFaq(idx, 'question', e.target.value)}
+                    placeholder={t('clinic_page_builder.faq_question_placeholder', 'مثال: ما هي ساعات العمل؟')}
+                    maxLength={255}
+                  />
+                  <Textarea
+                    id={`faq-a-${idx}`}
+                    value={faq.answer}
+                    onChange={(e) => setFaq(idx, 'answer', e.target.value)}
+                    placeholder={t('clinic_page_builder.faq_answer_placeholder', 'الإجابة…')}
+                    maxLength={2000}
+                    rows={2}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {hasItemLimit && (
             <div className="space-y-1.5">

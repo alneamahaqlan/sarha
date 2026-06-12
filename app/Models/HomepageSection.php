@@ -31,8 +31,11 @@ class HomepageSection extends Model
         'hero', 'stats', 'banner', 'offers', 'articles',
         'categories', 'category_offers', 'ai_highlight',
         'how_it_works', 'clinic_list', 'map', 'cta',
-        'price_quote',
+        'price_quote', 'faqs',
     ];
+
+    /** Max Q&A rows a `faqs` section stores / renders (config.faqs). */
+    public const FAQ_LIMIT = 5;
 
     public const CACHE_KEY = 'homepage:sections:v1';
     public const CACHE_TTL = 600; // 10 min

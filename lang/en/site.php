@@ -265,6 +265,8 @@ return [
     'tab_reviews' => 'Reviews',
     'tab_articles' => 'Blog',
     'tab_about' => 'About',
+    'faqs_title' => 'Frequently asked questions',
+    'faqs_subtitle' => 'Answers to what visitors ask most',
     'directions_open_maps' => 'Open in Google Maps',
     'no_articles_yet' => 'No published posts yet',
     'view_more_services' => 'View all services',
@@ -360,6 +362,24 @@ return [
     'favorite_removed' => 'Removed from favorites',
     'favorite_add' => 'Add to favorites',
     'favorite_remove' => 'Remove from favorites',
+
+    // Follow a complex (Instagram-style) + public header tallies
+    'follow' => 'Follow',
+    'following' => 'Following',
+    'follow_added' => 'You now follow this complex',
+    'follow_removed' => 'You unfollowed this complex',
+    'followers' => 'Followers',
+    'customers' => 'Customers',
+    'bookings_made' => 'Bookings',
+    'specialties' => 'Specialties',
+    'specialties_count' => ':count specialties',
+
+    // Personalised homepage strips for signed-in followers
+    'followed_eyebrow' => 'You follow',
+    'followed_offers_title' => 'Offers from complexes you follow',
+    'followed_offers_subtitle' => 'The latest live offers from the complexes you chose to follow',
+    'followed_clinics_title' => 'Complexes you follow',
+    'followed_clinics_subtitle' => 'All your favourite complexes in one place to keep up with their latest',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'Save to favorites',

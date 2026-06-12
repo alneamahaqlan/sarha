@@ -33,6 +33,7 @@ const TYPE_LABEL_KEY: Record<string, string> = {
   map: 'homepage_sections.type_map',
   cta: 'homepage_sections.type_cta',
   price_quote: 'homepage_sections.type_price_quote',
+  faqs: 'homepage_sections.type_faqs',
 };
 
 export function HomepageSectionsIndex() {

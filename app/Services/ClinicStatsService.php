@@ -238,6 +238,15 @@ class ClinicStatsService
             'articles_performance'  => $articles,
             'best_days'             => $this->bestDays($clinic, $fromDate, $toDate),
             'recommendation'        => $this->recommendation($summary, $comparison),
+            // Cumulative (all-time) tallies — independent of the date range,
+            // mirrored on the public clinic header (Instagram-style).
+            // customers = anyone who booked via the platform OR was imported
+            // into the CRM (both live in the customers table).
+            'lifetime'              => [
+                'followers' => (int) DB::table('clinic_follows')->where('clinic_id', $clinic->id)->count(),
+                'customers' => (int) DB::table('customers')->where('clinic_id', $clinic->id)->count(),
+                'bookings'  => (int) Booking::where('clinic_id', $clinic->id)->count(),
+            ],
             // Back-compat keys still read by the current admin stats page.
             'cards' => ['page_views' => $pv, 'bookings' => $bk, 'quote_requests' => $qr, 'search_appearances' => $impressionsTotal],
             'kpis'  => ['this_clinic_bookings' => $bk, 'avg_bookings_platform' => $comparison['avg_bookings']],

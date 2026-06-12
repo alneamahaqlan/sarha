@@ -11,7 +11,14 @@ export type HomepageSectionType =
   | 'clinic_list'
   | 'map'
   | 'cta'
-  | 'price_quote';
+  | 'price_quote'
+  | 'faqs';
+
+/** A single Q&A row stored in a `faqs` section's config.faqs bag. */
+export interface HomepageFaqItem {
+  question: string;
+  answer: string;
+}
 
 export interface HomepageBannerSlide {
   id: number;
@@ -31,6 +38,7 @@ export interface HomepageSectionConfig {
   min_discount?: number;
   only_published?: boolean;
   interval?: number;
+  faqs?: HomepageFaqItem[];
 }
 
 export interface HomepageSection {

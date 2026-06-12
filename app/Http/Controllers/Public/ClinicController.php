@@ -64,6 +64,10 @@ class ClinicController extends Controller
             ])
             ->withAvg('googleReviews', 'rating')
             ->withCount('googleReviews')
+            // Instagram-style public header tallies: followers / customers
+            // (anyone who booked via the platform or was imported into the
+            // CRM) / bookings made.
+            ->withCount(['followers', 'customers', 'bookings'])
             ->firstOrFail();
 
         // Record a page view (never let stats break the page).

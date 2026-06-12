@@ -39,6 +39,7 @@ class ClinicPageBuilderService
         'google_reviews'   => 'site.tab_reviews',
         'articles'         => 'site.tab_articles',
         'about'            => 'site.tab_about',
+        'faqs'             => 'site.faqs_title',
         'contact_info'     => 'site.contact_info',
         'working_hours'    => 'site.working_hours_title',
         'social_links'     => 'site.social_links_title',

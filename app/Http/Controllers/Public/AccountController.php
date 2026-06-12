@@ -339,6 +339,33 @@ class AccountController extends Controller
     }
 
     /**
+     * Follow / unfollow a complex. Reachable by guests: a guest is sent
+     * through the OTP login with the intended follow stashed in the
+     * session, then OtpController applies it and returns them here.
+     */
+    public function toggleFollow(Clinic $clinic)
+    {
+        $user = auth('web')->user();
+
+        if (! $user) {
+            // Remember the intent + where to come back to, then push the
+            // guest into the OTP login. Mirrors pending_booking / pending_quote.
+            session()->put('pending_follow', $clinic->id);
+            session()->put('url.intended', route('clinic.show', $clinic->slug));
+
+            return redirect()->route('login');
+        }
+
+        if ($user->isFollowing($clinic)) {
+            $user->following()->detach($clinic->id);
+            return back()->with('success', __('site.follow_removed'));
+        }
+
+        $user->following()->syncWithoutDetaching([$clinic->id]);
+        return back()->with('success', __('site.follow_added'));
+    }
+
+    /**
      * AJAX edit a saved relative from the booking-form card. Returns the
      * updated row so the front-end can swap the card text in place
      * without losing the booker's mid-flow form state.

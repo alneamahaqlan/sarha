@@ -301,6 +301,24 @@ class Clinic extends Authenticatable
         return $this->hasMany(Customer::class);
     }
 
+    /**
+     * Customers who follow this complex (Instagram-style). Drives the
+     * public follower count in the header and the personalised
+     * "followed complexes / offers" sections on the homepage.
+     */
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'clinic_follows')->withTimestamps();
+    }
+
+    /**
+     * Smallest public count that is worth showing on the public header.
+     * Below this, the customers/bookings tallies are hidden so brand-new
+     * complexes don't broadcast "0 عميل / 0 حجز" to visitors and
+     * competitors while the platform is still in its launch stage.
+     */
+    public const PUBLIC_STAT_MIN_DISPLAY = 5;
+
     public function priceQuoteRequests()
     {
         return $this->hasMany(PriceQuoteRequest::class);

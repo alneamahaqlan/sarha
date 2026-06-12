@@ -265,6 +265,8 @@ return [
     'tab_reviews' => 'التقييمات',
     'tab_articles' => 'المدونة',
     'tab_about' => 'عن المجمع',
+    'faqs_title' => 'الأسئلة الشائعة',
+    'faqs_subtitle' => 'إجابات على أكثر ما يسأل عنه زوّار المجمع',
     'directions_open_maps' => 'افتح في خرائط Google',
     'no_articles_yet' => 'لا توجد تدوينات منشورة بعد',
     'view_more_services' => 'عرض كل الخدمات',
@@ -360,6 +362,24 @@ return [
     'favorite_removed' => 'تمت إزالة المجمع من المفضلة',
     'favorite_add' => 'إضافة للمفضلة',
     'favorite_remove' => 'إزالة من المفضلة',
+
+    // Follow a complex (Instagram-style) + public header tallies
+    'follow' => 'متابعة',
+    'following' => 'متابَع',
+    'follow_added' => 'تمت متابعة المجمع',
+    'follow_removed' => 'تم إلغاء متابعة المجمع',
+    'followers' => 'متابِع',
+    'customers' => 'عميل',
+    'bookings_made' => 'حجز',
+    'specialties' => 'التخصصات',
+    'specialties_count' => 'التخصصات · :count',
+
+    // Personalised homepage strips for signed-in followers
+    'followed_eyebrow' => 'تتابعها',
+    'followed_offers_title' => 'عروض المجمعات التي تتابعها',
+    'followed_offers_subtitle' => 'أحدث العروض السارية من المجمعات التي اخترت متابعتها',
+    'followed_clinics_title' => 'المجمعات التي تتابعها',
+    'followed_clinics_subtitle' => 'كل مجمعاتك المفضلة في مكان واحد لمتابعة جديدها',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'حفظ في المفضلة',

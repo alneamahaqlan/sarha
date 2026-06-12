@@ -47,6 +47,11 @@ class HomepageSectionsSeeder extends Seeder
             ['top_rated_clinics',   'clinic_list',    130, 3,    ['source' => 'top_rated']],
             ['best_priced_clinics', 'clinic_list',    140, 3,    ['source' => 'best_priced']],
             ['map',                 'map',            150, 200,  null],
+
+            // Admin-authored FAQ accordion. Ships empty (no Q&A) so it
+            // self-hides until the admin fills it in from the CMS.
+            ['faqs',                'faqs',           155, null, null],
+
             ['cta_for_clinics',     'cta',            160, null, null],
         ];
 
@@ -81,6 +86,6 @@ class HomepageSectionsSeeder extends Seeder
             ]);
         }
 
-        $this->command?->info('HomepageSectionsSeeder: 16 sections + 3 demo banner slides ready.');
+        $this->command?->info('HomepageSectionsSeeder: 17 sections + 3 demo banner slides ready.');
     }
 }

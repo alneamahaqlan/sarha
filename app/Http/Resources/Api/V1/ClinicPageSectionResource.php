@@ -17,6 +17,8 @@ class ClinicPageSectionResource extends JsonResource
             'title_ar'     => $this->title_ar,
             'title_en'     => $this->title_en,
             'item_limit'   => $this->item_limit !== null ? (int) $this->item_limit : null,
+            // Free-form content bag (only the `faqs` section populates it).
+            'content'      => $this->content,
             // Surface the policy bit to the UI so it can disable the
             // "hide" switch on protected rows without hard-coding the list
             // on the client side.

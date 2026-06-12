@@ -1,5 +1,23 @@
 @extends('layouts.public')
 
+@push('head')
+<style>
+    /* Collapsible specialties — hide the native disclosure triangle and
+       give the expanded list a smooth, modern reveal. */
+    .cats-details > summary { list-style: none; }
+    .cats-details > summary::-webkit-details-marker { display: none; }
+    .cats-details[open] .cat-chevron { transform: rotate(180deg); }
+    .cats-details[open] .cats-reveal { animation: catsReveal .28s ease-out; }
+    @keyframes catsReveal {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .cats-details[open] .cats-reveal { animation: none; }
+    }
+</style>
+@endpush
+
 @section('title', $clinic->name)
 @section('description', Str::limit($clinic->description ?? '', 160))
 @section('og_type', 'business.business')
@@ -255,6 +273,37 @@
                         </a>
                     </div>
 
+                    {{-- Instagram-style public tallies: followers · customers ·
+                         bookings. Followers always shows; customers/bookings
+                         stay hidden until they clear PUBLIC_STAT_MIN_DISPLAY so a
+                         brand-new complex doesn't broadcast "0 عميل / 0 حجز" to
+                         visitors and competitors during the launch stage. --}}
+                    @php $statMin = \App\Models\Clinic::PUBLIC_STAT_MIN_DISPLAY; @endphp
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4">
+                        <div class="flex items-center gap-1.5">
+                            <x-icon name="users" class="w-4 h-4 text-sage-600" />
+                            <span class="font-bold text-gray-900">{{ number_format($clinic->followers_count) }}</span>
+                            <span class="text-sm text-gray-500">@lang('site.followers')</span>
+                        </div>
+                        @if($clinic->customers_count >= $statMin)
+                            <div class="flex items-center gap-1.5">
+                                <x-icon name="user" class="w-4 h-4 text-sage-600" />
+                                <span class="font-bold text-gray-900">{{ number_format($clinic->customers_count) }}</span>
+                                <span class="text-sm text-gray-500">@lang('site.customers')</span>
+                            </div>
+                        @endif
+                        @if($clinic->bookings_count >= $statMin)
+                            <div class="flex items-center gap-1.5">
+                                <x-icon name="calendar" class="w-4 h-4 text-sage-600" />
+                                <span class="font-bold text-gray-900">{{ number_format($clinic->bookings_count) }}</span>
+                                <span class="text-sm text-gray-500">@lang('site.bookings_made')</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Specialties — collapse into a single elegant chip and
+                         expand on click (smooth height reveal via the
+                         <details> element + the .cats-reveal animation). --}}
                     @if($clinic->categories->isNotEmpty())
                         {{-- Clickable specialty filter: tapping a chip narrows
                              every content section below to that specialty.
@@ -278,11 +327,21 @@
                 </div>
                 </div>{{-- /avatar + name flex wrapper --}}
 
-                {{-- Social media (follow) + Favorite + Book CTA. Sharing moved
-                     to the sidebar; the hero now leads with the clinic's own
-                     social channels. --}}
+                {{-- Follow + Share + Favorite + Book CTA --}}
                 <div class="flex flex-col gap-3 items-end">
                     <div class="flex items-center gap-2 flex-wrap justify-end">
+                        {{-- Follow (Instagram-style). Route is public: a guest is
+                             routed through OTP login and the follow is applied on
+                             return. Outline until following, filled once active. --}}
+                        @php $isFollowing = auth('web')->check() && auth('web')->user()->isFollowing($clinic); @endphp
+                        <form method="POST" action="{{ route('clinic.follow.toggle', $clinic->slug) }}">
+                            @csrf
+                            <button type="submit"
+                                    class="inline-flex items-center gap-1.5 min-h-touch px-4 py-2 rounded-full text-sm font-semibold transition-colors {{ $isFollowing ? 'bg-sage-600 text-white hover:bg-sage-700' : 'bg-white text-sage-700 ring-1 ring-sage-300 hover:bg-sage-50' }}">
+                                <x-icon :name="$isFollowing ? 'check-circle' : 'user-plus'" class="w-4 h-4" />
+                                {{ $isFollowing ? __('site.following') : __('site.follow') }}
+                            </button>
+                        </form>
                         @auth('web')
                             @php $isFavorited = auth('web')->user()->hasFavorited($clinic); @endphp
                             <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="js-save-form">
@@ -606,6 +665,12 @@
         </div>
         </div>{{-- /x-show !q (tabs hidden while searching) --}}
     </div>
+    @endif
+
+    {{-- Frequently asked questions — clinic-authored Q&A. Sits just above
+         "similar complexes"; managed via the Page Builder (تخصيص صفحتي). --}}
+    @if($pageSections->has('faqs'))
+        @include('public.partials.faqs', ['faqsSection' => $pageSections->get('faqs'), 'builder' => $builder])
     @endif
 
     {{-- One "similar" section only: the complex page (and other non-detail
