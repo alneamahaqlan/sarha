@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
@@ -31,6 +32,7 @@ const schema = z.object({
   title: z.string().max(255).nullish().or(z.literal('')),
   before_image: z.string().min(1),
   after_image: z.string().min(1),
+  display_mode: z.enum(['side_by_side', 'slider']),
   sub_clinic_id: z.union([z.number(), z.literal('')]).optional().nullable()
     .transform((v) => (v === '' || v === undefined ? null : (v as number))),
   service_id: z.union([z.number(), z.literal('')]).optional().nullable()
@@ -53,6 +55,7 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
       title: photo?.title ?? '',
       before_image: photo?.before_image ?? '',
       after_image: photo?.after_image ?? '',
+      display_mode: photo?.display_mode ?? 'side_by_side',
       sub_clinic_id: photo?.sub_clinic_id ?? null,
       service_id: photo?.service_id ?? null,
       is_active: photo?.is_active ?? true,
@@ -85,7 +88,7 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
           <DialogTitle>{photo ? t('clinic_before_after.edit') : t('clinic_before_after.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_before_after.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>{t('clinic_before_after.before')}</Label>
@@ -96,9 +99,18 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
               <FileUpload value={form.watch('after_image')} onChange={(p) => form.setValue('after_image', p ?? '', { shouldDirty: true })} directory="before-after" />
             </div>
           </div>
+          <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">{t('clinic_before_after.image_hint')}</p>
           <div className="space-y-1.5">
             <Label htmlFor="title">{t('clinic_before_after.title_label')}</Label>
             <Input id="title" {...form.register('title')} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="display_mode">{t('clinic_before_after.display_mode')}</Label>
+            <Select id="display_mode" {...form.register('display_mode')}>
+              <option value="side_by_side">{t('clinic_before_after.display_mode_side_by_side')}</option>
+              <option value="slider">{t('clinic_before_after.display_mode_slider')}</option>
+            </Select>
+            <p className="text-xs text-[var(--color-muted-foreground)]">{t('clinic_before_after.display_mode_hint')}</p>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
@@ -120,6 +132,14 @@ function PhotoDialog({ photo, onClose }: { photo: BeforeAfterPhoto | null; onClo
             <Switch checked={form.watch('is_active')} onCheckedChange={(c) => form.setValue('is_active', c, { shouldDirty: true })} />
             <Label>{t('clinic_before_after.is_active')}</Label>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              before_image: t('clinic_before_after.before'),
+              after_image: t('clinic_before_after.after'),
+              display_mode: t('clinic_before_after.display_mode'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

@@ -26,6 +26,12 @@ class ServiceResource extends JsonResource
             ])->values()),
             // Convenience: just the ids (used by edit forms).
             'category_ids'   => $this->whenLoaded('categories', fn () => $this->categories->pluck('id')->values()),
+            // Doctors who provide this service (many-to-many).
+            'doctors'        => $this->whenLoaded('doctors', fn () => $this->doctors->map(fn ($d) => [
+                'id'   => $d->id,
+                'name' => $d->name,
+            ])->values()),
+            'doctor_ids'     => $this->whenLoaded('doctors', fn () => $this->doctors->pluck('id')->values()),
             'name'               => $this->name,
             'description'        => $this->description,
             'price'              => (float) $this->price,
@@ -33,7 +39,13 @@ class ServiceResource extends JsonResource
             'price_includes'     => $this->price_includes,
             'price_excludes'     => $this->price_excludes,
             'image'              => $this->image,
+            // Inline discounted price (the service's own offer), when set. Drives
+            // the form prefill and the strikethrough price on public cards.
+            'offer_price'        => $this->whenLoaded('inlineOffer', fn () => $this->inlineOffer ? (float) $this->inlineOffer->price : null),
+            'offer_ends_at'      => $this->whenLoaded('inlineOffer', fn () => $this->inlineOffer?->ends_at?->toDateString()),
             'is_active'          => (bool) $this->is_active,
+            // System-managed "خدمات أخرى" catch-all: shown locked (no edit/delete).
+            'is_catchall'        => (bool) $this->is_catchall,
             // Moderation gate: 'approved' shows publicly; 'pending' is hidden
             // until an admin approves the catalog request it belongs to.
             'approval_status'    => $this->approval_status,

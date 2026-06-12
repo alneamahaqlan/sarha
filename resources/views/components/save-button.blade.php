@@ -5,7 +5,9 @@
         <x-save-button :model="$service" type="service" />
 
     Guests get a link to the login page; signed-in customers get a form
-    that POSTs to saved.toggle and reloads with the new state.
+    that POSTs to saved.toggle. With JS on, favorites.js intercepts the
+    submit and flips the heart in place (no reload); without JS the form
+    still works and the controller redirects back().
 
     Props:
       model — the Service or Offer Eloquent model
@@ -21,19 +23,26 @@
 @endphp
 
 @auth('web')
-    <form method="POST" action="{{ route('saved.toggle') }}" class="{{ $class }}">
+    <form method="POST" action="{{ route('saved.toggle') }}" class="js-save-form {{ $class }}">
         @csrf
         <input type="hidden" name="type" value="{{ $type }}">
         <input type="hidden" name="id" value="{{ $model->getKey() }}">
         <button type="submit"
+                data-fav-toggle
+                data-saved="{{ $saved ? '1' : '0' }}"
+                data-class-on="bg-red-50 text-red-500 hover:bg-red-100"
+                data-class-off="bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                data-title-on="{{ __('site.saved_remove') }}"
+                data-title-off="{{ __('site.saved_add') }}"
                 title="{{ $saved ? __('site.saved_remove') : __('site.saved_add') }}"
                 aria-label="{{ $saved ? __('site.saved_remove') : __('site.saved_add') }}"
                 class="{{ $base }}">
-            <x-icon :name="$saved ? 'heart-solid' : 'heart'" class="w-4 h-4" />
+            <span data-fav-icon-on class="{{ $saved ? '' : 'hidden' }}"><x-icon name="heart-solid" class="w-4 h-4" /></span>
+            <span data-fav-icon-off class="{{ $saved ? 'hidden' : '' }}"><x-icon name="heart" class="w-4 h-4" /></span>
         </button>
     </form>
 @else
-    <a href="{{ route('login') }}"
+    <a href="{{ route('login', ['redirect' => url()->current()]) }}"
        title="{{ __('site.saved_login_prompt') }}"
        aria-label="{{ __('site.saved_login_prompt') }}"
        class="{{ $base }} {{ $class }}">

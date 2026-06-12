@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\ImpressionSource;
 use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Doctor;
@@ -9,6 +10,7 @@ use App\Models\Offer;
 use App\Models\Package;
 use App\Models\Service;
 use App\Models\SubClinic;
+use App\Services\ImpressionTrackerService;
 use App\Services\SimilarityService;
 
 class SubClinicController extends Controller
@@ -26,6 +28,10 @@ class SubClinicController extends Controller
 
         $subClinic->setRelation('clinic', $clinic);
         $subClinic->load('category:id,name,emoji');
+
+        // Opening a sub-clinic page counts as an appearance for the complex —
+        // feeds the public «عدد الظهور» badge; failure-isolated in the tracker.
+        app(ImpressionTrackerService::class)->trackClinic($clinic->id, ImpressionSource::PROFILE);
 
         // Services that live directly under this sub-clinic (public gate).
         $services = Service::query()
@@ -63,6 +69,11 @@ class SubClinicController extends Controller
             ->get();
 
         $similarSubClinics = $similarity->similarSubClinics($subClinic);
+
+        // Appearing in another clinic's "similar clinics" strip counts as a
+        // SIMILAR appearance for each surfaced sub-clinic's complex.
+        app(ImpressionTrackerService::class)
+            ->trackManyClinics($similarSubClinics->pluck('clinic_id')->all(), ImpressionSource::SIMILAR);
 
         return view('public.sub-clinic', compact(
             'clinic', 'subClinic', 'offers', 'packages', 'services', 'doctors', 'similarSubClinics',

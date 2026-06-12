@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Service extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasDemoData;
 
     public const APPROVAL_APPROVED = 'approved';
     public const APPROVAL_PENDING  = 'pending';
@@ -20,16 +23,36 @@ class Service extends Model
         'clinic_id', 'sub_clinic_id', 'catalog_service_id',
         'name', 'description',
         'price', 'price_from', 'price_includes', 'price_excludes', 'image',
-        'is_active', 'approval_status', 'sort_order',
+        'is_active', 'approval_status', 'sort_order', 'is_catchall',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'      => 'decimal:2',
-            'price_from' => 'boolean',
-            'is_active'  => 'boolean',
+            'price'       => 'decimal:2',
+            'price_from'  => 'boolean',
+            'is_active'   => 'boolean',
+            'is_catchall' => 'boolean',
         ];
+    }
+
+    /**
+     * The fixed name used for every clinic's catch-all "other services" row.
+     * Resolved lazily so the bound translation reflects the request locale.
+     */
+    public static function catchallName(): string
+    {
+        return __('site.catchall_service_name');
+    }
+
+    /**
+     * Exclude the per-clinic catch-all "other services" row. Apply to the
+     * public services showcase and anywhere a real service catalogue is
+     * listed — the catch-all is a booking/report target only, not a card.
+     */
+    public function scopeNotCatchall(Builder $q): Builder
+    {
+        return $q->where('is_catchall', false);
     }
 
     public function clinic()
@@ -76,11 +99,43 @@ class Service extends Model
     }
 
     /**
+     * Doctors who provide this service. Many-to-many: a service may be done
+     * by several doctors, and a doctor performs several services. Picked on
+     * the clinic "add service" form; mirrored on each doctor's profile.
+     */
+    public function doctors(): BelongsToMany
+    {
+        return $this->belongsToMany(Doctor::class, 'doctor_service')->withTimestamps();
+    }
+
+    /**
      * Promotional offers for this service. Offers live in their own table
      * now — clinic admins manage them on a dedicated page builder.
      */
     public function offers(): HasMany
     {
         return $this->hasMany(Offer::class);
+    }
+
+    /**
+     * The single offer (if any) created from the inline "سعر العرض" field on
+     * the service form. Kept separate from manually-built offers via the
+     * origin marker so the form upserts/deletes only this one.
+     */
+    public function inlineOffer(): HasOne
+    {
+        return $this->hasOne(Offer::class)->where('origin', Offer::ORIGIN_SERVICE_FORM);
+    }
+
+    /** Purchase line items referencing this service (across bookings). */
+    public function bookingServices(): HasMany
+    {
+        return $this->hasMany(BookingService::class);
+    }
+
+    /** Interest records referencing this service. */
+    public function interestedCustomers(): HasMany
+    {
+        return $this->hasMany(CustomerInterestedService::class);
     }
 }

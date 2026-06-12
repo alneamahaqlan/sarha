@@ -5,10 +5,13 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { useCan } from '@/app/providers/AuthProvider';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useUpdateCustomer } from '../hooks';
+import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
+import { FollowUpStars } from './FollowUpStars';
 import type { CustomerProfile } from '../types';
 
 interface Props {
@@ -43,6 +46,24 @@ export function CustomerProfileHeader({ customer }: Props) {
     setName(customer.name);
     setEmail(customer.email ?? '');
     setEditing(false);
+  }
+
+  async function toggleOptOut(next: boolean) {
+    try {
+      await mut.mutateAsync({ marketing_opt_out: next });
+      toast.success(next ? t('clinic_customers.opt_out.now_excluded') : t('clinic_customers.opt_out.now_included'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  }
+
+  async function setPriority(next: number) {
+    try {
+      await mut.mutateAsync({ follow_up_priority: next });
+      toast.success(t('clinic_customers.priority.updated'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
   }
 
   const badges: any[] = [];
@@ -92,7 +113,23 @@ export function CustomerProfileHeader({ customer }: Props) {
                 {customer.tags.map((tag) => (
                   <Badge key={tag.id} variant="muted" className="bg-slate-100 text-slate-700">{tag.label}</Badge>
                 ))}
+                {customer.marketing_opt_out && (
+                  <Badge variant="warning">{t('clinic_customers.opt_out.badge')}</Badge>
+                )}
               </div>
+              <div className="flex w-fit items-center gap-2 rounded-lg border border-amber-200/70 bg-gradient-to-l from-amber-50 to-white px-2.5 py-1.5">
+                <span className="text-xs font-medium text-[var(--color-muted-foreground)]">{t('clinic_customers.priority.label')}</span>
+                <FollowUpStars
+                  value={customer.follow_up_priority}
+                  onChange={canManage ? setPriority : undefined}
+                />
+              </div>
+              {canManage && (
+                <label className="flex items-center gap-2 pt-1 text-xs text-[var(--color-muted-foreground)]">
+                  <Switch checked={customer.marketing_opt_out} onCheckedChange={toggleOptOut} disabled={mut.isPending} />
+                  {t('clinic_customers.opt_out.toggle')}
+                </label>
+              )}
             </>
           )}
         </div>
@@ -105,6 +142,7 @@ export function CustomerProfileHeader({ customer }: Props) {
             <a href={waLink(customer.phone)} target="_blank" rel="noopener" className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 px-3 py-2 text-sm text-emerald-700 hover:bg-emerald-50">
               <MessageCircle className="h-4 w-4" />{t('outreach.whatsapp')}
             </a>
+            <ReminderButton customerId={customer.id} customerName={customer.name} />
           </div>
         )}
       </div>

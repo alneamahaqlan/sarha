@@ -5,12 +5,11 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
-import type { KanbanColumn } from '../types';
 
 export type MoveIntent =
   | { kind: 'cancel' }
-  | { kind: 'completion' }     // moving to completed column — pick attended vs no_show
-  | { kind: 'backwards' };     // moving from terminal column back — confirm only
+  | { kind: 'completion' }     // moving to a completed-kind stage — pick attended vs no_show
+  | { kind: 'backwards' };     // moving out of a terminal-kind stage — confirm only
 
 export interface MoveResult {
   status: string;
@@ -23,15 +22,14 @@ export interface MoveResult {
 interface Props {
   open: boolean;
   intent: MoveIntent;
-  fromColumn: KanbanColumn;
-  toColumn: KanbanColumn;
+  toName: string;
   onCancel: () => void;
   onConfirm: (r: MoveResult) => void;
 }
 
 const CANCEL_REASONS = ['patient_cancelled', 'no_answer', 'schedule_conflict', 'other'] as const;
 
-export function MoveConfirmDialog({ open, intent, toColumn, onCancel, onConfirm }: Props) {
+export function MoveConfirmDialog({ open, intent, toName, onCancel, onConfirm }: Props) {
   const { t } = useTranslation();
   const [reason, setReason] = useState<(typeof CANCEL_REASONS)[number]>('patient_cancelled');
   const [note, setNote] = useState('');
@@ -49,7 +47,7 @@ export function MoveConfirmDialog({ open, intent, toColumn, onCancel, onConfirm 
           <DialogDescription>
             {intent.kind === 'backwards'
               ? t('clinic_bookings_kanban.move.backwards_desc')
-              : t('clinic_bookings_kanban.move.target_desc', { column: t(`clinic_bookings_kanban.column.${toColumn}`) })}
+              : t('clinic_bookings_kanban.move.target_desc', { column: toName })}
           </DialogDescription>
         </DialogHeader>
 

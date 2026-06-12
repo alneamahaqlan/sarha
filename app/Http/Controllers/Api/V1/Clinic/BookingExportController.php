@@ -41,7 +41,7 @@ class BookingExportController extends Controller
         $dir = $request->input('order') === 'asc' ? 'asc' : 'desc';
         $query->orderBy('created_at', $dir);
 
-        $headers = ['المرجع', 'العميل', 'الجوال', 'الخدمة', 'العيادة الفرعية', 'الحالة', 'موعد الحجز', 'تاريخ الإنشاء', 'المصدر'];
+        $headers = ['المرجع', 'العميل', 'الجوال', 'الخدمة', 'العيادة الفرعية', 'الحالة', 'موعد الحجز', 'تاريخ الإنشاء', 'المصدر', 'قناة الاكتساب'];
 
         return CsvExport::streamQuery('bookings-' . now()->format('Y-m-d') . '.csv', $headers, $query,
             fn (Booking $b) => [
@@ -54,6 +54,7 @@ class BookingExportController extends Controller
                 optional($b->appointment_at)->format('Y-m-d H:i') ?? '',
                 optional($b->created_at)->format('Y-m-d H:i') ?? '',
                 $b->source ?? '',
+                Booking::ACQUISITION_SOURCE_LABELS_AR[$b->acquisition_source] ?? ($b->acquisition_source ?? ''),
             ],
         );
     }
@@ -71,6 +72,7 @@ class BookingExportController extends Controller
             'date_to'       => $request->input('date_to'),
             'auto_tag'      => $request->input('auto_tag'),
             'custom_tag'    => $request->input('custom_tag'),
+            'acquisition_source' => $request->input('acquisition_source'),
             'mine_only'     => filter_var($request->input('mine_only'), FILTER_VALIDATE_BOOLEAN),
         ];
 

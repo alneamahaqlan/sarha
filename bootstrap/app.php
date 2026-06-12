@@ -18,6 +18,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('saerha:notify-subscription-expiry')->dailyAt('06:00');
         $schedule->command('saerha:sync-google-reviews')->daily();
         $schedule->command('saerha:sync-clinics-sheet')->everySixHours();
+        // Contact reminders fire close to their scheduled minute (±10m).
+        $schedule->command('saerha:dispatch-contact-reminders')->everyTenMinutes();
+        // Overdue sales-lead follow-ups — hourly is plenty for date-based cues.
+        $schedule->command('saerha:notify-sales-followups')->hourly();
+        // Abandoned-cart nudges — hourly; the command only picks up items
+        // aged past the configured window (default 24h) and never re-nudges.
+        $schedule->command('saerha:dispatch-cart-reminders')->hourly();
+        // Self-heal yesterday's landing-page analytics rollup overnight.
+        $schedule->command('saerha:rollup-landing-stats')->dailyAt('02:30');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
@@ -33,17 +42,22 @@ return Application::configure(basePath: dirname(__DIR__))
             // row on every authenticated web request. Failures are
             // swallowed inside the middleware.
             \App\Http\Middleware\TrackUserVisit::class,
+            // Resolves the marketing-pixel TrackingContext for public
+            // clinic pages (inert unless the feature flag is on and the
+            // clinic's tracking is approved). Failures are swallowed.
+            \App\Http\Middleware\ResolveTrackingContext::class,
         ]);
 
         $middleware->statefulApi();
 
-        // sendBeacon click tracker can't carry a CSRF token.
-        $middleware->validateCsrfTokens(except: ['track/click']);
+        // sendBeacon trackers can't carry a CSRF token.
+        $middleware->validateCsrfTokens(except: ['track/click', 'track/story', 'l/track/*']);
 
         $middleware->alias([
             'api.guard'   => \App\Http\Middleware\EnsureApiGuard::class,
             'api.locale'  => \App\Http\Middleware\SetLocale::class,
             'clinic.role' => \App\Http\Middleware\EnsureClinicRole::class,
+            'clinic.feature' => \App\Http\Middleware\EnsureClinicFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

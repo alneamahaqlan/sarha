@@ -8,7 +8,18 @@
 @else
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         @foreach($clinic->doctors as $doctor)
+            @php
+                // A doctor's specialties = those of the services they provide,
+                // plus their sub-clinic's specialty.
+                $docCats = $doctor->relationLoaded('services')
+                    ? $doctor->services->flatMap(fn ($s) => $s->relationLoaded('categories') ? $s->categories->pluck('id') : [])
+                    : collect();
+                $docCats = collect($docCats)
+                    ->merge(optional($doctor->subClinic)->category_id ? [$doctor->subClinic->category_id] : [])
+                    ->unique()->values()->all();
+            @endphp
             <a href="{{ route('doctor.show', ['slug' => $clinic->slug, 'doctor' => $doctor->id]) }}"
+               @if($spec ?? false) x-show="$store.spec.show(@js($docCats))" @endif
                class="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all p-5 flex gap-4 items-start">
                 @if($doctor->photo)
                     <img src="{{ Storage::url($doctor->photo) }}" alt="{{ $doctor->name }}" loading="lazy"

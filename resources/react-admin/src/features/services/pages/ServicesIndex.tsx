@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage } from '@/lib/api-client';
@@ -69,13 +70,6 @@ export function ServicesIndex() {
       toast.error(extractMessage(err, t('errors.generic')));
     }
   };
-
-  const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
-      style: 'currency',
-      currency: 'SAR',
-      maximumFractionDigits: 0,
-    }).format(n);
 
   const fmtDate = (iso: string | null) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
@@ -153,7 +147,7 @@ export function ServicesIndex() {
                 <TableCell className="text-[var(--color-muted-foreground)]">{service.clinic?.name ?? '—'}</TableCell>
                 <TableCell className="font-medium">{service.name}</TableCell>
                 <TableCell>
-                  <span className="font-medium">{fmtCurrency(service.price)}</span>
+                  <Money value={service.price} locale={locale} className="font-medium" />
                 </TableCell>
                 <TableCell>
                   {service.is_active ? (

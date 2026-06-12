@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
@@ -25,9 +26,10 @@ class QuoteController extends Controller
     public function requestForm(Request $request)
     {
         $cities = City::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'name_en']);
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name', 'name_en', 'emoji']);
         $identity = $this->customerIdentity($request);
 
-        return view('public.quote-form', compact('cities', 'identity'));
+        return view('public.quote-form', compact('cities', 'categories', 'identity'));
     }
 
     public function store(Request $request)
@@ -39,6 +41,17 @@ class QuoteController extends Controller
         $validated = $this->validateQuote($request);
 
         if ($this->customerVerified($request, $validated['customer_phone'])) {
+            // A returning device (cookie match) skips OTP but isn't logged in yet.
+            // Log the customer in so they own the new request and can view
+            // quotes.show — otherwise the owner check there fails and aborts 404.
+            if (! auth('web')->check()) {
+                $user = $this->resolveCustomerUser($validated['customer_name'], $validated['customer_phone']);
+                if (! $user->is_active) {
+                    return back()->withErrors(['account' => __('site.account_blocked')])->withInput();
+                }
+                auth('web')->login($user, true);
+            }
+
             $quote = $this->createQuote($validated);
 
             return redirect()->route('quotes.show', $quote->id)
@@ -46,6 +59,12 @@ class QuoteController extends Controller
                 ->withCookie($this->identityCookie($validated['customer_name'], $validated['customer_phone']));
         }
 
+        // Per-phone send guard against SMS-bombing a victim's number.
+        if ($wait = OtpCode::throttleSend($validated['customer_phone'], 'quote')) {
+            return back()
+                ->withErrors(['customer_phone' => __('site.otp_too_many', ['seconds' => $wait])])
+                ->withInput();
+        }
         $otp = OtpCode::generate($validated['customer_phone'], 'quote');
         app(SmsService::class)->send($validated['customer_phone'], __('site.otp_sms', ['code' => $otp->code]));
         session()->put('pending_quote', $validated);
@@ -118,15 +137,24 @@ class QuoteController extends Controller
 
     public function show(PriceQuoteRequest $quoteRequest)
     {
-        $quoteRequest->load(['cities:id,name,name_en', 'replies.clinic:id,name,slug']);
+        $quoteRequest->load(['cities:id,name,name_en', 'categories:id,name,name_en,emoji', 'replies.clinic:id,name,slug']);
 
         $isOwner = auth('web')->id() && auth('web')->id() === $quoteRequest->user_id;
+        $hasPublicReplies = $quoteRequest->publicReplies()->exists();
+
+        // A private request (no public replies yet) is viewable only by its owner.
+        if (! $isOwner && ! $hasPublicReplies) {
+            // A guest may in fact be the owner once they log in — send them to
+            // login and bring them back here, instead of a dead-end 404.
+            if (! auth('web')->check()) {
+                return redirect()->guest(route('login'));
+            }
+            abort(404);
+        }
+
         $replies = $isOwner
             ? $quoteRequest->replies
             : $quoteRequest->replies->where('is_public', true);
-
-        // Non-owners may only open requests that have public replies.
-        abort_if(! $isOwner && $replies->isEmpty() && $quoteRequest->publicReplies()->doesntExist(), 404);
 
         return view('public.quote-show', compact('quoteRequest', 'replies', 'isOwner'));
     }
@@ -140,9 +168,12 @@ class QuoteController extends Controller
             'description'    => 'required|string|min:10|max:2000',
             'city_ids'       => 'required|array|min:1',
             'city_ids.*'     => 'integer|exists:cities,id',
+            'category_ids'   => 'required|array|min:1',
+            'category_ids.*' => 'integer|exists:categories,id',
         ], [
-            'customer_phone.regex' => __('site.phone_invalid'),
-            'city_ids.required'    => __('site.quote_cities_required'),
+            'customer_phone.regex'  => __('site.phone_invalid'),
+            'city_ids.required'     => __('site.quote_cities_required'),
+            'category_ids.required' => __('site.quote_categories_required'),
         ]);
     }
 
@@ -162,9 +193,15 @@ class QuoteController extends Controller
         ]);
 
         $quote->cities()->sync($data['city_ids']);
+        $quote->categories()->sync($data['category_ids']);
 
-        // Every clinic in the targeted cities "received" this request.
-        Clinic::publiclyVisible()->whereIn('city_id', $data['city_ids'])->pluck('id')
+        // Only clinics in the targeted cities that ALSO offer one of the chosen
+        // specializations "received" this request — a request never lands on a
+        // complex that can't serve it.
+        Clinic::publiclyVisible()
+            ->whereIn('city_id', $data['city_ids'])
+            ->whereHas('categories', fn ($q) => $q->whereIn('categories.id', $data['category_ids']))
+            ->pluck('id')
             ->each(fn ($cid) => ClinicStat::bump($cid, 'quote_requests_count'));
 
         // Notify the targeted complexes (cities are attached now).

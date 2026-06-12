@@ -30,8 +30,17 @@ class StoreServiceRequest extends FormRequest
             'category_ids.*'     => ['integer', 'distinct', Rule::exists('categories', 'id')->where('is_active', true)],
             // The clinic (sub-clinic) a service belongs to must be owned by the authenticated complex.
             'sub_clinic_id'      => ['nullable', 'integer', Rule::exists('sub_clinics', 'id')->where('clinic_id', $clinicId)],
+            // Doctors who provide this service — each must belong to the
+            // authenticated complex. Optional; a service can have no doctors.
+            'doctor_ids'         => ['nullable', 'array'],
+            'doctor_ids.*'       => ['integer', 'distinct', Rule::exists('doctors', 'id')->where('clinic_id', $clinicId)],
             'description'        => ['nullable', 'string'],
             'price'              => ['required', 'numeric', 'min:0'],
+            // Optional discounted price — creates a real offer for this service
+            // (type=service). Must be below the regular price to be a discount.
+            'offer_price'        => ['nullable', 'numeric', 'min:0', 'lt:price'],
+            // When the discount ends (date). Defaults to +30 days when omitted.
+            'offer_ends_at'      => ['nullable', 'date', 'after:today'],
             // Relative path returned by the /uploads endpoint (e.g. services/x.jpg).
             'image'              => ['nullable', 'string', 'max:2048'],
             // When true the price is a "starting from" minimum.

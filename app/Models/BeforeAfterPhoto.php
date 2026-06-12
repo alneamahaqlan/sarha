@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class BeforeAfterPhoto extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'sub_clinic_id', 'service_id',
-        'title', 'before_image', 'after_image', 'is_active', 'sort_order',
+        'title', 'before_image', 'after_image', 'display_mode', 'is_active', 'sort_order',
     ];
 
     protected function casts(): array

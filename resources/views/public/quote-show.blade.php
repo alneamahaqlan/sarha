@@ -22,6 +22,11 @@
         </div>
         <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $quoteRequest->description }}</p>
         <div class="flex flex-wrap items-center gap-2 mt-4">
+            @foreach($quoteRequest->categories as $category)
+                <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-700 text-xs px-2 py-0.5 rounded-full">
+                    <x-category-icon :emoji="$category->emoji" :icon="$category->icon" class="w-3.5 h-3.5" /> {{ $category->display_name }}
+                </span>
+            @endforeach
             @foreach($quoteRequest->cities as $city)
                 <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full">
                     <x-icon name="map-pin" class="w-3 h-3" /> {{ $city->display_name }}
@@ -63,7 +68,7 @@
                         </div>
                         <div class="flex items-center gap-2">
                             @if($reply->price)
-                                <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                                <span class="text-sage-700 font-bold">{{ number_format($reply->price) }} <span class="text-xs font-normal"><x-riyal /></span></span>
                             @endif
                             @if($isOwner && ! $reply->is_public)
                                 <span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full">@lang('site.quote_reply_private')</span>

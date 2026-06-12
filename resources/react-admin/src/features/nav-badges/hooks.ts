@@ -8,8 +8,13 @@ export interface AdminNavBadges {
   subscriptions_expiring: number;
   category_requests: number;
   catalog_requests: number;
+  campaign_requests: number;
   clinic_reports: number;
   customer_reports: number;
+  tracking_pending: number;
+  cart_pending: number;
+  access_center: number;
+  sales_followups_overdue: number;
 }
 
 export interface ClinicNavBadges {
@@ -17,6 +22,7 @@ export interface ClinicNavBadges {
   subscription_expiring: number;
   offer_expiring: number;
   complaints: number;
+  reminders_overdue: number;
 }
 
 export function useAdminNavBadges() {

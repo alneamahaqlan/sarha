@@ -60,27 +60,27 @@
                     </template>
                 </div>
             </div>
-            <select name="city" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <x-form.select name="city" class="md:col-span-2">
                 <option value="">@lang('site.search_all_cities')</option>
                 @foreach($cities as $city)
                     <option value="{{ $city->id }}" @selected(request('city') == $city->id)>{{ $city->display_name }}</option>
                 @endforeach
-            </select>
-            <select name="category" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            </x-form.select>
+            <x-form.select name="category" class="md:col-span-2">
                 <option value="">@lang('site.search_all_categories')</option>
                 @foreach($categories as $cat)
                     <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>
                         {{ $cat->display_name }}
                     </option>
                 @endforeach
-            </select>
-            <select name="sort" id="search-sort" class="md:col-span-2 border border-gray-200 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400">
+            </x-form.select>
+            <x-form.select name="sort" id="search-sort" class="md:col-span-2">
                 <option value="featured" @selected(($sort ?? 'featured') === 'featured')>@lang('site.sort_featured')</option>
                 <option value="top_rated" @selected(($sort ?? '') === 'top_rated')>@lang('site.sort_top_rated')</option>
                 <option value="cheapest" @selected(($sort ?? '') === 'cheapest')>@lang('site.sort_cheapest')</option>
                 <option value="most_booked" @selected(($sort ?? '') === 'most_booked')>@lang('site.sort_most_booked')</option>
                 <option value="nearest" @selected(($sort ?? '') === 'nearest')>@lang('site.sort_nearest')</option>
-            </select>
+            </x-form.select>
             {{-- Preserve geolocation for "nearest" across pagination / re-submits. --}}
             <input type="hidden" name="lat" id="search-lat" value="{{ request('lat') }}">
             <input type="hidden" name="lng" id="search-lng" value="{{ request('lng') }}">
@@ -92,19 +92,19 @@
         {{-- Secondary filters: district · rating · max price --}}
         <div class="mt-3 flex flex-wrap gap-3">
             @if($districts->isNotEmpty())
-                <select name="district" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 min-w-44">
+                <x-form.select name="district" onchange="this.form.submit()" class="md:w-auto min-w-44">
                     <option value="">@lang('site.filter_any_district')</option>
                     @foreach($districts as $d)
                         <option value="{{ $d }}" @selected(request('district') == $d)>{{ $d }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
             @endif
-            <select name="min_rating" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 min-w-40">
+            <x-form.select name="min_rating" onchange="this.form.submit()" class="md:w-auto min-w-40">
                 <option value="">@lang('site.filter_rating_any')</option>
                 <option value="4.5" @selected(request('min_rating') === '4.5')>★ 4.5+</option>
                 <option value="4" @selected(request('min_rating') === '4')>★ 4+</option>
                 <option value="3" @selected(request('min_rating') === '3')>★ 3+</option>
-            </select>
+            </x-form.select>
             <input type="number" name="price_max" value="{{ request('price_max') }}" min="0" step="50"
                    onchange="this.form.submit()" placeholder="@lang('site.filter_price_max')"
                    class="border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-sage-400 w-44">
@@ -204,22 +204,29 @@
             <p>@lang('site.no_results_subtitle')</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
             @foreach($clinics as $clinic)
                 <div class="relative">
                     @auth('web')
-                        <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="absolute bottom-3 end-3 z-20">
+                        @php $fav = auth('web')->user()->hasFavorited($clinic); @endphp
+                        <form method="POST" action="{{ route('favorites.toggle', $clinic->slug) }}" class="js-save-form absolute bottom-3 end-3 z-20">
                             @csrf
-                            @php $fav = auth('web')->user()->hasFavorited($clinic); @endphp
                             <button type="submit"
+                                    data-fav-toggle
+                                    data-saved="{{ $fav ? '1' : '0' }}"
+                                    data-class-on="bg-red-50 text-red-500 hover:bg-red-100"
+                                    data-class-off="bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                    data-title-on="{{ __('site.favorite_remove') }}"
+                                    data-title-off="{{ __('site.favorite_add') }}"
                                     title="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                     aria-label="{{ $fav ? __('site.favorite_remove') : __('site.favorite_add') }}"
                                     class="inline-flex items-center justify-center w-9 h-9 rounded-full shadow-sm ring-1 ring-gray-100 transition-colors {{ $fav ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-white/95 text-gray-400 hover:text-red-500 hover:bg-red-50' }}">
-                                <x-icon :name="$fav ? 'heart-solid' : 'heart'" class="w-4 h-4" />
+                                <span data-fav-icon-on class="{{ $fav ? '' : 'hidden' }}"><x-icon name="heart-solid" class="w-4 h-4" /></span>
+                                <span data-fav-icon-off class="{{ $fav ? 'hidden' : '' }}"><x-icon name="heart" class="w-4 h-4" /></span>
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" title="{{ __('site.saved_login_prompt') }}"
+                        <a href="{{ route('login', ['redirect' => url()->full()]) }}" title="{{ __('site.saved_login_prompt') }}"
                            class="absolute bottom-3 end-3 z-20 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/95 text-gray-400 shadow-sm ring-1 ring-gray-100 hover:text-red-500 hover:bg-red-50 transition-colors">
                             <x-icon name="heart" class="w-4 h-4" />
                         </a>

@@ -18,6 +18,14 @@ export function useBookingStatusCounts() {
   });
 }
 
+export function useCustomerIdentity(phone: string | null) {
+  return useQuery({
+    enabled: !!phone,
+    queryKey: [...KEY, 'identity', phone],
+    queryFn: () => bookingsApi.customerIdentity(phone as string),
+  });
+}
+
 export function useCreateBooking() {
   const qc = useQueryClient();
   return useMutation({

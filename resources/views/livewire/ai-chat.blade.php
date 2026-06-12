@@ -108,7 +108,7 @@
                                                 @endif
                                                 @if($c['min_price'])
                                                     <span class="text-sage-700 font-semibold">
-                                                        {{ __('site.starting_from', ['amount' => number_format($c['min_price'])]) }}
+                                                        {{ __('site.starting_from', ['amount' => number_format($c['min_price'])]) }} <x-riyal />
                                                     </span>
                                                 @endif
                                             </div>

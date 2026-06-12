@@ -8,6 +8,7 @@ export interface AdminStats {
   active_subscriptions: number;
   month_revenue: number;
   total_users: number;
+  abandoned_carts_items: number;
 }
 
 export interface LatestBooking {

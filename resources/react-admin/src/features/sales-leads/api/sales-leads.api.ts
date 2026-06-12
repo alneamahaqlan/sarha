@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import type { PaginatedResponse, SingleResponse } from '@/types/api';
-import type { ConvertLeadPayload, SalesLead, SalesLeadFormValues, SalesLeadStatus } from '../types';
+import type { ConvertLeadPayload, LeadActivityType, SalesLead, SalesLeadActivity, SalesLeadFormValues, SalesLeadStatus } from '../types';
 
 export interface SalesLeadListParams {
   page?: number;
@@ -49,6 +49,14 @@ export const salesLeadsApi = {
   },
   convert: async (id: number, payload: ConvertLeadPayload) => {
     const res = await apiClient.post<ConvertResponse>(`/admin/sales-leads/${id}/convert`, payload);
+    return res.data.data;
+  },
+  activities: async (id: number) => {
+    const res = await apiClient.get<{ data: SalesLeadActivity[] }>(`/admin/sales-leads/${id}/activities`);
+    return res.data.data;
+  },
+  logActivity: async (id: number, payload: { type: LeadActivityType; body?: string | null }) => {
+    const res = await apiClient.post<{ data: SalesLeadActivity }>(`/admin/sales-leads/${id}/activities`, payload);
     return res.data.data;
   },
 };

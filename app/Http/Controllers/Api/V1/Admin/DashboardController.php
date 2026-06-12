@@ -35,6 +35,8 @@ class DashboardController extends Controller
                     ->whereMonth('created_at', now()->month)
                     ->whereYear('created_at', now()->year)->sum('amount'),
                 'total_users'          => User::where('is_active', true)->count(),
+                // Services/offers/packages sitting unbooked in customers' carts.
+                'abandoned_carts_items' => \App\Models\CartItem::abandoned()->count(),
             ],
         ]);
     }
@@ -141,10 +143,29 @@ class DashboardController extends Controller
                 'category_requests'      => \App\Models\CategoryRequest::where('status', 'pending')->count(),
                 // New canonical-service requests pending admin review (catalog).
                 'catalog_requests'       => \App\Models\CatalogService::where('status', 'pending')->count(),
+                // Managed-campaign requests submitted by complexes, awaiting run.
+                'campaign_requests'      => \App\Models\ClinicCampaign::where('type', 'managed')
+                    ->where('managed_status', 'submitted')->count(),
                 // Clinic-side platform reports waiting for review.
                 'clinic_reports'         => \App\Models\ClinicReport::whereIn('status', ['new', 'in_review'])->count(),
                 // Customer-side platform reports waiting for review.
                 'customer_reports'       => \App\Models\CustomerReport::whereIn('status', ['new', 'in_review'])->count(),
+                // Complexes awaiting tracking-pixel activation approval.
+                'tracking_pending'       => Clinic::where('tracking_status', 'pending')->count(),
+                // Complexes awaiting cart-feature activation approval.
+                'cart_pending'           => Clinic::where('cart_status', 'pending')->count(),
+                // Unified Access Center badge: every registry gate in 'pending'
+                // + the external request queues (category / catalog / campaign).
+                'access_center'          => collect(\App\Support\ClinicGateRegistry::gates())
+                        ->sum(fn ($g) => Clinic::where($g['status'], 'pending')->count())
+                    + \App\Models\CategoryRequest::where('status', 'pending')->count()
+                    + \App\Models\CatalogService::where('status', 'pending')->count()
+                    + \App\Models\ClinicCampaign::where('type', 'managed')->where('managed_status', 'submitted')->count(),
+                // Sales leads whose follow-up time has passed (still open).
+                'sales_followups_overdue' => \App\Models\SalesLead::whereNotNull('next_follow_up_at')
+                    ->where('next_follow_up_at', '<=', now())
+                    ->whereNotIn('status', \App\Models\SalesLead::TERMINAL_STATUSES)
+                    ->count(),
             ],
         ]);
     }

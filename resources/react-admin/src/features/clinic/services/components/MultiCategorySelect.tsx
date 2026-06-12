@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { PortalDropdown } from '@/components/ui/portal-dropdown';
 import type { CategoryLookup } from '@/features/lookups/api';
 
 interface Props {
@@ -25,6 +26,7 @@ export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Pr
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
 
   const selected = useMemo(
     () => (categories ?? []).filter((c) => value.includes(c.id)),
@@ -89,7 +91,7 @@ export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Pr
       )}
 
       {/* Search input + dropdown of matches */}
-      <div className="relative">
+      <div className="relative" ref={anchorRef}>
         <input
           type="text"
           value={query}
@@ -119,43 +121,46 @@ export function MultiCategorySelect({ value, onChange, categories, max = 5 }: Pr
           className="h-9 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] disabled:bg-[var(--color-muted)] disabled:opacity-60"
         />
 
-        {open && !atMax && matches.length > 0 && (
-          <ul
-            className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-lg"
-            onMouseDown={() => {
-              // Cancel the input blur-close so the click below fires.
-              if (blurTimer.current) clearTimeout(blurTimer.current);
-            }}
-          >
-            {matches.map((c) => (
-              <li key={c.id}>
-                <button
-                  type="button"
-                  // onMouseDown + preventDefault: select before the input's
-                  // blur fires, so the option click isn't swallowed by the
-                  // dropdown closing.
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    add(c.id);
-                  }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-[var(--color-muted)]"
-                >
-                  {c.emoji ? <span>{c.emoji}</span> : null}
-                  <span>{c.name}</span>
-                  {c.name_en ? (
-                    <span className="text-xs text-[var(--color-muted-foreground)]">{c.name_en}</span>
-                  ) : null}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {open && !atMax && query.trim() !== '' && matches.length === 0 && (
-          <div className="absolute z-20 mt-1 w-full rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-xs text-[var(--color-muted-foreground)] shadow-lg">
-            {t('clinic_services.no_category_match', 'لا يوجد تخصص مطابق.')}
-          </div>
-        )}
+        <PortalDropdown
+          anchorRef={anchorRef}
+          open={open && !atMax && (matches.length > 0 || query.trim() !== '')}
+        >
+          {matches.length > 0 ? (
+            <ul
+              className="max-h-56 overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-lg"
+              onMouseDown={() => {
+                // Cancel the input blur-close so the click below fires.
+                if (blurTimer.current) clearTimeout(blurTimer.current);
+              }}
+            >
+              {matches.map((c) => (
+                <li key={c.id}>
+                  <button
+                    type="button"
+                    // onMouseDown + preventDefault: select before the input's
+                    // blur fires, so the option click isn't swallowed by the
+                    // dropdown closing.
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      add(c.id);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm hover:bg-[var(--color-muted)]"
+                  >
+                    {c.emoji ? <span>{c.emoji}</span> : null}
+                    <span>{c.name}</span>
+                    {c.name_en ? (
+                      <span className="text-xs text-[var(--color-muted-foreground)]">{c.name_en}</span>
+                    ) : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-md border border-[var(--color-border)] bg-white px-3 py-2 text-xs text-[var(--color-muted-foreground)] shadow-lg">
+              {t('clinic_services.no_category_match', 'لا يوجد تخصص مطابق.')}
+            </div>
+          )}
+        </PortalDropdown>
       </div>
 
       {/* Counter */}

@@ -143,6 +143,13 @@ class AuthController extends Controller
         // `user.name` (which still describe the clinic).
         if ($guard === 'clinic') {
             $payload['acting'] = $this->actingPayload();
+            // Subscription feature flags the React layer consults to
+            // hide gated surfaces (e.g. the CRM tab). The server still
+            // enforces via clinic.feature middleware — this is cosmetic.
+            $gate = app(\App\Services\FeatureGate::class);
+            $payload['features'] = [
+                'crm' => $gate->hasCrmAccess($user),
+            ];
         }
 
         return $payload;
@@ -191,6 +198,18 @@ class AuthController extends Controller
                 'categories.create'    => true,
                 'categories.update'    => true,
                 'categories.delete'    => true,
+                'static_pages.viewAny' => true,
+                'static_pages.create'  => $isSuper,
+                'static_pages.update'  => $isSuper,
+                'static_pages.delete'  => $isSuper,
+                'navigation_links.viewAny' => true,
+                'navigation_links.create'  => $isSuper,
+                'navigation_links.update'  => $isSuper,
+                'navigation_links.delete'  => $isSuper,
+                'landing_pages.viewAny' => true,
+                'landing_pages.create'  => $isSuper,
+                'landing_pages.update'  => $isSuper,
+                'landing_pages.delete'  => $isSuper,
                 'bookings.viewAny'     => true,
                 'complaints.viewAny'   => true,
                 'complaints.update'    => true,

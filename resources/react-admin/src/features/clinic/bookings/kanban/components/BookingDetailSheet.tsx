@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { Phone, MessageCircle, Clock, User2, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { useCan } from '@/app/providers/AuthProvider';
+import { extractMessage } from '@/lib/api-client';
+import { customersApi } from '@/features/clinic/customers/api';
 
 import { useBookingDetail } from '../hooks';
 import { CardAutoTags } from './CardAutoTags';
@@ -16,7 +21,10 @@ import { ActivityTimeline } from './ActivityTimeline';
 import { AssigneePicker } from './AssigneePicker';
 import { TagsManager } from './TagsManager';
 import { Customer360Panel } from './Customer360Panel';
+import { BookingServicesEditor } from './BookingServicesEditor';
 import { EditBookingDialog } from './EditBookingDialog';
+import { ReminderButton } from '@/features/clinic/reminders/components/ReminderButton';
+import { FollowUpStars } from '@/features/clinic/customers/components/FollowUpStars';
 
 interface Props {
   bookingId: number;
@@ -34,8 +42,21 @@ function fmtDate(iso: string | null, locale: string) {
 export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const qc = useQueryClient();
+  const canManage = useCan('customers.manage');
   const { data, isLoading } = useBookingDetail(bookingId);
   const [editOpen, setEditOpen] = useState(false);
+
+  async function setPriority(v: number) {
+    if (!data?.customer_id) return;
+    try {
+      await customersApi.update(data.customer_id, { follow_up_priority: v });
+      qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban', 'board'] });
+      qc.invalidateQueries({ queryKey: ['clinic', 'customers', 'list'] });
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  }
 
   const waPhone = customerPhone.replace(/[^0-9]/g, '');
   const waLink = waPhone ? `https://wa.me/${waPhone.startsWith('0') ? '966' + waPhone.slice(1) : waPhone}` : null;
@@ -81,14 +102,28 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                     </div>
                     <CardAutoTags tags={data.auto_tags} />
                     <CardSuggestions suggestions={data.suggestions} />
-                    {data.service && (
-                      <div className="text-sm">{data.service.name}{data.service.price ? ` — ${data.service.price}` : ''}</div>
-                    )}
                     {data.appointment_at && (
                       <div className="flex items-center gap-1 text-xs">
                         <Clock className="h-3 w-3" />{fmtDate(data.appointment_at, locale)}
                       </div>
                     )}
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.source.label')}: {t(`clinic_bookings_kanban.source.opt.${data.acquisition_source}`)}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[var(--color-muted-foreground)]">
+                      <span>{t('clinic_customers.priority.label')}:</span>
+                      <FollowUpStars
+                        value={data.follow_up_priority}
+                        size="sm"
+                        onChange={canManage && data.customer_id ? setPriority : undefined}
+                      />
+                    </div>
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.detail.added_by')}: {data.created_by_name ?? t('clinic_bookings_kanban.detail.added_by_self')}
+                    </div>
+                    <div className="text-xs text-[var(--color-muted-foreground)]">
+                      {t('clinic_bookings_kanban.detail.added_at')}: {fmtDate(data.created_at, locale)}
+                    </div>
                     {data.notes && (
                       <div className="rounded-md bg-amber-50 p-2 text-xs text-amber-800">
                         <div className="text-[10px] uppercase">{t('clinic_bookings_kanban.detail.customer_notes')}</div>
@@ -116,9 +151,19 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                   <CardHeatBar heat={data.heat} />
                 </div>
 
+                <BookingServicesEditor bookingId={data.id} services={data.services} value={data.value} />
+
                 <section className="space-y-2">
                   <div className="text-xs font-semibold">{t('clinic_bookings_kanban.detail.quick_actions')}</div>
                   <QuickActionsBar bookingId={data.id} />
+                  {data.customer_id && (
+                    <ReminderButton
+                      customerId={data.customer_id}
+                      customerName={data.customer_name}
+                      bookingId={data.id}
+                      variant="ghost"
+                    />
+                  )}
                 </section>
 
                 <section className="space-y-2 rounded-lg border border-[var(--color-border)] bg-white p-3">

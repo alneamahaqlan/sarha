@@ -27,15 +27,43 @@ class BookingKanbanService
      */
     public function column(int $clinicId, string $column, array $filters = [], ?int $cursor = null, int $limit = 20): array
     {
-        $q = $this->baseQuery($clinicId, $filters)->forKanbanColumn($column);
+        return $this->paginate(
+            $clinicId,
+            $this->baseQuery($clinicId, $filters)->forKanbanColumn($column),
+            $cursor,
+            $limit,
+        );
+    }
 
+    /**
+     * Fetch a single custom-stage column. `$isPrimary` makes the stage
+     * also absorb un-staged bookings of its kind (see Booking::scopeForStage).
+     */
+    public function columnForStage(int $clinicId, \App\Models\ClinicBookingStage $stage, bool $isPrimary, array $filters = [], ?int $cursor = null, int $limit = 20): array
+    {
+        return $this->paginate(
+            $clinicId,
+            $this->baseQuery($clinicId, $filters)->forStage($stage, $isPrimary),
+            $cursor,
+            $limit,
+        );
+    }
+
+    private function paginate(int $clinicId, Builder $q, ?int $cursor, int $limit): array
+    {
         // Cursor = last id seen (descending order). Cheaper than offset
         // and stable under inserts.
         if ($cursor) {
             $q->where('id', '<', $cursor);
         }
 
-        $q->orderByRaw('CASE WHEN appointment_at IS NULL THEN 1 ELSE 0 END, appointment_at ASC')
+        // Order by follow-up priority (the customer's star rating) first,
+        // then by appointment date. Priority lives on the customer, so we
+        // read it via a correlated subquery to avoid a join that would make
+        // the shared base-query columns ambiguous. Un-linked bookings
+        // (null customer_id) sort last, as their priority is NULL.
+        $q->orderByRaw('(SELECT follow_up_priority FROM customers WHERE customers.id = bookings.customer_id) DESC')
+          ->orderByRaw('CASE WHEN appointment_at IS NULL THEN 1 ELSE 0 END, appointment_at ASC')
           ->orderByDesc('id');
 
         $items = $q->take($limit + 1)->get();
@@ -96,11 +124,20 @@ class BookingKanbanService
             ? round(((int) $weeklyTotals->confirmed) / ((int) $weeklyTotals->total), 2)
             : null;
 
+        // Active cards (not cancelled/no-show) with no service line items —
+        // the "missing data" alert count surfaced in the board stats bar.
+        $incompleteServices = Booking::query()
+            ->where('clinic_id', $clinicId)
+            ->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+            ->whereDoesntHave('services')
+            ->count();
+
         return [
             'today_count'         => $todayCount,
             'yesterday_no_show'   => $yesterdayNoShow,
             'needs_urgent_confirm'=> $needsUrgent,
             'weekly_confirm_rate' => $rate,
+            'incomplete_services' => $incompleteServices,
         ];
     }
 
@@ -112,7 +149,9 @@ class BookingKanbanService
     {
         $q = Booking::query()
             ->where('clinic_id', $clinicId)
-            ->with(['service:id,name', 'assignee', 'tags']);
+            ->with(['service:id,name', 'assignee', 'tags', 'customer:id,follow_up_priority'])
+            ->withSum('services as services_value', 'net_price')
+            ->withCount('services');
 
         if ($search = trim((string) ($filters['search'] ?? ''))) {
             $q->where(function ($w) use ($search) {
@@ -179,6 +218,19 @@ class BookingKanbanService
 
             default => null,
         };
+
+        // Acquisition-source filter: the marketing channel the patient
+        // came from (instagram, whatsapp, walk_in, …).
+        if ($acqSource = $filters['acquisition_source'] ?? null) {
+            $q->where('acquisition_source', $acqSource);
+        }
+
+        // "Missing data" filter: active cards (not cancelled/no-show) with
+        // no service line items yet — the rows the team must complete.
+        if (! empty($filters['incomplete'])) {
+            $q->whereNotIn('status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+              ->whereDoesntHave('services');
+        }
 
         // Custom-tag filter: matches a tag label across BOTH scopes
         // (per-booking tags and per-customer tags). After phase 2 the

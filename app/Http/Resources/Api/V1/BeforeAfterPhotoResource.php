@@ -17,6 +17,7 @@ class BeforeAfterPhotoResource extends JsonResource
             'title'         => $this->title,
             'before_image'  => $this->before_image,
             'after_image'   => $this->after_image,
+            'display_mode'  => $this->display_mode ?: 'side_by_side',
             'before_url'    => $this->before_url,
             'after_url'     => $this->after_url,
             'is_active'     => (bool) $this->is_active,

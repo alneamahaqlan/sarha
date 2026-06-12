@@ -7,7 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { useClinicLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { usePackages } from '@/features/subscription-packages/hooks';
@@ -124,7 +127,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form noValidate onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_id">{t('subscriptions.form.clinic')}</Label>
@@ -137,7 +140,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
             <option value="">—</option>
             {clinics?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </Select>
-          {errors.clinic_id && <p className="text-xs text-[var(--color-destructive)]">{errors.clinic_id}</p>}
+          <FieldError message={errors.clinic_id} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
@@ -154,7 +157,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
               return <option key={p.id} value={p.id}>{`${name} — ${price}`}</option>;
             })}
           </Select>
-          {errors.subscription_package_id && <p className="text-xs text-[var(--color-destructive)]">{errors.subscription_package_id}</p>}
+          <FieldError message={errors.subscription_package_id} />
         </div>
 
         <div className="space-y-1.5">
@@ -200,7 +203,7 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
             onChange={(e) => set('amount', Number(e.target.value))}
           />
           <p className="text-xs text-[var(--color-muted-foreground)]">{t('subscriptions.form.amount_hint')}</p>
-          {errors.amount && <p className="text-xs text-[var(--color-destructive)]">{errors.amount}</p>}
+          <FieldError message={errors.amount} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
@@ -229,10 +232,19 @@ export function SubscriptionForm({ subscription, onSuccess, onCancel }: Props) {
           </div>
           <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-1 mt-1">
             <span className="font-medium">{t('subscriptions.form.preview_total')}</span>
-            <span className="font-bold">{values.amount.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} {t('packages.sar_per_month').replace('/mo', '').replace('/شهر', '')}</span>
+            <span className="font-bold">{values.amount.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} <RiyalSymbol /></span>
           </div>
         </div>
       )}
+
+      <FormErrorSummary
+        errors={errors}
+        labels={{
+          clinic_id: t('subscriptions.form.clinic'),
+          subscription_package_id: t('subscriptions.form.package'),
+          amount: t('subscriptions.form.amount'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

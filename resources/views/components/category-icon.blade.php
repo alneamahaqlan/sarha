@@ -1,41 +1,18 @@
-@props(['emoji' => null])
+@props(['emoji' => null, 'icon' => null])
 @php
-    // Display-only: map a category's stored emoji to a professional vector icon.
-    // The emoji column remains the source of truth; this only changes rendering.
-    $key = match (trim((string) $emoji)) {
-        '🦷' => 'dental',
-        '✨' => 'derma',
-        '👁', '👁️' => 'eye',
-        '🌸' => 'women',
-        '👶' => 'pediatrics',
-        '🦴' => 'bone',
-        '❤', '❤️', '❤️' => 'cardiology',
-        '🩺' => 'internal',
-        '👂' => 'ent',
-        '🧠' => 'neuro',
-        '🥗' => 'nutrition',
-        '💪' => 'physiotherapy',
-        '🔬' => 'lab',
-        '📡' => 'radiology',
-        default => 'med',
-    };
+    use App\Support\CategoryIcons;
+    use Illuminate\Support\Facades\Storage;
 
-    $paths = [
-        'med'           => '<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
-        'dental'        => '<path d="M7.5 3C5.5 3 4 4.6 4 6.8c0 1.2.3 2.3.6 3.8.3 1.6.4 3.4.9 5 .3 1 .6 2.4 1.4 2.4.9 0 1-1.5 1.3-2.6.2-.8.5-1.6 1.3-1.6s1.1.8 1.3 1.6c.3 1.1.4 2.6 1.3 2.6.8 0 1.1-1.4 1.4-2.4.5-1.6.6-3.4.9-5 .3-1.5.6-2.6.6-3.8C20 4.6 18.5 3 16.5 3c-1.6 0-2.7 1-3.5 1-.8 0-1.9-1-3.5-1z"/>',
-        'derma'         => '<path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z"/>',
-        'eye'           => '<path d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>',
-        'women'         => '<circle cx="12" cy="8" r="5"/><path d="M12 13v8M8.5 18h7"/>',
-        'pediatrics'    => '<circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0M9 10h.01M15 10h.01"/>',
-        'bone'          => '<path d="M17 10c.7-.7 1.69 0 2.5 0a2.5 2.5 0 1 0 0-5 .5.5 0 0 1-.5-.5 2.5 2.5 0 1 0-5 0c0 .81.7 1.8 0 2.5l-7 7c-.7.7-1.69 0-2.5 0a2.5 2.5 0 0 0 0 5c.28 0 .5.22.5.5a2.5 2.5 0 1 0 5 0c0-.81-.7-1.8 0-2.5Z"/>',
-        'cardiology'    => '<path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 4.07 2.86 6.93 5.5 9.06M21 8.25c0 1.2-.18 2.27-.5 3.25h-4l-2 3-3-6-2 3H6.5"/>',
-        'internal'      => '<path d="M5 3v5a4 4 0 0 0 8 0V3"/><path d="M9 16.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="18" cy="11.5" r="2.5"/>',
-        'ent'           => '<path d="M6 8.5a5.5 5.5 0 1 1 11 0c0 2.6-1.5 3.9-2.8 5.2-1 1-1.7 1.8-1.7 3.3a2.5 2.5 0 0 1-5 0"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.5 2-1.5 3"/>',
-        'neuro'         => '<path d="M12 4.5v15M9.5 5A3.5 3.5 0 0 0 6 8.5 3 3 0 0 0 5 14a3 3 0 0 0 4 2.8M14.5 5A3.5 3.5 0 0 1 18 8.5 3 3 0 0 1 19 14a3 3 0 0 1-4 2.8"/>',
-        'nutrition'     => '<path d="M12 8c-1-2.5-3.2-3.4-5-2.8C5 6 4 8.2 4.6 11c.5 2.4 2 5.2 3.9 6.6 1.1.8 2.3.8 3.5 0M12 8c1-2.5 3.2-3.4 5-2.8C19 6 20 8.2 19.4 11c-.5 2.4-2 5.2-3.9 6.6-1.1.8-2.3.8-3.5 0M12 8V5c0-1.1.9-2 2-2"/>',
-        'physiotherapy' => '<path d="M5 8v8M3 9v6M19 8v8M21 9v6M5 12h14"/>',
-        'lab'           => '<path d="M9 3v5.5L4.5 17A2 2 0 0 0 6.3 20h11.4a2 2 0 0 0 1.8-3L15 8.5V3M8 3h8M8.5 14h7"/>',
-        'radiology'     => '<path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2M7 12h10"/>',
-    ];
+    // Resolution order for a category's visual:
+    //   1. icon = uploaded image path  → render that image
+    //   2. icon = a built-in icon key  → render its vector
+    //   3. fall back to mapping the legacy emoji onto a built-in key
+    $icon = trim((string) $icon);
+    $isUploaded = $icon !== '' && ! CategoryIcons::has($icon);
+    $key = CategoryIcons::has($icon) ? $icon : CategoryIcons::keyForEmoji($emoji);
 @endphp
-<svg {{ $attributes->merge(['class' => 'w-5 h-5']) }} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">{!! $paths[$key] !!}</svg>
+@if($isUploaded)
+    <img src="{{ Storage::url($icon) }}" {{ $attributes->merge(['class' => 'w-5 h-5 object-contain']) }} alt="" aria-hidden="true">
+@else
+    <svg {{ $attributes->merge(['class' => 'w-5 h-5']) }} fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">{!! CategoryIcons::PATHS[$key] !!}</svg>
+@endif

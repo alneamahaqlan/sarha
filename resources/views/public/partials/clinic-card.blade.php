@@ -4,7 +4,7 @@
 @endphp
 
 <a href="{{ route('clinic.show', $clinic->slug) }}"
-   class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden block group relative">
+   class="bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden block group relative">
 
     {{-- Smart badges overlay --}}
     @if(! empty($badges))
@@ -25,6 +25,7 @@
     @if($compare ?? false)
         <button type="button"
                 class="compare-toggle absolute top-1 end-1 z-20 inline-flex items-center justify-center min-h-touch min-w-touch rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-500"
+                data-compare-type="clinic"
                 data-compare-id="{{ $clinic->id }}"
                 data-compare-name="{{ $clinic->name }}"
                 aria-pressed="false"
@@ -55,7 +56,7 @@
 
     <div class="p-4">
         <div class="flex items-start justify-between mb-2 gap-2">
-            <h3 class="font-bold text-gray-800 group-hover:text-sage-600 transition-colors leading-snug">
+            <h3 class="font-display font-bold text-charcoal group-hover:text-sage-600 transition-colors leading-snug">
                 {{ $clinic->name }}
             </h3>
             @if($clinic->is_featured && empty($badges))
@@ -67,8 +68,8 @@
         <div class="flex items-center gap-3 text-sm text-gray-500 mb-3 flex-wrap">
             @if(($clinic->google_reviews_avg_rating ?? 0) > 0)
                 <span class="flex items-center gap-1">
-                    <span class="text-yellow-500">★</span>
-                    <span class="font-semibold text-gray-700">{{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
+                    <span class="text-gold-primary">★</span>
+                    <span class="font-semibold text-charcoal">{{ number_format($clinic->google_reviews_avg_rating, 1) }}</span>
                 </span>
             @endif
             <span class="flex items-center gap-1">
@@ -84,7 +85,7 @@
             <div class="flex flex-wrap gap-1">
                 @foreach($clinic->categories->take(3) as $cat)
                     <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full">
-                        <x-category-icon :emoji="$cat->emoji" class="w-3 h-3" /> {{ $cat->display_name }}
+                        <x-category-icon :emoji="$cat->emoji" :icon="$cat->icon" class="w-3 h-3" /> {{ $cat->display_name }}
                     </span>
                 @endforeach
             </div>
@@ -93,7 +94,7 @@
         {{-- Starting price — shown whenever the list query loaded min_price --}}
         @if(! is_null($clinic->min_price ?? null))
             <p class="mt-3 text-sm font-semibold text-sage-700">
-                {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}
+                {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }} <x-riyal />
             </p>
         @endif
     </div>

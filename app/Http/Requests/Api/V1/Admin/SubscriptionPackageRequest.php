@@ -51,6 +51,7 @@ class SubscriptionPackageRequest extends FormRequest
             'banner_slots'                => 'required|integer|min:0|max:20',
             'allow_offers_packages'       => 'required|boolean',
             'allow_doctors_before_after'  => 'required|boolean',
+            'crm_enabled'                 => 'required|boolean',
 
             // Per-package config for the public "similar / related" strips.
             // Nullable → falls back to SubscriptionPackage::defaultSimilarConfig().

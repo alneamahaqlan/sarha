@@ -37,12 +37,23 @@ class BookingDetailResource extends JsonResource
             'kanban_column'  => $this->kanbanColumn(),
             'appointment_at' => $this->appointment_at?->toIso8601String(),
             'source'         => $this->source,
+            'acquisition_source' => $this->acquisition_source,
             'is_for_relative'=> ! is_null($this->relative_id),
             'service'        => $this->whenLoaded('service', fn() => $this->service ? [
                 'id'   => $this->service->id,
                 'name' => $this->service->name,
                 'price'=> $this->service->price ?? null,
             ] : null),
+            // Service line items taken on this card + the card's net value.
+            'services'       => $this->whenLoaded('services', fn() => $this->services->map(fn($ln) => [
+                'id'           => $ln->id,
+                'service_id'   => $ln->service_id,
+                'service_name' => $ln->service?->name,
+                'list_price'   => $ln->list_price !== null ? (float) $ln->list_price : null,
+                'net_price'    => (float) $ln->net_price,
+            ])->all(), []),
+            'value'          => (float) ($this->relationLoaded('services') ? $this->services->sum('net_price') : 0),
+            'is_incomplete'  => $this->isIncomplete(),
             'booker'         => $this->whenLoaded('booker', fn() => $this->booker ? [
                 'id'    => $this->booker->id,
                 'name'  => $this->booker->name,
@@ -86,6 +97,8 @@ class BookingDetailResource extends JsonResource
                 ])->all(),
             'created_at'     => $this->created_at?->toIso8601String(),
             'updated_at'     => $this->updated_at?->toIso8601String(),
+            'created_by_name' => $this->created_by_name,
+            'follow_up_priority' => (int) ($this->customer?->follow_up_priority ?? 0),
         ];
     }
 

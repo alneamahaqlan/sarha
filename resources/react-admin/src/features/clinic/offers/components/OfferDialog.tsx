@@ -13,8 +13,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useClinicServices } from '@/features/clinic/services/hooks';
 
 import { useCreateClinicOffer, useUpdateClinicOffer } from '../hooks';
@@ -166,7 +169,7 @@ export function OfferDialog({ offer, onClose }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
           {/* Type chooser — the central decision; everything else depends on it. */}
           <fieldset className="space-y-2">
             <Label>{t('clinic_offers.type', 'نوع العرض')}</Label>
@@ -210,18 +213,14 @@ export function OfferDialog({ offer, onClose }: Props) {
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
-              {form.formState.errors.service_id && (
-                <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.service_id.message}</p>
-              )}
+              <FieldError message={form.formState.errors.service_id?.message} />
             </div>
           )}
 
           <div className="space-y-1.5">
             <Label htmlFor="title">{t('clinic_offers.title_field', 'عنوان العرض')}</Label>
             <Input id="title" {...form.register('title')} maxLength={255} />
-            {form.formState.errors.title && (
-              <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.title.message}</p>
-            )}
+            <FieldError message={form.formState.errors.title?.message} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -238,15 +237,13 @@ export function OfferDialog({ offer, onClose }: Props) {
           </div>
           {discountPct !== null && (
             <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-              {t('clinic_offers.discount_summary', 'خصم {{pct}}% — وفّر {{amount}} ريال', {
+              {t('clinic_offers.discount_summary', 'خصم {{pct}}% — وفّر {{amount}}', {
                 pct: discountPct,
                 amount: savedAmount?.toLocaleString() ?? '',
-              })}
+              })} <RiyalSymbol />
             </div>
           )}
-          {form.formState.errors.old_price && (
-            <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.old_price.message}</p>
-          )}
+          <FieldError message={form.formState.errors.old_price?.message} />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -256,9 +253,7 @@ export function OfferDialog({ offer, onClose }: Props) {
             <div className="space-y-1.5">
               <Label htmlFor="ends_at_local">{t('clinic_offers.ends_at', 'ينتهي في')}</Label>
               <Input id="ends_at_local" type="datetime-local" {...form.register('ends_at_local')} />
-              {form.formState.errors.ends_at_local && (
-                <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.ends_at_local.message}</p>
-              )}
+              <FieldError message={form.formState.errors.ends_at_local?.message} />
             </div>
           </div>
 
@@ -273,6 +268,7 @@ export function OfferDialog({ offer, onClose }: Props) {
               value={form.watch('image')}
               onChange={(p) => form.setValue('image', p ?? '', { shouldDirty: true })}
               directory="offers"
+              hint={t('clinic_offers.image_size_hint')}
             />
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {t('clinic_offers.image_hint', 'اتركها فارغة لاستخدام صورة الخدمة المرتبطة.')}
@@ -291,6 +287,17 @@ export function OfferDialog({ offer, onClose }: Props) {
               <Label>{t('clinic_offers.is_active', 'نشط')}</Label>
             </div>
           </div>
+
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              service_id: t('clinic_offers.service', 'الخدمة المرتبطة'),
+              title: t('clinic_offers.title_field', 'عنوان العرض'),
+              old_price: t('clinic_offers.old_price', 'السعر قبل الخصم'),
+              price: t('clinic_offers.price', 'السعر بعد الخصم'),
+              ends_at_local: t('clinic_offers.ends_at', 'ينتهي في'),
+            }}
+          />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>

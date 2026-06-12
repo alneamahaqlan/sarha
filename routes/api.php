@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\V1\Admin\ArticleController as AdminArticleControlle
 use App\Http\Controllers\Api\V1\Admin\AuditLogController;
 use App\Http\Controllers\Api\V1\Admin\BookingController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController;
+use App\Http\Controllers\Api\V1\Admin\CampaignRequestController as AdminCampaignRequestController;
 use App\Http\Controllers\Api\V1\Admin\CategoryRequestController as AdminCategoryRequestController;
 use App\Http\Controllers\Api\V1\Admin\CityController;
 use App\Http\Controllers\Api\V1\Admin\ClinicController;
@@ -23,11 +24,17 @@ use App\Http\Controllers\Api\V1\Admin\ServiceController;
 use App\Http\Controllers\Api\V1\Admin\SubscriptionController;
 use App\Http\Controllers\Api\V1\Admin\SystemSettingController;
 use App\Http\Controllers\Api\V1\Admin\MassNotifyController;
+use App\Http\Controllers\Api\V1\Admin\NavigationLinkController;
+use App\Http\Controllers\Api\V1\Admin\StaticPageController;
+use App\Http\Controllers\Api\V1\Admin\LandingPageController;
+use App\Http\Controllers\Api\V1\Admin\LandingPageBlockController;
 use App\Http\Controllers\Api\V1\Admin\UserController;
 use App\Http\Controllers\Api\V1\Admin\UserProfileController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Api\V1\Admin\SeederCenterController;
 use App\Http\Controllers\Api\V1\Clinic\ArticleController as ClinicArticleController;
 use App\Http\Controllers\Api\V1\Clinic\BeforeAfterController as ClinicBeforeAfterController;
+use App\Http\Controllers\Api\V1\Clinic\StoryController as ClinicStoryController;
 use App\Http\Controllers\Api\V1\Clinic\BookingController as ClinicBookingController;
 use App\Http\Controllers\Api\V1\Clinic\CategoryRequestController as ClinicCategoryRequestController;
 use App\Http\Controllers\Api\V1\Clinic\ComplaintController as ClinicComplaintController;
@@ -96,6 +103,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('lookups/admins', [LookupController::class, 'admins']);
         Route::get('lookups/sub-clinics', [LookupController::class, 'subClinics']);
         Route::get('lookups/services', [LookupController::class, 'services']);
+        Route::get('lookups/offers', [LookupController::class, 'offers']);
+        Route::get('lookups/doctors', [LookupController::class, 'doctors']);
+        Route::get('lookups/before-after', [LookupController::class, 'beforeAfter']);
 
         // Notification bell — same PlatformNotification model the Filament Livewire bell reads.
         Route::get('notifications', [NotificationController::class, 'index']);
@@ -123,10 +133,45 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('dashboard/sections', [AdminDashboardController::class, 'sections'])->name('admin.dashboard.sections');
         Route::get('dashboard/analytics', [AdminDashboardController::class, 'analytics'])->name('admin.dashboard.analytics');
 
+        // ── Seeder Center (مركز السيدر) — super-admin demo-data management.
+        // Inventory / soft-hide / restore / purge / reseed of seeded batches
+        // without touching real, app-entered data. Gated to super_admin in
+        // the controller (every method calls guard()).
+        Route::get('seeder-center', [SeederCenterController::class, 'inventory'])->name('admin.seeder-center.inventory');
+        Route::get('seeder-center/{batch}/breakdown', [SeederCenterController::class, 'breakdown'])->name('admin.seeder-center.breakdown');
+        Route::get('seeder-center/{batch}/conflicts', [SeederCenterController::class, 'conflicts'])->name('admin.seeder-center.conflicts');
+        Route::post('seeder-center/{batch}/hide', [SeederCenterController::class, 'hide'])->name('admin.seeder-center.hide');
+        Route::post('seeder-center/{batch}/unhide', [SeederCenterController::class, 'unhide'])->name('admin.seeder-center.unhide');
+        Route::post('seeder-center/{batch}/purge', [SeederCenterController::class, 'purge'])->name('admin.seeder-center.purge');
+        Route::post('seeder-center/{batch}/reseed', [SeederCenterController::class, 'reseed'])->name('admin.seeder-center.reseed');
+        Route::get('seeder-center/runs/{run}', [SeederCenterController::class, 'runStatus'])->name('admin.seeder-center.run-status');
+
         Route::apiResource('cities', CityController::class);
 
         Route::post('categories/reorder', [CategoryController::class, 'reorder'])->name('categories.reorder');
         Route::apiResource('categories', CategoryController::class);
+
+        // Static content pages (About/Privacy/Terms/Contact/FAQ) + the
+        // header/footer navigation-link manager. Both follow the category
+        // CRUD + reorder pattern.
+        Route::post('static-pages/reorder', [StaticPageController::class, 'reorder'])->name('static-pages.reorder');
+        Route::apiResource('static-pages', StaticPageController::class)->parameters(['static-pages' => 'static_page']);
+        Route::post('navigation-links/reorder', [NavigationLinkController::class, 'reorder'])->name('navigation-links.reorder');
+        Route::apiResource('navigation-links', NavigationLinkController::class)->parameters(['navigation-links' => 'navigation_link']);
+
+        // ── Landing Pages (صفحات الهبوط) — super-admin builder. CRUD for the
+        // page + nested CRUD/reorder for its drag-and-drop content blocks.
+        // Block routes are declared before the apiResource so /blocks and
+        // /blocks/reorder are not swallowed by the {landing_page} binding.
+        Route::get('landing-pages/{landing_page}/blocks', [LandingPageBlockController::class, 'index'])->name('landing-pages.blocks.index');
+        Route::post('landing-pages/{landing_page}/blocks/reorder', [LandingPageBlockController::class, 'reorder'])->name('landing-pages.blocks.reorder');
+        Route::post('landing-pages/{landing_page}/blocks', [LandingPageBlockController::class, 'store'])->name('landing-pages.blocks.store');
+        Route::patch('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'update'])->name('landing-pages.blocks.update');
+        Route::delete('landing-pages/{landing_page}/blocks/{block}', [LandingPageBlockController::class, 'destroy'])->name('landing-pages.blocks.destroy');
+        Route::get('landing-pages/{landing_page}/stats', [\App\Http\Controllers\Api\V1\Admin\LandingPageStatsController::class, 'show'])->name('landing-pages.stats');
+        Route::get('landing-pages/{landing_page}/customers', [\App\Http\Controllers\Api\V1\Admin\LandingPageCustomersController::class, 'index'])->name('landing-pages.customers');
+        Route::post('landing-pages/generate', [\App\Http\Controllers\Api\V1\Admin\LandingPageAiController::class, 'generate'])->middleware('throttle:20,1')->name('landing-pages.generate');
+        Route::apiResource('landing-pages', LandingPageController::class)->parameters(['landing-pages' => 'landing_page']);
 
         // Subscription packages catalogue — full CRUD for the super-admin.
         // Deletion is rejected at controller level if any clinic is on the package.
@@ -165,6 +210,11 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::delete('bookings/{booking_trashed}/force', [BookingController::class, 'forceDestroy'])->name('bookings.force-destroy');
         Route::apiResource('bookings', BookingController::class);
 
+        // Unified customer identity (primary name + per-clinic alternatives).
+        Route::get('platform-customers/by-phone/{phone}', [\App\Http\Controllers\Api\V1\Admin\PlatformCustomerController::class, 'showByPhone'])
+            ->where('phone', '.*')
+            ->name('platform-customers.by-phone');
+
         // Complaint state-transition actions — each delegates to ComplaintService.
         Route::post('complaints/{complaint}/mark-in-review', [ComplaintController::class, 'markInReview'])->name('complaints.mark-in-review');
         Route::post('complaints/{complaint}/resolve', [ComplaintController::class, 'resolve'])->name('complaints.resolve');
@@ -176,6 +226,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
+        // Lead timeline — list + log a manual activity (call/whatsapp/note/...).
+        Route::get('sales-leads/{salesLead}/activities', [SalesLeadController::class, 'activities'])->name('sales-leads.activities.index');
+        Route::post('sales-leads/{salesLead}/activities', [SalesLeadController::class, 'storeActivity'])->name('sales-leads.activities.store');
         Route::apiResource('sales-leads', SalesLeadController::class)->parameters(['sales-leads' => 'salesLead']);
 
         // Clinic-side platform reports — review queue. Kept separate from
@@ -195,6 +248,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('category-requests', [AdminCategoryRequestController::class, 'index'])->name('category-requests.index');
         Route::post('category-requests/{categoryRequest}/approve', [AdminCategoryRequestController::class, 'approve'])->name('category-requests.approve');
         Route::post('category-requests/{categoryRequest}/reject', [AdminCategoryRequestController::class, 'reject'])->name('category-requests.reject');
+
+        // Managed-campaign requests — complexes ask the platform to run a
+        // prepared campaign (image+text+audience) externally. Intake queue +
+        // recipient CSV export + close. No sending happens in-system.
+        Route::get('campaign-requests', [AdminCampaignRequestController::class, 'index'])->name('campaign-requests.index');
+        Route::get('campaign-requests/{campaign}', [AdminCampaignRequestController::class, 'show'])->name('campaign-requests.show');
+        Route::get('campaign-requests/{campaign}/export', [AdminCampaignRequestController::class, 'export'])->name('campaign-requests.export');
+        Route::post('campaign-requests/{campaign}/close', [AdminCampaignRequestController::class, 'close'])->name('campaign-requests.close');
 
         // Unified service catalog — review queue for clinic-proposed canonical
         // services. Approve flips the entry active + un-hides linked services.
@@ -243,6 +304,42 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::apiResource('system-settings', SystemSettingController::class)
             ->only(['index', 'show', 'update'])
             ->parameters(['system-settings' => 'systemSetting']);
+
+        // Marketing tracking pixels — global feature toggle + the clinic
+        // activation request queue (approve/reject) + per-clinic kill-switch.
+        Route::get('tracking/settings',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'settings'])->name('admin.tracking.settings');
+        Route::put('tracking/settings',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'updateSettings'])->name('admin.tracking.settings.update');
+        Route::get('tracking/requests',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'requests'])->name('admin.tracking.requests');
+        Route::post('clinics/{clinic}/tracking/approve', [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'approve'])->name('admin.tracking.approve');
+        Route::post('clinics/{clinic}/tracking/reject',  [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'reject'])->name('admin.tracking.reject');
+        Route::post('clinics/{clinic}/tracking/disable', [\App\Http\Controllers\Api\V1\Admin\TrackingController::class, 'disable'])->name('admin.tracking.disable');
+
+        // Per-clinic cart feature — activation request queue + enable/disable.
+        Route::get('cart/requests', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'requests'])->name('admin.cart.requests');
+        Route::post('clinics/{clinic}/cart/approve', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'approve'])->name('admin.cart.approve');
+        Route::post('clinics/{clinic}/cart/reject',  [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'reject'])->name('admin.cart.reject');
+        Route::post('clinics/{clinic}/cart/disable', [\App\Http\Controllers\Api\V1\Admin\CartController::class, 'disable'])->name('admin.cart.disable');
+
+        // Per-clinic price-quote reply gate — moderation queue + enable/disable.
+        Route::get('price-quote-access/requests', [\App\Http\Controllers\Api\V1\Admin\PriceQuoteAccessController::class, 'requests'])->name('admin.price-quote-access.requests');
+        Route::post('clinics/{clinic}/price-quote-access/approve', [\App\Http\Controllers\Api\V1\Admin\PriceQuoteAccessController::class, 'approve'])->name('admin.price-quote-access.approve');
+        Route::post('clinics/{clinic}/price-quote-access/reject',  [\App\Http\Controllers\Api\V1\Admin\PriceQuoteAccessController::class, 'reject'])->name('admin.price-quote-access.reject');
+        Route::post('clinics/{clinic}/price-quote-access/disable', [\App\Http\Controllers\Api\V1\Admin\PriceQuoteAccessController::class, 'disable'])->name('admin.price-quote-access.disable');
+
+        // Unified Requests & Permissions Center — aggregates every per-clinic
+        // gate (ClinicGateRegistry) + external request queues + package flags.
+        Route::get('access-center/meta',     [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'meta'])->name('admin.access-center.meta');
+        Route::get('access-center/pending',  [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'pending'])->name('admin.access-center.pending');
+        Route::get('access-center/clinics',  [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'clinics'])->name('admin.access-center.clinics');
+        Route::get('access-center/packages', [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'packages'])->name('admin.access-center.packages');
+        Route::post('access-center/gates/{gate}/clinics/{clinic}/action', [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'action'])->name('admin.access-center.action');
+
+        // Abandoned carts (unbooked items) — per-clinic roll-up + drill-down. Read-only.
+        Route::get('abandoned-carts', [\App\Http\Controllers\Api\V1\Admin\AbandonedCartController::class, 'index'])->name('admin.abandoned-carts.index');
+        Route::get('abandoned-carts/{clinic}', [\App\Http\Controllers\Api\V1\Admin\AbandonedCartController::class, 'show'])->name('admin.abandoned-carts.show');
+
+        // Customer favourites (saved services/offers) — admin-only.
+        Route::get('favorites', [\App\Http\Controllers\Api\V1\Admin\SavedItemController::class, 'index'])->name('admin.favorites.index');
 
         // WhatsApp sender numbers (Wappi profiles) used for OTP delivery.
         // Full CRUD (capped at 5 in the request) + an end-to-end test send.
@@ -357,18 +454,53 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
                 ->names('clinic.before-after');
         });
 
+        // Instagram-style stories shown as a ring around the clinic logo.
+        Route::middleware('clinic.role:stories.manage')->group(function () {
+            Route::apiResource('stories', ClinicStoryController::class)
+                ->only(['index', 'store', 'update', 'destroy'])
+                ->names('clinic.stories');
+        });
+
         Route::middleware('clinic.role:category_requests.view')->group(function () {
             Route::get('category-requests', [ClinicCategoryRequestController::class, 'index'])->name('clinic.category-requests.index');
             Route::post('category-requests', [ClinicCategoryRequestController::class, 'store'])->name('clinic.category-requests.store');
         });
 
+        // ── CRM suite ───────────────────────────────────────────────────
+        // The whole operational surface (bookings/kanban, customers,
+        // reminders, campaigns, price-quotes, outreach, complaints,
+        // reports) sits behind one subscription gate. `crm_enabled`
+        // defaults ON for every package, so this is inert until an admin
+        // opts a package out — then the entire block 403s and the React
+        // sidebar hides the "CRM" tab. Inner clinic.role:* groups still
+        // apply per-route. Closes just before "Articles" below.
+        Route::middleware('clinic.feature:crm')->group(function () {
+
         // Bookings — clinic can only update status / appointment / notes.
         Route::get('bookings/status-counts', [ClinicBookingController::class, 'statusCounts'])->name('clinic.bookings.status-counts');
 
-        // CSV export + customisable Kanban stage labels.
+        // Import customers/leads from a public Google Sheet (preview → commit)
+        // plus saved sources for re-pulling campaign sheets.
+        Route::post('bookings/imports/preview', [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'preview'])->name('clinic.bookings.imports.preview');
+        Route::post('bookings/imports/commit',  [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'commit'])->name('clinic.bookings.imports.commit');
+        // File upload variant (CSV/XLSX) — same mapping/preview/commit flow.
+        Route::post('bookings/imports/file/preview', [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'previewFile'])->name('clinic.bookings.imports.file.preview');
+        Route::post('bookings/imports/file/commit',  [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'commitFile'])->name('clinic.bookings.imports.file.commit');
+        Route::get('bookings/imports/sources',  [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'sources'])->name('clinic.bookings.imports.sources');
+        Route::get('bookings/imports/sources/{source}',    [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'showSource'])->name('clinic.bookings.imports.sources.show');
+        Route::delete('bookings/imports/sources/{source}', [\App\Http\Controllers\Api\V1\Clinic\BookingImportController::class, 'destroySource'])->name('clinic.bookings.imports.sources.destroy');
+
+        // CSV export + customisable Kanban stages (per-clinic columns).
         Route::get('bookings/export', [\App\Http\Controllers\Api\V1\Clinic\BookingExportController::class, 'export'])->name('clinic.bookings.export');
-        Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'show'])->name('clinic.bookings.stages.show');
-        Route::put('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
+        Route::get('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'index'])->name('clinic.bookings.stages.index');
+        Route::post('bookings/stages', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'store'])->name('clinic.bookings.stages.store');
+        Route::put('bookings/stages/reorder', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'reorder'])->name('clinic.bookings.stages.reorder');
+        Route::patch('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'update'])->name('clinic.bookings.stages.update');
+        Route::delete('bookings/stages/{stage}', [\App\Http\Controllers\Api\V1\Clinic\BookingStageController::class, 'destroy'])->name('clinic.bookings.stages.destroy');
+
+        // Per-clinic Kanban card-suggestion config (toggle nudges + tune thresholds).
+        Route::get('bookings/suggestion-settings', [\App\Http\Controllers\Api\V1\Clinic\BookingSuggestionSettingsController::class, 'show'])->name('clinic.bookings.suggestion-settings.show');
+        Route::put('bookings/suggestion-settings', [\App\Http\Controllers\Api\V1\Clinic\BookingSuggestionSettingsController::class, 'update'])->name('clinic.bookings.suggestion-settings.update');
 
         // Kanban + CRM endpoints (additive, sit on top of the same Booking model).
         Route::get('bookings/kanban',       [\App\Http\Controllers\Api\V1\Clinic\BookingKanbanController::class, 'index'])->name('clinic.bookings.kanban');
@@ -389,6 +521,12 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
 
         // Assignment.
         Route::patch('bookings/{booking}/assignee', [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'update'])->name('clinic.bookings.assignee.update');
+
+        // Service line items taken on a card (purchased services + per-customer
+        // net price). Card value = sum of these. Same write gate as booking edits.
+        Route::post('bookings/{booking}/services',                       [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'store'])->name('clinic.bookings.services.store');
+        Route::patch('bookings/{booking}/services/{bookingService}',     [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'update'])->name('clinic.bookings.services.update');
+        Route::delete('bookings/{booking}/services/{bookingService}',    [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'destroy'])->name('clinic.bookings.services.destroy');
 
         // Customer 360 in the Kanban side panel — keyed by phone for
         // back-compat with the existing widget.
@@ -411,9 +549,47 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::post('customers/{customer}/notes',                [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'store'])->name('clinic.customers.notes.store');
             Route::patch('customers/{customer}/notes/{note}',        [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'update'])->name('clinic.customers.notes.update');
             Route::delete('customers/{customer}/notes/{note}',       [\App\Http\Controllers\Api\V1\Clinic\CustomerNotesController::class, 'destroy'])->name('clinic.customers.notes.destroy');
+
+            // Service value / interest reports — best-selling, most-interested,
+            // who is interested in a service, and who bought it.
+            Route::get('service-reports/best-selling',         [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'bestSelling'])->name('clinic.service-reports.best-selling');
+            Route::get('service-reports/most-interested',      [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'mostInterested'])->name('clinic.service-reports.most-interested');
+            Route::get('service-reports/interested-customers', [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'interestedCustomers'])->name('clinic.service-reports.interested-customers');
+            Route::get('service-reports/buyers',               [\App\Http\Controllers\Api\V1\Clinic\ServiceReportsController::class, 'serviceBuyers'])->name('clinic.service-reports.buyers');
         });
         Route::middleware('clinic.role:customers.manage')->group(function () {
             Route::patch('customers/{customer}', [\App\Http\Controllers\Api\V1\Clinic\CustomersController::class, 'update'])->name('clinic.customers.update');
+
+            // Customer interested-services list (intent, not purchases).
+            Route::post('customers/{customer}/interested-services',             [\App\Http\Controllers\Api\V1\Clinic\CustomerInterestedServiceController::class, 'store'])->name('clinic.customers.interested.store');
+            Route::delete('customers/{customer}/interested-services/{service}', [\App\Http\Controllers\Api\V1\Clinic\CustomerInterestedServiceController::class, 'destroy'])->name('clinic.customers.interested.destroy');
+        });
+
+        // Contact reminders — "call this patient at X". A scheduler rings
+        // the clinic bell when remind_at passes. Whole-clinic audience.
+        Route::middleware('clinic.role:reminders.view')->group(function () {
+            Route::get('reminders', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'index'])->name('clinic.reminders.index');
+        });
+        Route::middleware('clinic.role:reminders.create')->group(function () {
+            Route::post('reminders', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'store'])->name('clinic.reminders.store');
+        });
+        Route::middleware('clinic.role:reminders.manage')->group(function () {
+            Route::post('reminders/{reminder}/complete', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'complete'])->name('clinic.reminders.complete');
+            Route::post('reminders/{reminder}/cancel', [\App\Http\Controllers\Api\V1\Clinic\CustomerReminderController::class, 'cancel'])->name('clinic.reminders.cancel');
+        });
+
+        // Patient campaigns — segment a clinic's own customers + manual
+        // WhatsApp outreach with per-recipient tracking.
+        Route::middleware('clinic.role:campaigns.view')->group(function () {
+            Route::get('campaigns', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'index'])->name('clinic.campaigns.index');
+            Route::post('campaigns/preview', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'preview'])->name('clinic.campaigns.preview');
+            Route::get('campaigns/{campaign}', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'show'])->name('clinic.campaigns.show');
+            Route::get('campaigns/{campaign}/recipients', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'recipients'])->name('clinic.campaigns.recipients');
+        });
+        Route::middleware('clinic.role:campaigns.manage')->group(function () {
+            Route::post('campaigns', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'store'])->name('clinic.campaigns.store');
+            Route::post('campaigns/{campaign}/recipients/{recipient}/mark', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'markRecipient'])->name('clinic.campaigns.mark');
+            Route::delete('campaigns/{campaign}', [\App\Http\Controllers\Api\V1\Clinic\CampaignController::class, 'destroy'])->name('clinic.campaigns.destroy');
         });
 
         Route::apiResource('bookings', ClinicBookingController::class)
@@ -423,6 +599,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Broadcast price quote requests — clinic sees requests targeting its
         // city and posts one reply (public/private) per request.
         Route::get('price-quotes', [ClinicPriceQuoteRequestController::class, 'index'])->name('clinic.price-quotes.index');
+        // Reply gate state + request to be re-enabled after an admin disable.
+        Route::get('price-quotes/access', [ClinicPriceQuoteRequestController::class, 'access'])->name('clinic.price-quotes.access');
+        Route::post('price-quotes/access/request', [ClinicPriceQuoteRequestController::class, 'requestAccess'])->name('clinic.price-quotes.access.request');
         Route::post('price-quotes/{priceQuote}/reply', [ClinicPriceQuoteRequestController::class, 'reply'])->name('clinic.price-quotes.reply');
 
         // Records a complex's outreach to a customer (WhatsApp/call) → stats + visibility.
@@ -443,6 +622,8 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('reports', [ClinicReportController::class, 'index'])->name('clinic.reports.index');
         Route::post('reports', [ClinicReportController::class, 'store'])->name('clinic.reports.store');
 
+        }); // end clinic.feature:crm group
+
         // Articles — coordinator + owner only.
         Route::middleware('clinic.role:articles.manage')->group(function () {
             Route::post('articles/generate-ai', [ClinicArticleController::class, 'generateAi'])->name('clinic.articles.generate-ai');
@@ -456,6 +637,36 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::patch('profile', [ClinicProfileController::class, 'update'])->name('clinic.profile.update');
             Route::post('profile/extract-coords', [ClinicProfileController::class, 'extractCoords'])->name('clinic.profile.extract-coords');
             Route::post('profile/sync-reviews', [ClinicProfileController::class, 'syncReviews'])->name('clinic.profile.sync-reviews');
+        });
+
+        // Marketing tracking pixels — owner only. Read to view the form,
+        // manage to save the draft + request activation.
+        Route::middleware('clinic.role:tracking.view')->group(function () {
+            Route::get('tracking', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'show'])->name('clinic.tracking.show');
+        });
+        Route::middleware('clinic.role:tracking.manage')->group(function () {
+            Route::put('tracking', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'update'])->name('clinic.tracking.update');
+            Route::post('tracking/request', [\App\Http\Controllers\Api\V1\Clinic\TrackingController::class, 'requestActivation'])->name('clinic.tracking.request');
+        });
+
+        // Cart feature — owner only. View status; request activation +
+        // toggle the storefront show/hide switch once active.
+        Route::middleware('clinic.role:cart.view')->group(function () {
+            Route::get('cart', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'show'])->name('clinic.cart.show');
+        });
+        Route::middleware('clinic.role:cart.manage')->group(function () {
+            Route::put('cart', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'update'])->name('clinic.cart.update');
+            Route::post('cart/request', [\App\Http\Controllers\Api\V1\Clinic\CartController::class, 'requestActivation'])->name('clinic.cart.request');
+        });
+
+        // Abandoned-cart follow-up — view list (cart_leads.view), log outreach
+        // + convert to a Kanban booking draft (cart_leads.contact).
+        Route::middleware('clinic.role:cart_leads.view')->group(function () {
+            Route::get('abandoned-carts', [\App\Http\Controllers\Api\V1\Clinic\AbandonedCartController::class, 'index'])->name('clinic.abandoned-carts.index');
+        });
+        Route::middleware('clinic.role:cart_leads.contact')->group(function () {
+            Route::post('abandoned-carts/{user}/contact', [\App\Http\Controllers\Api\V1\Clinic\AbandonedCartController::class, 'contact'])->name('clinic.abandoned-carts.contact');
+            Route::post('abandoned-carts/{user}/convert', [\App\Http\Controllers\Api\V1\Clinic\AbandonedCartController::class, 'convert'])->name('clinic.abandoned-carts.convert');
         });
 
         // Subscription — owner only (sensitive financial data per spec).

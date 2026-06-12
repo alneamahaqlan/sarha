@@ -93,4 +93,36 @@ class User extends Authenticatable
     {
         return $this->savedKeySet()->contains($model->getMorphClass() . ':' . $model->getKey());
     }
+
+    /** Cart items — polymorphic to Service / Offer / Package. */
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    /** Abandoned-cart outreach this user received from clinics. */
+    public function cartContacts()
+    {
+        return $this->hasMany(CartContact::class);
+    }
+
+    public function cartCount(): int
+    {
+        return $this->cartItems()->count();
+    }
+
+    /** Memoised "Type:id" set of the user's cart — avoids N+1 in card lists. */
+    protected ?\Illuminate\Support\Collection $cartKeyCache = null;
+
+    public function cartKeySet(): \Illuminate\Support\Collection
+    {
+        return $this->cartKeyCache ??= $this->cartItems()
+            ->get(['cartable_type', 'cartable_id'])
+            ->map(fn ($c) => $c->cartable_type . ':' . $c->cartable_id);
+    }
+
+    public function hasInCart(\Illuminate\Database\Eloquent\Model $model): bool
+    {
+        return $this->cartKeySet()->contains($model->getMorphClass() . ':' . $model->getKey());
+    }
 }

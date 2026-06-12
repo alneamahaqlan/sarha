@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Phone, MessageCircle, Eye, Crown, Repeat, Sparkles, AlertOctagon, StickyNote } from 'lucide-react';
+import { Phone, MessageCircle, Eye, Crown, Repeat, Sparkles, AlertOctagon, StickyNote, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { useCan } from '@/app/providers/AuthProvider';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { useCustomers } from '../hooks';
+import { useCustomers, useUpdateCustomer } from '../hooks';
+import { FollowUpStars } from './FollowUpStars';
 import type { CustomerListRow, ListFilters } from '../types';
 
 interface Props {
@@ -37,6 +39,20 @@ function NameBadges({ row }: { row: CustomerListRow }) {
   );
 }
 
+/** Inline interactive priority stars for a list row. */
+function PriorityCell({ row, canManage }: { row: CustomerListRow; canManage: boolean }) {
+  const mut = useUpdateCustomer(row.id);
+  return (
+    <FollowUpStars
+      value={row.follow_up_priority}
+      size="sm"
+      showLabel={false}
+      disabled={mut.isPending}
+      onChange={canManage ? (v) => mut.mutate({ follow_up_priority: v }) : undefined}
+    />
+  );
+}
+
 function TagChip({ label, color }: { label: string; color: string }) {
   const tone = {
     rose:    'bg-rose-100 text-rose-700 border-rose-200',
@@ -52,7 +68,16 @@ function TagChip({ label, color }: { label: string; color: string }) {
 export function CustomersTable({ filters, onFilterChange }: Props) {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const canManage = useCan('customers.manage');
   const { data, isLoading } = useCustomers(filters);
+
+  const sortedByPriority = filters.sort === 'priority';
+  function togglePrioritySort() {
+    if (!sortedByPriority) onFilterChange({ sort: 'priority', order: 'desc', page: 1 });
+    else if (filters.order === 'desc') onFilterChange({ order: 'asc', page: 1 });
+    else onFilterChange({ sort: undefined, order: undefined, page: 1 });
+  }
+  const SortIcon = !sortedByPriority ? ChevronsUpDown : filters.order === 'desc' ? ArrowDown : ArrowUp;
 
   return (
     <div className="overflow-x-auto rounded-lg border border-[var(--color-border)] bg-white">
@@ -61,6 +86,17 @@ export function CustomersTable({ filters, onFilterChange }: Props) {
           <TableRow>
             <TableHead>{t('clinic_customers.table.name')}</TableHead>
             <TableHead>{t('clinic_customers.table.phone')}</TableHead>
+            <TableHead>
+              <button
+                type="button"
+                onClick={togglePrioritySort}
+                className={`inline-flex items-center gap-1 rounded px-1 py-0.5 hover:text-amber-700 ${sortedByPriority ? 'text-amber-700' : ''}`}
+                title={t('clinic_customers.priority.sort_hint')}
+              >
+                {t('clinic_customers.priority.column')}
+                <SortIcon className="h-3.5 w-3.5" />
+              </button>
+            </TableHead>
             <TableHead>{t('clinic_customers.table.bookings')}</TableHead>
             <TableHead>{t('clinic_customers.table.last_interaction')}</TableHead>
             <TableHead>{t('clinic_customers.table.tags')}</TableHead>
@@ -69,10 +105,10 @@ export function CustomersTable({ filters, onFilterChange }: Props) {
         </TableHeader>
         <TableBody>
           {isLoading && (
-            <TableRow><TableCell colSpan={6} className="text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={7} className="text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
           )}
           {!isLoading && (data?.data?.length ?? 0) === 0 && (
-            <TableRow><TableCell colSpan={6} className="text-center text-sm text-[var(--color-muted-foreground)]">{t('clinic_customers.empty')}</TableCell></TableRow>
+            <TableRow><TableCell colSpan={7} className="text-center text-sm text-[var(--color-muted-foreground)]">{t('clinic_customers.empty')}</TableCell></TableRow>
           )}
           {(data?.data ?? []).map((row) => (
             <TableRow key={row.id} className="hover:bg-[var(--color-muted)]/40">
@@ -86,6 +122,7 @@ export function CustomersTable({ filters, onFilterChange }: Props) {
                 </div>
               </TableCell>
               <TableCell><span dir="ltr" className="text-xs">{row.phone}</span></TableCell>
+              <TableCell><PriorityCell row={row} canManage={canManage} /></TableCell>
               <TableCell>
                 <Badge variant="muted">{row.total_bookings}</Badge>
               </TableCell>

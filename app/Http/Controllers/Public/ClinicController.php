@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Enums\ImpressionSource;
+use App\Http\Controllers\Concerns\CreatesBooking;
 use App\Http\Controllers\Concerns\IdentifiesCustomer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
@@ -21,7 +22,7 @@ use Illuminate\Http\Request;
 
 class ClinicController extends Controller
 {
-    use IdentifiesCustomer;
+    use IdentifiesCustomer, CreatesBooking;
 
     public function show(string $slug, ClinicPageBuilderService $builder, FeatureGate $gate, SimilarityService $similarity)
     {
@@ -30,19 +31,30 @@ class ClinicController extends Controller
             ->with([
                 'city',
                 'categories',
-                'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
+                // Live Instagram-style stories (ring around the logo).
+                'stories',
+                'services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->notCatchall()->orderBy('sort_order'),
+                'services.inlineOffer',
+                // Specialty (category) ids power the click-to-filter chips in
+                // the hero — every filterable entity carries its own ids.
+                'services.categories:id',
                 // Sub-clinics + their active services for the nested services tab.
                 'subClinics.category',
                 'subClinics.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
+                'subClinics.services.inlineOffer',
+                'subClinics.services.categories:id',
                 // Doctors showcase + packages (with their services) for their tabs.
                 'doctors.subClinic',
+                'doctors.services.categories:id',
                 'packages.services' => fn($q) => $q->where('is_active', true)->where('approval_status', 'approved'),
+                'packages.services.categories:id',
                 // Promotional offers — model filter further narrows to the
                 // running window in the blade so the relation hands back
                 // the full list (active+scheduled+expired) and the view
                 // shows only what's live now.
                 'offers' => fn($q) => $q->orderByDesc('is_featured')->orderByDesc('starts_at'),
                 'offers.service:id,name,price,image',
+                'offers.service.categories:id',
                 // Before/after gallery (with optional service/sub-clinic links).
                 'beforeAfterPhotos.service:id,name',
                 'beforeAfterPhotos.subClinic:id,name,name_en',
@@ -113,6 +125,11 @@ class ClinicController extends Controller
         // overlapping specialties, other complexes).
         $similarClinics = $similarity->similarClinics($clinic);
 
+        // Surfacing other complexes in the "similar complexes" strip counts as
+        // a SIMILAR appearance for each surfaced complex.
+        app(ImpressionTrackerService::class)
+            ->trackManyClinics($similarClinics->pluck('id')->all(), ImpressionSource::SIMILAR);
+
         return view('public.clinic', compact('clinic', 'similarClinics', 'pageSections', 'builder'));
     }
 
@@ -127,6 +144,13 @@ class ClinicController extends Controller
             ? $clinic->services->firstWhere('id', $request->integer('service'))
             : null;
 
+        // Arrived from an offer card → load it (scoped to this clinic) so the
+        // form can show a "this booking is about offer X" banner and seed the
+        // notes. General offers carry no service, so the customer picks one.
+        $offer = $request->filled('offer')
+            ? $clinic->offers()->whereKey($request->integer('offer'))->first()
+            : null;
+
         // Returning customer's saved identity (from a prior verified booking).
         $identity = $this->customerIdentity($request);
 
@@ -139,7 +163,7 @@ class ClinicController extends Controller
         $relativeTypes = Relative::TYPES;
 
         return view('public.booking-form', compact(
-            'clinic', 'service', 'identity', 'relatives', 'relativeTypes',
+            'clinic', 'service', 'offer', 'identity', 'relatives', 'relativeTypes',
         ));
     }
 
@@ -202,6 +226,12 @@ class ClinicController extends Controller
         }
 
         // First-time: generate + send OTP, stash the pending booking, show the step.
+        // Per-phone send guard stops a victim's number from being SMS-bombed.
+        if ($wait = OtpCode::throttleSend($validated['customer_phone'], 'booking')) {
+            return back()
+                ->withErrors(['customer_phone' => __('site.otp_too_many', ['seconds' => $wait])])
+                ->withInput();
+        }
         $otp = OtpCode::generate($validated['customer_phone'], 'booking');
         app(SmsService::class)->send($validated['customer_phone'], __('site.otp_sms', ['code' => $otp->code]));
         session()->put('pending_booking', $validated + ['slug' => $slug]);
@@ -329,53 +359,37 @@ class ClinicController extends Controller
         ];
     }
 
-    /** Create the booking, attaching/creating the customer user for persistence. */
-    private function createBooking(Clinic $clinic, array $data): Booking
-    {
-        // user_id is the account that OWNS the booking (where it shows
-        // up under /account/bookings). For relative-mode it's the
-        // booker, not the relative — spec: "القريب نفسه لا يرى الحجز
-        // في حسابه (لتجنّب الازدواجية)".
-        $relativeId = $data['relative_id'] ?? null;
-        $bookerId   = $data['booker_user_id'] ?? null;
-
-        if ($relativeId) {
-            // Relative-mode always carries booker_user_id (resolveBookingTarget
-            // sets both). user_id = the booker so the booking is filed
-            // under the right account.
-            $userId = $bookerId;
-        } else {
-            // Self-mode: auth user OR a freshly-resolved customer from
-            // the typed phone (guest path, same as before).
-            $userId = auth('web')->id()
-                ?? $this->resolveCustomerUser($data['customer_name'], $data['customer_phone'])->id;
-        }
-
-        $booking = Booking::create([
-            'clinic_id'      => $clinic->id,
-            'user_id'        => $userId,
-            'booker_user_id' => $bookerId,
-            'relative_id'    => $data['relative_id'] ?? null,
-            'service_id'     => $data['service_id'] ?? null,
-            'customer_name'  => $data['customer_name'],
-            'customer_phone' => $data['customer_phone'],
-            'notes'          => $data['notes'] ?? null,
-            'status'         => 'new',
-            'source'         => 'website',
-        ]);
-
-        ClinicStat::bump($clinic->id, 'bookings_count');
-
-        return $booking;
-    }
-
     public function bookingConfirmation(string $reference)
     {
         $booking = Booking::with(['clinic.city', 'service'])
             ->where('reference_code', $reference)
             ->firstOrFail();
 
-        return view('public.booking-confirmation', compact('booking'));
+        // This is the conversion page but has no {slug} route param, so the
+        // tracking middleware can't resolve it — bind the context from the
+        // booking's clinic here (sensitive: URL is sanitised for pixels).
+        $trackingCtx = app(\App\Services\Tracking\TrackingContextResolver::class)
+            ->forClinic($booking->clinic, true);
+        app()->instance(\App\Services\Tracking\TrackingContext::class, $trackingCtx);
+
+        // Advanced matching (Layer B): a SHA-256 hashed phone for Meta, ONLY
+        // when the clinic opted in. Computed server-side so no raw value is
+        // added by us; the view fires it only after the visitor consents.
+        // Never includes the medical service — phone hash only.
+        $amMetaId = null;
+        $amPhoneHash = null;
+        if ($trackingCtx->advancedMatching && ($mid = $trackingCtx->metaPixelId())) {
+            $digits = preg_replace('/\D/', '', (string) $booking->customer_phone);
+            if (str_starts_with($digits, '0') && strlen($digits) === 10) {
+                $digits = '966' . substr($digits, 1); // 05XXXXXXXX -> 9665XXXXXXXX
+            }
+            if ($digits !== '') {
+                $amMetaId = $mid;
+                $amPhoneHash = hash('sha256', $digits);
+            }
+        }
+
+        return view('public.booking-confirmation', compact('booking', 'amMetaId', 'amPhoneHash'));
     }
 
     public function priceQuote(Request $request, string $slug)

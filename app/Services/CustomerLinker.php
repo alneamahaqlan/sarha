@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Booking;
 use App\Models\Complaint;
 use App\Models\Customer;
+use App\Models\CustomerNameAlias;
 use App\Models\PriceQuoteRequest;
 use App\Models\User;
 use App\Support\PhoneNormalizer;
@@ -30,6 +31,10 @@ use Illuminate\Support\Facades\Log;
  */
 class CustomerLinker
 {
+    public function __construct(
+        private readonly PlatformCustomerResolver $platform,
+    ) {}
+
     /**
      * Resolve (or create) the Customer for a Booking. Returns the
      * Customer; caller is expected to assign $booking->customer_id
@@ -39,7 +44,10 @@ class CustomerLinker
     public function forBooking(Booking $booking): ?Customer
     {
         [$phone, $name, $userId, $email] = $this->resolveBookingIdentity($booking);
-        return $this->findOrCreate($booking->clinic_id, $phone, $name, $email, $userId);
+        return $this->findOrCreate(
+            $booking->clinic_id, $phone, $name, $email, $userId,
+            $this->aliasSourceForBooking($booking),
+        );
     }
 
     public function forComplaint(Complaint $complaint): ?Customer
@@ -52,6 +60,8 @@ class CustomerLinker
             $complaint->customer_name ?? '—',
             $complaint->customer_email,
             $complaint->user_id,
+            // Complaints are filed by the customer themself.
+            CustomerNameAlias::SOURCE_SELF,
         );
     }
 
@@ -65,7 +75,23 @@ class CustomerLinker
             $quote->customer_name ?? '—',
             null, // price_quote_requests has no email column
             $quote->user_id,
+            // Quote requests are filed by the customer themself.
+            CustomerNameAlias::SOURCE_SELF,
         );
+    }
+
+    /**
+     * Map a booking's technical origin to the name-alias source: staff
+     * entry → clinic, sheet/file import → import, anything customer-
+     * facing (web / cart / app) → self.
+     */
+    private function aliasSourceForBooking(Booking $booking): string
+    {
+        return match ($booking->source) {
+            'clinic' => CustomerNameAlias::SOURCE_CLINIC,
+            'import' => CustomerNameAlias::SOURCE_IMPORT,
+            default  => CustomerNameAlias::SOURCE_SELF,
+        };
     }
 
     /**
@@ -100,7 +126,7 @@ class CustomerLinker
      * shares the normalized phone. Refreshes name/email when callers
      * provide new values (the latest interaction wins).
      */
-    private function findOrCreate(?int $clinicId, ?string $phone, string $name, ?string $email, ?int $userId): ?Customer
+    private function findOrCreate(?int $clinicId, ?string $phone, string $name, ?string $email, ?int $userId, string $aliasSource = CustomerNameAlias::SOURCE_SELF): ?Customer
     {
         // General complaints / broadcast price-quotes carry no clinic, and a
         // Customer is keyed by (clinic_id, phone) — there's nothing to link to.
@@ -113,23 +139,30 @@ class CustomerLinker
             $userId = User::where('phone', $phone)->value('id');
         }
 
+        // Resolve the platform-wide identity first so we can stamp its id
+        // onto the per-clinic row at create time (and record the name as
+        // an alias under the right source).
+        $platform = $this->platform->record($phone, $name, $aliasSource, $clinicId, $userId);
+
         $customer = Customer::firstOrCreate(
             ['clinic_id' => $clinicId, 'phone' => $phone],
             [
-                'name'          => $name,
-                'email'         => $email,
-                'user_id'       => $userId,
-                'first_seen_at' => now(),
+                'platform_customer_id' => $platform?->id,
+                'name'                 => $name,
+                'email'                => $email,
+                'user_id'              => $userId,
+                'first_seen_at'        => now(),
             ]
         );
 
-        // If the row existed but lacked name/email/user_id we just
-        // resolved, top it up. Never overwrite a non-null email/user_id
-        // with a null (don't lose information).
+        // If the row existed but lacked name/email/user_id/platform link
+        // we just resolved, top it up. Never overwrite a non-null
+        // email/user_id with a null (don't lose information).
         $patch = [];
         if (! $customer->name && $name) $patch['name'] = $name;
         if (! $customer->email && $email) $patch['email'] = $email;
         if (! $customer->user_id && $userId) $patch['user_id'] = $userId;
+        if (! $customer->platform_customer_id && $platform) $patch['platform_customer_id'] = $platform->id;
         if ($patch) {
             $customer->forceFill($patch)->save();
         }

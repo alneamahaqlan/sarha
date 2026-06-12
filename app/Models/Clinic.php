@@ -2,16 +2,51 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class Clinic extends Authenticatable
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, HasDemoData;
+
+    /**
+     * Below this many total impressions the public "عدد الظهور" badge is
+     * hidden — a freshly-onboarded complex shouldn't broadcast a tiny,
+     * unprofessional number while the platform is still in launch stage.
+     */
+    public const IMPRESSIONS_BADGE_MIN = 10;
+
+    /**
+     * Default Kanban card-suggestion config, used when a clinic hasn't
+     * overridden it. `enabled` gates whether the suggestion surfaces;
+     * `hours`/`count` are its tunable threshold. Mirrors the thresholds
+     * baked into CustomerInsightService before this became per-clinic.
+     *
+     * Keep keys in sync with SuggestionKey in the React admin
+     * (kanban/types.ts) and CustomerInsightService.
+     */
+    public const SUGGESTION_DEFAULTS = [
+        'confirm_urgent' => ['enabled' => true, 'hours' => 24],
+        'first_contact'  => ['enabled' => true],
+        'retry_call'     => ['enabled' => true, 'hours' => 2],
+        'reminder_soon'  => ['enabled' => true, 'hours' => 48],
+        'cancel_risk'    => ['enabled' => true, 'count' => 2],
+    ];
+
+    /** Min/max bounds for the tunable thresholds (validation + UI clamp). */
+    public const SUGGESTION_BOUNDS = [
+        'confirm_urgent' => ['hours' => [1, 168]],
+        'retry_call'     => ['hours' => [1, 72]],
+        'reminder_soon'  => ['hours' => [1, 168]],
+        'cancel_risk'    => ['count' => [1, 10]],
+    ];
 
     protected $fillable = [
         'name', 'slug', 'phone', 'email', 'license_number', 'tax_number',
@@ -22,7 +57,20 @@ class Clinic extends Authenticatable
         'subscription_package_id',
         'subscription_starts_at', 'subscription_ends_at',
         'rejection_reason', 'is_featured', 'sort_order',
-        'booking_stage_labels',
+        'booking_stage_labels', 'suggestion_settings',
+        // Marketing tracking pixels (see docs/tracking/). Moderated:
+        // clinic edits pixels + requests, super-admin approves.
+        'tracking_status', 'tracking_pixels', 'advanced_matching_optin',
+        'tracking_rejection_reason', 'tracking_requested_at', 'tracking_reviewed_by',
+        // Cart feature gate (moderated like tracking: clinic requests,
+        // super-admin approves). cart_storefront_enabled is the clinic's
+        // own show/hide switch once active.
+        'cart_status', 'cart_rejection_reason', 'cart_requested_at',
+        'cart_reviewed_by', 'cart_storefront_enabled',
+        // Price-quote reply gate (default active; admin can disable). The clinic
+        // always SEES broadcast requests but may only REPLY while status='active'.
+        'price_quote_status', 'price_quote_rejection_reason',
+        'price_quote_requested_at', 'price_quote_reviewed_by',
     ];
 
     protected $hidden = ['password', 'password_plaintext', 'remember_token'];
@@ -36,10 +84,35 @@ class Clinic extends Authenticatable
             'password_plaintext' => 'encrypted',
             'gallery' => 'array',
             'booking_stage_labels' => 'array',
+            'suggestion_settings' => 'array',
             'is_featured' => 'boolean',
             'subscription_starts_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
+            'tracking_pixels' => 'array',
+            'advanced_matching_optin' => 'boolean',
+            'tracking_requested_at' => 'datetime',
+            'cart_requested_at' => 'datetime',
+            'cart_storefront_enabled' => 'boolean',
+            'price_quote_requested_at' => 'datetime',
         ];
+    }
+
+    /** Cart feature is approved + on for this clinic. */
+    public function cartActive(): bool
+    {
+        return $this->cart_status === 'active';
+    }
+
+    /** Clinic may post replies to broadcast price-quote requests. */
+    public function priceQuoteReplyActive(): bool
+    {
+        return $this->price_quote_status === 'active';
+    }
+
+    /** Cart button should render on this clinic's public pages. */
+    public function cartVisible(): bool
+    {
+        return $this->cartActive() && $this->cart_storefront_enabled;
     }
 
     /**
@@ -71,6 +144,41 @@ class Clinic extends Authenticatable
         return $this->status === 'active'
             && $this->subscription_ends_at
             && $this->subscription_ends_at->isFuture();
+    }
+
+    /**
+     * The clinic's effective Kanban suggestion config: stored overrides
+     * merged over SUGGESTION_DEFAULTS, normalized + clamped to bounds.
+     * Always returns every known key with concrete enabled/threshold
+     * values, so callers never have to null-check.
+     *
+     * @return array<string, array{enabled: bool, hours?: int, count?: int}>
+     */
+    public function suggestionSettings(): array
+    {
+        $stored = is_array($this->suggestion_settings) ? $this->suggestion_settings : [];
+        $out = [];
+
+        foreach (self::SUGGESTION_DEFAULTS as $key => $defaults) {
+            $row = is_array($stored[$key] ?? null) ? $stored[$key] : [];
+
+            $merged = ['enabled' => array_key_exists('enabled', $row)
+                ? (bool) $row['enabled']
+                : $defaults['enabled']];
+
+            foreach (['hours', 'count'] as $field) {
+                if (! isset($defaults[$field])) {
+                    continue;
+                }
+                $value = isset($row[$field]) ? (int) $row[$field] : $defaults[$field];
+                [$min, $max] = self::SUGGESTION_BOUNDS[$key][$field];
+                $merged[$field] = max($min, min($max, $value));
+            }
+
+            $out[$key] = $merged;
+        }
+
+        return $out;
     }
 
     public function isPremium(): bool
@@ -148,6 +256,31 @@ class Clinic extends Authenticatable
         return $this->hasMany(Service::class);
     }
 
+    /**
+     * The clinic's single "خدمات أخرى" (other services) catch-all service,
+     * created on demand. A real, active+approved Service so it appears in the
+     * booking/quote service dropdowns and counts in service reports like any
+     * other service — but flagged is_catchall so it's hidden from the public
+     * showcase and locked in management. Matched on (clinic_id, is_catchall)
+     * so re-running never makes a duplicate regardless of the stored name.
+     */
+    public function catchallService(): Service
+    {
+        return $this->services()->firstOrCreate(
+            ['is_catchall' => true],
+            [
+                'name'            => 'خدمات أخرى',
+                // Null (not 0) so it never drags down any "starts from"
+                // min_price calculation, which all filter on whereNotNull('price').
+                'price'           => null,
+                'is_active'       => true,
+                'approval_status' => Service::APPROVAL_APPROVED,
+                // Sort last so it sits at the bottom of every dropdown.
+                'sort_order'      => 9999,
+            ],
+        );
+    }
+
     public function articles()
     {
         return $this->hasMany(Article::class);
@@ -156,6 +289,11 @@ class Clinic extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    public function importSources()
+    {
+        return $this->hasMany(ClinicImportSource::class);
     }
 
     public function customers()
@@ -221,6 +359,25 @@ class Clinic extends Authenticatable
         return $this->hasMany(ClinicStat::class);
     }
 
+    /**
+     * Total public "appearances" of this complex across every source and
+     * day — the figure shown to visitors as «عدد الظهور». Sums the
+     * clinic_impressions counters (search + filter + home + similar +
+     * compare + profile opens, plus AI silently). Cached for 15 minutes
+     * so the social-proof badge never adds a SUM query to every
+     * profile / service / offer / doctor page load.
+     */
+    public function impressionsCount(): int
+    {
+        return (int) Cache::remember(
+            "clinic:{$this->id}:impressions_total",
+            now()->addMinutes(15),
+            fn () => (int) DB::table('clinic_impressions')
+                ->where('clinic_id', $this->id)
+                ->sum('count'),
+        );
+    }
+
     public function aiConversations()
     {
         return $this->hasMany(AiConversation::class);
@@ -275,6 +432,18 @@ class Clinic extends Authenticatable
     public function offers()
     {
         return $this->hasMany(Offer::class);
+    }
+
+    /** Live (published + unexpired) Instagram-style stories, for the public page. */
+    public function stories()
+    {
+        return $this->hasMany(Story::class)->active()->orderBy('sort_order')->orderByDesc('id');
+    }
+
+    /** Unfiltered stories (active + inactive) — used by the clinic panel. */
+    public function storiesAll()
+    {
+        return $this->hasMany(Story::class)->orderBy('sort_order')->orderByDesc('id');
     }
 
     /** Unfiltered packages (active + inactive) — used by the clinic panel. */

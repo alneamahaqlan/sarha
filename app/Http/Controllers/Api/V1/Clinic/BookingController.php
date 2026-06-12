@@ -84,6 +84,7 @@ class BookingController extends Controller
             'clinic_notes'   => $data['clinic_notes'] ?? null,
             'status'         => $data['status'] ?? 'new',
             'source'         => 'clinic',
+            'acquisition_source' => $data['acquisition_source'] ?? 'other',
         ];
 
         // Validate + map assignee (the picker only sends valid types).
@@ -136,6 +137,18 @@ class BookingController extends Controller
         unset($data['cancel_reason'], $data['cancel_note'], $data['completion_note']);
 
         $booking->update($data);
+
+        // Keep stage and status consistent: when the status changes (e.g.
+        // via the edit dialog, not a drag) and the booking's current stage
+        // no longer matches the new status's kind, detach the stage so the
+        // board falls back to that kind's primary stage. A drag sends a
+        // matching stage_id + status together, so this is a no-op there.
+        if (! array_key_exists('stage_id', $data) && $booking->stage_id) {
+            $stage = $booking->stage()->first();
+            if ($stage && $stage->kind !== Booking::kindForStatus($booking->status)) {
+                $booking->update(['stage_id' => null]);
+            }
+        }
 
         $newStatus = $booking->status;
         if ($oldStatus !== $newStatus) {

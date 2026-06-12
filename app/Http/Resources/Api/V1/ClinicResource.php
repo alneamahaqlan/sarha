@@ -43,6 +43,9 @@ class ClinicResource extends JsonResource
             'is_featured'            => (bool) $this->is_featured,
             'sort_order'             => (int) $this->sort_order,
             'bookings_count'         => $this->whenCounted('bookings'),
+            'services_count'         => $this->whenCounted('services'),
+            'offers_count'           => $this->whenCounted('offers'),
+            'customers_count'        => $this->whenCounted('customers'),
             'visits_30d'             => $this->when(isset($this->visits_30d_sum), fn () => (int) $this->visits_30d_sum),
             'city'                   => $this->whenLoaded('city', fn() => $this->city ? [
                 'id'   => $this->city->id,

@@ -27,9 +27,24 @@
                 <p class="text-sm text-sage-900 mt-0.5">
                     {{ $service->name }}
                     @if($service->price)
-                        — <span class="font-semibold">{{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></span>
+                        — <span class="font-semibold">{{ number_format($service->price) }} <span class="text-xs font-normal"><x-riyal /></span></span>
                     @endif
                 </p>
+            </div>
+        </div>
+    @endif
+
+    {{-- Offer banner — appears when the customer arrived from an offer card.
+         Confirms which offer the booking is about; the notes below are
+         pre-seeded with the same reference so the clinic sees it too. --}}
+    @if(! empty($offer))
+        <div class="bg-gold-whisper border border-gold-200 rounded-xl p-4 mb-4 flex items-start gap-3">
+            <span class="shrink-0 mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full bg-gold-500 text-white">
+                <x-icon name="star" class="w-5 h-5" />
+            </span>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-800">@lang('site.booking_about_offer_title')</p>
+                <p class="text-sm text-gray-700 mt-0.5">{{ $offer->title }}</p>
             </div>
         </div>
     @endif
@@ -48,13 +63,7 @@
                     {{ __('site.booking_page_title', ['clinic' => $clinic->name]) }}
                 </h1>
 
-                @if($errors->any())
-                    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm mb-5">
-                        @foreach($errors->all() as $error)
-                            <p>{{ $error }}</p>
-                        @endforeach
-                    </div>
-                @endif
+                <div class="mb-5"><x-form.errors /></div>
 
                 @if(session('otp_required'))
                     {{-- One-time verification step (first booking → registers the customer). --}}
@@ -67,7 +76,7 @@
                         @endif
                     </div>
 
-                    <form method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
+                    <form novalidate method="POST" action="{{ route('clinic.book.verify', $clinic->slug) }}" class="space-y-5">
                         @csrf
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
@@ -81,7 +90,7 @@
                         </button>
                     </form>
                 @else
-                <form method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5" id="bookingForm">
+                <form novalidate method="POST" action="{{ route('clinic.book', $clinic->slug) }}" class="space-y-5" id="bookingForm">
                     @csrf
 
                     @auth('web')
@@ -273,19 +282,27 @@
                     @if($clinic->services->isNotEmpty())
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.requested_service')</label>
-                            <select name="service_id" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
+                            <x-form.select name="service_id">
                                 <option value="">@lang('site.not_specified')</option>
                                 @foreach($clinic->services as $svc)
                                     <option value="{{ $svc->id }}" @selected(old('service_id', $service?->id) == $svc->id)>{{ $svc->name }}</option>
                                 @endforeach
-                            </select>
+                            </x-form.select>
+                            <p class="text-xs text-gray-500 mt-1.5">@lang('site.requested_service_other_hint')</p>
                         </div>
                     @endif
 
+                    @php
+                        // Seed the notes with the offer reference when arriving from
+                        // an offer (only when the customer hasn't typed anything yet).
+                        $notesPrefill = ! empty($offer)
+                            ? __('site.booking_offer_note_prefix', ['offer' => $offer->title])
+                            : '';
+                    @endphp
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.notes_optional')</label>
                         <textarea name="notes" rows="4" maxlength="1000"
-                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes') }}</textarea>
+                                  class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes', $notesPrefill) }}</textarea>
                     </div>
 
                     @guest('web')
@@ -567,7 +584,7 @@
                             <p class="font-medium text-gray-800">{{ $service->name }}</p>
                             @if($service->price)
                                 <p class="text-sage-700 font-bold mt-1">
-                                    {{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                                    {{ number_format($service->price) }} <span class="text-xs font-normal"><x-riyal /></span>
                                 </p>
                             @endif
                         </div>

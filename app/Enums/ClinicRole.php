@@ -32,11 +32,13 @@ enum ClinicRole: string
             self::COORDINATOR => [
                 // Day-to-day operations
                 'bookings.*', 'complaints.*', 'price_quotes.*',
-                'customers.*',
+                'customers.*', 'reminders.*', 'campaigns.*',
+                // Abandoned-cart follow-up (view + outreach + convert)
+                'cart_leads.*',
                 // Content + catalog
                 'services.*', 'doctors.*', 'sub_clinics.*',
                 'offers.*', 'packages.*',
-                'articles.*', 'before_after.*',
+                'articles.*', 'before_after.*', 'stories.*',
                 'category_requests.*',
                 'page_builder.*', 'profile.view',
             ],
@@ -46,6 +48,11 @@ enum ClinicRole: string
                 // notes (author check enforces self-edit only) but
                 // can't edit details or delete others' notes.
                 'customers.view', 'customers.notes.create',
+                // Reception drives day-to-day follow-up, so it can set,
+                // complete, and cancel contact reminders.
+                'reminders.*',
+                // Reception also chases abandoned carts (view + outreach + convert).
+                'cart_leads.*',
                 'profile.view',
             ],
         };
@@ -110,12 +117,26 @@ enum ClinicRole: string
             'packages.view', 'packages.manage',
             'articles.view', 'articles.manage',
             'before_after.view', 'before_after.manage',
+            'stories.view', 'stories.manage',
             'category_requests.view',
             'page_builder.view', 'page_builder.manage',
             'profile.view', 'profile.manage',
+            // Marketing tracking pixels — owner-only (sensitive: affects
+            // what loads on the public site + privacy/PDPL surface).
+            'tracking.view', 'tracking.manage',
+            // Cart feature — owner-only (affects the public storefront +
+            // is gated/approved by the platform admin).
+            'cart.view', 'cart.manage',
+            // Abandoned-cart follow-up (view list + contact/convert). Available
+            // to owner, coordinator, and reception — they drive follow-up.
+            'cart_leads.view', 'cart_leads.contact',
             // Customer Hub (phase 3)
             'customers.view', 'customers.manage',
             'customers.notes.create', 'customers.notes.manage',
+            // Contact reminders (set / complete / cancel a follow-up nudge)
+            'reminders.view', 'reminders.create', 'reminders.manage',
+            // Patient campaigns (segment + manual WhatsApp outreach)
+            'campaigns.view', 'campaigns.manage',
             // Owner-only domains
             'subscription.view', 'subscription.manage',
             'team.view', 'team.manage',

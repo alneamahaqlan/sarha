@@ -35,7 +35,7 @@ return [
         ],
     ],
 
-    // Saerha-specific service credentials
+    // Platform-specific service credentials
     'google_maps' => [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],

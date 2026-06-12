@@ -1,5 +1,7 @@
-import { Link, Outlet } from 'react-router-dom';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList } from 'lucide-react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+
+import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2, ShoppingCart, Heart, Database, Layers } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -20,6 +22,9 @@ const adminNav = [
     group: 'nav.group.clinics',
     items: [
       { to: '/admin/clinics', label: 'nav.clinics', icon: Building2 },
+      { to: '/admin/access-center', label: 'nav.access_center', icon: ShieldCheck, badge: 'access_center' as keyof AdminNavBadges },
+      { to: '/admin/abandoned-carts', label: 'nav.abandoned_carts', icon: ShoppingCart },
+      { to: '/admin/favorites', label: 'nav.favorites', icon: Heart },
       { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
       { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
       { to: '/admin/clinic-reports', label: 'nav.clinic_reports', icon: MessageSquareWarning, badge: 'clinic_reports' as keyof AdminNavBadges },
@@ -35,27 +40,43 @@ const adminNav = [
       { to: '/admin/catalog-services', label: 'nav.catalog_services', icon: ClipboardList, badge: 'catalog_requests' as keyof AdminNavBadges },
       { to: '/admin/articles', label: 'nav.articles', icon: FileText },
       { to: '/admin/homepage-sections', label: 'nav.homepage_sections', icon: Home },
+      { to: '/admin/landing-pages', label: 'nav.landing_pages', icon: Layers },
     ],
   },
   {
     group: 'nav.group.sales',
     items: [
-      { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter },
+      { to: '/admin/sales-leads', label: 'nav.sales_leads', icon: Filter, badge: 'sales_followups_overdue' as keyof AdminNavBadges },
+      { to: '/admin/campaign-requests', label: 'nav.campaign_requests', icon: Megaphone, badge: 'campaign_requests' as keyof AdminNavBadges },
       { to: '/admin/subscriptions', label: 'nav.subscriptions', icon: CreditCard },
       { to: '/admin/subscription-packages', label: 'nav.subscription_packages', icon: Package },
     ],
   },
   {
-    group: 'nav.group.system',
+    group: 'nav.group.taxonomy',
     items: [
       { to: '/admin/cities', label: 'nav.cities', icon: MapPin },
       { to: '/admin/categories', label: 'nav.categories', icon: Tag },
       { to: '/admin/category-requests', label: 'nav.category_requests', icon: Tags, badge: 'category_requests' as keyof AdminNavBadges },
-      { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+    ],
+  },
+  {
+    group: 'nav.group.marketing',
+    items: [
       { to: '/admin/mass-notify', label: 'nav.mass_notify', icon: Megaphone },
-      { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
-      { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
       { to: '/admin/whatsapp-senders', label: 'nav.whatsapp_senders', icon: MessageCircle },
+      { to: '/admin/tracking', label: 'nav.tracking', icon: Radar, badge: 'tracking_pending' as keyof AdminNavBadges },
+      { to: '/admin/ai-center', label: 'nav.ai_center', icon: Bot },
+    ],
+  },
+  {
+    group: 'nav.group.system',
+    items: [
+      { to: '/admin/system-settings', label: 'nav.system_settings', icon: Cog },
+      { to: '/admin/seeder-center', label: 'nav.seeder_center', icon: Database },
+      { to: '/admin/admins', label: 'nav.admins', icon: Shield },
+      { to: '/admin/static-pages', label: 'nav.static_pages', icon: FileStack },
+      { to: '/admin/navigation-links', label: 'nav.navigation_links', icon: Link2 },
       { to: '/admin/audit-logs', label: 'nav.audit_logs', icon: ShieldCheck },
     ],
   },
@@ -63,6 +84,7 @@ const adminNav = [
 
 export function AdminLayout() {
   const { user } = useAuth();
+  const location = useLocation();
   const { t } = useTranslation();
   const { locale, setLocale } = useLocale();
   const { data: badges } = useAdminNavBadges();
@@ -94,14 +116,14 @@ export function AdminLayout() {
     // single descendant misses a min-w-0 (a chart, a table, a long
     // word in RTL) the document-level horizontal scroll is still
     // suppressed. Standard pattern for admin shells.
-    <div className="flex min-h-screen flex-col overflow-x-hidden bg-[var(--color-background)]">
+    <div className="flex h-screen flex-col overflow-hidden bg-[var(--color-background)]">
       <ImpersonationBanner />
-      <div className="flex min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 overflow-hidden">
         {/* Dual-mode sidebar — hidden on mobile, icon-rail on tablet,
             full on desktop. MobileNav (Sheet) covers the mobile path. */}
         <Sidebar items={adminNav} badges={badges} footer={sidebarFooter} />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 min-h-0 flex-1 flex-col">
           <header className="flex h-12 sm:h-14 items-center gap-2 border-b border-[var(--color-border)] bg-white px-3 sm:px-4">
             {/* Mobile brand block: min-w-0 + truncate so a long brand
                 name shrinks instead of pushing the action buttons off
@@ -148,8 +170,10 @@ export function AdminLayout() {
               </button>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-4 lg:p-6">
-            <Outlet />
+          <main className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 lg:p-6">
+            <RouteErrorBoundary resetKey={location.pathname}>
+              <Outlet />
+            </RouteErrorBoundary>
           </main>
         </div>
       </div>

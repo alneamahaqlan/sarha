@@ -72,12 +72,20 @@ class PlatformStatsService
             }
         }
 
+        // Unique viewers ("المشاهدات") platform-wide: distinct visitors
+        // de-duplicated per 3-hour window, summed across every clinic. Each
+        // clinic_views row is already one unique visitor per window.
+        $uniqueViews = (int) DB::table('clinic_views')
+            ->whereBetween('date', [$fromDate, $toDate])
+            ->count();
+
         $contacts = (int) $t->wa + (int) $t->cl + (int) $t->bc;
         $conversions = $bk + $qr;
 
         $summary = [
             'impressions_total' => $impressionsTotal,
             'impressions'       => $bySource,
+            'unique_views'      => $uniqueViews,
             'page_views'        => $pv,
             'bookings'          => $bk,
             'quote_requests'    => $qr,
@@ -89,10 +97,16 @@ class PlatformStatsService
             'engagement_rate'   => $impressionsTotal > 0 ? round(($pv / $impressionsTotal) * 100, 1) : 0.0,
         ];
 
+        // Realized service revenue across all clinics: net price of services
+        // taken on COMPLETED bookings in the range. Distinct from subscription
+        // revenue (the platform's own income).
+        $serviceRevenue = $this->serviceRevenue($startAt, $endAt);
+
         // ---- revenue + platform growth within the range ----
         $platform = [
             'revenue' => (float) Subscription::where('status', 'active')
                 ->whereBetween('created_at', [$startAt, $endAt])->sum('amount'),
+            'service_revenue' => $serviceRevenue,
             'new_subscriptions' => (int) Subscription::whereBetween('created_at', [$startAt, $endAt])->count(),
             'active_subscriptions' => (int) Subscription::where('status', 'active')
                 ->where('ends_at', '>=', now())->count(),
@@ -107,7 +121,7 @@ class PlatformStatsService
         $deltas = $this->deltas(
             $prevFrom->toDateString(), $prevTo->toDateString(),
             $prevFrom->copy()->startOfDay(), $prevTo->copy()->endOfDay(),
-            $impressionsTotal, $pv, $bk, $qr, $platform['revenue']
+            $impressionsTotal, $pv, $bk, $qr, $platform['revenue'], $uniqueViews, $serviceRevenue
         );
 
         // ---- acquisition funnel: impressions → views → contacts → conversions ----
@@ -148,35 +162,202 @@ class PlatformStatsService
             'bookings_by_source'    => Booking::whereBetween('created_at', [$startAt, $endAt])
                 ->selectRaw('source, COUNT(*) c')->groupBy('source')
                 ->pluck('c', 'source')->map(fn ($v) => (int) $v),
+            'service_stats'         => $this->serviceStats($startAt, $endAt),
             'best_days'             => $this->bestDays($fromDate, $toDate),
             'top_clinics'           => $this->topClinics($fromDate, $toDate),
+            'top_clinics_by_revenue'=> $this->topClinicsByRevenue($fromDate, $toDate),
             'top_services'          => $this->topServices($fromDate, $toDate),
             'by_specialty'          => $this->bySpecialty(),
             'monthly'               => $this->monthly(),
+            'landing_pages'         => $this->landingPages($fromDate, $toDate, $startAt, $endAt, $from, $to),
         ];
+    }
+
+    /**
+     * Platform-wide landing-page analytics for the range — the central-center
+     * view of the per-page LandingPageStatsService. Reads landing_page_stats
+     * (daily rollup) for the totals/trend and landing_page_visits for the
+     * traffic-source breakdown, plus a top-pages leaderboard.
+     */
+    private function landingPages(string $fromDate, string $toDate, Carbon $startAt, Carbon $endAt, Carbon $from, Carbon $to): array
+    {
+        $t = DB::table('landing_page_stats')->whereBetween('date', [$fromDate, $toDate])->selectRaw(
+            'COALESCE(SUM(page_views),0) pv, COALESCE(SUM(unique_visitors),0) uv, COALESCE(SUM(visits),0) vs, '
+            . 'COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(conversions),0) cv, COALESCE(SUM(clicks),0) ck, '
+            . 'COALESCE(SUM(whatsapp_clicks),0) wa, COALESCE(SUM(calls),0) cl, COALESCE(SUM(bounces),0) bo, '
+            . 'COALESCE(SUM(sum_duration_seconds),0) dur'
+        )->first();
+
+        $visits = (int) $t->vs;
+        $uniques = (int) $t->uv;
+        $conversions = (int) $t->cv;
+        $bounces = (int) $t->bo;
+        $duration = (int) $t->dur;
+
+        $summary = [
+            'page_views'      => (int) $t->pv,
+            'unique_visitors' => $uniques,
+            'visits'          => $visits,
+            'bookings'        => (int) $t->bk,
+            'conversions'     => $conversions,
+            'clicks'          => (int) $t->ck,
+            'whatsapp_clicks' => (int) $t->wa,
+            'calls'           => (int) $t->cl,
+            'conversion_rate' => $uniques > 0 ? round($conversions / $uniques * 100, 1) : 0.0,
+            'bounce_rate'     => $visits > 0 ? round($bounces / $visits * 100, 1) : 0.0,
+            'avg_session_sec' => $visits > 0 ? (int) round($duration / $visits) : 0,
+            'active_pages'    => (int) DB::table('landing_pages')->whereNull('deleted_at')->where('status', 'published')->count(),
+        ];
+
+        // Per-day trend, zero-filled across the window.
+        $rows = DB::table('landing_page_stats')->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('date, COALESCE(SUM(page_views),0) pv, COALESCE(SUM(unique_visitors),0) uv, COALESCE(SUM(conversions),0) cv')
+            ->groupBy('date')->get()->keyBy(fn ($r) => (string) $r->date);
+
+        $trend = [];
+        $cursor = $from->copy();
+        while ($cursor->lte($to)) {
+            $d = $cursor->toDateString();
+            $row = $rows[$d] ?? null;
+            $trend[] = [
+                'date'            => $d,
+                'page_views'      => (int) ($row->pv ?? 0),
+                'unique_visitors' => (int) ($row->uv ?? 0),
+                'conversions'     => (int) ($row->cv ?? 0),
+            ];
+            $cursor->addDay();
+        }
+
+        // Top landing pages by page views.
+        $topAgg = DB::table('landing_page_stats')->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('landing_page_id, SUM(page_views) pv, SUM(unique_visitors) uv, SUM(conversions) cv')
+            ->groupBy('landing_page_id')->orderByDesc('pv')->limit(15)->get();
+
+        $meta = DB::table('landing_pages')->whereIn('id', $topAgg->pluck('landing_page_id'))
+            ->get(['id', 'slug', 'title_ar', 'type'])->keyBy('id');
+
+        $top = $topAgg->map(function ($r) use ($meta) {
+            $m = $meta[$r->landing_page_id] ?? null;
+            $uv = (int) $r->uv;
+            $cv = (int) $r->cv;
+            return [
+                'id'              => (int) $r->landing_page_id,
+                'slug'            => $m->slug ?? null,
+                'title'           => $m->title_ar ?: ('#' . $r->landing_page_id),
+                'type'            => $m->type ?? null,
+                'page_views'      => (int) $r->pv,
+                'unique_visitors' => $uv,
+                'conversions'     => $cv,
+                'conversion_rate' => $uv > 0 ? round($cv / $uv * 100, 1) : 0.0,
+            ];
+        })->all();
+
+        // Traffic sources across all landing visits in the range (utm_source).
+        $sources = DB::table('landing_page_visits')
+            ->whereBetween('started_at', [$startAt, $endAt])
+            ->selectRaw("COALESCE(NULLIF(utm_source, ''), 'direct') as source, COUNT(*) as total")
+            ->groupBy('source')->orderByDesc('total')->limit(10)->get()
+            ->map(fn ($r) => ['source' => $r->source, 'total' => (int) $r->total])->all();
+
+        return ['summary' => $summary, 'trend' => $trend, 'top' => $top, 'sources' => $sources];
     }
 
     /**
      * Previous-window totals → percentage change for each headline metric.
      * Returns null for a metric whose previous value was 0 (no baseline).
      */
-    private function deltas(string $pFrom, string $pTo, Carbon $pStart, Carbon $pEnd, int $imp, int $pv, int $bk, int $qr, float $rev): array
+    private function deltas(string $pFrom, string $pTo, Carbon $pStart, Carbon $pEnd, int $imp, int $pv, int $bk, int $qr, float $rev, int $uv, float $svcRev): array
     {
         $s = ClinicStat::whereBetween('date', [$pFrom, $pTo])->selectRaw(
             'COALESCE(SUM(page_views),0) pv, COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr'
         )->first();
         $pImp = (int) DB::table('clinic_impressions')->whereBetween('date', [$pFrom, $pTo])->sum('count');
+        $pUv = (int) DB::table('clinic_views')->whereBetween('date', [$pFrom, $pTo])->count();
         $pRev = (float) Subscription::where('status', 'active')->whereBetween('created_at', [$pStart, $pEnd])->sum('amount');
+        $pSvcRev = $this->serviceRevenue($pStart, $pEnd);
 
         $pct = fn ($cur, $prev) => $prev > 0 ? (int) round((($cur - $prev) / $prev) * 100) : null;
 
         return [
-            'impressions'    => $pct($imp, $pImp),
-            'page_views'     => $pct($pv, (int) $s->pv),
-            'bookings'       => $pct($bk, (int) $s->bk),
-            'quote_requests' => $pct($qr, (int) $s->qr),
-            'revenue'        => $pct($rev, $pRev),
+            'impressions'     => $pct($imp, $pImp),
+            'unique_views'    => $pct($uv, $pUv),
+            'page_views'      => $pct($pv, (int) $s->pv),
+            'bookings'        => $pct($bk, (int) $s->bk),
+            'quote_requests'  => $pct($qr, (int) $s->qr),
+            'revenue'         => $pct($rev, $pRev),
+            'service_revenue' => $pct($svcRev, $pSvcRev),
         ];
+    }
+
+    /**
+     * Realized service revenue across all clinics for a range: SUM of net
+     * price on COMPLETED bookings. Basis = bookings.created_at.
+     */
+    private function serviceRevenue(Carbon $startAt, Carbon $endAt): float
+    {
+        return (float) DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->where('b.status', Booking::STATUS_COMPLETED)
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$startAt, $endAt])
+            ->sum('bs.net_price');
+    }
+
+    /**
+     * Platform-wide service operations block for the range, all derived from
+     * booking_services net price: realized income + services taken + people
+     * served (completed), value still pending (open bookings), and value lost
+     * (cancelled / no-show). Basis = bookings.created_at.
+     */
+    private function serviceStats(Carbon $startAt, Carbon $endAt): array
+    {
+        $base = fn () => DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$startAt, $endAt]);
+
+        $completed = $base()->where('b.status', Booking::STATUS_COMPLETED)
+            ->selectRaw('COUNT(*) c, COUNT(DISTINCT b.customer_id) cust, COALESCE(SUM(bs.net_price),0) v')->first();
+        $lost = $base()->whereIn('b.status', [Booking::STATUS_CANCELLED, Booking::STATUS_NO_SHOW])
+            ->selectRaw('COUNT(*) c, COALESCE(SUM(bs.net_price),0) v')->first();
+        $pending = $base()->whereNotIn('b.status', [Booking::STATUS_COMPLETED, Booking::STATUS_NO_SHOW, Booking::STATUS_CANCELLED])
+            ->selectRaw('COUNT(*) c, COALESCE(SUM(bs.net_price),0) v')->first();
+
+        return [
+            'income'           => (float) $completed->v,
+            'services_taken'   => (int) $completed->c,
+            'customers_served' => (int) $completed->cust,
+            'lost_income'      => (float) $lost->v,
+            'lost_services'    => (int) $lost->c,
+            'pending_income'   => (float) $pending->v,
+            'pending_services' => (int) $pending->c,
+        ];
+    }
+
+    /**
+     * Top 15 clinics by realized service revenue over the range, each with
+     * its completed-booking count. Ranks by money, complementing the
+     * impressions leaderboard.
+     */
+    private function topClinicsByRevenue(string $from, string $to): array
+    {
+        return DB::table('booking_services as bs')
+            ->join('bookings as b', 'b.id', '=', 'bs.booking_id')
+            ->join('clinics as c', 'c.id', '=', 'bs.clinic_id')
+            ->where('b.status', Booking::STATUS_COMPLETED)
+            ->whereNull('b.deleted_at')
+            ->whereBetween('b.created_at', [$from . ' 00:00:00', $to . ' 23:59:59'])
+            ->selectRaw('bs.clinic_id, c.name, SUM(bs.net_price) revenue, COUNT(DISTINCT b.id) completed')
+            ->groupBy('bs.clinic_id', 'c.name')
+            ->orderByDesc('revenue')
+            ->limit(15)
+            ->get()
+            ->map(fn ($r) => [
+                'id'                 => (int) $r->clinic_id,
+                'name'               => $r->name,
+                'service_revenue'    => (float) $r->revenue,
+                'completed_bookings' => (int) $r->completed,
+            ])->all();
     }
 
     /**
@@ -188,6 +369,9 @@ class PlatformStatsService
     {
         $imp = DB::table('clinic_impressions')->whereBetween('date', [$fromDate, $toDate])
             ->selectRaw('date, COALESCE(SUM(count),0) c')->groupBy('date')->pluck('c', 'date');
+
+        $uv = DB::table('clinic_views')->whereBetween('date', [$fromDate, $toDate])
+            ->selectRaw('date, COUNT(*) c')->groupBy('date')->pluck('c', 'date');
 
         $stats = ClinicStat::whereBetween('date', [$fromDate, $toDate])
             ->selectRaw('date, COALESCE(SUM(page_views),0) pv, COALESCE(SUM(bookings_count),0) bk, COALESCE(SUM(quote_requests_count),0) qr')
@@ -201,6 +385,7 @@ class PlatformStatsService
             $out[] = [
                 'date'           => $d,
                 'impressions'    => (int) ($imp[$d] ?? 0),
+                'unique_views'   => (int) ($uv[$d] ?? 0),
                 'page_views'     => (int) ($row->pv ?? 0),
                 'bookings'       => (int) ($row->bk ?? 0),
                 'quote_requests' => (int) ($row->qr ?? 0),
@@ -356,6 +541,7 @@ class PlatformStatsService
                 'bookings' => (int) Booking::whereBetween('created_at', [$start, $end])->count(),
                 'revenue'  => (float) Subscription::where('status', 'active')
                     ->whereBetween('created_at', [$start, $end])->sum('amount'),
+                'service_revenue' => $this->serviceRevenue($start, $end),
             ];
         })->values()->all();
     }

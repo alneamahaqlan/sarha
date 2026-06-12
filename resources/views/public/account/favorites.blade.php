@@ -74,7 +74,7 @@
                                         <p class="text-xs text-gray-500 mt-1">{{ $service->clinic->name }}</p>
                                     @endif
                                     @if($service->price)
-                                        <p class="text-sage-700 font-bold text-sm mt-1">{{ number_format($service->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></p>
+                                        <p class="text-sage-700 font-bold text-sm mt-1">{{ number_format($service->price) }} <span class="text-xs font-normal"><x-riyal /></span></p>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">
@@ -114,7 +114,7 @@
                                         <p class="text-xs text-gray-500 mt-1">{{ $offer->clinic->name }}</p>
                                     @endif
                                     @if($offer->price !== null)
-                                        <p class="text-sage-700 font-bold text-sm mt-1">{{ number_format((float) $offer->price) }} <span class="text-xs font-normal">@lang('site.currency_sar')</span></p>
+                                        <p class="text-sage-700 font-bold text-sm mt-1">{{ number_format((float) $offer->price) }} <span class="text-xs font-normal"><x-riyal /></span></p>
                                     @endif
                                 </div>
                                 <div class="flex items-center gap-2 flex-shrink-0">

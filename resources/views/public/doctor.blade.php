@@ -29,6 +29,9 @@
             @if($doctor->specialty)
                 <p class="text-sage-600 font-medium mt-1">{{ $doctor->specialty }}</p>
             @endif
+            <div class="mt-2">
+                @include('public.partials.impressions-badge', ['clinic' => $clinic])
+            </div>
             <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
                 @if($doctor->years_experience)
                     <span>{{ $doctor->years_experience }} @lang('site.doctor_years_experience')</span>
@@ -73,7 +76,7 @@
                     <div class="bg-white rounded-xl ring-1 ring-gray-100 p-4 flex items-center justify-between">
                         <span class="text-gray-800">{{ $service->name }}</span>
                         @if($service->price !== null)
-                            <span class="text-sage-700 font-semibold">{{ number_format((float) $service->price) }} <span class="text-xs">@lang('site.currency_sar')</span></span>
+                            <span class="text-sage-700 font-semibold">{{ number_format((float) $service->price) }} <span class="text-xs"><x-riyal /></span></span>
                         @endif
                     </div>
                 @endforeach

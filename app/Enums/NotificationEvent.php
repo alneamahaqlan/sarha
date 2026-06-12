@@ -25,6 +25,10 @@ enum NotificationEvent: string
     case BOOKING_CANCELLED_BY_USER  = 'booking_cancelled_by_user';
     case COMPLAINT_CREATED          = 'complaint_created';
     case QUOTE_CREATED              = 'quote_created';
+    // A clinic-set "contact this patient now" reminder whose time has come.
+    case CONTACT_REMINDER_DUE       = 'contact_reminder_due';
+    // A general team task (no customer) whose time has come.
+    case TASK_REMINDER_DUE          = 'task_reminder_due';
 
     // ── Clinic-side subscription lifecycle ─────────────────────────
     // Fired by the daily lifecycle command + SubscriptionService so
@@ -39,10 +43,14 @@ enum NotificationEvent: string
     case BOOKING_CONFIRMED          = 'booking_confirmed';
     case COMPLAINT_REPLIED          = 'complaint_replied';
     case QUOTE_REPLIED              = 'quote_replied';
+    // The customer left items unbooked in their cart — gentle nudge to finish.
+    case CART_REMINDER_DUE          = 'cart_reminder_due';
 
     // ── Admin-side events ──────────────────────────────────────────
     case CLINIC_PENDING_APPROVAL    = 'clinic_pending_approval';
     case AI_EMERGENCY               = 'ai_emergency';
+    // A sales lead's scheduled follow-up time has passed.
+    case SALES_FOLLOWUP_DUE         = 'sales_followup_due';
 
     /**
      * Which model class receives this event. Drives broadcast channel
@@ -58,14 +66,18 @@ enum NotificationEvent: string
             self::SUBSCRIPTION_EXPIRING_SOON,
             self::SUBSCRIPTION_EXPIRED,
             self::SUBSCRIPTION_ACTIVATED,
-            self::SUBSCRIPTION_CANCELLED => Clinic::class,
+            self::SUBSCRIPTION_CANCELLED,
+            self::CONTACT_REMINDER_DUE,
+            self::TASK_REMINDER_DUE => Clinic::class,
 
             self::BOOKING_CONFIRMED,
             self::COMPLAINT_REPLIED,
-            self::QUOTE_REPLIED => User::class,
+            self::QUOTE_REPLIED,
+            self::CART_REMINDER_DUE => User::class,
 
             self::CLINIC_PENDING_APPROVAL,
-            self::AI_EMERGENCY => Admin::class,
+            self::AI_EMERGENCY,
+            self::SALES_FOLLOWUP_DUE => Admin::class,
         };
     }
 
@@ -80,6 +92,10 @@ enum NotificationEvent: string
             self::COMPLAINT_CREATED,
             self::BOOKING_CONFIRMED,
             self::CLINIC_PENDING_APPROVAL,
+            self::CONTACT_REMINDER_DUE,
+            self::TASK_REMINDER_DUE,
+            self::SALES_FOLLOWUP_DUE,
+            self::CART_REMINDER_DUE,
             self::SUBSCRIPTION_EXPIRING_SOON => NotificationPriority::HIGH,
 
             self::QUOTE_CREATED,
@@ -98,8 +114,12 @@ enum NotificationEvent: string
             self::BOOKING_CANCELLED_BY_USER                => 'calendar-x',
             self::COMPLAINT_CREATED, self::COMPLAINT_REPLIED => 'alert-triangle',
             self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
+            self::CONTACT_REMINDER_DUE                       => 'phone-call',
+            self::TASK_REMINDER_DUE                          => 'list-checks',
+            self::CART_REMINDER_DUE                          => 'shopping-bag',
             self::CLINIC_PENDING_APPROVAL                    => 'building-2',
             self::AI_EMERGENCY                               => 'siren',
+            self::SALES_FOLLOWUP_DUE                         => 'phone-call',
             self::SUBSCRIPTION_EXPIRING_SOON                 => 'clock',
             self::SUBSCRIPTION_EXPIRED                       => 'alert-octagon',
             self::SUBSCRIPTION_ACTIVATED                     => 'check-circle',
@@ -136,11 +156,27 @@ enum NotificationEvent: string
             self::COMPLAINT_CREATED => '/app/clinic/complaints',
             self::QUOTE_CREATED     => '/app/clinic/price-quotes',
 
+            // Lands on the reminders page; deep-links to the customer when
+            // the payload carries their id so the clinic can act in one click.
+            self::CONTACT_REMINDER_DUE => isset($data['customer_id'])
+                ? '/app/clinic/customers/' . urlencode((string) $data['customer_id'])
+                : '/app/clinic/reminders',
+
+            // General task — always lands on the tasks/reminders page.
+            self::TASK_REMINDER_DUE => '/app/clinic/reminders',
+
             self::BOOKING_CONFIRMED  => '/account/bookings',
             self::COMPLAINT_REPLIED  => '/account/complaints',
             self::QUOTE_REPLIED      => '/account/quotes',
+            self::CART_REMINDER_DUE  => '/cart',
 
             self::CLINIC_PENDING_APPROVAL => '/app/admin/clinics?status=pending',
+
+            // Deep-link straight to the lead (the index auto-opens its
+            // detail sheet from ?lead=ID).
+            self::SALES_FOLLOWUP_DUE => isset($data['lead_id'])
+                ? '/app/admin/sales-leads?lead=' . urlencode((string) $data['lead_id'])
+                : '/app/admin/sales-leads',
 
             self::AI_EMERGENCY => isset($data['conversation_id'])
                 ? '/app/admin/ai-center?conversation=' . urlencode((string) $data['conversation_id'])

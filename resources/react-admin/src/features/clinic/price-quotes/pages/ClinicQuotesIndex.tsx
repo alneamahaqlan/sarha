@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { CalendarPlus, Check, MessageSquareReply, Search } from 'lucide-react';
+import { Lock, MessageSquareReply, Search } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,11 @@ import {
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
-import { OutreachButtons } from '@/features/clinic/outreach/OutreachButtons';
 
-import { useCreateBooking } from '@/features/clinic/bookings/kanban/hooks';
-import { useClinicQuotes, useReplyClinicQuote } from '../hooks';
-import type { BroadcastQuote, ClinicQuoteFilter } from '../api';
+import {
+  useClinicQuotes, useReplyClinicQuote, useQuoteAccess, useRequestQuoteAccess,
+} from '../hooks';
+import type { BroadcastQuote, ClinicQuoteFilter, QuoteAccessState } from '../api';
 
 function ReplyDialog({ quote, onClose }: { quote: BroadcastQuote; onClose: () => void }) {
   const { t } = useTranslation();
@@ -52,6 +52,7 @@ function ReplyDialog({ quote, onClose }: { quote: BroadcastQuote; onClose: () =>
             <p className="font-semibold">{quote.service_name}</p>
             <p className="mt-1 text-[var(--color-muted-foreground)]">{quote.description}</p>
             <div className="mt-2 flex flex-wrap gap-1">
+              {quote.categories?.map((c) => <Badge key={`cat-${c.id}`} variant="default" className="text-[10px]">{c.name}</Badge>)}
               {quote.cities.map((c) => <Badge key={c.id} variant="muted" className="text-[10px]">{c.name}</Badge>)}
             </div>
           </div>
@@ -84,30 +85,55 @@ function ReplyDialog({ quote, onClose }: { quote: BroadcastQuote; onClose: () =>
   );
 }
 
+/** Reply gate banner — shown whenever the admin has not kept access 'active'. */
+function AccessBanner({ access }: { access: QuoteAccessState }) {
+  const { t } = useTranslation();
+  const requestAccess = useRequestQuoteAccess();
+  const status = access.price_quote_status;
+  if (status === 'active') return null;
+
+  const canRequest = status === 'disabled' || status === 'rejected';
+  const onRequest = async () => {
+    try {
+      await requestAccess.mutateAsync();
+      toast.success(t('clinic_quotes.access_requested'));
+    } catch (err) {
+      toast.error(extractMessage(err, t('errors.generic')));
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-amber-900 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-2">
+        <Lock className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="text-sm">
+          <p className="font-semibold">{t(`clinic_quotes.access_${status}_title`)}</p>
+          <p className="text-amber-800">
+            {status === 'rejected' && access.price_quote_rejection_reason
+              ? access.price_quote_rejection_reason
+              : t(`clinic_quotes.access_${status}_desc`)}
+          </p>
+        </div>
+      </div>
+      {canRequest && (
+        <Button size="sm" className="shrink-0" onClick={onRequest} disabled={requestAccess.isPending}>
+          {requestAccess.isPending ? t('common.loading') : t('clinic_quotes.request_access')}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export function ClinicQuotesIndex() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const debounced = useDebouncedValue(search, 300);
   const [filter, setFilter] = useState<ClinicQuoteFilter | ''>('');
   const { data, isLoading } = useClinicQuotes({ search: debounced || undefined, filter: filter ? { status: filter } : undefined });
+  const { data: access } = useQuoteAccess();
   const [replying, setReplying] = useState<BroadcastQuote | null>(null);
-  const [added, setAdded] = useState<Set<number>>(new Set());
-  const createBooking = useCreateBooking();
 
-  const addToBookings = async (q: BroadcastQuote) => {
-    try {
-      await createBooking.mutateAsync({
-        customer_name: q.customer_name,
-        customer_phone: q.customer_phone,
-        status: 'new',
-        notes: `${t('clinic_quotes.from_quote')}: ${q.service_name}${q.description ? ' — ' + q.description : ''}`,
-      });
-      setAdded((prev) => new Set(prev).add(q.id));
-      toast.success(t('clinic_quotes.added_to_bookings'));
-    } catch (err) {
-      toast.error(extractMessage(err, t('errors.generic')));
-    }
-  };
+  const canReply = access?.price_quote_status === 'active';
 
   return (
     <div className="space-y-4">
@@ -115,6 +141,8 @@ export function ClinicQuotesIndex() {
         <h1 className="text-2xl font-semibold">{t('clinic_quotes.title')}</h1>
         <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_quotes.broadcast_subtitle')}</p>
       </div>
+
+      {access && <AccessBanner access={access} />}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
@@ -150,11 +178,13 @@ export function ClinicQuotesIndex() {
                 <TableCell className="font-medium">
                   {q.service_name}
                   <p className="text-xs text-[var(--color-muted-foreground)] max-w-xs truncate">{q.description}</p>
+                  {q.categories?.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {q.categories.map((c) => <Badge key={c.id} variant="default" className="text-[10px]">{c.name}</Badge>)}
+                    </div>
+                  )}
                 </TableCell>
-                <TableCell className="text-sm">
-                  {q.customer_name}
-                  <span className="block text-xs text-[var(--color-muted-foreground)]" dir="ltr">{q.customer_phone}</span>
-                </TableCell>
+                <TableCell className="text-sm">{q.customer_name}</TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {q.cities.map((c) => <Badge key={c.id} variant="muted" className="text-[10px]">{c.name}</Badge>)}
@@ -170,23 +200,16 @@ export function ClinicQuotesIndex() {
                   )}
                 </TableCell>
                 <TableCell className="text-end">
-                  <div className="flex items-center justify-end gap-1">
-                    <OutreachButtons phone={q.customer_phone} context="quote" refId={q.id} />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={added.has(q.id) || createBooking.isPending}
-                      onClick={() => addToBookings(q)}
-                      title={t('clinic_quotes.add_to_bookings')}
-                    >
-                      {added.has(q.id) ? <Check className="h-4 w-4 text-emerald-600" /> : <CalendarPlus className="h-4 w-4" />}
-                      {added.has(q.id) ? t('clinic_quotes.in_bookings') : t('clinic_quotes.add_to_bookings')}
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setReplying(q)}>
-                      <MessageSquareReply className="h-4 w-4" />
-                      {q.my_reply ? t('clinic_quotes.edit_reply') : t('clinic_quotes.reply')}
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled={!canReply}
+                    title={canReply ? undefined : t('clinic_quotes.reply_locked_hint')}
+                    onClick={() => setReplying(q)}
+                  >
+                    {canReply ? <MessageSquareReply className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    {q.my_reply ? t('clinic_quotes.edit_reply') : t('clinic_quotes.reply')}
+                  </Button>
                 </TableCell>
               </TableRow>
             ))
@@ -194,7 +217,7 @@ export function ClinicQuotesIndex() {
         </TableBody>
       </Table>
 
-      {replying && <ReplyDialog quote={replying} onClose={() => setReplying(null)} />}
+      {replying && canReply && <ReplyDialog quote={replying} onClose={() => setReplying(null)} />}
     </div>
   );
 }

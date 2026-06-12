@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { bookingKanbanApi } from './api';
-import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageLabels, TagColor, UpdateBookingInput } from './types';
+import type { AssigneeKind, CreateBookingInput, KanbanFilters, QuickAction, StageColor, StageKind, SuggestionSettings, TagColor, UpdateBookingInput } from './types';
 
 const KEY = ['clinic', 'bookings', 'kanban'] as const;
 
@@ -99,6 +99,31 @@ export function useAssign(id: number) {
   });
 }
 
+export function useAddBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { service_id: number; net_price: number }) => bookingKanbanApi.addService(id, input),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useUpdateBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { lineId: number; net_price: number }) =>
+      bookingKanbanApi.updateService(id, input.lineId, input.net_price),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useRemoveBookingService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (lineId: number) => bookingKanbanApi.removeService(id, lineId),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
 export function useUpdateBookingStatus(id: number) {
   const qc = useQueryClient();
   return useMutation({
@@ -144,11 +169,68 @@ export function useBookingStages() {
   });
 }
 
-export function useUpdateBookingStages() {
+export function useCreateStage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (labels: StageLabels) => bookingKanbanApi.updateStages(labels),
-    onSuccess: (data) => qc.setQueryData([...KEY, 'stages'], data),
+    mutationFn: (input: { name: string; kind: StageKind; color: StageColor }) => bookingKanbanApi.createStage(input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useUpdateStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { id: number; name: string; kind: StageKind; color: StageColor }) =>
+      bookingKanbanApi.updateStage(input.id, { name: input.name, kind: input.kind, color: input.color }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useDeleteStage() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => bookingKanbanApi.deleteStage(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [...KEY, 'stages'] });
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useReorderStages() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderedIds: number[]) => bookingKanbanApi.reorderStages(orderedIds),
+    onSuccess: (data) => {
+      qc.setQueryData([...KEY, 'stages'], data);
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
+  });
+}
+
+export function useSuggestionSettings() {
+  return useQuery({
+    queryKey: [...KEY, 'suggestion-settings'],
+    queryFn: () => bookingKanbanApi.suggestionSettings(),
+    staleTime: 5 * 60_000,
+  });
+}
+
+export function useUpdateSuggestionSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: SuggestionSettings) => bookingKanbanApi.updateSuggestionSettings(payload),
+    onSuccess: (data) => {
+      qc.setQueryData([...KEY, 'suggestion-settings'], data);
+      // Suggestions are computed server-side per card — refresh the board.
+      qc.invalidateQueries({ queryKey: [...KEY, 'board'] });
+    },
   });
 }
 

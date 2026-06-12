@@ -19,12 +19,21 @@
     $endsAtIso = $offer->ends_at->toIso8601String();
     $offerHref = route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]);
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
+    // Specialty ids for the hero filter — an offer inherits its linked
+    // service's specialties; general offers have none (drop out when filtering).
+    $specCats = ($spec ?? false) && $offer->service && $offer->service->relationLoaded('categories')
+        ? $offer->service->categories->pluck('id')->all() : [];
 @endphp
 
-<div class="relative bg-white rounded-xl shadow-sm ring-1 ring-gray-100 hover:shadow-lg transition-all overflow-hidden flex flex-col">
-    {{-- Save button is a sibling of (not nested in) the navigation links so
-         tapping the heart never triggers a page change. --}}
-    <x-save-button :model="$offer" type="offer" class="absolute bottom-3 end-3 z-20" />
+<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+     @if($spec ?? false) x-show="$store.spec.show(@js($specCats))" @endif>
+    {{-- Save + compare are siblings of (not nested in) the navigation links so
+         tapping them never triggers a page change. flex-col-reverse keeps the
+         heart in its original bottom-corner spot with compare stacked above. --}}
+    <div class="absolute bottom-3 end-3 z-20 flex flex-col-reverse gap-1.5">
+        <x-save-button :model="$offer" type="offer" />
+        <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+    </div>
 
     <a href="{{ $offerHref }}" class="relative block {{ $large ? 'aspect-[16/9]' : 'aspect-[4/3]' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
         @if($imageUrl)
@@ -43,22 +52,22 @@
         @endif
     </a>
 
-    <div class="p-4 flex-1 flex flex-col">
+    <div class="{{ $large ? 'p-4' : 'p-3' }} flex-1 flex flex-col">
         <a href="{{ $offerHref }}" class="group">
             <h3 class="{{ $large ? 'text-base' : 'text-sm' }} font-bold text-gray-800 line-clamp-2 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
         </a>
 
         @if($isServiceLinked)
-            <p class="text-xs text-gray-500 mt-1 line-clamp-1">
+            <p class="text-[11px] text-gray-500 mt-1 line-clamp-1">
                 @lang('site.offer_on_service'): {{ $offer->service->name }}
             </p>
         @else
-            <p class="text-xs text-gold-deep mt-1 font-semibold">
+            <p class="text-[11px] text-gold-deep mt-1 font-semibold">
                 @lang('site.offer_type_general')
             </p>
         @endif
 
-        @if($offer->description)
+        @if($offer->description && $large)
             <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ $offer->description }}</p>
         @endif
 
@@ -66,7 +75,7 @@
             <div class="mt-3 flex items-baseline gap-2">
                 <span class="text-sage-700 font-bold {{ $large ? 'text-xl' : 'text-base' }}">
                     {{ number_format((float) $offer->price) }}
-                    <span class="text-xs font-normal">@lang('site.currency_sar')</span>
+                    <span class="text-xs font-normal"><x-riyal /></span>
                 </span>
                 @if($offer->old_price !== null)
                     <span class="text-sm text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
@@ -86,7 +95,7 @@
         </div>
 
         <a href="{{ $offerHref }}"
-           class="mt-4 inline-flex items-center justify-center gap-2 min-h-touch bg-sage-600 hover:bg-sage-700 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-sm transition-colors">
+           class="mt-3 inline-flex items-center justify-center gap-1.5 min-h-touch bg-sage-600 hover:bg-sage-700 text-white {{ $large ? 'text-sm px-4' : 'text-xs px-2' }} font-semibold py-2.5 rounded-lg shadow-sm transition-colors">
             <x-icon name="eye" class="w-4 h-4" />
             @lang('site.home_view_offer')
         </a>

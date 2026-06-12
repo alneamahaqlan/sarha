@@ -1,5 +1,9 @@
 @extends('layouts.public')
 
+@push('scripts')
+<script>window.sarhaTrack && window.sarhaTrack('view_service', { clinic_id: {{ (int) $clinic->id }}, service_id: {{ (int) $service->id }} });</script>
+@endpush
+
 @section('title', $service->name . ' — ' . $clinic->name)
 @section('description', Str::limit($service->description ?? $clinic->name, 160))
 @section('og_image', $service->image ? Storage::url($service->image) : asset('images/og-default.png'))
@@ -36,7 +40,10 @@
 
         {{-- Details --}}
         <div>
-            <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+                @include('public.partials.impressions-badge', ['clinic' => $clinic])
+            </div>
             <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $service->name }}</h1>
 
             {{-- Category chips + sub-clinic --}}
@@ -60,7 +67,7 @@
                         <span class="text-sm font-normal text-gray-500">@lang('site.price_from')</span>
                     @endif
                     <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $service->price) }}
-                        <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                        <span class="text-sm font-normal"><x-riyal /></span>
                     </span>
                 </div>
             @endif
@@ -87,6 +94,7 @@
                     <x-icon name="calendar" class="w-5 h-5" />
                     @lang('site.book_appointment')
                 </a>
+                <x-add-to-cart-button :model="$service" type="service" :clinic="$clinic" />
                 @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])
             </div>
         </div>

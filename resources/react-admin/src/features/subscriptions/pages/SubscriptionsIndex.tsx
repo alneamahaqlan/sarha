@@ -15,6 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { cn } from '@/lib/utils';
@@ -92,10 +93,6 @@ export function SubscriptionsIndex() {
     return '';
   };
 
-  const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
-      style: 'currency', currency: 'SAR', maximumFractionDigits: 0,
-    }).format(n);
   const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
   const handleRenew = async (sub: Subscription) => {
@@ -221,7 +218,7 @@ export function SubscriptionsIndex() {
                       <span className="ms-1 text-[10px] text-emerald-600">+{sub.bonus_months}m</span>
                     )}
                   </TableCell>
-                  <TableCell className="font-medium">{fmtCurrency(sub.amount)}</TableCell>
+                  <TableCell className="font-medium"><Money value={sub.amount} locale={locale} /></TableCell>
                   <TableCell className="hidden lg:table-cell text-xs text-[var(--color-muted-foreground)]">{fmtDate(sub.starts_at)}</TableCell>
                   <TableCell className="text-xs">
                     <div>{fmtDate(sub.ends_at)}</div>

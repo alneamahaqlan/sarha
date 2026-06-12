@@ -42,6 +42,9 @@ export interface Clinic {
   is_featured: boolean;
   sort_order: number;
   bookings_count?: number;
+  services_count?: number;
+  offers_count?: number;
+  customers_count?: number;
   visits_30d?: number;
   city?: { id: number; name: string } | null;
   categories?: { id: number; name: string }[];

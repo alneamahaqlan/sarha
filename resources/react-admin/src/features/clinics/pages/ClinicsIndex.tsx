@@ -70,6 +70,7 @@ export function ClinicsIndex() {
   }, [searchParams]);
   const [planFilter, setPlanFilter] = useState<ClinicPlan | undefined>();
   const [cityFilter, setCityFilter] = useState<number | undefined>();
+  const [sortFilter, setSortFilter] = useState<string>('-created_at');
   const [trashedFilter, setTrashedFilter] = useState<TrashedFilter>('without');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [pendingBulk, setPendingBulk] = useState<BulkAction | null>(null);
@@ -89,10 +90,10 @@ export function ClinicsIndex() {
       page,
       per_page: 15,
       search: debouncedSearch.trim() || undefined,
-      sort: '-created_at',
+      sort: sortFilter,
       filter: { status: statusFilter, subscription_type: planFilter, city_id: cityFilter, trashed: trashedFilter },
     }),
-    [page, debouncedSearch, statusFilter, planFilter, cityFilter, trashedFilter],
+    [page, debouncedSearch, statusFilter, planFilter, cityFilter, sortFilter, trashedFilter],
   );
   const { data, isLoading, isFetching } = useClinics(queryParams);
   const { data: cities } = useCityLookup();
@@ -249,6 +250,18 @@ export function ClinicsIndex() {
           <option value="with">{t('clinics.trashed.with')}</option>
           <option value="only">{t('clinics.trashed.only')}</option>
         </Select>
+        <Select
+          value={sortFilter}
+          onChange={(e) => { setSortFilter(e.target.value); setPage(1); }}
+          className="w-52"
+          aria-label={t('clinics.sort.label')}
+        >
+          <option value="-created_at">{t('clinics.sort.newest')}</option>
+          <option value="-services_count">{t('clinics.sort.most_services')}</option>
+          <option value="-offers_count">{t('clinics.sort.most_offers')}</option>
+          <option value="-bookings_count">{t('clinics.sort.most_bookings')}</option>
+          <option value="-customers_count">{t('clinics.sort.most_customers')}</option>
+        </Select>
       </div>
 
       {selectedCount > 0 && (
@@ -304,7 +317,10 @@ export function ClinicsIndex() {
             <TableHead>{t('clinics.subscription_ends_at')}</TableHead>
             <TableHead>{t('clinics.days_remaining')}</TableHead>
             <TableHead>{t('clinics.visits_30d')}</TableHead>
+            <TableHead>{t('clinics.services_count')}</TableHead>
+            <TableHead>{t('clinics.offers_count')}</TableHead>
             <TableHead>{t('clinics.total_bookings')}</TableHead>
+            <TableHead>{t('clinics.customers_count')}</TableHead>
             <TableHead>{t('clinics.featured')}</TableHead>
             <TableHead className="text-end">{t('common.actions')}</TableHead>
           </TableRow>
@@ -312,13 +328,13 @@ export function ClinicsIndex() {
         <TableBody>
           {isLoading ? (
             <TableRow>
-              <TableCell colSpan={13} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={16} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.loading')}
               </TableCell>
             </TableRow>
           ) : !data || data.data.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={13} className="py-8 text-center text-[var(--color-muted-foreground)]">
+              <TableCell colSpan={16} className="py-8 text-center text-[var(--color-muted-foreground)]">
                 {t('common.no_data')}
               </TableCell>
             </TableRow>
@@ -370,7 +386,10 @@ export function ClinicsIndex() {
                 </TableCell>
                 <TableCell>{renderDaysRemaining(clinic.subscription_ends_at)}</TableCell>
                 <TableCell className="text-sm">{clinic.visits_30d ?? 0}</TableCell>
+                <TableCell className="text-sm">{clinic.services_count ?? 0}</TableCell>
+                <TableCell className="text-sm">{clinic.offers_count ?? 0}</TableCell>
                 <TableCell className="text-sm">{clinic.bookings_count ?? 0}</TableCell>
+                <TableCell className="text-sm">{clinic.customers_count ?? 0}</TableCell>
                 <TableCell>
                   {clinic.is_featured && <Star className="h-4 w-4 fill-amber-400 text-amber-500" />}
                 </TableCell>

@@ -29,6 +29,7 @@ class CustomerListResource extends JsonResource
             'last_seen_at'         => $this->last_seen_at?->toIso8601String(),
             'last_interaction_at'  => $this->last_interaction_at?->toIso8601String(),
             'last_interaction_type'=> $this->last_interaction_type,
+            'follow_up_priority'   => (int) $this->follow_up_priority,
             'tags' => $this->whenLoaded('tags', fn() => $this->tags->map(fn($t) => [
                 'id'    => $t->id,
                 'label' => $t->label,

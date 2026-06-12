@@ -33,7 +33,7 @@ class ClinicController extends Controller
         // Mirror Filament's withoutGlobalScopes(SoftDeletingScope) for the admin panel.
         $query = Clinic::query()->withoutGlobalScopes([SoftDeletingScope::class])
             ->with(['city:id,name'])
-            ->withCount('bookings')
+            ->withCount(['bookings', 'services', 'offers', 'customers'])
             ->withSum(['stats as visits_30d_sum' => fn ($q) => $q->where('date', '>=', now()->subDays(30))], 'page_views');
 
         $trashed = $request->string('filter.trashed')->toString();
@@ -62,7 +62,11 @@ class ClinicController extends Controller
         $sort = $request->string('sort', '-created_at')->toString();
         $direction = str_starts_with($sort, '-') ? 'desc' : 'asc';
         $column = ltrim($sort, '-');
-        $allowed = ['name', 'created_at', 'subscription_ends_at', 'status'];
+        // Count aliases come from withCount() above, so ordering by them is safe.
+        $allowed = [
+            'name', 'created_at', 'subscription_ends_at', 'status',
+            'services_count', 'offers_count', 'bookings_count', 'customers_count',
+        ];
         if (in_array($column, $allowed, true)) {
             $query->orderBy($column, $direction);
         } else {

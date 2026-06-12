@@ -1,8 +1,30 @@
 import type { BookingStatus } from '@/features/bookings/types';
 
-export type KanbanColumn = 'new' | 'confirmed' | 'completed' | 'cancelled';
+/**
+ * The 4 fixed semantic "kinds" a stage can belong to. These drive all
+ * status-based business logic and the drag-and-drop dialogs; clinics can
+ * add as many named stages as they like on top of these kinds.
+ */
+export type StageKind = 'new' | 'confirmed' | 'completed' | 'cancelled';
 
-export const KANBAN_COLUMNS: KanbanColumn[] = ['new', 'confirmed', 'completed', 'cancelled'];
+/** @deprecated kept as the kind type — use StageKind. */
+export type KanbanColumn = StageKind;
+
+export const STAGE_KINDS: StageKind[] = ['new', 'confirmed', 'completed', 'cancelled'];
+
+export type StageColor = 'rose' | 'amber' | 'emerald' | 'sky' | 'violet' | 'slate';
+export const STAGE_COLORS: StageColor[] = ['rose', 'amber', 'emerald', 'sky', 'violet', 'slate'];
+
+/** A custom Kanban column owned by the clinic. */
+export interface BookingStage {
+  id: number;
+  name: string;
+  kind: StageKind;
+  color: StageColor;
+  sort_order: number;
+  /** The 4 base stages (one per kind) — renamable but not deletable. */
+  is_default: boolean;
+}
 
 export type SubBadge =
   | 'awaiting_contact'
@@ -23,6 +45,15 @@ export type SuggestionKey =
   | 'retry_call'
   | 'reminder_soon'
   | 'cancel_risk';
+
+/** Per-suggestion config: always has `enabled`; threshold field varies. */
+export interface SuggestionSetting {
+  enabled: boolean;
+  hours?: number;
+  count?: number;
+}
+
+export type SuggestionSettings = Record<SuggestionKey, SuggestionSetting>;
 
 export type AssigneeKind = 'Clinic' | 'ClinicTeamMember';
 
@@ -51,6 +82,42 @@ export interface TagDto {
 export type TagColor = 'rose' | 'amber' | 'emerald' | 'sky' | 'violet' | 'slate';
 export const TAG_COLORS: TagColor[] = ['rose', 'amber', 'emerald', 'sky', 'violet', 'slate'];
 
+/**
+ * Acquisition channels — where the patient came from. Kept in sync with
+ * Booking::ACQUISITION_SOURCES on the backend. 'other' is the default
+ * when the team leaves the field blank on a manual booking.
+ */
+export type AcquisitionSource =
+  | 'returning_customer'
+  | 'walk_in'
+  | 'phone_call'
+  | 'whatsapp'
+  | 'referral'
+  | 'instagram'
+  | 'snapchat'
+  | 'tiktok'
+  | 'twitter'
+  | 'facebook'
+  | 'google_maps'
+  | 'cart'
+  | 'other';
+
+export const ACQUISITION_SOURCES: AcquisitionSource[] = [
+  'returning_customer',
+  'walk_in',
+  'phone_call',
+  'whatsapp',
+  'referral',
+  'instagram',
+  'snapchat',
+  'tiktok',
+  'twitter',
+  'facebook',
+  'google_maps',
+  'cart',
+  'other',
+];
+
 export interface KanbanCard {
   id: number;
   customer_id: number | null;
@@ -58,11 +125,19 @@ export interface KanbanCard {
   customer_name: string;
   customer_phone: string;
   service: { id: number; name: string } | null;
+  /** Net value of the services taken on this card (sum of net_price). */
+  value: number;
+  services_count: number;
+  /** True when the card is active but has no services recorded yet. */
+  is_incomplete: boolean;
   status: BookingStatus;
   kanban_column: KanbanColumn;
   sub_badge: SubBadge | null;
   appointment_at: string | null;
   created_at: string;
+  acquisition_source: AcquisitionSource;
+  stage_id: number | null;
+  follow_up_priority: number;
   is_for_relative: boolean;
   auto_tags: AutoTags;
   suggestions: SuggestionKey[];
@@ -77,19 +152,30 @@ export interface KanbanColumnPayload {
   next_cursor: string | null;
   has_more: boolean;
   total: number;
+  /** Total net value of all cards in this stage. */
+  value_total: number;
 }
 
-export type KanbanBoard = Record<KanbanColumn, KanbanColumnPayload>;
+/** A single service line item taken on a booking card. */
+export interface BookingServiceLine {
+  id: number;
+  service_id: number;
+  service_name: string | null;
+  list_price: number | null;
+  net_price: number;
+}
+
+/** Board payload keyed by stage id (string). */
+export type KanbanBoard = Record<string, KanbanColumnPayload>;
 
 export interface KanbanStats {
   today_count: number;
   yesterday_no_show: number;
   needs_urgent_confirm: number;
   weekly_confirm_rate: number | null;
+  /** Active cards with no services recorded (missing-data alert). */
+  incomplete_services: number;
 }
-
-/** Per-clinic custom labels for the 4 Kanban columns (blank = default). */
-export type StageLabels = Partial<Record<KanbanColumn, string>>;
 
 export interface KanbanFilters {
   search?: string;
@@ -102,7 +188,11 @@ export interface KanbanFilters {
   auto_tag?: 'urgent_confirm' | 'vip' | 'repeat' | 'new_customer' | 'has_complaint';
   /** Custom tag label (matches both booking + customer scope) */
   custom_tag?: string;
+  /** Acquisition channel the patient came from */
+  acquisition_source?: AcquisitionSource;
   mine_only?: boolean;
+  /** Show only active cards with no services recorded yet. */
+  incomplete?: boolean;
 }
 
 export interface CreateBookingInput {
@@ -113,6 +203,7 @@ export interface CreateBookingInput {
   notes?: string | null;
   clinic_notes?: string | null;
   status?: 'new' | 'contacted' | 'appointment_set';
+  acquisition_source?: AcquisitionSource | null;
   assignee_type?: AssigneeKind | null;
   assignee_id?: number | null;
 }
@@ -121,6 +212,7 @@ export interface UpdateBookingInput {
   status?: string;
   appointment_at?: string | null;
   clinic_notes?: string | null;
+  acquisition_source?: AcquisitionSource;
 }
 
 export interface TagLabelOption {
@@ -149,6 +241,10 @@ export interface CustomerProfile {
   customer_id: number | null;
   phone: string;
   name: string;
+  /** True when `name` is the customer's own OTP-verified platform name. */
+  name_verified?: boolean;
+  /** Other names THIS clinic recorded for the same number. */
+  alternative_names?: string[];
   email?: string | null;
   pinned_notes?: Array<{
     id: number;
@@ -166,7 +262,10 @@ export interface CustomerProfile {
     is_new: boolean;
     has_open_complaint: boolean;
     cancel_risk: boolean;
+    service_value: number;
+    incomplete_bookings: number;
   };
+  interested_services: Array<{ id: number; name: string | null }>;
   bookings: Array<{
     id: number;
     reference_code: string;
@@ -208,8 +307,13 @@ export interface BookingDetail {
   kanban_column: KanbanColumn;
   appointment_at: string | null;
   source: string;
+  acquisition_source: AcquisitionSource;
   is_for_relative: boolean;
   service: { id: number; name: string; price: number | null } | null;
+  /** Service line items taken on this card + the card's net value. */
+  services: BookingServiceLine[];
+  value: number;
+  is_incomplete: boolean;
   booker: { id: number; name: string; phone: string } | null;
   relative: { id: number; name: string; relationship_type: string; relationship_label: string | null; phone: string } | null;
   assignee: AssigneePayload | null;
@@ -224,6 +328,8 @@ export interface BookingDetail {
   customer_tags: TagDto[];
   created_at: string;
   updated_at: string;
+  created_by_name: string | null;
+  follow_up_priority: number;
 }
 
 export interface AssigneeOption {

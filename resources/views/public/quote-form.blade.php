@@ -31,7 +31,7 @@
                     <p class="text-xs font-mono bg-white inline-block px-2 py-1 rounded border border-sage-200">DEV: {{ session('dev_code') }}</p>
                 @endif
             </div>
-            <form method="POST" action="{{ route('quotes.verify') }}" class="space-y-5">
+            <form novalidate method="POST" action="{{ route('quotes.verify') }}" class="space-y-5">
                 @csrf
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.otp_code_label') <span class="text-red-500">*</span></label>
@@ -44,7 +44,7 @@
                 </button>
             </form>
         @else
-            <form method="POST" action="{{ route('quotes.store') }}" class="space-y-5">
+            <form novalidate method="POST" action="{{ route('quotes.store') }}" class="space-y-5">
                 @csrf
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -71,6 +71,22 @@
                     <textarea name="description" rows="4" required minlength="10" maxlength="2000" placeholder="{{ __('site.quote_details_placeholder') }}"
                               class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('description') }}</textarea>
                     <p class="text-xs text-gray-500 mt-1">@lang('site.quote_details_hint')</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">@lang('site.quote_categories_label') <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-auto border border-gray-100 rounded-lg p-3">
+                        @foreach($categories as $category)
+                            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                                <input type="checkbox" name="category_ids[]" value="{{ $category->id }}"
+                                       @checked(collect(old('category_ids'))->contains($category->id))
+                                       class="h-4 w-4 rounded border-gray-300 text-sage-600">
+                                <x-category-icon :emoji="$category->emoji" :icon="$category->icon" class="w-4 h-4 text-sage-600 shrink-0" />
+                                <span>{{ $category->display_name }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">@lang('site.quote_categories_hint')</p>
                 </div>
 
                 <div>

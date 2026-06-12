@@ -28,6 +28,19 @@ function buildParams(p: BookingListParams) {
 
 export type BookingStatusCounts = { all: number } & Record<BookingStatus, number>;
 
+export interface CustomerIdentity {
+  phone: string;
+  primary_name: string;
+  is_verified: boolean;
+  self_name: string | null;
+  alternatives: Array<{
+    name: string;
+    source: 'self' | 'clinic' | 'import';
+    clinic_id: number | null;
+    clinic_name: string | null;
+  }>;
+}
+
 export interface BookingExportOptions {
   statuses?: BookingStatus[];
   order?: 'asc' | 'desc';
@@ -81,5 +94,11 @@ export const bookingsApi = {
   },
   forceDelete: async (id: number) => {
     await apiClient.delete(`/admin/bookings/${id}/force`);
+  },
+  customerIdentity: async (phone: string) => {
+    const res = await apiClient.get<{ data: CustomerIdentity }>(
+      `/admin/platform-customers/by-phone/${encodeURIComponent(phone)}`,
+    );
+    return res.data.data;
   },
 };

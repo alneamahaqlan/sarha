@@ -10,12 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DialogFooter } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useAdminLookup, useCityLookup } from '@/features/lookups/hooks';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
 import { useCreateSalesLead, useUpdateSalesLead } from '../hooks';
-import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus } from '../types';
+import { LEAD_SOURCES, LOST_REASONS, SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus } from '../types';
 
 const schema = z.object({
   clinic_name: z.string().min(1).max(255),
@@ -27,6 +29,9 @@ const schema = z.object({
   district: z.string().max(255).nullish(),
   address: z.string().nullish(),
   status: z.enum(['new', 'contacted', 'interested', 'negotiating', 'converted', 'lost']),
+  source: z.string().nullish(),
+  lost_reason: z.string().nullish(),
+  lost_notes: z.string().max(1000).nullish(),
   assigned_to: z.union([z.coerce.number().int().positive(), z.literal('')]).nullish(),
   next_follow_up_at: z.string().nullish(),
   last_contact_at: z.string().nullish(),
@@ -61,7 +66,7 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
     defaultValues: {
       clinic_name: '', contact_name: '', phone: '', email: '', license_number: '',
       city_id: '', district: '', address: '',
-      status: 'new', assigned_to: '',
+      status: 'new', source: '', lost_reason: '', lost_notes: '', assigned_to: '',
       next_follow_up_at: '', last_contact_at: '',
       notes: '', sales_notes: '',
     },
@@ -78,6 +83,9 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
       district: lead?.district ?? '',
       address: lead?.address ?? '',
       status: lead?.status ?? 'new',
+      source: lead?.source ?? '',
+      lost_reason: lead?.lost_reason ?? '',
+      lost_notes: lead?.lost_notes ?? '',
       assigned_to: lead?.assigned_to ?? '',
       next_follow_up_at: toLocal(lead?.next_follow_up_at),
       last_contact_at: toLocal(lead?.last_contact_at),
@@ -94,6 +102,10 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
       if (payload.email === '') payload.email = null;
       if (payload.next_follow_up_at === '') payload.next_follow_up_at = null;
       if (payload.last_contact_at === '') payload.last_contact_at = null;
+      if (payload.source === '') payload.source = null;
+      // Loss fields only make sense for a lost lead — clear them otherwise.
+      if (v.status !== 'lost') { payload.lost_reason = null; payload.lost_notes = null; }
+      else if (payload.lost_reason === '') payload.lost_reason = null;
 
       if (lead) {
         await update.mutateAsync(payload as Partial<FormValues>);
@@ -113,12 +125,12 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
   const submitting = create.isPending || update.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5 md:col-span-2">
           <Label htmlFor="clinic_name">{t('sales_leads.form.clinic_name')}</Label>
           <Input id="clinic_name" {...form.register('clinic_name')} />
-          {form.formState.errors.clinic_name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.clinic_name.message}</p>}
+          <FieldError message={form.formState.errors.clinic_name?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -129,13 +141,13 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
         <div className="space-y-1.5">
           <Label htmlFor="phone">{t('sales_leads.form.phone')}</Label>
           <Input id="phone" type="tel" dir="ltr" {...form.register('phone')} />
-          {form.formState.errors.phone && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.phone.message}</p>}
+          <FieldError message={form.formState.errors.phone?.message} />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="email">{t('sales_leads.form.email')}</Label>
           <Input id="email" type="email" dir="ltr" {...form.register('email')} />
-          {form.formState.errors.email && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.email.message}</p>}
+          <FieldError message={form.formState.errors.email?.message} />
         </div>
 
         <div className="space-y-1.5">
@@ -177,6 +189,38 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
         </div>
 
         <div className="space-y-1.5">
+          <Label htmlFor="source">{t('sales_leads.form.source')}</Label>
+          <Select
+            id="source"
+            value={(form.watch('source') as string | null) ?? ''}
+            onChange={(e) => form.setValue('source', e.target.value, { shouldDirty: true })}
+          >
+            <option value="">—</option>
+            {LEAD_SOURCES.map((s) => <option key={s} value={s}>{t(`sales_leads.source.${s}`)}</option>)}
+          </Select>
+        </div>
+
+        {form.watch('status') === 'lost' && (
+          <>
+            <div className="space-y-1.5">
+              <Label htmlFor="lost_reason">{t('sales_leads.form.lost_reason')}</Label>
+              <Select
+                id="lost_reason"
+                value={(form.watch('lost_reason') as string | null) ?? ''}
+                onChange={(e) => form.setValue('lost_reason', e.target.value, { shouldDirty: true })}
+              >
+                <option value="">—</option>
+                {LOST_REASONS.map((r) => <option key={r} value={r}>{t(`sales_leads.lost_reason.${r}`)}</option>)}
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="lost_notes">{t('sales_leads.form.lost_notes')}</Label>
+              <Input id="lost_notes" {...form.register('lost_notes')} />
+            </div>
+          </>
+        )}
+
+        <div className="space-y-1.5">
           <Label htmlFor="assigned_to">{t('sales_leads.form.assigned_to')}</Label>
           <Select
             id="assigned_to"
@@ -208,6 +252,15 @@ export function SalesLeadForm({ lead, onSuccess, onCancel }: Props) {
           <Textarea id="sales_notes" rows={3} {...form.register('sales_notes')} />
         </div>
       </div>
+
+      <FormErrorSummary
+        errors={form.formState.errors}
+        labels={{
+          clinic_name: t('sales_leads.form.clinic_name'),
+          phone: t('sales_leads.form.phone'),
+          email: t('sales_leads.form.email'),
+        }}
+      />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>{t('common.cancel')}</Button>

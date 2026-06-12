@@ -73,7 +73,7 @@
                         @foreach($clinics as $clinic)
                             <td class="p-4 text-center">
                                 @if(! is_null($clinic->min_price))
-                                    <span class="font-semibold text-sage-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }}</span>
+                                    <span class="font-semibold text-sage-700">{{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }} <x-riyal /></span>
                                 @else
                                     <span class="text-gray-400">—</span>
                                 @endif
@@ -94,7 +94,7 @@
                             <td class="p-4 text-center">
                                 <div class="flex flex-wrap justify-center gap-1">
                                     @forelse($clinic->categories->take(3) as $cat)
-                                        <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
+                                        <span class="inline-flex items-center gap-1 bg-sage-50 text-sage-600 text-xs px-2 py-0.5 rounded-full"><x-category-icon :emoji="$cat->emoji" :icon="$cat->icon" class="w-3.5 h-3.5" /> {{ $cat->display_name }}</span>
                                     @empty
                                         <span class="text-gray-400">—</span>
                                     @endforelse

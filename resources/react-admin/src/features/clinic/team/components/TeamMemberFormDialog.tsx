@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import {
@@ -106,7 +108,7 @@ export function TeamMemberFormDialog({ open, member, onClose, onCreatedWithPassw
           <DialogTitle>{member ? t('clinic_team.edit_title') : t('clinic_team.create_title')}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form noValidate onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="name">{t('clinic_team.form.name')}</Label>
             <Input
@@ -115,7 +117,7 @@ export function TeamMemberFormDialog({ open, member, onClose, onCreatedWithPassw
               onChange={(e) => set('name', e.target.value)}
               required
             />
-            {errors.name && <p className="text-xs text-[var(--color-destructive)]">{errors.name}</p>}
+            <FieldError message={errors.name} />
           </div>
 
           <div className="space-y-1.5">
@@ -134,7 +136,7 @@ export function TeamMemberFormDialog({ open, member, onClose, onCreatedWithPassw
                 {t('clinic_team.form.phone_immutable_hint')}
               </p>
             )}
-            {errors.phone && <p className="text-xs text-[var(--color-destructive)]">{errors.phone}</p>}
+            <FieldError message={errors.phone} />
           </div>
 
           <div className="space-y-1.5">
@@ -147,7 +149,7 @@ export function TeamMemberFormDialog({ open, member, onClose, onCreatedWithPassw
               <option value="coordinator">{t('clinic_team.role.coordinator')}</option>
               <option value="reception">{t('clinic_team.role.reception')}</option>
             </Select>
-            {errors.role && <p className="text-xs text-[var(--color-destructive)]">{errors.role}</p>}
+            <FieldError message={errors.role} />
           </div>
 
           {member && (
@@ -165,6 +167,15 @@ export function TeamMemberFormDialog({ open, member, onClose, onCreatedWithPassw
               />
             </div>
           )}
+
+          <FormErrorSummary
+            errors={errors}
+            labels={{
+              name: t('clinic_team.form.name'),
+              phone: t('clinic_team.form.phone'),
+              role: t('clinic_team.form.role'),
+            }}
+          />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>

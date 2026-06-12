@@ -19,41 +19,41 @@
                 @lang('site.view_all') <span class="rtl:rotate-180">→</span>
             </a>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             @foreach($offers as $i => $offer)
                 @php
                     $discount = $offer->discountPercentage();
                     $clinic   = $offer->clinic;
                     $service  = $offer->service;
                 @endphp
-                <div class="reveal relative" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
-                    <x-save-button :model="$offer" type="offer" class="absolute top-3 end-3 z-20" />
+                <div class="reveal relative" style="--reveal-delay:{{ ($i % 6) * 70 }}ms">
+                    <div class="absolute top-2 end-2 z-20 flex flex-col gap-1.5">
+                        <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" compact />
+                        <x-save-button :model="$offer" type="offer" />
+                        <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+                    </div>
                     {{-- Clicking an offer opens its detail page; the booking
                          deep-link lives there, not on the card. --}}
                     <a href="{{ $clinic ? route('offer.show', ['slug' => $clinic->slug, 'offer' => $offer->id]) : '#' }}"
-                       class="block group bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-lg hover:ring-gold-soft transition-all overflow-hidden h-full">
-                        <div class="p-5 flex items-start gap-4">
-                            <div class="shrink-0 w-16 h-16 rounded-xl bg-sage-mist text-sage-primary flex items-center justify-center text-2xl">
-                                {{ $category->emoji ?: '🩺' }}
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2">
-                                    <h3 class="font-semibold text-gray-800 line-clamp-2 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
-                                    @if($discount && $discount > 0)
-                                        <span class="shrink-0 bg-red-50 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full">-{{ $discount }}%</span>
-                                    @endif
-                                </div>
-                                @if($clinic)
-                                    <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $clinic->name }}</p>
+                       class="block group bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden h-full">
+                        <div class="relative aspect-[16/10] bg-sage-mist text-sage-primary flex items-center justify-center text-4xl">
+                            {{ $category->emoji ?: '🩺' }}
+                            @if($discount && $discount > 0)
+                                <span class="absolute top-2 start-2 bg-red-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow-sm">-{{ $discount }}%</span>
+                            @endif
+                        </div>
+                        <div class="p-3">
+                            <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 group-hover:text-sage-700 transition-colors">{{ $offer->title }}</h3>
+                            @if($clinic)
+                                <p class="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{{ $clinic->name }}</p>
+                            @endif
+                            <div class="mt-2 flex items-baseline gap-1.5">
+                                @if($offer->price !== null)
+                                    <span class="text-sage-700 font-bold text-base">{{ number_format((float) $offer->price) }}<span class="text-[10px] font-normal ms-0.5"><x-riyal /></span></span>
                                 @endif
-                                <div class="mt-2 flex items-baseline gap-2">
-                                    @if($offer->price !== null)
-                                        <span class="text-sage-700 font-bold">{{ number_format((float) $offer->price) }}<span class="text-xs font-normal ms-1">@lang('site.currency_sar')</span></span>
-                                    @endif
-                                    @if($offer->old_price !== null)
-                                        <span class="text-xs text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
-                                    @endif
-                                </div>
+                                @if($offer->old_price !== null)
+                                    <span class="text-[10px] text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
+                                @endif
                             </div>
                         </div>
                     </a>

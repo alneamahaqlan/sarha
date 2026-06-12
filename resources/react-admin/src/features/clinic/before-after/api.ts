@@ -9,6 +9,7 @@ export interface BeforeAfterPhoto {
   title: string | null;
   before_image: string;
   after_image: string;
+  display_mode: 'side_by_side' | 'slider';
   before_url: string | null;
   after_url: string | null;
   is_active: boolean;
@@ -21,6 +22,7 @@ export interface BeforeAfterFormValues {
   title?: string | null;
   before_image: string;
   after_image: string;
+  display_mode?: 'side_by_side' | 'slider';
   sub_clinic_id?: number | null;
   service_id?: number | null;
   is_active: boolean;

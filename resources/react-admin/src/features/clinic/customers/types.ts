@@ -36,6 +36,7 @@ export interface CustomerListRow {
   last_seen_at: string | null;
   last_interaction_at: string | null;
   last_interaction_type: InteractionKind;
+  follow_up_priority: number;
   tags: CustomerTagDto[];
   has_notes?: boolean | null;
 }
@@ -56,11 +57,13 @@ export interface CustomerProfile {
   name: string;
   phone: string;
   email: string | null;
+  marketing_opt_out: boolean;
   user_id: number | null;
   first_seen_at: string | null;
   last_seen_at: string | null;
   last_interaction_at: string | null;
   last_interaction_type: InteractionKind;
+  follow_up_priority: number;
   auto_tags: {
     is_vip: boolean;
     is_repeat: boolean;
@@ -74,7 +77,9 @@ export interface CustomerProfile {
     complaints: number;
     quote_requests: number;
     service_value: number;
+    incomplete_bookings: number;
   };
+  interested_services: Array<{ id: number; name: string | null }>;
   last_booking: {
     id: number;
     reference_code: string;
@@ -129,7 +134,7 @@ export interface CustomerQuoteRow {
 
 export type TimelineEvent =
   | {
-      kind: 'booking' | 'complaint' | 'quote_request';
+      kind: 'booking' | 'complaint' | 'quote_request' | 'reminder';
       at: string;
       title_key: string;
       reference: string | null;
@@ -153,6 +158,11 @@ export interface ListFilters {
   booking_range?: BookingRange;
   has_notes?: boolean;
   last_interaction?: LastInteractionWindow;
+  /** Follow-up priority filter: 0..3 (undefined = any). */
+  priority?: number;
+  /** Sort column — only 'priority' is supported beyond the default. */
+  sort?: 'priority';
+  order?: 'asc' | 'desc';
   page?: number;
   per_page?: number;
 }

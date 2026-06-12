@@ -57,7 +57,7 @@
                 <span class="text-base text-gray-400 line-through">{{ number_format((float) $package->old_price) }}</span>
             @endif
             <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $package->price) }}
-                <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                <span class="text-sm font-normal"><x-riyal /></span>
             </span>
         </div>
 
@@ -75,6 +75,7 @@
                 <x-icon name="calendar" class="w-5 h-5" />
                 @lang('site.book_appointment')
             </a>
+            <x-add-to-cart-button :model="$package" type="package" :clinic="$clinic" />
             @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])
         </div>
     </div>

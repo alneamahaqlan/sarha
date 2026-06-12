@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
-  BarChart3, Bell, DollarSign, Eye, MousePointerClick, MessageCircle, MessageSquare,
-  Navigation, Phone, Search, Sparkles, TrendingUp, Users, Building2, CreditCard, Filter,
+  BarChart3, Bell, Eye, Info, MousePointerClick, MessageCircle, MessageSquare,
+  Navigation, Phone, Search, Sparkles, TrendingUp, Users, UserCheck, Building2, CreditCard, Filter,
+  Layers, Target, CalendarCheck, Coins, PackageCheck, Users2, Hourglass, XCircle,
 } from 'lucide-react';
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -10,12 +11,14 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money, fmtMoney } from '@/lib/money';
 import { cn } from '@/lib/utils';
 import { StatsFilterBar } from '@/features/clinic/stats/components/StatsFilterBar';
 import type { StatsRange, ImpressionSource } from '@/features/clinic/stats/api';
 
 import { useAnalytics } from '../hooks';
 import type { AnalyticsData } from '../api';
+import { ACQUISITION_SOURCES } from '@/features/clinic/bookings/kanban/types';
 
 const BOOKING_STATUSES = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
 const QUOTE_STATUSES = ['new', 'replied', 'closed'];
@@ -37,8 +40,6 @@ export function AnalyticsPage() {
   const { data, isLoading } = useAnalytics(range);
 
   const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
-  const cf = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   return (
     <div className="space-y-6">
@@ -52,49 +53,78 @@ export function AnalyticsPage() {
       {isLoading || !data ? (
         <div className="py-12 text-center text-sm text-[var(--color-muted-foreground)]">{t('common.loading')}</div>
       ) : (
-        <AnalyticsContent data={data} nf={nf} cf={cf} />
+        <AnalyticsContent data={data} nf={nf} locale={locale} />
       )}
     </div>
   );
 }
 
-function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.NumberFormat; cf: (n: number) => string }) {
+function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.NumberFormat; locale: string }) {
   const { t } = useTranslation();
   const s = data.summary;
   const d = data.deltas;
   const p = data.platform;
+  const ss = data.service_stats;
 
   return (
     <div className="space-y-6">
       {/* Platform overview — revenue & growth */}
       <SectionTitle icon={Building2}>{t('analytics.platform_overview')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={DollarSign} tone="success" label={t('analytics.revenue')} value={cf(p.revenue)} delta={d.revenue} />
+        <Card icon={CreditCard} tone="success" label={t('analytics.subscription_revenue')} value={<Money value={p.revenue} locale={locale} />} delta={d.revenue}
+          tooltip={t('analytics.subscription_revenue_tooltip')} />
         <Card icon={CreditCard} tone="primary" label={t('analytics.active_subscriptions')} value={nf.format(p.active_subscriptions)}
-          hint={t('analytics.new_subscriptions_hint', { count: p.new_subscriptions })} />
+          hint={t('analytics.new_subscriptions_hint', { count: p.new_subscriptions })} tooltip={t('analytics.active_subscriptions_tooltip')} />
         <Card icon={Building2} tone="info" label={t('analytics.active_clinics')} value={nf.format(p.active_clinics)}
-          hint={t('analytics.total_clinics_hint', { count: p.total_clinics })} />
-        <Card icon={Users} tone="warning" label={t('analytics.new_clinics')} value={nf.format(p.new_clinics)} />
+          hint={t('analytics.total_clinics_hint', { count: p.total_clinics })} tooltip={t('analytics.active_clinics_tooltip')} />
+        <Card icon={Users} tone="warning" label={t('analytics.new_clinics')} value={nf.format(p.new_clinics)}
+          tooltip={t('analytics.new_clinics_tooltip')} />
+      </div>
+
+      {/* Service stats — platform-wide income / taken / served / pending / lost */}
+      <SectionTitle icon={Coins}>{t('analytics.service_stats_title')}</SectionTitle>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <Card icon={Coins} tone="success" label={t('analytics.service_revenue')} value={<Money value={ss.income} locale={locale} />} delta={d.service_revenue}
+          tooltip={t('analytics.service_revenue_tooltip')} />
+        <Card icon={PackageCheck} tone="info" label={t('clinic_stats.services_taken')} value={nf.format(ss.services_taken)}
+          tooltip={t('clinic_stats.services_taken_tooltip')} />
+        <Card icon={Users2} tone="primary" label={t('clinic_stats.customers_served')} value={nf.format(ss.customers_served)}
+          tooltip={t('clinic_stats.customers_served_tooltip')} />
+        <Card icon={Hourglass} tone="warning" label={t('clinic_stats.pending_services')} value={nf.format(ss.pending_services)}
+          hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(ss.pending_income, locale) })} tooltip={t('clinic_stats.pending_tooltip')} />
+        <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')} value={<Money value={ss.lost_income} locale={locale} />}
+          hint={t('clinic_stats.lost_services_hint', { count: ss.lost_services })} tooltip={t('clinic_stats.lost_income_tooltip')} />
       </div>
 
       {/* Visibility & engagement KPIs */}
       <SectionTitle icon={TrendingUp}>{t('analytics.engagement_title')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Search} tone="info" label={t('clinic_stats.impressions_total')} value={nf.format(s.impressions_total)} delta={d.impressions} />
-        <Card icon={Eye} tone="primary" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={d.page_views} />
-        <Card icon={Bell} tone="success" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={d.bookings} />
-        <Card icon={MessageSquare} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} delta={d.quote_requests} />
+        <Card icon={Search} tone="info" label={t('clinic_stats.impressions_total')} value={nf.format(s.impressions_total)} delta={d.impressions}
+          tooltip={t('clinic_stats.impressions_total_tooltip')} />
+        <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)} delta={d.unique_views}
+          tooltip={t('clinic_stats.unique_views_tooltip')} />
+        <Card icon={Eye} tone="primary" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={d.page_views}
+          tooltip={t('clinic_stats.page_views_tooltip')} />
+        <Card icon={Bell} tone="success" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={d.bookings}
+          tooltip={t('clinic_stats.bookings_tooltip')} />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
+        <Card icon={MessageSquare} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} delta={d.quote_requests}
+          tooltip={t('clinic_stats.quote_requests_tooltip')} />
+        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
+          tooltip={t('clinic_stats.conversion_rate_tooltip')} />
         <Card icon={Eye} tone="info" label={t('analytics.engagement_rate')} value={`${s.engagement_rate}%`}
-          hint={t('analytics.engagement_rate_hint')} />
-        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
-        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
+          hint={t('analytics.engagement_rate_hint')} tooltip={t('analytics.engagement_rate_tooltip')} />
+        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
+          tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
       </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
-        <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')} value={nf.format(s.booking_clicks)} />
+        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
+          tooltip={t('clinic_stats.call_clicks_tooltip')} />
+        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
+          tooltip={t('clinic_stats.directions_clicks_tooltip')} />
+        <Card icon={MousePointerClick} tone="warning" label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')} value={nf.format(s.booking_clicks)}
+          tooltip={t('clinic_stats.booking_page_opens_tooltip')} />
       </div>
 
       {/* Acquisition funnel */}
@@ -111,6 +141,7 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
               <Tooltip />
               <Legend />
               <Line type="monotone" dataKey="impressions" name={t('clinic_stats.impressions_total')} stroke="#8b5cf6" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="unique_views" name={t('clinic_stats.unique_views')} stroke="#10b981" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="page_views" name={t('clinic_stats.page_views')} stroke="#0ea5e9" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="bookings" name={t('clinic_stats.bookings')} stroke="#0066cc" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="quote_requests" name={t('clinic_stats.quote_requests')} stroke="#f59e0b" strokeWidth={2} dot={false} />
@@ -137,6 +168,15 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
         <DistributionBars
           title={t('clinic_stats.quotes_by_status')}
           rows={QUOTE_STATUSES.map((k) => ({ label: t(`clinic_stats.q_status.${k}`), value: data.quotes_by_status[k] ?? 0 }))}
+          empty={t('common.no_data')}
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DistributionBars
+          title={t('clinic_stats.bookings_by_acquisition_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.bookings_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
           empty={t('common.no_data')}
         />
       </div>
@@ -174,6 +214,37 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
                     <TableCell>{nf.format(c.page_views)}</TableCell>
                     <TableCell>{nf.format(c.bookings)}</TableCell>
                     <TableCell>{c.conversion_rate}%</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </Panel>
+
+      {/* Top clinics by service revenue */}
+      <Panel title={t('analytics.top_clinics_by_revenue_title')}>
+        <div className="max-h-96 overflow-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('analytics.col_clinic')}</TableHead>
+                <TableHead>{t('analytics.service_revenue')}</TableHead>
+                <TableHead>{t('clinic_stats.completed_bookings')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.top_clinics_by_revenue.length === 0 ? (
+                <TableRow><TableCell colSpan={3} className="py-6 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+              ) : (
+                data.top_clinics_by_revenue.map((c, i) => (
+                  <TableRow key={c.id}>
+                    <TableCell className="font-medium">
+                      {c.name}
+                      {i === 0 && <Badge variant="gold" className="ms-2 text-xs">{t('clinic_stats.top')}</Badge>}
+                    </TableCell>
+                    <TableCell className="font-semibold"><Money value={c.service_revenue} locale={locale} /></TableCell>
+                    <TableCell>{nf.format(c.completed_bookings)}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -238,18 +309,20 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
               <TableHead>{t('analytics.clinics')}</TableHead>
               <TableHead>{t('analytics.bookings')}</TableHead>
               <TableHead>{t('analytics.revenue_col')}</TableHead>
+              <TableHead>{t('analytics.service_revenue')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.monthly.length === 0 ? (
-              <TableRow><TableCell colSpan={4} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
             ) : (
               data.monthly.map((m) => (
                 <TableRow key={m.month}>
                   <TableCell className="font-medium">{m.month}</TableCell>
                   <TableCell>{nf.format(m.clinics)}</TableCell>
                   <TableCell>{nf.format(m.bookings)}</TableCell>
-                  <TableCell>{cf(m.revenue)}</TableCell>
+                  <TableCell><Money value={m.revenue} locale={locale} /></TableCell>
+                  <TableCell className="font-medium"><Money value={m.service_revenue} locale={locale} /></TableCell>
                 </TableRow>
               ))
             )}
@@ -276,7 +349,106 @@ function AnalyticsContent({ data, nf, cf }: { data: AnalyticsData; nf: Intl.Numb
           )}
         </div>
       </div>
+
+      {/* Landing pages */}
+      <LandingSection landing={data.landing_pages} nf={nf} />
     </div>
+  );
+}
+
+function LandingSection({ landing, nf }: { landing: AnalyticsData['landing_pages']; nf: Intl.NumberFormat }) {
+  const { t } = useTranslation();
+  const s = landing.summary;
+  const maxSource = Math.max(1, ...landing.sources.map((x) => x.total));
+  const avg = `${Math.floor(s.avg_session_sec / 60)}:${String(s.avg_session_sec % 60).padStart(2, '0')}`;
+
+  return (
+    <>
+      <SectionTitle icon={Layers}>{t('analytics.landing_title')}</SectionTitle>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-6">
+        <Card icon={Eye} tone="info" label={t('analytics.landing_views')} value={nf.format(s.page_views)} />
+        <Card icon={Users} tone="primary" label={t('analytics.landing_uniques')} value={nf.format(s.unique_visitors)} />
+        <Card icon={CalendarCheck} tone="success" label={t('analytics.landing_bookings')} value={nf.format(s.bookings)} />
+        <Card icon={Target} tone="warning" label={t('analytics.landing_conv_rate')} value={`${s.conversion_rate}%`} />
+        <Card icon={TrendingUp} tone="muted" label={t('analytics.landing_bounce_rate')} value={`${s.bounce_rate}%`} />
+        <Card icon={Layers} tone="info" label={t('analytics.landing_active_pages')} value={nf.format(s.active_pages)} />
+        <Card icon={MessageCircle} tone="success" label={t('analytics.landing_whatsapp')} value={nf.format(s.whatsapp_clicks)} />
+        <Card icon={Phone} tone="primary" label={t('analytics.landing_calls')} value={nf.format(s.calls)} />
+        <Card icon={MousePointerClick} tone="muted" label={t('analytics.landing_clicks')} value={nf.format(s.clicks)} />
+        <Card icon={Target} tone="success" label={t('analytics.landing_conversions')} value={nf.format(s.conversions)} />
+        <Card icon={TrendingUp} tone="info" label={t('analytics.landing_avg_session')} value={avg} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Panel title={t('analytics.landing_trend')}>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={landing.trend}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                <Tooltip />
+                <Line type="monotone" dataKey="page_views" name={t('analytics.landing_views')} stroke="#0ea5e9" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="unique_visitors" name={t('analytics.landing_uniques')} stroke="#6366f1" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="conversions" name={t('analytics.landing_conversions')} stroke="#10b981" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+
+        <Panel title={t('analytics.landing_sources')}>
+          {landing.sources.length === 0 ? (
+            <p className="text-sm text-[var(--color-muted-foreground)]">{t('common.no_data')}</p>
+          ) : (
+            <div className="space-y-2">
+              {landing.sources.map((x) => (
+                <div key={x.source} className="flex items-center gap-3">
+                  <span className="w-28 shrink-0 truncate text-sm" dir="ltr">{x.source}</span>
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
+                    <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${(x.total / maxSource) * 100}%` }} />
+                  </div>
+                  <span className="w-12 shrink-0 text-end text-sm tabular-nums">{nf.format(x.total)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Panel>
+      </div>
+
+      <Panel title={t('analytics.landing_top')}>
+        {landing.top.length === 0 ? (
+          <div className="py-6 text-center text-xs text-[var(--color-muted-foreground)]">{t('common.no_data')}</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('analytics.landing_col_page')}</TableHead>
+                <TableHead className="text-end">{t('analytics.landing_views')}</TableHead>
+                <TableHead className="text-end">{t('analytics.landing_uniques')}</TableHead>
+                <TableHead className="text-end">{t('analytics.landing_conversions')}</TableHead>
+                <TableHead className="text-end">{t('analytics.landing_conv_rate')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {landing.top.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">
+                    {p.slug ? (
+                      <a href={`/l/${p.slug}`} target="_blank" rel="noopener" className="hover:underline">{p.title}</a>
+                    ) : p.title}
+                    {p.type && <Badge variant="muted" className="ms-2">{t(`landing_pages.types.${p.type}`)}</Badge>}
+                  </TableCell>
+                  <TableCell className="text-end tabular-nums">{nf.format(p.page_views)}</TableCell>
+                  <TableCell className="text-end tabular-nums">{nf.format(p.unique_visitors)}</TableCell>
+                  <TableCell className="text-end tabular-nums">{nf.format(p.conversions)}</TableCell>
+                  <TableCell className="text-end tabular-nums">{p.conversion_rate}%</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </Panel>
+    </>
   );
 }
 
@@ -299,17 +471,24 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Card({
-  icon: Icon, tone, label, value, delta, hint,
+  icon: Icon, tone, label, value, delta, hint, tooltip,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: string | number; delta?: number | null; hint?: string;
+  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; hint?: string; tooltip?: string;
 }) {
   const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <div className="text-xs text-[var(--color-muted-foreground)]">{label}</div>
+          <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+            <span>{label}</span>
+            {tooltip && (
+              <span title={tooltip} className="cursor-help">
+                <Info className="h-3 w-3" />
+              </span>
+            )}
+          </div>
           <div className="mt-1 text-2xl font-semibold">{value}</div>
           {delta !== undefined && delta !== null && (
             <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>

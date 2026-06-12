@@ -22,14 +22,10 @@
             </a>
         </div>
     @else
-        <form method="POST" action="{{ route('clinic.register.submit') }}" class="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-5">
+        <form novalidate method="POST" action="{{ route('clinic.register.submit') }}" class="bg-white rounded-2xl shadow-sm p-6 md:p-8 space-y-5">
             @csrf
 
-            @if($errors->any())
-                <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-                    @foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach
-                </div>
-            @endif
+            <x-form.errors />
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div class="md:col-span-2">
@@ -58,13 +54,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">@lang('site.register_city') <span class="text-red-500">*</span></label>
-                    <select name="city_id" required
-                            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
+                    <x-form.select name="city_id" required>
                         <option value="">@lang('site.search_all_cities')</option>
                         @foreach($cities as $city)
                             <option value="{{ $city->id }}" @selected(old('city_id') == $city->id)>{{ $city->display_name }}</option>
                         @endforeach
-                    </select>
+                    </x-form.select>
                 </div>
 
                 <div>

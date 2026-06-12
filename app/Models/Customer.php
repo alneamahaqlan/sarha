@@ -29,9 +29,11 @@ class Customer extends Model
     public const TYPE_QUOTE_REQUEST = 'quote_request';
 
     protected $fillable = [
-        'clinic_id', 'phone', 'name', 'email', 'user_id',
+        'clinic_id', 'platform_customer_id', 'phone', 'name', 'email', 'user_id',
+        'marketing_opt_out',
         'first_seen_at', 'last_seen_at',
         'last_interaction_at', 'last_interaction_type',
+        'follow_up_priority',
         'total_bookings', 'completed_bookings',
         'total_complaints', 'total_quote_requests',
         // notes column dropped in 040100 — replaced by customer_notes thread
@@ -43,6 +45,8 @@ class Customer extends Model
             'first_seen_at'       => 'datetime',
             'last_seen_at'        => 'datetime',
             'last_interaction_at' => 'datetime',
+            'marketing_opt_out'   => 'boolean',
+            'follow_up_priority'  => 'integer',
             'total_bookings'      => 'integer',
             'completed_bookings'  => 'integer',
             'total_complaints'    => 'integer',
@@ -54,6 +58,12 @@ class Customer extends Model
     public function clinic()
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    /** The shared platform-wide identity this per-clinic row belongs to. */
+    public function platformCustomer()
+    {
+        return $this->belongsTo(PlatformCustomer::class);
     }
 
     public function user()
@@ -79,6 +89,12 @@ class Customer extends Model
     public function tags()
     {
         return $this->hasMany(CustomerTag::class);
+    }
+
+    /** Services this customer is interested in (intent list, not purchases). */
+    public function interestedServices()
+    {
+        return $this->hasMany(CustomerInterestedService::class);
     }
 
     public function notes()

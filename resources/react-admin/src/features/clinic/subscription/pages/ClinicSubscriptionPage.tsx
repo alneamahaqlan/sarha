@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { Money } from '@/lib/money';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useClinicSubscription } from '@/features/clinic/profile/hooks';
@@ -72,10 +73,6 @@ export function ClinicSubscriptionPage() {
   const { locale } = useLocale();
   const { data, isLoading } = useClinicSubscription();
 
-  const fmtCurrency = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', {
-      style: 'currency', currency: 'SAR', maximumFractionDigits: 0,
-    }).format(n);
   const fmtDate = (iso: string | null | undefined) =>
     iso ? new Date(iso).toLocaleDateString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US') : '—';
 
@@ -134,7 +131,7 @@ export function ClinicSubscriptionPage() {
                 <div className="mt-1 text-sm text-[var(--color-muted-foreground)]">
                   {currentPkgPrice === 0
                     ? t('packages.free')
-                    : <>{fmtCurrency(currentPkgPrice)} <span className="text-xs">/ {t('clinic_subscription.per_month')}</span></>}
+                    : <><Money value={currentPkgPrice} locale={locale} /> <span className="text-xs">/ {t('clinic_subscription.per_month')}</span></>}
                 </div>
               </div>
             </div>
@@ -261,7 +258,6 @@ export function ClinicSubscriptionPage() {
                 key={p.id}
                 pkg={p}
                 isCurrent={pkgInline?.id === p.id}
-                fmtCurrency={fmtCurrency}
                 locale={locale}
                 t={t}
               />
@@ -388,11 +384,10 @@ function FeatureLine({
 }
 
 function PackageMiniCard({
-  pkg, isCurrent, fmtCurrency, locale, t,
+  pkg, isCurrent, locale, t,
 }: {
   pkg: ClinicSubscriptionPackage;
   isCurrent: boolean;
-  fmtCurrency: (n: number) => string;
   locale: string;
   t: (k: string, opts?: Record<string, unknown>) => string;
 }) {
@@ -435,7 +430,7 @@ function PackageMiniCard({
             <span className="text-xl font-bold">{t('packages.free')}</span>
           ) : (
             <>
-              <span className="text-xl font-bold">{fmtCurrency(pkg.monthly_price)}</span>
+              <Money value={pkg.monthly_price} locale={locale} className="text-xl font-bold" />
               <span className="text-[11px] text-[var(--color-muted-foreground)]">/ {t('clinic_subscription.per_month')}</span>
             </>
           )}

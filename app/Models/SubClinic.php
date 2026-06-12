@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 
 class SubClinic extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'category_id', 'name', 'name_en',
         'description', 'is_active', 'sort_order',

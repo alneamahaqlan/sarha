@@ -38,14 +38,15 @@ class PriceQuoteRequestController extends Controller
             ->whereHas('cities', fn ($q) => $q->where('cities.id', $clinic->city_id))
             ->with([
                 'cities:id,name,name_en',
+                'categories:id,name,name_en',
                 'replies' => fn ($q) => $q->where('clinic_id', $clinic->id),
             ])
             ->withCount('replies');
 
         if ($search = $request->string('search')->toString()) {
+            // Phone is hidden from clinics, so it is not a searchable field here.
             $query->where(function ($q) use ($search) {
                 $q->where('customer_name', 'like', "%{$search}%")
-                  ->orWhere('customer_phone', 'like', "%{$search}%")
                   ->orWhere('service_name', 'like', "%{$search}%");
             });
         }
@@ -65,10 +66,45 @@ class PriceQuoteRequestController extends Controller
         return QuoteRequestResource::collection($query->paginate($perPage)->withQueryString());
     }
 
+    /** This clinic's price-quote access state (for the reply gate UI). */
+    public function access(): JsonResponse
+    {
+        $clinic = $this->clinic();
+
+        return response()->json([
+            'data' => [
+                'price_quote_status'           => $clinic->price_quote_status,
+                'price_quote_rejection_reason' => $clinic->price_quote_rejection_reason,
+                'price_quote_requested_at'     => $clinic->price_quote_requested_at,
+            ],
+        ]);
+    }
+
+    /** Ask the super-admin to (re)enable replies after a disable/rejection. */
+    public function requestAccess(): JsonResponse
+    {
+        $clinic = $this->clinic();
+
+        // Only meaningful from a blocked state; 'active'/'pending' are no-ops.
+        if (in_array($clinic->price_quote_status, ['disabled', 'rejected'], true)) {
+            $clinic->update([
+                'price_quote_status'           => 'pending',
+                'price_quote_rejection_reason' => null,
+                'price_quote_requested_at'     => now(),
+            ]);
+        }
+
+        return $this->access();
+    }
+
     /** Create or update this clinic's reply to a broadcast request. */
     public function reply(StoreQuoteReplyRequest $request, PriceQuoteRequest $priceQuote): JsonResponse
     {
         $clinic = $this->clinic();
+
+        // Reply gate: the clinic can always SEE requests, but may only reply
+        // while the super-admin keeps its price-quote access 'active'.
+        abort_unless($clinic->priceQuoteReplyActive(), 403, __('site.price_quote_reply_locked'));
 
         // The complex may only reply to requests targeting its city.
         abort_unless(
@@ -108,6 +144,7 @@ class PriceQuoteRequestController extends Controller
 
         $priceQuote->load([
             'cities:id,name,name_en',
+            'categories:id,name,name_en',
             'replies' => fn ($q) => $q->where('clinic_id', $clinic->id),
         ])->loadCount('replies');
 

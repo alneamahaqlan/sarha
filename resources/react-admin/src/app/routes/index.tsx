@@ -36,6 +36,10 @@ const DashboardPage       = lazy(() => import('@/features/dashboard/pages/Dashbo
 const CitiesIndex         = lazy(() => import('@/features/cities/pages/CitiesIndex').then(m => ({ default: m.CitiesIndex })));
 const CategoriesIndex        = lazy(() => import('@/features/categories/pages/CategoriesIndex').then(m => ({ default: m.CategoriesIndex })));
 const HomepageSectionsIndex  = lazy(() => import('@/features/homepage-sections/pages/HomepageSectionsIndex').then(m => ({ default: m.HomepageSectionsIndex })));
+const StaticPagesIndex       = lazy(() => import('@/features/static-pages/pages/StaticPagesIndex').then(m => ({ default: m.StaticPagesIndex })));
+const NavigationLinksIndex   = lazy(() => import('@/features/navigation-links/pages/NavigationLinksIndex').then(m => ({ default: m.NavigationLinksIndex })));
+const LandingPagesIndex      = lazy(() => import('@/features/landing-pages/pages/LandingPagesIndex').then(m => ({ default: m.LandingPagesIndex })));
+const LandingPageEditor      = lazy(() => import('@/features/landing-pages/pages/LandingPageEditor').then(m => ({ default: m.LandingPageEditor })));
 const AiCenterPage           = lazy(() => import('@/features/ai-center/pages/AiCenterPage').then(m => ({ default: m.AiCenterPage })));
 const UsersIndex          = lazy(() => import('@/features/users/pages/UsersIndex').then(m => ({ default: m.UsersIndex })));
 const UserProfilePage     = lazy(() => import('@/features/users/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
@@ -52,12 +56,21 @@ const SubscriptionsIndex  = lazy(() => import('@/features/subscriptions/pages/Su
 const PackagesIndex       = lazy(() => import('@/features/subscription-packages/pages/PackagesIndex').then(m => ({ default: m.PackagesIndex })));
 const PriceQuotesIndex    = lazy(() => import('@/features/price-quotes/pages/PriceQuotesIndex').then(m => ({ default: m.PriceQuotesIndex })));
 const AuditLogsIndex      = lazy(() => import('@/features/audit-logs/pages/AuditLogsIndex').then(m => ({ default: m.AuditLogsIndex })));
+const SeederCenterPage    = lazy(() => import('@/features/seeder-center/pages/SeederCenterPage').then(m => ({ default: m.SeederCenterPage })));
 const SystemSettingsIndex = lazy(() => import('@/features/system-settings/pages/SystemSettingsIndex').then(m => ({ default: m.SystemSettingsIndex })));
 const WhatsAppSendersIndex = lazy(() => import('@/features/whatsapp-senders/pages/WhatsAppSendersIndex').then(m => ({ default: m.WhatsAppSendersIndex })));
 const MassNotifyPage      = lazy(() => import('@/features/mass-notify/pages/MassNotifyPage').then(m => ({ default: m.MassNotifyPage })));
 const ArticlesIndex       = lazy(() => import('@/features/articles/pages/ArticlesIndex').then(m => ({ default: m.ArticlesIndex })));
 const CategoryRequestsIndex = lazy(() => import('@/features/category-requests/pages/CategoryRequestsIndex').then(m => ({ default: m.CategoryRequestsIndex })));
+const CampaignRequestsIndex = lazy(() => import('@/features/campaign-requests/pages/CampaignRequestsIndex').then(m => ({ default: m.CampaignRequestsIndex })));
 const CatalogServicesIndex = lazy(() => import('@/features/catalog-services/pages/CatalogServicesIndex').then(m => ({ default: m.CatalogServicesIndex })));
+const TrackingPage        = lazy(() => import('@/features/tracking/pages/TrackingPage').then(m => ({ default: m.TrackingPage })));
+const CartModerationPage  = lazy(() => import('@/features/cart/pages/CartModerationPage').then(m => ({ default: m.CartModerationPage })));
+const PriceQuoteAccessPage = lazy(() => import('@/features/price-quote-access/pages/PriceQuoteAccessPage').then(m => ({ default: m.PriceQuoteAccessPage })));
+const AccessCenterPage    = lazy(() => import('@/features/access-center/pages/AccessCenterPage').then(m => ({ default: m.AccessCenterPage })));
+const AbandonedCartsIndex = lazy(() => import('@/features/abandoned-carts/pages/AbandonedCartsIndex').then(m => ({ default: m.AbandonedCartsIndex })));
+const AbandonedCartDetail = lazy(() => import('@/features/abandoned-carts/pages/AbandonedCartDetail').then(m => ({ default: m.AbandonedCartDetail })));
+const FavoritesIndex      = lazy(() => import('@/features/favorites/pages/FavoritesIndex').then(m => ({ default: m.FavoritesIndex })));
 
 const ClinicDashboardPage = lazy(() => import('@/features/clinic/dashboard/pages/ClinicDashboardPage').then(m => ({ default: m.ClinicDashboardPage })));
 const ClinicMyStatsPage   = lazy(() => import('@/features/clinic/stats/pages/ClinicMyStatsPage').then(m => ({ default: m.ClinicMyStatsPage })));
@@ -70,6 +83,7 @@ const ClinicReportsIndex = lazy(() => import('@/features/clinic/reports/pages/Cl
 const AdminClinicReportsIndex = lazy(() => import('@/features/clinic-reports/pages/AdminClinicReportsIndex').then(m => ({ default: m.AdminClinicReportsIndex })));
 const AdminCustomerReportsIndex = lazy(() => import('@/features/customer-reports/pages/AdminCustomerReportsIndex').then(m => ({ default: m.AdminCustomerReportsIndex })));
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
+const ClinicStoriesIndex = lazy(() => import('@/features/clinic/stories/pages/ClinicStoriesIndex').then(m => ({ default: m.ClinicStoriesIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
 const ClinicBookingsKanban = lazy(() => import('@/features/clinic/bookings/kanban/pages/ClinicBookingsKanban').then(m => ({ default: m.ClinicBookingsKanban })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
@@ -83,6 +97,13 @@ const ClinicTeamIndex = lazy(() => import('@/features/clinic/team/pages/ClinicTe
 const ClinicTeamActivityPage = lazy(() => import('@/features/clinic/team/pages/ClinicTeamActivityPage').then(m => ({ default: m.ClinicTeamActivityPage })));
 const ClinicCustomersIndex = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomersIndex').then(m => ({ default: m.ClinicCustomersIndex })));
 const ClinicCustomerProfile = lazy(() => import('@/features/clinic/customers/pages/ClinicCustomerProfile').then(m => ({ default: m.ClinicCustomerProfile })));
+const ClinicServiceReportsIndex = lazy(() => import('@/features/clinic/service-reports/pages/ClinicServiceReportsIndex').then(m => ({ default: m.ClinicServiceReportsIndex })));
+const ClinicRemindersIndex = lazy(() => import('@/features/clinic/reminders/pages/ClinicRemindersIndex').then(m => ({ default: m.ClinicRemindersIndex })));
+const ClinicCampaignsIndex = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignsIndex').then(m => ({ default: m.ClinicCampaignsIndex })));
+const ClinicCampaignRunner = lazy(() => import('@/features/clinic/campaigns/pages/ClinicCampaignRunner').then(m => ({ default: m.ClinicCampaignRunner })));
+const ClinicTrackingPage = lazy(() => import('@/features/clinic/tracking/pages/ClinicTrackingPage').then(m => ({ default: m.ClinicTrackingPage })));
+const ClinicCartPage     = lazy(() => import('@/features/clinic/cart/pages/ClinicCartPage').then(m => ({ default: m.ClinicCartPage })));
+const ClinicAbandonedCartsIndex = lazy(() => import('@/features/clinic/abandoned-carts/pages/ClinicAbandonedCartsIndex').then(m => ({ default: m.ClinicAbandonedCartsIndex })));
 
 function PageFallback() {
   return (
@@ -137,16 +158,29 @@ export function AppRoutes() {
               <Route path="cities" element={<CitiesIndex />} />
               <Route path="categories" element={<CategoriesIndex />} />
               <Route path="homepage-sections" element={<HomepageSectionsIndex />} />
+              <Route path="static-pages" element={<StaticPagesIndex />} />
+              <Route path="landing-pages" element={<LandingPagesIndex />} />
+              <Route path="landing-pages/:id" element={<LandingPageEditor />} />
+              <Route path="navigation-links" element={<NavigationLinksIndex />} />
               <Route path="admins" element={<AdminsIndex />} />
               <Route path="subscriptions" element={<SubscriptionsIndex />} />
               <Route path="subscription-packages" element={<PackagesIndex />} />
               <Route path="price-quotes" element={<PriceQuotesIndex />} />
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
+              <Route path="seeder-center" element={<SeederCenterPage />} />
+              <Route path="tracking" element={<TrackingPage />} />
+              <Route path="access-center" element={<AccessCenterPage />} />
+              <Route path="cart" element={<CartModerationPage />} />
+              <Route path="price-quote-access" element={<PriceQuoteAccessPage />} />
+              <Route path="abandoned-carts" element={<AbandonedCartsIndex />} />
+              <Route path="abandoned-carts/:clinicId" element={<AbandonedCartDetail />} />
+              <Route path="favorites" element={<FavoritesIndex />} />
               <Route path="whatsapp-senders" element={<WhatsAppSendersIndex />} />
               <Route path="ai-center" element={<AiCenterPage />} />
               <Route path="mass-notify" element={<MassNotifyPage />} />
               <Route path="category-requests" element={<CategoryRequestsIndex />} />
+              <Route path="campaign-requests" element={<CampaignRequestsIndex />} />
               <Route path="catalog-services" element={<CatalogServicesIndex />} />
               <Route path="clinic-reports" element={<AdminClinicReportsIndex />} />
               <Route path="customer-reports" element={<AdminCustomerReportsIndex />} />
@@ -175,10 +209,15 @@ export function AppRoutes() {
               <Route path="packages" element={<RoleGuard ability="packages.view"><ClinicPackagesIndex /></RoleGuard>} />
               <Route path="offers" element={<RoleGuard ability="offers.view"><ClinicOffersIndex /></RoleGuard>} />
               <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
+              <Route path="stories" element={<RoleGuard ability="stories.view"><ClinicStoriesIndex /></RoleGuard>} />
               <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
               <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
               <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />
               <Route path="customers/:id" element={<RoleGuard ability="customers.view"><ClinicCustomerProfile /></RoleGuard>} />
+              <Route path="service-reports" element={<RoleGuard ability="customers.view"><ClinicServiceReportsIndex /></RoleGuard>} />
+              <Route path="reminders" element={<RoleGuard ability="reminders.view"><ClinicRemindersIndex /></RoleGuard>} />
+              <Route path="campaigns" element={<RoleGuard ability="campaigns.view"><ClinicCampaignsIndex /></RoleGuard>} />
+              <Route path="campaigns/:id" element={<RoleGuard ability="campaigns.view"><ClinicCampaignRunner /></RoleGuard>} />
               <Route path="price-quotes" element={<RoleGuard ability="price_quotes.view"><ClinicQuotesIndex /></RoleGuard>} />
               <Route path="complaints" element={<RoleGuard ability="complaints.view"><ClinicComplaintsIndex /></RoleGuard>} />
               <Route path="reports" element={<RoleGuard ability="complaints.view"><ClinicReportsIndex /></RoleGuard>} />
@@ -187,6 +226,9 @@ export function AppRoutes() {
               <Route path="page-builder" element={<RoleGuard ability="page_builder.view"><ClinicPageBuilderIndex /></RoleGuard>} />
               <Route path="subscription" element={<RoleGuard ability="subscription.view"><ClinicSubscriptionPage /></RoleGuard>} />
               <Route path="profile" element={<ClinicProfilePage />} />
+              <Route path="tracking" element={<RoleGuard ability="tracking.view"><ClinicTrackingPage /></RoleGuard>} />
+              <Route path="cart" element={<RoleGuard ability="cart.view"><ClinicCartPage /></RoleGuard>} />
+              <Route path="abandoned-carts" element={<RoleGuard ability="cart_leads.view"><ClinicAbandonedCartsIndex /></RoleGuard>} />
               <Route path="team" element={<RoleGuard ability="team.view"><ClinicTeamIndex /></RoleGuard>} />
               <Route path="team-activity" element={<RoleGuard ability="team_activity.view"><ClinicTeamActivityPage /></RoleGuard>} />
             </Route>

@@ -10,16 +10,17 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 interface Props {
   value: string | null | undefined;
   onChange: (path: string | null) => void;
-  directory: 'logos' | 'gallery' | 'doctors' | 'services' | 'offers' | 'before-after' | 'articles' | 'banners';
+  directory: 'logos' | 'gallery' | 'doctors' | 'services' | 'offers' | 'before-after' | 'articles' | 'banners' | 'landing-pages';
   disabled?: boolean;
   label?: string;
+  hint?: string;
 }
 
 interface UploadResponse {
   data: { path: string; url: string };
 }
 
-export function FileUpload({ value, onChange, directory, disabled, label }: Props) {
+export function FileUpload({ value, onChange, directory, disabled, label, hint }: Props) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -51,6 +52,7 @@ export function FileUpload({ value, onChange, directory, disabled, label }: Prop
   return (
     <div className="space-y-2">
       {label && <div className="text-sm font-medium">{label}</div>}
+      {hint && <p className="text-xs leading-relaxed text-[var(--color-muted-foreground)]">{hint}</p>}
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onSelect} disabled={disabled || uploading} />
       <div className="flex items-center gap-3">
         {previewUrl ? (

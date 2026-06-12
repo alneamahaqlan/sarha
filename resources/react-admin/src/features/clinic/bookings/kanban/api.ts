@@ -4,13 +4,17 @@ import type {
   AssigneeOption,
   BookingActivity,
   BookingDetail,
+  BookingServiceLine,
+  BookingStage,
   CreateBookingInput,
   CustomerProfile,
   KanbanBoard,
   KanbanFilters,
   KanbanStats,
   QuickAction,
-  StageLabels,
+  StageColor,
+  StageKind,
+  SuggestionSettings,
   TagColor,
   TagDto,
   TagLabelOption,
@@ -28,7 +32,9 @@ function flattenFilters(f: KanbanFilters, cursors?: Record<string, string | null
   if (f.date_to) out.date_to = f.date_to;
   if (f.auto_tag) out.auto_tag = f.auto_tag;
   if (f.custom_tag) out.custom_tag = f.custom_tag;
+  if (f.acquisition_source) out.acquisition_source = f.acquisition_source;
   if (f.mine_only) out.mine_only = '1';
+  if (f.incomplete) out.incomplete = '1';
   if (cursors) {
     for (const k of Object.keys(cursors)) {
       const v = cursors[k];
@@ -91,6 +97,20 @@ export const bookingKanbanApi = {
     return res.data;
   },
 
+  addService: async (bookingId: number, payload: { service_id: number; net_price: number }): Promise<BookingServiceLine> => {
+    const res = await apiClient.post<{ data: BookingServiceLine }>(`/clinic/bookings/${bookingId}/services`, payload);
+    return res.data.data;
+  },
+
+  updateService: async (bookingId: number, lineId: number, net_price: number): Promise<BookingServiceLine> => {
+    const res = await apiClient.patch<{ data: BookingServiceLine }>(`/clinic/bookings/${bookingId}/services/${lineId}`, { net_price });
+    return res.data.data;
+  },
+
+  removeService: async (bookingId: number, lineId: number) => {
+    await apiClient.delete(`/clinic/bookings/${bookingId}/services/${lineId}`);
+  },
+
   customerProfile: async (phone: string): Promise<CustomerProfile> => {
     const res = await apiClient.get<{ data: CustomerProfile }>(`/clinic/customers/by-phone/${encodeURIComponent(phone)}`);
     return res.data.data;
@@ -101,7 +121,8 @@ export const bookingKanbanApi = {
   // updateNote/deleteNote functions.
 
   updateStatus: async (id: number, payload: {
-    status: string;
+    status?: string;
+    stage_id?: number | null;
     cancel_reason?: string;
     cancel_note?: string;
     completion_note?: string;
@@ -127,14 +148,38 @@ export const bookingKanbanApi = {
     return res.data.data;
   },
 
-  stages: async (): Promise<StageLabels> => {
-    const res = await apiClient.get<{ data: StageLabels }>('/clinic/bookings/stages');
-    return res.data.data ?? {};
+  stages: async (): Promise<BookingStage[]> => {
+    const res = await apiClient.get<{ data: BookingStage[] }>('/clinic/bookings/stages');
+    return res.data.data ?? [];
   },
 
-  updateStages: async (labels: StageLabels): Promise<StageLabels> => {
-    const res = await apiClient.put<{ data: StageLabels }>('/clinic/bookings/stages', { labels });
-    return res.data.data ?? {};
+  createStage: async (payload: { name: string; kind: StageKind; color: StageColor }): Promise<BookingStage> => {
+    const res = await apiClient.post<{ data: BookingStage }>('/clinic/bookings/stages', payload);
+    return res.data.data;
+  },
+
+  updateStage: async (id: number, payload: { name: string; kind: StageKind; color: StageColor }): Promise<BookingStage> => {
+    const res = await apiClient.patch<{ data: BookingStage }>(`/clinic/bookings/stages/${id}`, payload);
+    return res.data.data;
+  },
+
+  deleteStage: async (id: number): Promise<void> => {
+    await apiClient.delete(`/clinic/bookings/stages/${id}`);
+  },
+
+  reorderStages: async (orderedIds: number[]): Promise<BookingStage[]> => {
+    const res = await apiClient.put<{ data: BookingStage[] }>('/clinic/bookings/stages/reorder', { ordered_ids: orderedIds });
+    return res.data.data ?? [];
+  },
+
+  suggestionSettings: async (): Promise<SuggestionSettings> => {
+    const res = await apiClient.get<{ data: SuggestionSettings }>('/clinic/bookings/suggestion-settings');
+    return res.data.data;
+  },
+
+  updateSuggestionSettings: async (payload: SuggestionSettings): Promise<SuggestionSettings> => {
+    const res = await apiClient.put<{ data: SuggestionSettings }>('/clinic/bookings/suggestion-settings', payload);
+    return res.data.data;
   },
 
   /**

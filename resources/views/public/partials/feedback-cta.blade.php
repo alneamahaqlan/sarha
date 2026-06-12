@@ -70,7 +70,7 @@
                 </div>
 
                 @auth('web')
-                    <form method="POST" action="{{ route('account.complaints.store') }}" class="space-y-4">
+                    <form novalidate method="POST" action="{{ route('account.complaints.store') }}" class="space-y-4">
                         @csrf
                         @if($clinic)
                             <input type="hidden" name="clinic_id" value="{{ $clinic->id }}">
@@ -78,22 +78,22 @@
                         @elseif($feedbackClinics->isNotEmpty())
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_about_clinic')</label>
-                                <select name="clinic_id" class="{{ $fieldCls }}">
+                                <x-form.select name="clinic_id">
                                     <option value="">@lang('site.feedback_general_complaint')</option>
                                     @foreach($feedbackClinics as $c)
                                         <option value="{{ $c->id }}">{{ $c->name }}</option>
                                     @endforeach
-                                </select>
+                                </x-form.select>
                             </div>
                         @endif
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_type') <span class="text-red-500">*</span></label>
-                            <select name="type" required class="{{ $fieldCls }}">
+                            <x-form.select name="type" required>
                                 @foreach(\App\Models\Complaint::TYPES as $t)
                                     <option value="{{ $t }}">@lang('site.complaint_type_' . $t)</option>
                                 @endforeach
-                            </select>
+                            </x-form.select>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.complaint_subject') <span class="text-red-500">*</span></label>
@@ -135,24 +135,24 @@
                 </div>
 
                 @auth('web')
-                    <form method="POST" action="{{ route('account.reports.store') }}" class="space-y-4">
+                    <form novalidate method="POST" action="{{ route('account.reports.store') }}" class="space-y-4">
                         @csrf
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.report_type') <span class="text-red-500">*</span></label>
-                                <select name="type" required class="{{ $fieldCls }}">
+                                <x-form.select name="type" required>
                                     @foreach(\App\Models\CustomerReport::TYPES as $t)
                                         <option value="{{ $t }}" @selected($t === 'bug')>@lang('site.report_type_' . $t)</option>
                                     @endforeach
-                                </select>
+                                </x-form.select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">@lang('site.report_priority')</label>
-                                <select name="priority" class="{{ $fieldCls }}">
+                                <x-form.select name="priority">
                                     @foreach(['low','medium','high'] as $p)
                                         <option value="{{ $p }}" @selected($p === 'medium')>@lang('site.report_priority_' . $p)</option>
                                     @endforeach
-                                </select>
+                                </x-form.select>
                             </div>
                         </div>
                         <div>

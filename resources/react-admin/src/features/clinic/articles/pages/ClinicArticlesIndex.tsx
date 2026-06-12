@@ -13,6 +13,8 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { RichEditor } from '@/components/forms/RichEditor';
 import { FileUpload } from '@/components/forms/FileUpload';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
@@ -110,7 +112,7 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
           <DialogTitle>{article ? t('clinic_articles.edit') : t('clinic_articles.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_articles.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="title">{t('clinic_articles.title_field')}</Label>
@@ -122,12 +124,12 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
                   },
                 })}
               />
-              {form.formState.errors.title && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.title.message}</p>}
+              <FieldError message={form.formState.errors.title?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="slug">{t('clinic_articles.slug')}</Label>
               <Input id="slug" dir="ltr" {...form.register('slug')} />
-              {form.formState.errors.slug && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.slug.message}</p>}
+              <FieldError message={form.formState.errors.slug?.message} />
             </div>
             <div className="space-y-1.5 md:col-span-2">
               <div className="flex items-center justify-between">
@@ -141,6 +143,7 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
             <div className="md:col-span-2">
               <FileUpload
                 label={t('clinic_articles.cover_image')}
+                hint={t('clinic_articles.cover_image_hint')}
                 value={form.watch('cover_image')}
                 onChange={(p) => form.setValue('cover_image', p, { shouldDirty: true })}
                 directory="articles"
@@ -158,13 +161,21 @@ function ArticleDialog({ article, onClose }: { article: ClinicArticle | null; on
                 onChange={(html) => form.setValue('body', html, { shouldDirty: true, shouldValidate: true })}
                 minHeight={260}
               />
-              {form.formState.errors.body && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.body.message}</p>}
+              <FieldError message={form.formState.errors.body?.message} />
             </div>
             <div className="flex items-end gap-3 pb-2 md:col-span-2">
               <Switch checked={form.watch('is_published')} onCheckedChange={(c) => form.setValue('is_published', c, { shouldDirty: true })} />
               <Label>{t('clinic_articles.is_published')}</Label>
             </div>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              title: t('clinic_articles.title_field'),
+              slug: t('clinic_articles.slug'),
+              body: t('clinic_articles.body'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

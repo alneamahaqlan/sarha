@@ -7,11 +7,13 @@ use App\Http\Requests\Api\V1\Clinic\ReorderRequest;
 use App\Http\Requests\Api\V1\Clinic\StoreServiceRequest;
 use App\Http\Requests\Api\V1\Clinic\UpdateServiceRequest;
 use App\Http\Resources\Api\V1\ServiceResource as ServiceApiResource;
+use App\Models\Offer;
 use App\Models\Service;
 use App\Services\CatalogServiceResolver;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
@@ -28,7 +30,7 @@ class ServiceController extends Controller
         $this->authorize('viewAny', Service::class);
 
         $query = Service::query()
-            ->with('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status')
+            ->with('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status', 'doctors:id,name', 'inlineOffer')
             ->where('clinic_id', $this->clinicId());
 
         if ($search = $request->string('search')->toString()) {
@@ -55,7 +57,10 @@ class ServiceController extends Controller
         $clinicId = $this->clinicId();
         $data['clinic_id'] = $clinicId;
         $categoryIds = $data['category_ids'] ?? [];
-        unset($data['category_ids']);
+        $doctorIds   = $data['doctor_ids'] ?? [];
+        $offerPrice  = $data['offer_price'] ?? null;
+        $offerEndsAt = $data['offer_ends_at'] ?? null;
+        unset($data['category_ids'], $data['doctor_ids'], $data['offer_price'], $data['offer_ends_at']);
 
         // Unified-catalog resolution: link to an existing canonical service
         // (→ approved, shows immediately) or file a new catalog request
@@ -72,30 +77,90 @@ class ServiceController extends Controller
 
         $service = Service::create($data);
         $service->categories()->sync($categoryIds);
+        $service->doctors()->sync($doctorIds);
+        $this->syncInlineOffer($service, $offerPrice, $offerEndsAt);
 
-        return (new ServiceApiResource($service->load('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status')))
+        return (new ServiceApiResource($service->load('categories:id,name,name_en,slug,emoji', 'catalogService:id,name,status', 'doctors:id,name', 'inlineOffer')))
             ->response()->setStatusCode(201)
             ->header('X-Catalog-Status', $resolution['approval_status']);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): ServiceApiResource
     {
+        // The "خدمات أخرى" catch-all is system-managed and cannot be edited.
+        abort_if($service->is_catchall, 403, __('admin.catchall_service_locked'));
+
         // clinic_id never changes; ownership enforced in the request's authorize().
         $data = $request->validated();
         $categoryIds = $data['category_ids'] ?? null;
-        unset($data['category_ids']);
+        // Sync doctors only when the key is present (partial updates). A present
+        // key with an empty array clears all doctors.
+        $hasDoctors  = $request->has('doctor_ids');
+        $doctorIds   = $data['doctor_ids'] ?? [];
+        $hasOffer    = $request->has('offer_price');
+        $offerPrice  = $data['offer_price'] ?? null;
+        $offerEndsAt = $data['offer_ends_at'] ?? null;
+        unset($data['category_ids'], $data['doctor_ids'], $data['offer_price'], $data['offer_ends_at']);
 
         $service->update($data);
         if ($categoryIds !== null) {
             $service->categories()->sync($categoryIds);
         }
+        if ($hasDoctors) {
+            $service->doctors()->sync($doctorIds);
+        }
+        if ($hasOffer) {
+            $this->syncInlineOffer($service->fresh(), $offerPrice, $offerEndsAt);
+        }
 
-        return new ServiceApiResource($service->fresh()->load('categories:id,name,name_en,slug,emoji'));
+        return new ServiceApiResource($service->fresh()->load('categories:id,name,name_en,slug,emoji', 'doctors:id,name', 'inlineOffer'));
+    }
+
+    /**
+     * Upsert (or remove) the single offer backing the inline "سعر العرض"
+     * field. A positive price below the service price creates/updates a real
+     * service-type offer tagged origin=service_form; a null/empty/≥price
+     * value removes it. Everything downstream (public offers section, status
+     * badges, the Offers page) then treats it like any other offer.
+     */
+    private function syncInlineOffer(Service $service, $price, $endsAt): void
+    {
+        $existing = $service->inlineOffer; // null when none exists yet
+
+        // Cleared, zero, or not actually a discount → drop the inline offer.
+        if ($price === null || $price === '' || (float) $price <= 0 || (float) $price >= (float) $service->price) {
+            $existing?->delete();
+            return;
+        }
+
+        $ends = $endsAt
+            ? Carbon::parse($endsAt)->endOfDay()
+            : ($existing?->ends_at ?? now()->addDays(30));
+
+        $payload = [
+            'type'      => Offer::TYPE_SERVICE,
+            'origin'    => Offer::ORIGIN_SERVICE_FORM,
+            'title'     => $service->name,
+            'old_price' => $service->price,
+            'price'     => $price,
+            'starts_at' => $existing?->starts_at ?? now(),
+            'ends_at'   => $ends,
+            'is_active' => true,
+        ];
+
+        if ($existing) {
+            $existing->update($payload);
+        } else {
+            $service->offers()->create(array_merge($payload, ['clinic_id' => $service->clinic_id]));
+        }
     }
 
     public function destroy(Service $service): JsonResponse
     {
         $this->authorize('delete', $service);
+
+        // The "خدمات أخرى" catch-all is system-managed and cannot be deleted.
+        abort_if($service->is_catchall, 403, __('admin.catchall_service_locked'));
 
         $service->delete();
 

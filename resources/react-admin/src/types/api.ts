@@ -57,5 +57,11 @@ export interface CurrentUserResponse {
     impersonating: boolean;
     /** Only present when guard === 'clinic'. */
     acting?: ClinicActing;
+    /**
+     * Subscription feature flags (clinic guard only). Drives hiding of
+     * gated surfaces like the CRM tab. Absent → treat every feature as
+     * enabled so non-clinic guards / older payloads don't lose access.
+     */
+    features?: Record<string, boolean>;
   };
 }

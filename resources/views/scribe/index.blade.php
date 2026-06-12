@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>سعرها API Documentation</title>
+    <title>دليل المجمعات الطبية API Documentation</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
 
@@ -456,7 +456,7 @@ column-mapping suggestions. Mirrors Filament ImportServices::analyze().</a>
     <div class="dark-box"></div>
     <div class="content">
         <h1 id="introduction">Introduction</h1>
-<p>REST API for Saerha — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).</p>
+<p>REST API for Medical Complexes Directory — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).</p>
 <aside>
     <strong>Base URL</strong>: <code>http://sarha.test</code>
 </aside>

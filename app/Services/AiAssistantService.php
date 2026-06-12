@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * Public AI assistant — full conversational chat for the Saerha platform.
+ * Public AI assistant — full conversational chat for the Medical Complexes Directory platform.
  *
  * Architecture
  * ------------
@@ -1050,6 +1050,7 @@ PROMPT;
 
         $clinics->load([
             'services' => fn ($q) => $q->where('is_active', true)
+                ->notCatchall()
                 ->orderByRaw('price IS NULL, price ASC')
                 ->limit(6),
             'doctors' => fn ($q) => $q->limit(5),
@@ -1733,12 +1734,12 @@ MSG;
                     }
                 };
                 $base->whereHas('services', function ($q) use ($applyTokensAnd) {
-                    $q->where('is_active', true);
+                    $q->where('is_active', true)->notCatchall();
                     $applyTokensAnd($q);
                 });
                 $base->with([
                     'services' => function ($q) use ($applyTokensAnd) {
-                        $q->where('is_active', true);
+                        $q->where('is_active', true)->notCatchall();
                         $applyTokensAnd($q);
                         $q->orderByRaw('price IS NULL, price ASC')->limit(3);
                     },

@@ -8,6 +8,8 @@ import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -57,6 +59,7 @@ const EMPTY: SubscriptionPackageFormValues = {
   banner_slots: 0,
   allow_offers_packages: false,
   allow_doctors_before_after: false,
+  crm_enabled: true,
   similar_config: {
     limit: 6,
     sections: {
@@ -137,7 +140,7 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
           <Switch checked={isUnlimited} onCheckedChange={(c) => set(key, c ? null : 0)} />
           {t('packages.unlimited')}
         </label>
-        {errors[key] && <p className="text-xs text-[var(--color-destructive)]">{errors[key]}</p>}
+        <FieldError message={errors[key]} />
       </div>
     );
   };
@@ -181,12 +184,12 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
               <div>
                 <Label>{t('packages.field.name_ar')}</Label>
                 <Input value={values.name_ar} onChange={(e) => set('name_ar', e.target.value)} dir="rtl" />
-                {errors.name_ar && <p className="text-xs text-[var(--color-destructive)]">{errors.name_ar}</p>}
+                <FieldError message={errors.name_ar} />
               </div>
               <div>
                 <Label>{t('packages.field.name_en')}</Label>
                 <Input value={values.name_en} onChange={(e) => set('name_en', e.target.value)} dir="ltr" />
-                {errors.name_en && <p className="text-xs text-[var(--color-destructive)]">{errors.name_en}</p>}
+                <FieldError message={errors.name_en} />
               </div>
               <div>
                 <Label>{t('packages.field.tagline_ar')}</Label>
@@ -199,7 +202,7 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
               <div>
                 <Label>{t('packages.field.slug')}</Label>
                 <Input value={values.slug} onChange={(e) => set('slug', e.target.value)} dir="ltr" />
-                {errors.slug && <p className="text-xs text-[var(--color-destructive)]">{errors.slug}</p>}
+                <FieldError message={errors.slug} />
               </div>
               <div>
                 <Label>{t('packages.field.monthly_price')}</Label>
@@ -208,7 +211,7 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
                   value={values.monthly_price}
                   onChange={(e) => set('monthly_price', Number(e.target.value))}
                 />
-                {errors.monthly_price && <p className="text-xs text-[var(--color-destructive)]">{errors.monthly_price}</p>}
+                <FieldError message={errors.monthly_price} />
               </div>
               <div>
                 <Label>{t('packages.field.color')}</Label>
@@ -272,6 +275,7 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
                 ['verified_badge',             'packages.field.verified_badge'],
                 ['allow_offers_packages',      'packages.field.allow_offers_packages'],
                 ['allow_doctors_before_after', 'packages.field.allow_doctors_before_after'],
+                ['crm_enabled',                'packages.field.crm_enabled'],
               ] as const).map(([key, labelKey]) => (
                 <label key={key} className="flex items-center justify-between gap-2 rounded-md border border-[var(--color-border)] px-3 py-2">
                   <span className="text-sm">{t(labelKey)}</span>
@@ -361,6 +365,16 @@ export function PackageEditDialog({ open, pkg, onClose }: Props) {
             </div>
           </section>
         </div>
+
+        <FormErrorSummary
+          errors={errors}
+          labels={{
+            name_ar: t('packages.field.name_ar'),
+            name_en: t('packages.field.name_en'),
+            slug: t('packages.field.slug'),
+            monthly_price: t('packages.field.monthly_price'),
+          }}
+        />
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>

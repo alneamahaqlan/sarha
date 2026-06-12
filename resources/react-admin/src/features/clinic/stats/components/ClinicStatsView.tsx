@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Bell, Calendar, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, Coins, Wallet, CheckCircle2, PackageCheck, Users2, Hourglass, XCircle, Clapperboard } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
+import { Money, fmtMoney } from '@/lib/money';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
 import type { ClinicStatsFull, ImpressionSource } from '../api';
+import { ACQUISITION_SOURCES } from '@/features/clinic/bookings/kanban/types';
 
 const BOOKING_STATUSES = ['new', 'contacted', 'appointment_set', 'completed', 'no_show', 'cancelled'];
 const QUOTE_STATUSES = ['new', 'replied', 'closed'];
@@ -16,39 +18,91 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
   const { t } = useTranslation();
   const { locale } = useLocale();
   const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US');
-  const cf = (n: number) =>
-    new Intl.NumberFormat(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(n);
 
   const s = data.summary;
   const c = data.comparison;
 
   return (
     <div className="space-y-6">
-      {/* Summary cards — top row: impressions card is now expandable */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
-        <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct} />
-        <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct} />
-        <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)} />
-      </div>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)} />
-        <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)} />
-        <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)} />
-        {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
-            with a tooltip clarifying it is NOT a completed booking. */}
-        <Card
-          icon={MousePointerClick}
-          tone="warning"
-          label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')}
-          value={nf.format(s.booking_clicks)}
-          tooltip={t('clinic_stats.booking_page_opens_tooltip',
-            'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
-        />
-      </div>
-      <div className="grid grid-cols-1">
-        <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`} />
-      </div>
+      {/* ── 1) الظهور والوصول — how many people reached the clinic ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_reach')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <ImpressionsCard summary={s} delta={c.appearances_vs_avg_pct} nf={nf} />
+          <Card icon={UserCheck} tone="success" label={t('clinic_stats.unique_views')} value={nf.format(s.unique_views)}
+            tooltip={t('clinic_stats.unique_views_tooltip')} />
+          <Card icon={Eye} tone="info" label={t('clinic_stats.page_views')} value={nf.format(s.page_views)} delta={c.visits_vs_avg_pct}
+            tooltip={t('clinic_stats.page_views_tooltip')} />
+          <Card icon={Clapperboard} tone="info" label={t('clinic_stats.story_views')} value={nf.format(s.story_views)}
+            tooltip={t('clinic_stats.story_views_tooltip')} />
+        </div>
+      </section>
+
+      {/* ── 2) التفاعل والنقرات — what visitors did on the page ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_engagement')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {/* "نقرات زر الحجز" → "فتح صفحة الحجز": same metric, new label,
+              with a tooltip clarifying it is NOT a completed booking. */}
+          <Card
+            icon={MousePointerClick}
+            tone="warning"
+            label={t('clinic_stats.booking_page_opens', 'فتح صفحة الحجز')}
+            value={nf.format(s.booking_clicks)}
+            tooltip={t('clinic_stats.booking_page_opens_tooltip',
+              'عدد المرات التي فُتحت فيها صفحة الحجز — لا تَعني أن الحجز تم.')}
+          />
+          <Card icon={Navigation} tone="info" label={t('clinic_stats.directions_clicks')} value={nf.format(s.directions_clicks)}
+            tooltip={t('clinic_stats.directions_clicks_tooltip')} />
+          <Card icon={Phone} tone="primary" label={t('clinic_stats.call_clicks')} value={nf.format(s.call_clicks)}
+            tooltip={t('clinic_stats.call_clicks_tooltip')} />
+          <Card icon={MessageCircle} tone="success" label={t('clinic_stats.whatsapp_clicks')} value={nf.format(s.whatsapp_clicks)}
+            tooltip={t('clinic_stats.whatsapp_clicks_tooltip')} />
+        </div>
+      </section>
+
+      {/* ── 3) الطلبات والتحويل — leads generated ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_leads')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card icon={Bell} tone="primary" label={t('clinic_stats.bookings')} value={nf.format(s.bookings)} delta={c.bookings_vs_avg_pct}
+            tooltip={t('clinic_stats.bookings_tooltip')} />
+          <Card icon={DollarSign} tone="warning" label={t('clinic_stats.quote_requests')} value={nf.format(s.quote_requests)}
+            tooltip={t('clinic_stats.quote_requests_tooltip')} />
+          <Card icon={TrendingUp} tone="success" label={t('clinic_stats.conversion_rate')} value={`${s.conversion_rate}%`}
+            tooltip={t('clinic_stats.conversion_rate_tooltip')} />
+        </div>
+      </section>
+
+      {/* ── 4) الإيرادات والخدمات — financial results & service execution ── */}
+      <section>
+        <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_revenue')}</h2>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card icon={CheckCircle2} tone="info" label={t('clinic_stats.completed_bookings')}
+            value={nf.format(s.completed_bookings)}
+            tooltip={t('clinic_stats.completed_bookings_tooltip')} />
+          <Card icon={Wallet} tone="primary" label={t('clinic_stats.avg_ticket')}
+            value={<Money value={s.avg_ticket} locale={locale} />}
+            tooltip={t('clinic_stats.avg_ticket_tooltip')} />
+          <Card icon={Coins} tone="success" label={t('clinic_stats.service_income')}
+            value={<Money value={s.service_income} locale={locale} />}
+            tooltip={t('clinic_stats.service_income_tooltip')} />
+          <Card icon={PackageCheck} tone="success" label={t('clinic_stats.services_taken')}
+            value={nf.format(s.services_taken)}
+            tooltip={t('clinic_stats.services_taken_tooltip')} />
+          <Card icon={Users2} tone="info" label={t('clinic_stats.customers_served')}
+            value={nf.format(s.customers_served)}
+            tooltip={t('clinic_stats.customers_served_tooltip')} />
+          <Card icon={Hourglass} tone="warning" label={t('clinic_stats.pending_services')}
+            value={nf.format(s.pending_services)}
+            hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(s.pending_income, locale) })}
+            tooltip={t('clinic_stats.pending_tooltip')} />
+          <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')}
+            value={<Money value={s.lost_income} locale={locale} />}
+            hint={t('clinic_stats.lost_services_hint', { count: s.lost_services })}
+            tooltip={t('clinic_stats.lost_income_tooltip')} />
+        </div>
+      </section>
 
       {/* Comparison */}
       <div className="rounded-lg border border-[var(--color-border)] bg-gradient-to-l from-[color-mix(in_oklab,var(--color-primary),white_92%)] to-white p-5">
@@ -84,9 +138,27 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
+              <Line type="monotone" dataKey="unique_views" name={t('clinic_stats.unique_views')} stroke="#10b981" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="page_views" name={t('clinic_stats.page_views')} stroke="#0ea5e9" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="bookings" name={t('clinic_stats.bookings')} stroke="#0066cc" strokeWidth={2} dot={false} />
               <Line type="monotone" dataKey="quote_requests" name={t('clinic_stats.quote_requests')} stroke="#f59e0b" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Income trend — its own chart (money scale differs from counts) */}
+      <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
+        <h2 className="mb-3 text-sm font-semibold">{t('clinic_stats.income_trend')}</h2>
+        <div className="h-56 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data.trend}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} width={70}
+                tickFormatter={(v) => nf.format(v as number)} />
+              <Tooltip formatter={(v) => nf.format(v as number)} />
+              <Line type="monotone" dataKey="income" name={t('clinic_stats.service_income')} stroke="#10b981" strokeWidth={2} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -103,6 +175,25 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
           title={t('clinic_stats.quotes_by_status')}
           rows={QUOTE_STATUSES.map((k) => ({ label: t(`clinic_stats.q_status.${k}`), value: data.quotes_by_status[k] ?? 0 }))}
           empty={t('common.no_data')}
+        />
+      </div>
+
+      {/* Bookings + income by acquisition source */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <DistributionBars
+          title={t('clinic_stats.bookings_by_acquisition_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.bookings_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
+          empty={t('common.no_data')}
+        />
+        <DistributionBars
+          title={t('clinic_stats.income_by_source')}
+          rows={ACQUISITION_SOURCES
+            .map((k) => ({ label: t(`clinic_bookings_kanban.source.opt.${k}`), value: data.income_by_acquisition_source?.[k] ?? 0 }))
+            .filter((r) => r.value > 0)}
+          empty={t('common.no_data')}
+          money
         />
       </div>
 
@@ -125,12 +216,13 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
                 <TableHead>{t('clinic_stats.service')}</TableHead>
                 <TableHead>{t('clinic_stats.price')}</TableHead>
                 <TableHead>{t('clinic_stats.bookings')}</TableHead>
+                <TableHead>{t('clinic_stats.income')}</TableHead>
                 <TableHead>{t('clinic_stats.quote_requests')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {data.services_performance.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="py-6 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="py-6 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
               ) : (
                 data.services_performance.map((row, i) => (
                   <TableRow key={row.id}>
@@ -138,8 +230,9 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
                       {row.name}
                       {i === 0 && row.bookings > 0 && <Badge variant="gold" className="ms-2 text-xs">{t('clinic_stats.top')}</Badge>}
                     </TableCell>
-                    <TableCell>{cf(row.price)}</TableCell>
+                    <TableCell><Money value={row.price} locale={locale} /></TableCell>
                     <TableCell>{nf.format(row.bookings)}</TableCell>
+                    <TableCell className="font-medium"><Money value={row.income} locale={locale} /></TableCell>
                     <TableCell>{nf.format(row.quote_requests)}</TableCell>
                   </TableRow>
                 ))
@@ -202,10 +295,10 @@ const TONE: Record<Tone, string> = {
 };
 
 function Card({
-  icon: Icon, tone, label, value, delta, tooltip,
+  icon: Icon, tone, label, value, delta, tooltip, hint,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  tone: Tone; label: string; value: string | number; delta?: number | null; tooltip?: string;
+  tone: Tone; label: string; value: React.ReactNode; delta?: number | null; tooltip?: string; hint?: string;
 }) {
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
@@ -220,6 +313,7 @@ function Card({
             )}
           </div>
           <div className="mt-1 text-2xl font-semibold">{value}</div>
+          {hint && <div className="mt-1 text-xs text-[var(--color-muted-foreground)]">{hint}</div>}
           {delta !== undefined && delta !== null && (
             <div className={cn('mt-1 text-xs font-medium', delta >= 0 ? 'text-emerald-600' : 'text-amber-600')}>
               {delta >= 0 ? '▲' : '▼'} {Math.abs(delta)}%
@@ -253,8 +347,11 @@ function ImpressionsCard({
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1">
-          <div className="text-xs text-[var(--color-muted-foreground)]">
-            {t('clinic_stats.impressions_total', 'إجمالي الظهور')}
+          <div className="flex items-center gap-1 text-xs text-[var(--color-muted-foreground)]">
+            <span>{t('clinic_stats.impressions_total', 'إجمالي الظهور')}</span>
+            <span title={t('clinic_stats.impressions_total_tooltip')} className="cursor-help">
+              <Info className="h-3 w-3" />
+            </span>
           </div>
           <div className="mt-1 text-2xl font-semibold">{nf.format(summary.impressions_total)}</div>
           {delta !== undefined && delta !== null && (
@@ -356,7 +453,8 @@ function TopServicesByImpressions({ rows }: { rows: ClinicStatsFull['top_service
   );
 }
 
-function DistributionBars({ title, rows, empty }: { title: string; rows: { label: string; value: number }[]; empty: string }) {
+function DistributionBars({ title, rows, empty, money }: { title: string; rows: { label: string; value: number }[]; empty: string; money?: boolean }) {
+  const { locale } = useLocale();
   const total = rows.reduce((sum, r) => sum + r.value, 0);
   return (
     <div className="rounded-lg border border-[var(--color-border)] bg-white p-4">
@@ -371,7 +469,9 @@ function DistributionBars({ title, rows, empty }: { title: string; rows: { label
               <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--color-muted)]">
                 <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: `${total > 0 ? (r.value / total) * 100 : 0}%` }} />
               </div>
-              <span className="w-8 shrink-0 text-end font-medium">{r.value}</span>
+              <span className={`${money ? 'w-20' : 'w-8'} shrink-0 text-end font-medium`}>
+                {money ? <Money value={r.value} locale={locale} /> : r.value}
+              </span>
             </div>
           ))}
         </div>

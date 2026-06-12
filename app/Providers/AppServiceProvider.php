@@ -22,7 +22,9 @@ use App\Observers\ComplaintObserver;
 use App\Observers\PriceQuoteCustomerLinkObserver;
 use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
+use App\View\Composers\LayoutComposer;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -46,6 +48,14 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Messaging\WhatsAppSenderSelector::class,
             \App\Services\Messaging\Selectors\LeastRecentlyUsedSenderSelector::class,
         );
+
+        // Tracking context for the current request. Defaults to disabled
+        // (renders nothing); ResolveTrackingContext middleware replaces it
+        // with the resolved context on public clinic pages.
+        $this->app->singleton(
+            \App\Services\Tracking\TrackingContext::class,
+            fn () => \App\Services\Tracking\TrackingContext::disabled(),
+        );
     }
 
     public function boot(): void
@@ -65,6 +75,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Custom Tailwind pagination view used across the public Blade lists.
         Paginator::defaultView('vendor.pagination.saerha');
+
+        // Public header/footer are admin-driven (navigation links + footer
+        // contact/social settings) — a single composer feeds both partials.
+        View::composer(
+            ['layouts.partials.header', 'layouts.partials.footer'],
+            LayoutComposer::class,
+        );
 
         $auditable = [
             Clinic::class,
@@ -91,6 +108,9 @@ class AppServiceProvider extends ServiceProvider
         Booking::observe(BookingCustomerLinkObserver::class);
         Complaint::observe(ComplaintCustomerLinkObserver::class);
         PriceQuoteRequest::observe(PriceQuoteCustomerLinkObserver::class);
+
+        // Every new clinic gets its "خدمات أخرى" catch-all service.
+        Clinic::observe(\App\Observers\ClinicCatchallServiceObserver::class);
 
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { Check, Sparkle } from 'lucide-react';
 
+import { FieldError } from '@/components/forms/FieldError';
+import { PortalDropdown } from '@/components/ui/portal-dropdown';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { useCatalogSuggest } from '../hooks';
@@ -28,6 +30,7 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
 
   const debounced = useDebouncedValue(name, 250);
   const { data: suggestions } = useCatalogSuggest(debounced);
@@ -38,7 +41,7 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
 
   return (
     <div className="space-y-1.5">
-      <div className="relative">
+      <div className="relative" ref={anchorRef}>
         <input
           type="text"
           value={name}
@@ -59,14 +62,14 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
           className="h-9 w-full rounded-md border border-[var(--color-border)] bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
 
-        {open && (suggestions?.length ?? 0) > 0 && (
+        <PortalDropdown anchorRef={anchorRef} open={open && (suggestions?.length ?? 0) > 0}>
           <ul
-            className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-lg"
+            className="max-h-56 overflow-auto rounded-md border border-[var(--color-border)] bg-white py-1 shadow-lg"
             onMouseDown={() => {
               if (blurTimer.current) clearTimeout(blurTimer.current);
             }}
           >
-            {suggestions!.map((s) => (
+            {(suggestions ?? []).map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
@@ -87,7 +90,7 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
               </li>
             ))}
           </ul>
-        )}
+        </PortalDropdown>
       </div>
 
       {catalogServiceId ? (
@@ -102,7 +105,7 @@ export function CatalogServicePicker({ name, catalogServiceId, onChange, error }
         </p>
       ) : null}
 
-      {error && <p className="text-xs text-[var(--color-destructive)]">{error}</p>}
+      <FieldError message={error} />
     </div>
   );
 }

@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Article extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasDemoData;
 
     protected $fillable = [
         'clinic_id', 'title', 'slug', 'body', 'cover_image',

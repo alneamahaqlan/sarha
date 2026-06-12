@@ -8,6 +8,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 
@@ -91,9 +93,7 @@ export function AiRestrictionDialog({ defaultType, onClose }: Props) {
               dir={isBlocklist ? 'ltr' : 'auto'}
               placeholder={isBlocklist ? '123' : t('ai_center.value_placeholder', 'مثال: تشخيص طبي')}
             />
-            {errors.value && (
-              <p className="text-xs text-[var(--color-destructive)]">{errors.value}</p>
-            )}
+            <FieldError message={errors.value} />
             {isBlocklist && (
               <p className="text-xs text-[var(--color-muted-foreground)]">
                 {t('ai_center.value_id_hint', 'اكتب رقم المعرّف من شاشة المجمعات/التخصصات.')}
@@ -115,6 +115,11 @@ export function AiRestrictionDialog({ defaultType, onClose }: Props) {
             </div>
           )}
         </div>
+
+        <FormErrorSummary
+          errors={errors}
+          labels={{ value: t('ai_center.value_phrase', 'العبارة أو الكلمة') }}
+        />
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={create.isPending}>

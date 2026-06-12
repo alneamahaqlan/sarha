@@ -17,6 +17,7 @@ class BookingKanbanController extends Controller
     public function __construct(
         private readonly BookingKanbanService $kanban,
         private readonly CustomerInsightService $insights,
+        private readonly \App\Services\BookingStageService $stageService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -25,19 +26,32 @@ class BookingKanbanController extends Controller
         $clinicId = (int) auth('clinic')->id();
 
         $filters = $this->resolveFilters($request);
-        $columns = array_keys(Booking::KANBAN_GROUPS);
+        $stages  = $this->stageService->ensureDefaults($clinicId);
+        $primary = $this->stageService->primaryStageIds($stages);
 
+        // Board is keyed by stage id (string). The frontend zips this
+        // with the stages list (GET bookings/stages) for column metadata.
         $payload = [];
-        foreach ($columns as $col) {
-            $cursor = $request->input("cursors.{$col}");
-            $cursor = $cursor !== null && $cursor !== '' ? (int) $cursor : null;
-            $result = $this->kanban->column($clinicId, $col, $filters, $cursor, 20);
+        foreach ($stages as $stage) {
+            $key       = (string) $stage->id;
+            $isPrimary = ($primary[$stage->kind] ?? null) === $stage->id;
 
-            $payload[$col] = [
+            $cursor = $request->input("cursors.{$key}");
+            $cursor = $cursor !== null && $cursor !== '' ? (int) $cursor : null;
+            $result = $this->kanban->columnForStage($clinicId, $stage, $isPrimary, $filters, $cursor, 20);
+
+            $payload[$key] = [
                 'items'       => BookingKanbanCardResource::collection($result['items'])->toArray($request),
                 'next_cursor' => $result['next_cursor'],
                 'has_more'    => $result['has_more'],
-                'total'       => $this->kanban->baseQuery($clinicId, $filters)->forKanbanColumn($col)->count(),
+                'total'       => $this->kanban->baseQuery($clinicId, $filters)->forStage($stage, $isPrimary)->count(),
+                // Total net value of all cards in this stage — sum of the
+                // services' net_price over the bookings in the column.
+                'value_total' => (float) \App\Models\BookingService::query()
+                    ->whereIn('booking_id', $this->kanban->baseQuery($clinicId, $filters)
+                        ->forStage($stage, $isPrimary)
+                        ->select('bookings.id'))
+                    ->sum('net_price'),
             ];
         }
 
@@ -61,7 +75,8 @@ class BookingKanbanController extends Controller
     public function show(Booking $booking): BookingDetailResource
     {
         $this->authorize('view', $booking);
-        $booking->load(['service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags']);
+        $booking->load(['service:id,name,price', 'services.service:id,name,price', 'booker:id,name,phone', 'relative', 'assignee', 'tags', 'customer:id,follow_up_priority']);
+        $booking->loadCount('services');
         return new BookingDetailResource($booking);
     }
 
@@ -77,6 +92,7 @@ class BookingKanbanController extends Controller
             'date_to'       => $request->input('date_to'),
             'auto_tag'      => $request->input('auto_tag'),
             'custom_tag'    => $request->input('custom_tag'),
+            'acquisition_source' => $request->input('acquisition_source'),
             'mine_only'     => filter_var($request->input('mine_only'), FILTER_VALIDATE_BOOLEAN),
         ];
 

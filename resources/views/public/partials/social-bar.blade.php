@@ -1,8 +1,11 @@
 {{--
     Social media bar — branded icons turning the complex page into a landing page.
     Expects: $clinic (Clinic model). Renders nothing when no socials are set.
+    Optional: $variant — 'card' (default, full sidebar card) or 'inline'
+    (bare icon row for the hero header, no card wrapper / heading).
 --}}
 @php
+    $variant = $variant ?? 'card';
     $socials = $clinic->socialLinks();
 
     // Branded SVG glyph + colour classes per platform.
@@ -39,26 +42,44 @@
         ],
     ];
 
-    // WhatsApp belongs in the social bar too when a phone exists.
-    if ($clinic->phone) {
+    // WhatsApp belongs in the full sidebar card when a phone exists — but not
+    // in the hero's inline row (it already has a dedicated WhatsApp action in
+    // the action bar / floating CTAs, so we keep the hero to follow-channels).
+    if ($clinic->phone && $variant !== 'inline') {
         $socials = ['whatsapp' => $clinic->whatsappLink()] + $socials;
     }
 @endphp
 
 @if(!empty($socials))
-<div class="bg-white rounded-xl shadow-sm p-6">
-    <h3 class="font-bold text-gray-800 mb-4">{{ $sidebarTitleOverride ?? __('site.follow_us') }}</h3>
-    <div class="flex flex-wrap gap-3">
-        @foreach($socials as $platform => $url)
-            @php $brand = $brands[$platform] ?? null; @endphp
-            @if($brand)
-                <a href="{{ $url }}" target="_blank" rel="noopener"
-                   title="{{ $brand['label'] }}" aria-label="{{ $brand['label'] }}"
-                   class="w-11 h-11 rounded-full flex items-center justify-center transition-colors {{ $brand['classes'] }}">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">{!! $brand['svg'] !!}</svg>
-                </a>
-            @endif
-        @endforeach
-    </div>
-</div>
+    @if($variant === 'inline')
+        {{-- Compact icon row for the hero header — no card chrome. --}}
+        <div class="flex flex-wrap items-center gap-2">
+            @foreach($socials as $platform => $url)
+                @php $brand = $brands[$platform] ?? null; @endphp
+                @if($brand)
+                    <a href="{{ $url }}" target="_blank" rel="noopener"
+                       title="{{ $brand['label'] }}" aria-label="{{ $brand['label'] }}"
+                       class="w-11 h-11 rounded-full flex items-center justify-center transition-colors {{ $brand['classes'] }}">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">{!! $brand['svg'] !!}</svg>
+                    </a>
+                @endif
+            @endforeach
+        </div>
+    @else
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="font-bold text-gray-800 mb-4">{{ $sidebarTitleOverride ?? __('site.follow_us') }}</h3>
+            <div class="flex flex-wrap gap-3">
+                @foreach($socials as $platform => $url)
+                    @php $brand = $brands[$platform] ?? null; @endphp
+                    @if($brand)
+                        <a href="{{ $url }}" target="_blank" rel="noopener"
+                           title="{{ $brand['label'] }}" aria-label="{{ $brand['label'] }}"
+                           class="w-11 h-11 rounded-full flex items-center justify-center transition-colors {{ $brand['classes'] }}">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">{!! $brand['svg'] !!}</svg>
+                        </a>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    @endif
 @endif

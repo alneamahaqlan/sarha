@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage } from '@/lib/api-client';
 import { usePackages } from '@/features/subscription-packages/hooks';
 
@@ -124,7 +125,7 @@ export function ConvertDialog({ lead, onClose }: Props) {
                 onChange={(e) => setAmount(e.target.value)}
                 className="flex-1"
               />
-              <span className="text-sm text-[var(--color-muted-foreground)]">{t('common.sar')}</span>
+              <span className="text-sm text-[var(--color-muted-foreground)]"><RiyalSymbol /></span>
             </div>
             <p className="text-xs text-[var(--color-muted-foreground)]">
               {t('sales_leads.actions.amount_hint')}

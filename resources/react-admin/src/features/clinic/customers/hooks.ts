@@ -31,7 +31,7 @@ export function useCustomer(id: number | null) {
 export function useUpdateCustomer(id: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { name?: string; email?: string | null }) => customersApi.update(id, payload),
+    mutationFn: (payload: { name?: string; email?: string | null; marketing_opt_out?: boolean; follow_up_priority?: number }) => customersApi.update(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: KEY });
     },
@@ -103,5 +103,26 @@ export function useDeleteCustomerNote(id: number) {
       qc.invalidateQueries({ queryKey: [...KEY, 'notes', id] });
       qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban', 'customer'] });
     },
+  });
+}
+
+function invalidateInterest(qc: ReturnType<typeof useQueryClient>, id: number) {
+  qc.invalidateQueries({ queryKey: [...KEY, 'show', id] });
+  qc.invalidateQueries({ queryKey: ['clinic', 'bookings', 'kanban', 'customer'] });
+}
+
+export function useAddInterestedService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: number) => customersApi.addInterestedService(id, serviceId),
+    onSuccess: () => invalidateInterest(qc, id),
+  });
+}
+
+export function useRemoveInterestedService(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serviceId: number) => customersApi.removeInterestedService(id, serviceId),
+    onSuccess: () => invalidateInterest(qc, id),
   });
 }

@@ -40,7 +40,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('account.update') }}" class="space-y-4 max-w-md">
+                <form novalidate method="POST" action="{{ route('account.update') }}" class="space-y-4 max-w-md">
                     @csrf @method('PATCH')
 
                     <div>

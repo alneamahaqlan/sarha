@@ -1,6 +1,6 @@
 # Introduction
 
-REST API for Saerha — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).
+REST API for Medical Complexes Directory — Saudi medical marketplace. Sanctum-based SPA auth with three guards (admin / clinic / web).
 
 <aside>
     <strong>Base URL</strong>: <code>http://sarha.test</code>

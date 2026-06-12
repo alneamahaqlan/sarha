@@ -1,4 +1,4 @@
-import { Calendar, AlertTriangle, Clock4, Target } from 'lucide-react';
+import { Calendar, AlertTriangle, Clock4, Target, FileWarning } from 'lucide-react';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { useKanbanStats } from '../hooks';
 import type { KanbanFilters } from '../types';
@@ -12,6 +12,7 @@ const TONES = {
   no_show: 'border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100',
   urgent: 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100',
   rate: 'border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100',
+  incomplete: 'border-orange-300 bg-orange-50 text-orange-800 hover:bg-orange-100',
 };
 
 export function StatsBar({ onFilter }: Props) {
@@ -58,10 +59,18 @@ export function StatsBar({ onFilter }: Props) {
       onClick: () => onFilter({}),
       tone: TONES.rate,
     },
+    {
+      key: 'incomplete',
+      icon: FileWarning,
+      value: isLoading ? '…' : data?.incomplete_services ?? 0,
+      label: t('clinic_bookings_kanban.stats.incomplete'),
+      onClick: () => onFilter({ incomplete: true }),
+      tone: TONES.incomplete,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
       {items.map(({ key, icon: Icon, value, label, onClick, tone }) => (
         <button
           key={key}

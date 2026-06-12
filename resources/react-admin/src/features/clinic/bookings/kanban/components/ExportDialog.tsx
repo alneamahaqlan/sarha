@@ -12,8 +12,7 @@ import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 
 import { bookingKanbanApi } from '../api';
-import { useBookingStages } from '../hooks';
-import { KANBAN_COLUMNS, type KanbanFilters } from '../types';
+import { STAGE_KINDS, type KanbanFilters } from '../types';
 
 interface Props {
   filters: KanbanFilters;
@@ -23,7 +22,6 @@ interface Props {
 /** Exports bookings to a CSV (Excel-compatible) with scope/stage/order options. */
 export function ExportDialog({ filters, onClose }: Props) {
   const { t } = useTranslation();
-  const { data: stages } = useBookingStages();
   const [scope, setScope] = useState<'filtered' | 'all'>('filtered');
   const [stageMode, setStageMode] = useState<'all' | 'specific'>('all');
   const [columns, setColumns] = useState<string[]>([]);
@@ -75,10 +73,10 @@ export function ExportDialog({ filters, onClose }: Props) {
             </Select>
             {stageMode === 'specific' && (
               <div className="mt-1.5 grid grid-cols-2 gap-1.5">
-                {KANBAN_COLUMNS.map((col) => (
+                {STAGE_KINDS.map((col) => (
                   <label key={col} className="flex cursor-pointer items-center gap-2 rounded-md border border-[var(--color-border)] p-2 text-sm">
                     <input type="checkbox" checked={columns.includes(col)} onChange={() => toggleColumn(col)} className="h-4 w-4" />
-                    <span>{stages?.[col]?.trim() || t(`clinic_bookings_kanban.column.${col}`)}</span>
+                    <span>{t(`clinic_bookings_kanban.column.${col}`)}</span>
                   </label>
                 ))}
               </div>

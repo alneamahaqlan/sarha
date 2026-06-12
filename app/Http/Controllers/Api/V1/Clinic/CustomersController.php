@@ -10,6 +10,7 @@ use App\Models\Booking;
 use App\Models\ClinicActivityLog;
 use App\Models\Complaint;
 use App\Models\Customer;
+use App\Models\CustomerReminder;
 use App\Models\PriceQuoteRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -33,11 +34,19 @@ class CustomersController extends Controller
         $q = $this->baseQuery($clinicId, $request);
 
         $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
-        $rows = $q
-            ->with(['tags:id,customer_id,label,color', 'notes:id,customer_id'])
-            ->orderByDesc('last_interaction_at')
-            ->paginate($perPage)
-            ->withQueryString();
+
+        $q->with(['tags:id,customer_id,label,color', 'notes:id,customer_id']);
+
+        // Sorting: follow-up priority is the only extra sortable column;
+        // everything else keeps the default most-recently-active order.
+        $order = $request->input('order') === 'asc' ? 'asc' : 'desc';
+        if ($request->input('sort') === 'priority') {
+            $q->orderBy('follow_up_priority', $order)->orderByDesc('last_interaction_at');
+        } else {
+            $q->orderByDesc('last_interaction_at');
+        }
+
+        $rows = $q->paginate($perPage)->withQueryString();
 
         return CustomerListResource::collection($rows);
     }
@@ -163,6 +172,25 @@ class CustomersController extends Controller
                 ]);
             });
 
+        // Contact reminders set for this customer (one event each).
+        CustomerReminder::query()
+            ->where('customer_id', $customer->id)
+            ->with('assigneeMember:id,name')
+            ->orderByDesc('created_at')
+            ->limit(20)
+            ->get()
+            ->each(function (CustomerReminder $r) use ($events) {
+                $events->push([
+                    'kind'      => 'reminder',
+                    'at'        => $r->created_at,
+                    'title_key' => 'customer.timeline.reminder_set',
+                    'reference' => null,
+                    'status'    => $r->status,
+                    'detail'    => $r->note ?: $r->assigneeMember?->name,
+                    'link_to'   => null,
+                ]);
+            });
+
         // Team activities on this customer's bookings.
         $bookingIds = Booking::where('customer_id', $customer->id)->pluck('id');
         if ($bookingIds->isNotEmpty()) {
@@ -246,56 +274,22 @@ class CustomersController extends Controller
 
     private function baseQuery(int $clinicId, Request $request)
     {
+        // Segment/range/window/search logic lives in CustomerSegmentFilter so
+        // the Hub list and campaign audience resolution stay in lockstep.
         $q = Customer::query()->where('clinic_id', $clinicId);
 
-        if ($search = trim((string) $request->input('search', ''))) {
-            $q->where(function ($w) use ($search) {
-                $w->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
-            });
-        }
+        \App\Services\CustomerSegmentFilter::apply($q, [
+            'search'           => $request->input('search'),
+            'segment'          => $request->input('segment'),
+            'booking_range'    => $request->input('booking_range'),
+            'has_notes'        => $request->boolean('has_notes'),
+            'last_interaction' => $request->input('last_interaction'),
+        ]);
 
-        $segment = $request->input('segment');
-        match ($segment) {
-            'vip'           => $q->where('completed_bookings', '>=', Customer::VIP_THRESHOLD),
-            'repeat'        => $q->whereBetween('completed_bookings', [Customer::REPEAT_THRESHOLD, Customer::VIP_THRESHOLD - 1]),
-            'new'           => $q->where('total_bookings', '<=', 1),
-            'has_complaint' => $q->where('total_complaints', '>', 0),
-            'inactive_90d'  => $q->where(function ($w) {
-                $w->where('last_interaction_at', '<', Carbon::now()->subDays(90))
-                  ->orWhereNull('last_interaction_at');
-            }),
-            'new_month'     => $q->where('first_seen_at', '>=', Carbon::now()->startOfMonth()),
-            default         => null,
-        };
-
-        if ($range = $request->input('booking_range')) {
-            match ($range) {
-                '1'    => $q->where('total_bookings', '=', 1),
-                '2-4'  => $q->whereBetween('total_bookings', [2, 4]),
-                '5-9'  => $q->whereBetween('total_bookings', [5, 9]),
-                '10+'  => $q->where('total_bookings', '>=', 10),
-                default => null,
-            };
-        }
-
-        if ($request->boolean('has_notes')) {
-            $q->whereHas('notes');
-        }
-
-        if ($lastWindow = $request->input('last_interaction')) {
-            // Values: 30d / 90d / 180d_plus (inactive bucket)
-            $now = Carbon::now();
-            match ($lastWindow) {
-                '30d'        => $q->where('last_interaction_at', '>=', $now->copy()->subDays(30)),
-                '90d'        => $q->where('last_interaction_at', '>=', $now->copy()->subDays(90)),
-                '180d_plus'  => $q->where(function ($w) use ($now) {
-                    $w->where('last_interaction_at', '<', $now->copy()->subDays(180))
-                      ->orWhereNull('last_interaction_at');
-                }),
-                default => null,
-            };
+        // Follow-up priority filter (CRM-only — kept out of the shared
+        // CustomerSegmentFilter so campaign audiences are unaffected).
+        if ($request->filled('priority') && $request->input('priority') !== '') {
+            $q->where('follow_up_priority', (int) $request->input('priority'));
         }
 
         return $q;

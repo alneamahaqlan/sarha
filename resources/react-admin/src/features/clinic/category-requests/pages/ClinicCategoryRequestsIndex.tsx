@@ -131,7 +131,7 @@ export function ClinicCategoryRequestsIndex() {
 
       <Dialog open={open} onOpenChange={(o) => !o && setOpen(false)}>
         <DialogContent>
-          <form onSubmit={submit} className="space-y-4">
+          <form noValidate onSubmit={submit} className="space-y-4">
             <DialogHeader>
               <DialogTitle>{t('clinic_services.request_specialty_title', 'اقترح تخصصاً جديداً')}</DialogTitle>
               <DialogDescription>

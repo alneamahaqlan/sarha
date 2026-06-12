@@ -1,6 +1,9 @@
 import { lazy, Suspense, useState } from 'react';
-import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal } from 'lucide-react';
+import { LayoutGrid, Table as TableIcon, Calendar as CalendarIcon, Plus, Download, SlidersHorizontal, Lightbulb, Upload, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { KanbanBoard } from '../components/KanbanBoard';
 import { StatsBar } from '../components/StatsBar';
@@ -8,7 +11,9 @@ import { KanbanFiltersBar } from '../components/KanbanFilters';
 import { BookingTableView } from '../components/BookingTableView';
 import { BookingCalendarView } from '../components/BookingCalendarView';
 import { CreateBookingDialog } from '../components/CreateBookingDialog';
-import { StageLabelsDialog } from '../components/StageLabelsDialog';
+import { ImportSheetDialog } from '../components/ImportSheetDialog';
+import { StagesManagerDialog } from '../components/StagesManagerDialog';
+import { SuggestionSettingsDialog } from '../components/SuggestionSettingsDialog';
 import { ExportDialog } from '../components/ExportDialog';
 import { useBookingStages } from '../hooks';
 import type { KanbanCard, KanbanFilters } from '../types';
@@ -25,9 +30,11 @@ export function ClinicBookingsKanban() {
   const [filters, setFilters] = useState<KanbanFilters>({});
   const [openCard, setOpenCard] = useState<KanbanCard | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [stagesOpen, setStagesOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
-  const { data: stageLabels } = useBookingStages();
+  const { data: stages } = useBookingStages();
 
   const patchFilters = (p: Partial<KanbanFilters>) => setFilters((prev) => ({ ...prev, ...p }));
   const clearFilters = () => setFilters({});
@@ -39,19 +46,60 @@ export function ClinicBookingsKanban() {
           <h1 className="text-xl font-semibold">{t('clinic_bookings_kanban.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('clinic_bookings_kanban.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setCreateOpen(true)} className="gap-1.5">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          <Button onClick={() => setCreateOpen(true)} className="flex-1 gap-1.5 sm:flex-none">
             <Plus className="h-4 w-4" />
             <span>{t('clinic_bookings_kanban.create.cta')}</span>
           </Button>
-          <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-1.5">
-            <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('clinic_bookings_kanban.export.cta')}</span>
-          </Button>
-          <Button variant="outline" onClick={() => setStagesOpen(true)} className="gap-1.5">
-            <SlidersHorizontal className="h-4 w-4" />
-            <span className="hidden sm:inline">{t('clinic_bookings_kanban.stages.cta')}</span>
-          </Button>
+
+          {/* Secondary actions: shown inline on desktop, collapsed into an
+              overflow menu on mobile so the toolbar doesn't dominate the screen. */}
+          <div className="hidden items-center gap-2 sm:flex">
+            <Button variant="outline" onClick={() => setImportOpen(true)} className="gap-1.5">
+              <Upload className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.import.cta')}</span>
+            </Button>
+            <Button variant="outline" onClick={() => setExportOpen(true)} className="gap-1.5">
+              <Download className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.export.cta')}</span>
+            </Button>
+            <Button variant="outline" onClick={() => setStagesOpen(true)} className="gap-1.5">
+              <SlidersHorizontal className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.stages.cta')}</span>
+            </Button>
+            <Button variant="outline" onClick={() => setSuggestionsOpen(true)} className="gap-1.5">
+              <Lightbulb className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('clinic_bookings_kanban.suggestion_settings.cta')}</span>
+            </Button>
+          </div>
+
+          {/* Mobile-only overflow menu holding the same secondary actions. */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="sm:hidden" aria-label={t('common.more')}>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
+                {t('clinic_bookings_kanban.import.cta')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setExportOpen(true)}>
+                <Download className="h-4 w-4" />
+                {t('clinic_bookings_kanban.export.cta')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setStagesOpen(true)}>
+                <SlidersHorizontal className="h-4 w-4" />
+                {t('clinic_bookings_kanban.stages.cta')}
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setSuggestionsOpen(true)}>
+                <Lightbulb className="h-4 w-4" />
+                {t('clinic_bookings_kanban.suggestion_settings.cta')}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex items-center gap-1 rounded-md border border-[var(--color-border)] p-0.5">
             <Button variant={view === 'kanban' ? 'default' : 'ghost'} size="sm" onClick={() => setView('kanban')} className="gap-1">
               <LayoutGrid className="h-4 w-4" />
@@ -73,7 +121,7 @@ export function ClinicBookingsKanban() {
 
       <KanbanFiltersBar filters={filters} onChange={patchFilters} onClear={clearFilters} />
 
-      {view === 'kanban' && <KanbanBoard filters={filters} onOpenCard={setOpenCard} stageLabels={stageLabels} />}
+      {view === 'kanban' && <KanbanBoard filters={filters} onOpenCard={setOpenCard} stages={stages ?? []} />}
       {view === 'table' && <BookingTableView filters={filters} onOpenCard={setOpenCard} />}
       {view === 'calendar' && <BookingCalendarView filters={filters} onOpenCard={setOpenCard} />}
 
@@ -88,7 +136,9 @@ export function ClinicBookingsKanban() {
       </Suspense>
 
       {createOpen && <CreateBookingDialog open onClose={() => setCreateOpen(false)} />}
-      {stagesOpen && <StageLabelsDialog onClose={() => setStagesOpen(false)} />}
+      {importOpen && <ImportSheetDialog onClose={() => setImportOpen(false)} />}
+      {stagesOpen && <StagesManagerDialog onClose={() => setStagesOpen(false)} />}
+      {suggestionsOpen && <SuggestionSettingsDialog onClose={() => setSuggestionsOpen(false)} />}
       {exportOpen && <ExportDialog filters={filters} onClose={() => setExportOpen(false)} />}
     </div>
   );

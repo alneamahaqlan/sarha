@@ -1,5 +1,9 @@
 @extends('layouts.public')
 
+@push('scripts')
+<script>window.sarhaTrack && window.sarhaTrack('view_offer', { clinic_id: {{ (int) $clinic->id }}, offer_id: {{ (int) $offer->id }} });</script>
+@endpush
+
 @section('title', $offer->title)
 @section('description', Str::limit($offer->description ?? $clinic->name, 160))
 @section('og_type', 'product')
@@ -10,9 +14,14 @@
     $imageUrl = $offer->effectiveImage() ? Storage::url($offer->effectiveImage()) : null;
     $discount = $offer->discountPercentage();
     $isServiceLinked = $offer->type === \App\Models\Offer::TYPE_SERVICE && $offer->service;
-    $ctaHref = $isServiceLinked
-        ? route('clinic.book.form', ['slug' => $clinic->slug, 'service' => $offer->service_id])
-        : ($clinic->whatsappLink() ?: ($clinic->phone ? 'tel:' . $clinic->phone : '#'));
+    // Every offer now opens the booking form. A service-linked offer pre-selects
+    // its service; a general offer lets the customer pick one (or "خدمات أخرى").
+    // The offer id is carried so the form can show a banner + stamp the notes.
+    $ctaHref = route('clinic.book.form', array_filter([
+        'slug'    => $clinic->slug,
+        'service' => $isServiceLinked ? $offer->service_id : null,
+        'offer'   => $offer->id,
+    ]));
 @endphp
 
 @section('content')
@@ -42,7 +51,10 @@
 
         {{-- Details --}}
         <div>
-            <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
+                @include('public.partials.impressions-badge', ['clinic' => $clinic])
+            </div>
             <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $offer->title }}</h1>
 
             @if($isServiceLinked)
@@ -52,7 +64,7 @@
             @if($offer->price !== null)
                 <div class="mt-4 flex items-baseline gap-3">
                     <span class="text-sage-700 font-bold text-3xl">{{ number_format((float) $offer->price) }}
-                        <span class="text-sm font-normal">@lang('site.currency_sar')</span>
+                        <span class="text-sm font-normal"><x-riyal /></span>
                     </span>
                     @if($offer->old_price !== null)
                         <span class="text-lg text-gray-400 line-through">{{ number_format((float) $offer->old_price) }}</span>
@@ -71,12 +83,12 @@
 
             <div class="mt-6 flex flex-wrap items-center gap-3">
                 <a href="{{ $ctaHref }}"
-                   @if(! $isServiceLinked) target="_blank" rel="noopener" @endif
-                   data-track="{{ $isServiceLinked ? 'booking' : 'contact' }}" data-clinic="{{ $clinic->id }}"
+                   data-track="booking" data-clinic="{{ $clinic->id }}"
                    class="inline-flex items-center justify-center gap-2 min-h-touch bg-sage-600 hover:bg-sage-700 text-white font-semibold px-6 py-3 rounded-lg shadow-sm transition-colors">
-                    <x-icon name="{{ $isServiceLinked ? 'calendar' : 'phone' }}" class="w-5 h-5" />
-                    {{ $isServiceLinked ? __('site.book_now_label') : __('site.contact_for_inquiry') }}
+                    <x-icon name="calendar" class="w-5 h-5" />
+                    {{ __('site.book_now_label') }}
                 </a>
+                <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" />
                 @include('public.partials.detail-nav-buttons', ['clinic' => $clinic])
             </div>
         </div>

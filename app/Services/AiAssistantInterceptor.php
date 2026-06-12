@@ -6,9 +6,7 @@ use App\Enums\ImpressionSource;
 use App\Jobs\SummarizeUserInteractionJob;
 use App\Models\AiAssistantLog;
 use App\Models\AiRestriction;
-use App\Models\Category;
 use App\Models\Clinic;
-use App\Models\ClinicStat;
 use App\Models\SystemSetting;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\Request;
@@ -31,8 +29,8 @@ use Illuminate\Support\Str;
  *  │  • Strip blocklisted clinics + categories from the assistant reply │
  *  │  • Append admin tone hint / system_prompt_extension if relevant    │
  *  │  • Log everything to ai_assistant_logs (+ pivots)                  │
- *  │  • Bump each surfaced clinic's search_appearances counter — blends │
- *  │    silently with the existing impressions metric, by design        │
+ *  │  • Bump each surfaced clinic's clinic_impressions under source=ai  │
+ *  │    — blends silently into the impressions total, by design         │
  *  └────────────────────────────────────────────────────────────────────┘
  *
  * Side-effects (logging, stat bumping) are wrapped in try/catch so a
@@ -40,9 +38,7 @@ use Illuminate\Support\Str;
  */
 class AiAssistantInterceptor
 {
-    public function __construct(private readonly AiAssistantService $ai)
-    {
-    }
+    public function __construct(private readonly AiAssistantService $ai) {}
 
     /**
      * Single-entry chat call: runs preflight, calls the underlying
@@ -61,10 +57,11 @@ class AiAssistantInterceptor
             $result = $shortCircuit['result'];
             $this->safelyLog($query, $result, $actor, [
                 'blocked_by_restriction_id' => $shortCircuit['restriction_id'] ?? null,
-                'was_blocked'   => $shortCircuit['was_blocked']   ?? false,
+                'was_blocked' => $shortCircuit['was_blocked'] ?? false,
                 'was_emergency' => $shortCircuit['was_emergency'] ?? false,
-                'response_ms'   => 0,
+                'response_ms' => 0,
             ]);
+
             return $result;
         }
 
@@ -108,7 +105,7 @@ class AiAssistantInterceptor
                 return [
                     'result' => $this->emergencyResponse(),
                     'restriction_id' => $r->id,
-                    'was_emergency'  => true,
+                    'was_emergency' => true,
                 ];
             }
         }
@@ -119,10 +116,11 @@ class AiAssistantInterceptor
             if ($this->matches($normalized, $r->value)) {
                 $reply = $r->response_override
                     ?: __('ai_center.default_rejection');
+
                 return [
                     'result' => $this->cannedReply($reply, 'rejected'),
                     'restriction_id' => $r->id,
-                    'was_blocked'    => true,
+                    'was_blocked' => true,
                 ];
             }
         }
@@ -137,6 +135,7 @@ class AiAssistantInterceptor
     public function restrictions(): EloquentCollection
     {
         $ttl = max(1, (int) SystemSetting::get('ai_restrictions_cache_ttl', 60));
+
         return Cache::remember(
             AiRestriction::CACHE_KEY,
             $ttl,
@@ -159,7 +158,7 @@ class AiAssistantInterceptor
             return $result;
         }
 
-        $blockedClinics    = $this->blocklistIds(AiRestriction::TYPE_CLINIC_BLOCKLIST);
+        $blockedClinics = $this->blocklistIds(AiRestriction::TYPE_CLINIC_BLOCKLIST);
         $blockedCategories = $this->blocklistIds(AiRestriction::TYPE_CATEGORY_BLOCKLIST);
 
         if ($blockedClinics->isEmpty() && $blockedCategories->isEmpty()) {
@@ -173,11 +172,13 @@ class AiAssistantInterceptor
                     return false;
                 }
                 $cats = $c->relationLoaded('categories') ? $c->categories->pluck('id') : collect();
+
                 return $cats->intersect($blockedCategories)->isNotEmpty();
             })
             ->values();
 
         $result['clinics'] = $filtered;
+
         return $result;
     }
 
@@ -201,27 +202,27 @@ class AiAssistantInterceptor
     {
         try {
             return DB::transaction(function () use ($query, $result, $actor, $overrides) {
-                $clinics    = $result['clinics']    ?? collect();
-                $clinicIds  = $clinics instanceof EloquentCollection ? $clinics->pluck('id')->all() : [];
+                $clinics = $result['clinics'] ?? collect();
+                $clinicIds = $clinics instanceof EloquentCollection ? $clinics->pluck('id')->all() : [];
                 $categoryIds = $this->collectCategoryIds($clinics);
 
                 $conversationId = $this->conversationIdFor($actor);
 
                 $log = AiAssistantLog::create([
-                    'user_id'                   => $actor['user_id'],
-                    'visitor_id'                => $actor['visitor_id'],
-                    'guard'                     => $actor['guard'],
-                    'conversation_id'           => $conversationId,
-                    'query'                     => $query,
-                    'reply'                     => (string) ($result['reply'] ?? ''),
-                    'kind'                      => (string) ($result['kind'] ?? 'unknown'),
-                    'provider'                  => $result['provider'] ?? null,
-                    'model'                     => $this->modelFromProvider($result['provider'] ?? null),
-                    'response_ms'               => $overrides['response_ms'] ?? null,
-                    'locale'                    => app()->getLocale(),
+                    'user_id' => $actor['user_id'],
+                    'visitor_id' => $actor['visitor_id'],
+                    'guard' => $actor['guard'],
+                    'conversation_id' => $conversationId,
+                    'query' => $query,
+                    'reply' => (string) ($result['reply'] ?? ''),
+                    'kind' => (string) ($result['kind'] ?? 'unknown'),
+                    'provider' => $result['provider'] ?? null,
+                    'model' => $this->modelFromProvider($result['provider'] ?? null),
+                    'response_ms' => $overrides['response_ms'] ?? null,
+                    'locale' => app()->getLocale(),
                     'blocked_by_restriction_id' => $overrides['blocked_by_restriction_id'] ?? null,
-                    'was_blocked'               => (bool) ($overrides['was_blocked']   ?? false),
-                    'was_emergency'             => (bool) ($overrides['was_emergency'] ?? false),
+                    'was_blocked' => (bool) ($overrides['was_blocked'] ?? false),
+                    'was_emergency' => (bool) ($overrides['was_emergency'] ?? false),
                 ]);
 
                 if (! empty($clinicIds)) {
@@ -247,7 +248,7 @@ class AiAssistantInterceptor
                 // the reply text). Clinic-level only is enough for the
                 // dashboard.
                 if (! empty($clinicIds)) {
-                    app(\App\Services\ImpressionTrackerService::class)
+                    app(ImpressionTrackerService::class)
                         ->trackManyClinics($clinicIds, ImpressionSource::AI);
                     $log->update(['stats_bumped' => true]);
                 }
@@ -257,10 +258,11 @@ class AiAssistantInterceptor
         } catch (\Throwable $e) {
             // Never let logging break the chat reply.
             Log::warning('AiAssistantInterceptor logging failed', [
-                'err'   => $e->getMessage(),
+                'err' => $e->getMessage(),
                 'class' => get_class($e),
-                'file'  => $e->getFile() . ':' . $e->getLine(),
+                'file' => $e->getFile().':'.$e->getLine(),
             ]);
+
             return null;
         }
     }
@@ -297,16 +299,17 @@ class AiAssistantInterceptor
                 }
             }
         }
+
         return array_keys($ids);
     }
 
     private function modelFromProvider(?string $provider): ?string
     {
         return match ($provider) {
-            'gemini'    => SystemSetting::get('ai_gemini_model'),
-            'openai'    => SystemSetting::get('ai_openai_model'),
+            'gemini' => SystemSetting::get('ai_gemini_model'),
+            'openai' => SystemSetting::get('ai_openai_model'),
             'anthropic' => SystemSetting::get('ai_anthropic_model'),
-            default     => null,
+            default => null,
         };
     }
 
@@ -317,12 +320,13 @@ class AiAssistantInterceptor
         foreach (['admin', 'clinic', 'web'] as $guard) {
             if (Auth::guard($guard)->check()) {
                 $u = Auth::guard($guard)->user();
+
                 return [
                     // Only the 'web' guard maps to the User table; admin /
                     // clinic guards live in their own tables so user_id
                     // stays null for them (we keep their guard string).
-                    'user_id'    => $guard === 'web' ? $u->getKey() : null,
-                    'guard'      => $guard,
+                    'user_id' => $guard === 'web' ? $u->getKey() : null,
+                    'guard' => $guard,
                     'visitor_id' => null,
                 ];
             }
@@ -340,6 +344,7 @@ class AiAssistantInterceptor
                 // just keep the per-call uuid.
             }
         }
+
         return ['user_id' => null, 'guard' => null, 'visitor_id' => $vid];
     }
 
@@ -358,11 +363,11 @@ class AiAssistantInterceptor
     private function cannedReply(string $reply, string $kind): array
     {
         return [
-            'kind'           => $kind,
-            'reply'          => $reply,
-            'clinics'        => new EloquentCollection(),
-            'context'        => [],
-            'provider'       => null,
+            'kind' => $kind,
+            'reply' => $reply,
+            'clinics' => new EloquentCollection,
+            'context' => [],
+            'provider' => null,
             'assistant_name' => SystemSetting::get('ai_assistant_name', 'سلمى'),
         ];
     }
@@ -379,12 +384,14 @@ class AiAssistantInterceptor
         // don't have to type every variant.
         $s = preg_replace('/[\x{064B}-\x{0652}\x{0670}]/u', '', $s);
         $s = strtr($s, ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي', 'ة' => 'ه']);
+
         return trim($s);
     }
 
     private function matches(string $normalizedQuery, string $needle): bool
     {
         $needle = $this->normalize($needle);
+
         return $needle !== '' && mb_strpos($normalizedQuery, $needle) !== false;
     }
 }

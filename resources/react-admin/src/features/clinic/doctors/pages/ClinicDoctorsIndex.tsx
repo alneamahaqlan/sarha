@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 
 import { useClinicDoctors, useCreateClinicDoctor, useDeleteClinicDoctor, useUpdateClinicDoctor } from '../hooks';
 import type { ClinicDoctor } from '../api';
@@ -91,20 +93,21 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
           <DialogTitle>{doctor ? t('clinic_doctors.edit') : t('clinic_doctors.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_doctors.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="flex justify-center">
             <FileUpload
               value={form.watch('photo')}
               onChange={(p) => form.setValue('photo', p, { shouldDirty: true })}
               directory="doctors"
               label={t('clinic_doctors.photo')}
+              hint={t('clinic_doctors.photo_hint')}
             />
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_doctors.name')}</Label>
               <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <FieldError message={form.formState.errors.name?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="specialty">{t('clinic_doctors.specialty')}</Label>
@@ -154,6 +157,12 @@ function DoctorDialog({ doctor, onClose }: { doctor: ClinicDoctor | null; onClos
               <Label>{t('clinic_doctors.is_active')}</Label>
             </div>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              name: t('clinic_doctors.name'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>

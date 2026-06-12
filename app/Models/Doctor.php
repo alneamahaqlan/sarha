@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 class Doctor extends Model
 {
+    use HasDemoData;
+
     protected $fillable = [
         'clinic_id', 'sub_clinic_id', 'name', 'specialty', 'gender', 'photo',
         'bio', 'qualifications', 'years_experience', 'university', 'languages',
@@ -30,6 +33,15 @@ class Doctor extends Model
     public function subClinic()
     {
         return $this->belongsTo(SubClinic::class);
+    }
+
+    /**
+     * Services this doctor provides (many-to-many). Surfaced on the doctor's
+     * public profile and selected on the clinic "add service" form.
+     */
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'doctor_service')->withTimestamps();
     }
 
     public function getPhotoUrlAttribute(): ?string

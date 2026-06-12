@@ -21,9 +21,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage, extractValidationErrors, isApiError } from '@/lib/api-client';
 import { useCategoryLookup } from '@/features/lookups/hooks';
 import { useClinicServices } from '@/features/clinic/services/hooks';
+import { FieldError } from '@/components/forms/FieldError';
+import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 
 import {
   useClinicSubClinics, useCreateClinicSubClinic, useDeleteClinicSubClinic, useUpdateClinicSubClinic,
@@ -116,12 +119,12 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
           <DialogTitle>{subClinic ? t('clinic_sub_clinics.edit') : t('clinic_sub_clinics.create')}</DialogTitle>
           <DialogDescription className="sr-only">{t('clinic_sub_clinics.subtitle')}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1.5 md:col-span-2">
               <Label htmlFor="name">{t('clinic_sub_clinics.name')}</Label>
               <Input id="name" {...form.register('name')} />
-              {form.formState.errors.name && <p className="text-xs text-[var(--color-destructive)]">{form.formState.errors.name.message}</p>}
+              <FieldError message={form.formState.errors.name?.message} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="name_en">{t('clinic_sub_clinics.name_en')}</Label>
@@ -148,6 +151,12 @@ function SubClinicDialog({ subClinic, onClose }: { subClinic: ClinicSubClinic | 
               <Label>{t('clinic_sub_clinics.is_active')}</Label>
             </div>
           </div>
+          <FormErrorSummary
+            errors={form.formState.errors}
+            labels={{
+              name: t('clinic_sub_clinics.name'),
+            }}
+          />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={submitting}>{submitting ? t('common.loading') : t('common.save')}</Button>
@@ -249,7 +258,7 @@ export function ClinicSubClinicsIndex() {
                         {rows.map((sv) => (
                           <li key={sv.id} className="flex items-center justify-between py-1.5 text-sm">
                             <span className={sv.is_active ? '' : 'text-[var(--color-muted-foreground)] line-through'}>{sv.name}</span>
-                            <span className="text-[var(--color-muted-foreground)]">{sv.price != null ? `${cf(sv.price)} ${t('common.sar')}` : '—'}</span>
+                            <span className="text-[var(--color-muted-foreground)]">{sv.price != null ? <>{cf(sv.price)} <RiyalSymbol /></> : '—'}</span>
                           </li>
                         ))}
                       </ul>

@@ -9,6 +9,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTranslation, useLocale } from '@/app/providers/LocaleProvider';
+import { RiyalSymbol } from '@/lib/money';
 import { extractMessage } from '@/lib/api-client';
 
 import { useDeletePackage, usePackages } from '../hooks';
@@ -89,8 +90,8 @@ export function PackagesIndex() {
                     <span className={`text-2xl font-bold ${c.price}`}>{t('packages.free')}</span>
                   ) : (
                     <>
-                      <span className={`text-2xl font-bold ${c.price}`}>{p.monthly_price.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')}</span>
-                      <span className="text-xs text-[var(--color-muted-foreground)]">{t('packages.sar_per_month')}</span>
+                      <span className={`text-2xl font-bold ${c.price}`}>{p.monthly_price.toLocaleString(locale === 'ar' ? 'ar-SA-u-nu-latn' : 'en-US')} <RiyalSymbol /></span>
+                      <span className="text-xs text-[var(--color-muted-foreground)]">{t('packages.sar_per_month').replace('ر.س', '').replace('SAR', '')}</span>
                     </>
                   )}
                 </div>

@@ -1,8 +1,14 @@
-{{-- Share buttons --}}
-@php $shareUrl = url()->current(); @endphp
+{{-- Share buttons. Optional $variant: 'inline' (default, with a "مشاركة"
+     label) or 'bare' (icons only — the caller supplies its own heading). --}}
+@php
+    $shareUrl = url()->current();
+    $variant  = $variant ?? 'inline';
+@endphp
 
-<div class="flex items-center gap-2" x-data="{ copied: false }">
-    <span class="text-sm text-gray-600">@lang('site.share')</span>
+<div class="flex items-center gap-2 flex-wrap" x-data="{ copied: false }">
+    @if($variant !== 'bare')
+        <span class="text-sm text-gray-600">@lang('site.share')</span>
+    @endif
 
     {{-- WhatsApp share --}}
     <a href="https://wa.me/?text={{ urlencode($clinic->name . ' — ' . $shareUrl) }}"

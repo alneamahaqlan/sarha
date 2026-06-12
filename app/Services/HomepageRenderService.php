@@ -74,7 +74,13 @@ class HomepageRenderService
 
     private function categories(int $limit): Collection
     {
-        return Category::where('is_active', true)->orderBy('sort_order')->limit($limit)->get();
+        // withCount('clinics') is display-only — powers the "N مجمع" badge on
+        // each category tile (same metric PlatformStatsService::bySpecialty uses).
+        return Category::where('is_active', true)
+            ->withCount('clinics')
+            ->orderBy('sort_order')
+            ->limit($limit)
+            ->get();
     }
 
     /**
@@ -92,7 +98,11 @@ class HomepageRenderService
         $q = Offer::query()
             ->runningNow()
             ->with([
-                'clinic:id,name,slug,city_id',
+                // withAvg loads the clinic's average Google rating for the
+                // premium offer card's ★ indicator (display-only). Explicit
+                // column list kept so the avg alias is appended, not replacing.
+                'clinic' => fn ($c) => $c->select('id', 'name', 'slug', 'city_id', 'cart_status', 'cart_storefront_enabled')
+                    ->withAvg('googleReviews', 'rating'),
                 'clinic.city:id,name',
                 'service:id,name,image',
                 'service.categories:id,name,name_en,slug,emoji',

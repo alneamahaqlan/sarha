@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowRightCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ArrowRightCircle, Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,9 +22,11 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 import { extractMessage } from '@/lib/api-client';
 
 import { useDeleteSalesLead, useSalesLeads } from '../hooks';
+import { salesLeadsApi } from '../api/sales-leads.api';
 import { ConvertDialog } from '../components/ConvertDialog';
 import { SalesLeadForm } from '../components/SalesLeadForm';
-import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus } from '../types';
+import { LeadDetailSheet } from '../components/LeadDetailSheet';
+import { SALES_LEAD_STATUSES, type SalesLead, type SalesLeadStatus, type ScoreTier } from '../types';
 
 const STATUS_VARIANT: Record<SalesLeadStatus, 'default' | 'warning' | 'success' | 'danger' | 'muted'> = {
   new: 'default',
@@ -31,6 +35,12 @@ const STATUS_VARIANT: Record<SalesLeadStatus, 'default' | 'warning' | 'success' 
   negotiating: 'default',
   converted: 'success',
   lost: 'danger',
+};
+
+const TIER_VARIANT: Record<ScoreTier, 'success' | 'warning' | 'muted'> = {
+  hot: 'success',
+  warm: 'warning',
+  cold: 'muted',
 };
 
 export function SalesLeadsIndex() {
@@ -45,8 +55,31 @@ export function SalesLeadsIndex() {
   const [editing, setEditing] = useState<SalesLead | null>(null);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<SalesLead | null>(null);
+  const [detail, setDetail] = useState<SalesLead | null>(null);
 
   const del = useDeleteSalesLead();
+
+  // Deep-link: ?lead=ID (e.g. from the overdue-followup notification) opens
+  // that lead's detail sheet, fetching it directly so it works from any page.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const leadIdParam = searchParams.get('lead');
+  const { data: deepLinkedLead } = useQuery({
+    enabled: !!leadIdParam,
+    queryKey: ['admin', 'sales-leads', 'deeplink', leadIdParam],
+    queryFn: () => salesLeadsApi.get(Number(leadIdParam)),
+  });
+  useEffect(() => {
+    if (deepLinkedLead) setDetail(deepLinkedLead);
+  }, [deepLinkedLead]);
+
+  const closeDetail = () => {
+    setDetail(null);
+    if (leadIdParam) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('lead');
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   const queryParams = useMemo(
     () => ({
@@ -152,7 +185,16 @@ export function SalesLeadsIndex() {
               const canConvert = lead.status !== 'converted';
               return (
                 <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.clinic_name}</TableCell>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      <span>{lead.clinic_name}</span>
+                      {lead.status !== 'converted' && lead.status !== 'lost' && (
+                        <Badge variant={TIER_VARIANT[lead.score_tier]} title={`${t('sales_leads.score')}: ${lead.score}`}>
+                          {t(`sales_leads.score_tier.${lead.score_tier}`)}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{lead.contact_name ?? '—'}</TableCell>
                   <TableCell dir="ltr">{lead.phone}</TableCell>
                   <TableCell className="text-[var(--color-muted-foreground)]">{lead.city?.name ?? '—'}</TableCell>
@@ -171,6 +213,14 @@ export function SalesLeadsIndex() {
                   <TableCell className="text-[var(--color-muted-foreground)]">{lead.assigned_admin?.name ?? '—'}</TableCell>
                   <TableCell className="text-end">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={t('sales_leads.actions.details')}
+                        onClick={() => setDetail(lead)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       {canConvert && (
                         <Button
                           variant="ghost"
@@ -229,6 +279,10 @@ export function SalesLeadsIndex() {
 
       {convert && (
         <ConvertDialog lead={convert} onClose={() => setConvert(null)} />
+      )}
+
+      {detail && (
+        <LeadDetailSheet lead={detail} onClose={closeDetail} />
       )}
 
       <Dialog

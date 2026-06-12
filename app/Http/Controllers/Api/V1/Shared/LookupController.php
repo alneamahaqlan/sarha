@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1\Shared;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use App\Models\BeforeAfterPhoto;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Doctor;
+use App\Models\Offer;
 use App\Models\Service;
 use App\Models\SubClinic;
 use Illuminate\Http\JsonResponse;
@@ -86,6 +89,59 @@ class LookupController extends Controller
         }
 
         return response()->json(['data' => $q->orderBy('name')->limit(100)->get()]);
+    }
+
+    /** Offers of a given complex — for landing-page manual block selection. */
+    public function offers(Request $request): JsonResponse
+    {
+        $clinicId = (int) $request->input('clinic_id');
+        if (! $clinicId) {
+            return response()->json(['data' => []]);
+        }
+
+        $q = Offer::query()->select(['id', 'title'])->where('clinic_id', $clinicId);
+
+        if ($search = $request->string('search')->toString()) {
+            $q->where('title', 'like', "%{$search}%");
+        }
+
+        return response()->json([
+            'data' => $q->orderByDesc('is_featured')->orderByDesc('starts_at')->limit(100)
+                ->get()->map(fn ($o) => ['id' => $o->id, 'name' => $o->title]),
+        ]);
+    }
+
+    /** Doctors of a given complex — for landing-page manual block selection. */
+    public function doctors(Request $request): JsonResponse
+    {
+        $clinicId = (int) $request->input('clinic_id');
+        if (! $clinicId) {
+            return response()->json(['data' => []]);
+        }
+
+        $q = Doctor::query()->select(['id', 'name'])->where('clinic_id', $clinicId);
+
+        if ($search = $request->string('search')->toString()) {
+            $q->where('name', 'like', "%{$search}%");
+        }
+
+        return response()->json(['data' => $q->orderBy('sort_order')->orderBy('name')->limit(100)->get()]);
+    }
+
+    /** Before/after cases of a given complex — for landing-page manual gallery. */
+    public function beforeAfter(Request $request): JsonResponse
+    {
+        $clinicId = (int) $request->input('clinic_id');
+        if (! $clinicId) {
+            return response()->json(['data' => []]);
+        }
+
+        $rows = BeforeAfterPhoto::query()->select(['id', 'title'])->where('clinic_id', $clinicId)
+            ->orderBy('sort_order')->limit(100)->get();
+
+        return response()->json([
+            'data' => $rows->map(fn ($r, $i) => ['id' => $r->id, 'name' => $r->title ?: ('#' . ($i + 1))]),
+        ]);
     }
 
     public function admins(Request $request): JsonResponse

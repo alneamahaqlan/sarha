@@ -16,20 +16,29 @@
     </nav>
 
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
-        <div class="grid grid-cols-1 sm:grid-cols-2">
-            <div class="relative">
-                @if($photo->before_url)
-                    <img src="{{ $photo->before_url }}" alt="@lang('site.before')" class="w-full h-72 sm:h-96 object-cover">
-                @endif
-                <span class="absolute top-3 start-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded">@lang('site.before')</span>
+        @if($photo->display_mode === 'slider' && $photo->before_url && $photo->after_url)
+            {{-- Interactive drag-to-compare slider (touch + RTL aware). --}}
+            @include('public.partials.before-after-slider', [
+                'before'      => $photo->before_url,
+                'after'       => $photo->after_url,
+                'heightClass' => 'h-72 sm:h-96 w-full',
+            ])
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2">
+                <div class="relative">
+                    @if($photo->before_url)
+                        <img src="{{ $photo->before_url }}" alt="@lang('site.before')" class="w-full h-72 sm:h-96 object-cover">
+                    @endif
+                    <span class="absolute top-3 start-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded">@lang('site.before')</span>
+                </div>
+                <div class="relative">
+                    @if($photo->after_url)
+                        <img src="{{ $photo->after_url }}" alt="@lang('site.after')" class="w-full h-72 sm:h-96 object-cover">
+                    @endif
+                    <span class="absolute top-3 start-3 bg-sage-600/85 text-white text-xs px-2.5 py-1 rounded">@lang('site.after')</span>
+                </div>
             </div>
-            <div class="relative">
-                @if($photo->after_url)
-                    <img src="{{ $photo->after_url }}" alt="@lang('site.after')" class="w-full h-72 sm:h-96 object-cover">
-                @endif
-                <span class="absolute top-3 start-3 bg-sage-600/85 text-white text-xs px-2.5 py-1 rounded">@lang('site.after')</span>
-            </div>
-        </div>
+        @endif
 
         <div class="p-6">
             <a href="{{ route('clinic.show', $clinic->slug) }}" class="text-sm text-sage-600 hover:underline">{{ $clinic->name }}@if($clinic->city) · {{ $clinic->city->display_name }}@endif</a>
