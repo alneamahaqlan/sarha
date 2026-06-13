@@ -430,7 +430,7 @@ class AiAssistantService
             return $this->wrap('greeting', $this->greetingTemplate($query), collect(), $ctx);
         }
         if ($isFollowUp) {
-            return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history), collect(), $ctx);
+            return $this->wrap('follow_up', $this->smartFollowUpFallback($query, $history, $ctx), collect(), $ctx);
         }
         if ($clinics->isEmpty()) {
             return $this->wrap('no_match', $this->smartNoMatchFallback($query, $history, $ctx), collect(), $ctx);
@@ -687,19 +687,53 @@ class AiAssistantService
      * The assistant's name + the platform name come from settings so an
      * operator change at /app/system-settings is reflected immediately.
      */
-    private function smartFollowUpFallback(string $query, array $history): string
+    private function smartFollowUpFallback(string $query, array $history, array $ctx = []): string
     {
         $name = $this->assistantName();
         $lower = mb_strtolower(trim($query));
         $isEnglish = preg_match('/^[a-z]/u', $lower) === 1;
 
-        // 1) Abuse / frustration — acknowledge first, never argue.
+        // What do we ALREADY know from earlier turns? Re-asking for it is the
+        // single most infuriating thing this bot can do ("I told you the city!"),
+        // so every branch below leans on these instead of starting from zero.
+        $knownCity     = $this->localizeCityName($ctx['city_id'] ?? null, $isEnglish);
+        $knownCategory = $this->localizeCategoryName($ctx['category_id'] ?? null, $isEnglish);
+        $hasShown      = ! empty($ctx['last_clinic_ids']);
+
+        // 1) Abuse / frustration — acknowledge first, never argue. If we already
+        //    know the city, do NOT ask for it again (that's usually WHY they're upset).
         foreach (self::ABUSE_MARKERS as $w) {
             if (str_contains($lower, $w) || str_contains($query, $w)) {
+                if ($knownCity) {
+                    return $isEnglish
+                        ? "You're right, and I'm sorry. You already told me you're in {$knownCity}" . ($knownCategory ? " looking for {$knownCategory}" : '') . " — I shouldn't have asked again. Just tell me one thing to refine it (a service, or your district) and I'll line up the best options. \n— {$name}"
+                        : "معك حق وأعتذر. أنت فعلاً قلت لي إنك في {$knownCity}" . ($knownCategory ? " وتدوّر {$knownCategory}" : '') . " — ما كان لازم أكرّر السؤال. أعطني تفصيلاً واحداً يضيّق الخيارات (اسم خدمة، أو الحي اللي أنت فيه) وأرتّب لك الأنسب. \n— {$name}";
+                }
                 return $isEnglish
                     ? "I'm really sorry — that's a fair reaction if I'm not being useful. Help me make it right: which city are you in, and what kind of clinic are you looking for? \n— {$name}"
                     : "أعتذر بصدق — ردّة فعلك مفهومة لو ما كنت مفيدة لك. ساعدني أعوّض الموقف: في أي مدينة أنت، وأي تخصّص أو خدمة تحتاجها؟ \n— {$name}";
             }
+        }
+
+        // 1b) "Nearest / closest" — we can't compute true distance offline, but we
+        //     must NOT re-ask the city. Be honest and pivot to the district.
+        if ($knownCity && preg_match('/(أقرب|اقرب|الأقرب|الاقرب|قريب|nearest|closest|near me)/iu', $query)) {
+            return $isEnglish
+                ? "To find the closest one I need your district within {$knownCity} (e.g. Granada, Al-Olaya…) or your live location. Tell me your district and I'll narrow it — or open any clinic card above to see it on the map. \n— {$name}"
+                : "عشان أحدّد لك الأقرب بالضبط أحتاج الحي اللي أنت فيه داخل {$knownCity} (مثلاً: غرناطة، العليا…) أو موقعك المباشر. قل لي الحي وأضيّق لك — أو افتح أي بطاقة مجمع فوق لتشوف موقعه على الخريطة. \n— {$name}";
+        }
+
+        // 1c) We already know the city (and maybe specialty) — acknowledge it and
+        //     move forward; never ask for the city again.
+        if ($knownCity) {
+            if ($knownCategory) {
+                return $isEnglish
+                    ? "Got it — {$knownCategory} in {$knownCity}" . ($hasShown ? ', and I’ve shown you options above' : '') . ". Want me to sort them by nearest, cheapest, or highest-rated? Or tell me your district to narrow it. \n— {$name}"
+                    : "تمام — {$knownCategory} في {$knownCity}" . ($hasShown ? '، وعرضت لك مجمعات فوق' : '') . ". تحب أرتّبها لك بالأقرب، الأرخص، أو الأعلى تقييماً؟ أو قل لي حيّك وأضيّق أكثر. \n— {$name}";
+            }
+            return $isEnglish
+                ? "Got it — you're in {$knownCity}" . ($hasShown ? ' and I’ve shown you some clinics above' : '') . ". What specialty or service do you need (dental, dermatology, pediatrics…)? \n— {$name}"
+                : "تمام — أنت في {$knownCity}" . ($hasShown ? ' وعرضت لك مجمعات فوق' : '') . ". أيش التخصّص أو الخدمة اللي تحتاجها (أسنان، جلدية، أطفال…)؟ \n— {$name}";
         }
 
         // 2) Plain confirmation ("تمام ايش تريدني اعملك") — invite a clear next step.
@@ -850,12 +884,18 @@ SAFETY;
         // recent context is usually all that matters.
         $historyBlock = '';
         if (! empty($history)) {
-            $recent = array_slice($history, -6);
+            // Window the history so every new question is understood against the
+            // customer's PRIOR turns — not just the last line. Default 50 turns
+            // (≈25 exchanges) keeps the whole visit in view on a long-context
+            // model like Gemini Flash while bounding tokens; operators can tune
+            // it via the ai_history_turns setting (0 = send everything).
+            $window = (int) $this->setting('ai_history_turns', 50);
+            $recent = $window > 0 ? array_slice($history, -$window) : $history;
             $lines = array_map(
                 fn ($m) => ($m['role'] === 'user' ? 'العميل' : 'المساعد') . ': ' . trim((string) $m['content']),
                 $recent,
             );
-            $historyBlock = "=== سجل المحادثة السابق (للسياق فقط، لا تكرّره) ===\n" . implode("\n", $lines) . "\n\n";
+            $historyBlock = "=== سجل المحادثة الكامل (للسياق، اربط كل سؤال جديد بما سبقه — لا تكرّره حرفياً) ===\n" . implode("\n", $lines) . "\n\n";
         }
 
         if ($isFollowUp) {
@@ -934,14 +974,26 @@ PROMPT;
                 }
                 if (isset($c->google_reviews_avg_rating) && $c->google_reviews_avg_rating) {
                     $rating = round($c->google_reviews_avg_rating, 1);
-                    $line .= ' — ' . ($promptIsEnglish ? "rated {$rating}/5" : "تقييم {$rating}/5");
+                    // Include the review count when we have it — a 4.8 from 600
+                    // reviews is a very different signal from a 4.8 from 3, and
+                    // surfacing it lets the assistant answer "is it trusted?".
+                    $reviewCount = (int) ($c->google_reviews_count ?? 0);
+                    $line .= ' — ' . ($promptIsEnglish
+                        ? ($reviewCount > 0 ? "rated {$rating}/5 ({$reviewCount} reviews)" : "rated {$rating}/5")
+                        : ($reviewCount > 0 ? "تقييم {$rating}/5 ({$reviewCount} مراجعة)" : "تقييم {$rating}/5"));
+                }
+                // Address / neighborhood — lets the assistant answer "where
+                // exactly?" without a separate details turn.
+                if (! empty($c->address)) {
+                    $line .= "\n    " . ($promptIsEnglish ? 'Location: ' : 'الموقع: ')
+                        . Str::limit(trim(strip_tags((string) $c->address)), 90);
                 }
                 // Matched services (when the query was service-centric like
                 // "ليزر" — eager-loaded with prices, cheapest first). Listed
                 // on indented sub-bullets so the LLM can reference the exact
                 // service + price for each clinic, not just the clinic name.
                 if (isset($c->services) && $c->services->isNotEmpty()) {
-                    $svcLines = $c->services->take(3)->map(function ($s) use ($promptIsEnglish) {
+                    $svcLines = $c->services->take(4)->map(function ($s) use ($promptIsEnglish) {
                         $sl = '    – ' . $s->name;
                         if ($s->price !== null) {
                             $sl .= ' (' . (int) $s->price . ' ' . ($promptIsEnglish ? 'SAR' : 'ر.س') . ')';
@@ -949,6 +1001,27 @@ PROMPT;
                         return $sl;
                     })->implode("\n");
                     $line .= "\n" . $svcLines;
+                }
+                // Doctors — surfacing names lets the assistant answer "who's the
+                // dermatologist there?" naturally instead of dodging to a
+                // details turn. Loaded by loadDeepDetails before the LLM call.
+                if (isset($c->doctors) && $c->doctors->isNotEmpty()) {
+                    $docs = $c->doctors->take(4)->pluck('name')->filter()->implode('، ');
+                    if ($docs !== '') {
+                        $line .= "\n    " . ($promptIsEnglish ? 'Doctors: ' : 'الأطباء: ') . $docs;
+                    }
+                }
+                // Today's working hours — so "are they open now?" / "متى يفتح؟"
+                // gets a concrete answer grounded in the DB.
+                if (isset($c->workingHours)) {
+                    $today = $c->workingHours->firstWhere('day_of_week', (int) now()->dayOfWeek);
+                    if ($today && $today->is_open && $today->opens_at && $today->closes_at) {
+                        $opens  = substr((string) $today->opens_at, 0, 5);
+                        $closes = substr((string) $today->closes_at, 0, 5);
+                        $line .= "\n    " . ($promptIsEnglish ? "Today: {$opens}–{$closes}" : "اليوم: {$opens}–{$closes}");
+                    } elseif ($today && ! $today->is_open) {
+                        $line .= "\n    " . ($promptIsEnglish ? 'Today: closed' : 'اليوم: مغلق');
+                    }
                 }
                 return $line;
             })->implode("\n");
@@ -1048,15 +1121,22 @@ PROMPT;
     {
         if ($clinics->isEmpty()) return $clinics;
 
-        $clinics->load([
+        // loadMissing for services/city/categories: a service-centric search
+        // ("ليزر") pre-loads only the MATCHING services so the LLM sees the
+        // exact service + price the user asked about — a blind load() here
+        // would clobber that with the generic cheapest-6 and lose the match.
+        $clinics->loadMissing([
             'services' => fn ($q) => $q->where('is_active', true)
                 ->notCatchall()
                 ->orderByRaw('price IS NULL, price ASC')
                 ->limit(6),
-            'doctors' => fn ($q) => $q->limit(5),
-            'workingHours',
             'city',
             'categories',
+        ]);
+        // Doctors + hours are never pre-loaded — always fetch them.
+        $clinics->load([
+            'doctors' => fn ($q) => $q->limit(5),
+            'workingHours',
         ]);
         $clinics->loadAvg('googleReviews', 'rating');
         $clinics->loadCount('googleReviews');
@@ -1808,10 +1888,36 @@ MSG;
             });
         }
 
-        // Service-search returns more clinics (5) since the whole point is
+        // Service-search returns more clinics (8) since the whole point is
         // letting the customer compare prices across the platform. Normal
-        // searches keep the tighter 3-clinic cap.
-        return $base->take($serviceQuery !== null ? 5 : 3)->get();
+        // searches return up to 6 — enough for a real comparison without
+        // drowning the customer.
+        $results = $base->take($serviceQuery !== null ? 8 : 6)->get();
+
+        // PROGRESSIVE WIDENING — a strict (city + category + service) query that
+        // returns nothing is worse than a slightly looser match. When the exact
+        // search comes back empty but we still have a city or a specialty to
+        // anchor on, relax the narrowest constraint (the free-text service name,
+        // which is the most typo-prone) and retry. The customer then sees real,
+        // relevant options instead of a dead "no results", and the LLM can say
+        // "I didn't find that exact service, but here are dental clinics in
+        // Riyadh you can ask about it." Only widens when a service phrase was
+        // the thing that narrowed it — never invents results out of thin air.
+        if ($results->isEmpty() && $serviceQuery !== null && ($resolvedCityId || $categoryId)) {
+            $wide = Clinic::publiclyVisible()
+                ->withPackageFeatures()
+                ->with(['city', 'categories']);
+            if ($resolvedCityId) {
+                $wide->where('city_id', $resolvedCityId);
+            }
+            if ($categoryId) {
+                $wide->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId));
+            }
+            $wide->rankedForListing();
+            $results = $wide->take(6)->get();
+        }
+
+        return $results;
     }
 
     private function tokenize(string $query): array
