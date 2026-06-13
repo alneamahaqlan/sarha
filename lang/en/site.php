@@ -445,6 +445,8 @@ return [
     'ai_welcome' => 'Hello 👋 I am your smart assistant. Ask me about any specialty or city and I will suggest the best complexes.',
     'ai_input_placeholder' => 'Type your question here...',
     'ai_thinking' => 'Searching...',
+    'ai_new_chat' => 'New conversation',
+    'ai_new_chat_confirm' => 'Start a new conversation? The current chat will be cleared.',
     'ai_empty' => 'Please type your question first.',
     'ai_no_match' => 'I could not find matching complexes. Try different words or browse the search page.',
     'ai_found_matches' => 'I found :count complexes that may match:',
