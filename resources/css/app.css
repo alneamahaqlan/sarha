@@ -6,6 +6,10 @@
 @source '../**/*.js';
 @source '../../app/**/*.php';
 
+/* Hide Alpine-controlled elements until Alpine initializes (prevents a flash
+   of both login steps before x-show resolves). */
+[x-cloak] { display: none !important; }
+
 /*
  |--------------------------------------------------------------------------
  | Brand identity — دليل المجمعات الطبية (Daleel) · v1.3

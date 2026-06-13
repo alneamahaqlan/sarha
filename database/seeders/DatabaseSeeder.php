@@ -199,6 +199,7 @@ class DatabaseSeeder extends Seeder
             ['key' => 'otp_sms_enabled',      'value' => '1',        'type' => 'boolean', 'group' => 'auth', 'label' => 'تفعيل إرسال OTP عبر SMS',     'description' => 'عند التفعيل، يُرسَل كود التحقق عبر الرسائل النصية (Unifonic).'],
             ['key' => 'otp_primary_channel',  'value' => 'whatsapp', 'type' => 'string',  'group' => 'auth', 'label' => 'القناة الأساسية لإرسال OTP',  'description' => 'القناة التي تُجرَّب أولاً. القيمة المسموحة: whatsapp أو sms. الافتراضي whatsapp.'],
             ['key' => 'otp_fallback_enabled', 'value' => '1',        'type' => 'boolean', 'group' => 'auth', 'label' => 'التحويل التلقائي للقناة الأخرى عند الفشل', 'description' => 'عند التفعيل، إذا فشلت القناة الأساسية يُعاد الإرسال عبر القناة الأخرى (إن كانت مُفعّلة). عند الإيقاف، تُستخدم القناة الأساسية فقط.'],
+            ['key' => 'otp_whatsapp_send_in_local', 'value' => '0',  'type' => 'boolean', 'group' => 'auth', 'label' => 'الإرسال الفعلي عبر واتساب في بيئة التطوير (local)', 'description' => 'في الإنتاج تُرسَل رسائل واتساب فعلياً دائماً. أما في بيئة التطوير (local) فالافتراضي هو تسجيل الرسالة في السجل فقط دون إرسال حقيقي. فعّل هذا الخيار لإجبار الإرسال الفعلي عبر Wappi أثناء التطوير للتجربة (يتطلب رصيداً في حساب Wappi وبيانات اعتماد صحيحة).'],
             ['key' => 'platform_name', 'value' => 'دليل المجمعات الطبية', 'type' => 'string', 'group' => 'general', 'label' => 'اسم المنصة'],
             ['key' => 'platform_email', 'value' => 'info@saerha.sa', 'type' => 'string', 'group' => 'general', 'label' => 'البريد الرسمي'],
             ['key' => 'platform_phone', 'value' => '+966XXXXXXXXX', 'type' => 'string', 'group' => 'general', 'label' => 'رقم الهاتف الرسمي'],
@@ -292,13 +293,18 @@ class DatabaseSeeder extends Seeder
      */
     private function seedWhatsAppSenders(): void
     {
-        \App\Models\WhatsAppSender::firstOrCreate(
+        // Credentials come from .env so the secret token never lives in the
+        // repo. The full catalogue is managed at /app/admin/whatsapp-senders;
+        // this just seeds the primary number with whatever env provides.
+        \App\Models\WhatsAppSender::updateOrCreate(
             ['phone' => '966564844382'],
             [
-                'label'     => 'الرقم الرئيسي',
-                'provider'  => 'wappi',
-                'is_active' => true,
-                'priority'  => 0,
+                'label'      => 'الرقم الرئيسي',
+                'provider'   => 'wappi',
+                'profile_id' => env('WAPPI_PROFILE_ID') ?: null,
+                'token'      => env('WAPPI_TOKEN') ?: null,
+                'is_active'  => true,
+                'priority'   => 0,
             ],
         );
     }
