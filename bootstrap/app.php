@@ -27,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('saerha:dispatch-cart-reminders')->hourly();
         // Self-heal yesterday's landing-page analytics rollup overnight.
         $schedule->command('saerha:rollup-landing-stats')->dailyAt('02:30');
+        // Recompute automatic badges (most booked / fastest growing …) daily.
+        $schedule->command('saerha:badges-recompute')->dailyAt('03:00');
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR

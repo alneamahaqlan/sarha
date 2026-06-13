@@ -110,6 +110,7 @@ return [
     'clinic_search_no_results' => 'No matching results',
     // Hero specialty (category) filter
     'clinic_spec_filter_all' => 'All',
+    'clinic_spec_label' => 'Specialties',
     'clinic_spec_filter_active' => 'Specialty:',
     'clinic_spec_filter_clear' => 'Clear filter',
     // Instagram-style stories
@@ -719,4 +720,5 @@ Do not share this code with anyone. Valid for 5 minutes.',
     'lp_status_draft'     => 'Draft',
     'lp_status_published' => 'Published',
     'lp_status_archived'  => 'Archived',
+    'lp_visit_clinic'     => 'Visit the clinic page',
 ];

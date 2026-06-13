@@ -40,6 +40,7 @@ enum ClinicRole: string
                 'offers.*', 'packages.*',
                 'articles.*', 'before_after.*', 'stories.*',
                 'category_requests.*',
+                'landing_pages.*',
                 'page_builder.*', 'profile.view',
             ],
             self::RECEPTION => [
@@ -119,6 +120,8 @@ enum ClinicRole: string
             'before_after.view', 'before_after.manage',
             'stories.view', 'stories.manage',
             'category_requests.view',
+            // Landing pages — clinic-built, vetted once by the platform admin.
+            'landing_pages.view', 'landing_pages.manage',
             'page_builder.view', 'page_builder.manage',
             'profile.view', 'profile.manage',
             // Marketing tracking pixels — owner-only (sensitive: affects

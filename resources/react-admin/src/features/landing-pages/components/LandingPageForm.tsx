@@ -14,11 +14,13 @@ import { FileUpload } from '@/components/forms/FileUpload';
 import { FieldError } from '@/components/forms/FieldError';
 import { FormErrorSummary } from '@/components/forms/FormErrorSummary';
 import { useTranslation } from '@/app/providers/LocaleProvider';
+import { useAuth } from '@/app/providers/AuthProvider';
 import { extractMessage, extractValidationErrors } from '@/lib/api-client';
 import { useClinicLookup, useCityLookup, useCategoryLookup } from '@/features/lookups/hooks';
 
-import { landingPageFormSchema, slugify, type LandingPageFormSchema } from '../schemas/landing-page.schema';
+import { landingPageFormSchema, clinicLandingPageFormSchema, slugify, type LandingPageFormSchema } from '../schemas/landing-page.schema';
 import { useCreateLandingPage, useUpdateLandingPage } from '../hooks';
+import { useLandingScope } from '../scope';
 import { LANDING_STATUSES, LANDING_TYPES, type LandingPage, type LandingPageFormValues } from '../types';
 
 interface Props {
@@ -37,12 +39,12 @@ function toLocalInput(iso?: string | null): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function defaults(page?: LandingPage | null): LandingPageFormSchema {
+function defaults(page?: LandingPage | null, seedTitle?: string): LandingPageFormSchema {
   return {
     type: page?.type ?? 'clinic',
     status: page?.status ?? 'draft',
     slug: page?.slug ?? '',
-    title_ar: page?.title_ar ?? '',
+    title_ar: page?.title_ar ?? seedTitle ?? '',
     title_en: page?.title_en ?? '',
     internal_name: page?.internal_name ?? '',
     clinic_id: page?.clinic_id ?? null,
@@ -67,14 +69,22 @@ function defaults(page?: LandingPage | null): LandingPageFormSchema {
 
 export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
   const { t } = useTranslation();
+  const { scope } = useLandingScope();
+  // A clinic builds a page for ITSELF: the type is fixed to `clinic`, the page
+  // is auto-linked + auto-published on approval, so the page-type, status, and
+  // linked-entity controls are admin-only.
+  const isClinic = scope === 'clinic';
   const isEdit = !!page;
+  const { user } = useAuth();
+  // Seed a new clinic page's title with the complex name (the page IS the complex).
+  const seedTitle = isClinic && !page ? (user?.user?.name ?? '') : undefined;
 
   const form = useForm<LandingPageFormSchema>({
-    resolver: zodResolver(landingPageFormSchema),
-    defaultValues: defaults(page),
+    resolver: zodResolver(isClinic ? clinicLandingPageFormSchema : landingPageFormSchema),
+    defaultValues: defaults(page, seedTitle),
   });
 
-  useEffect(() => { form.reset(defaults(page)); }, [page, form]);
+  useEffect(() => { form.reset(defaults(page, seedTitle)); }, [page, seedTitle, form]);
 
   const { data: clinics } = useClinicLookup();
   const { data: cities } = useCityLookup();
@@ -139,21 +149,23 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>{t('landing_pages.type')}</Label>
-          <Select disabled={isEdit} value={type} onChange={(e) => form.setValue('type', e.target.value as LandingPageFormSchema['type'], { shouldDirty: true })}>
-            {LANDING_TYPES.map((tp) => <option key={tp} value={tp}>{t(`landing_pages.types.${tp}`)}</option>)}
-          </Select>
-          {isEdit && <p className="text-xs text-[var(--color-muted-foreground)]">{t('landing_pages.type_locked')}</p>}
+      {!isClinic && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label>{t('landing_pages.type')}</Label>
+            <Select disabled={isEdit} value={type} onChange={(e) => form.setValue('type', e.target.value as LandingPageFormSchema['type'], { shouldDirty: true })}>
+              {LANDING_TYPES.map((tp) => <option key={tp} value={tp}>{t(`landing_pages.types.${tp}`)}</option>)}
+            </Select>
+            {isEdit && <p className="text-xs text-[var(--color-muted-foreground)]">{t('landing_pages.type_locked')}</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('landing_pages.status')}</Label>
+            <Select value={form.watch('status')} onChange={(e) => form.setValue('status', e.target.value as LandingPageFormSchema['status'], { shouldDirty: true })}>
+              {LANDING_STATUSES.map((s) => <option key={s} value={s}>{t(`landing_pages.statuses.${s}`)}</option>)}
+            </Select>
+          </div>
         </div>
-        <div className="space-y-1.5">
-          <Label>{t('landing_pages.status')}</Label>
-          <Select value={form.watch('status')} onChange={(e) => form.setValue('status', e.target.value as LandingPageFormSchema['status'], { shouldDirty: true })}>
-            {LANDING_STATUSES.map((s) => <option key={s} value={s}>{t(`landing_pages.statuses.${s}`)}</option>)}
-          </Select>
-        </div>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-1.5">
@@ -187,8 +199,9 @@ export function LandingPageForm({ page, onSuccess, onCancel }: Props) {
         </div>
       </div>
 
-      {/* Linked entity — varies by type */}
-      {type === 'clinic' && (
+      {/* Linked entity — varies by type. Clinic pages are auto-linked to the
+          owning complex, so the picker is admin-only. */}
+      {!isClinic && type === 'clinic' && (
         <div className="space-y-1.5">
           <Label>{t('landing_pages.linked_clinic')}</Label>
           <Select value={form.watch('clinic_id') ?? ''} onChange={(e) => form.setValue('clinic_id', e.target.value ? Number(e.target.value) : null, { shouldDirty: true })}>

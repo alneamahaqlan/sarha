@@ -34,6 +34,16 @@ export const landingPageFormSchema = z.object({
 
 export type LandingPageFormSchema = z.infer<typeof landingPageFormSchema>;
 
+// Clinic-scoped variant: the slug is optional because the backend derives one
+// from the complex name/slug when omitted (the complex needn't pick a slug).
+export const clinicLandingPageFormSchema = landingPageFormSchema.extend({
+  slug: z
+    .string()
+    .max(255)
+    .regex(/^[a-z0-9-]*$/, 'must be lowercase letters, digits and dashes')
+    .optional(),
+});
+
 // Lightweight Str::slug equivalent for the live auto-fill on the title field.
 export function slugify(value: string): string {
   return value

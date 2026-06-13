@@ -81,6 +81,16 @@
             </span>
         </div>
 
+        {{-- Badges Center chips (admin-managed: manual + automatic rules). --}}
+        @php $cardBadges = app(\App\Services\ClinicBadgeService::class)->forCard($clinic); @endphp
+        @if(! empty($cardBadges))
+            <div class="flex flex-wrap gap-1 mb-2">
+                @foreach($cardBadges as $b)
+                    @include('public.partials.badge-chip', ['badge' => $b])
+                @endforeach
+            </div>
+        @endif
+
         @if($clinic->categories->isNotEmpty())
             <div class="flex flex-wrap gap-1">
                 @foreach($clinic->categories->take(3) as $cat)

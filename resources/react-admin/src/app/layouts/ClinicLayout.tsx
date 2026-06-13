@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone, ShoppingCart, Clapperboard } from 'lucide-react';
+import { LogOut, Languages, Sparkles, Stethoscope, Calendar, DollarSign, LayoutDashboard, FileText, ArrowUpFromLine, Building2, CreditCard, BarChart3, UserRound, Package, AlertTriangle, Images, Tags, MessageSquareWarning, LayoutPanelTop, BadgePercent, Users, Radar, BellRing, Megaphone, ShoppingCart, Clapperboard, LayoutTemplate } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import {
@@ -81,6 +81,7 @@ const clinicNav: NavEntry[] = [
       { to: '/clinic/articles', label: 'clinic_nav.articles', icon: FileText, requires: 'articles.view' },
       { to: '/clinic/team', label: 'clinic_nav.team', icon: Users, requires: 'team.view' },
       { to: '/clinic/page-builder', label: 'clinic_nav.page_builder', icon: LayoutPanelTop, requires: 'page_builder.view' },
+      { to: '/clinic/landing-pages', label: 'clinic_nav.landing_pages', icon: LayoutTemplate, requires: 'landing_pages.view' },
       { to: '/clinic/tracking', label: 'clinic_nav.tracking', icon: Radar, requires: 'tracking.view' },
       { to: '/clinic/cart', label: 'clinic_nav.cart', icon: ShoppingCart, requires: 'cart.view' },
       { to: '/clinic/abandoned-carts', label: 'clinic_nav.abandoned_carts', icon: ShoppingCart, requires: 'cart_leads.view' },

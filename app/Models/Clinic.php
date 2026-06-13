@@ -312,6 +312,18 @@ class Clinic extends Authenticatable
     }
 
     /**
+     * Display badges (Badges Center) currently attached to this complex —
+     * both manual assignments and auto-computed winners. Rendering filters
+     * to active badges whose pivot hasn't expired (see ClinicBadgeService).
+     */
+    public function badges()
+    {
+        return $this->belongsToMany(Badge::class, 'badge_clinic')
+            ->withPivot(['source', 'expires_at'])
+            ->withTimestamps();
+    }
+
+    /**
      * Smallest public count that is worth showing on the public header.
      * Below this, the customers/bookings tallies are hidden so brand-new
      * complexes don't broadcast "0 عميل / 0 حجز" to visitors and

@@ -38,6 +38,11 @@ class LandingPageRenderService
             'clinic'            => $clinic,
             'comparisonClinics' => $comparisonClinics,
             'listClinics'       => $listClinics,
+            // Per-page header/footer chrome. Always set on a landing page (even
+            // for the platform "default") so layouts.public routes through the
+            // landing chrome partials instead of the global header/footer.
+            'lpHeader'          => ['mode' => $page->header_mode ?: 'default', 'config' => $page->header_config ?: []],
+            'lpFooter'          => ['mode' => $page->footer_mode ?: 'default', 'config' => $page->footer_config ?: []],
         ];
     }
 
@@ -82,10 +87,13 @@ class LandingPageRenderService
             return null;
         }
 
-        return Clinic::publiclyVisible()
+        $clinic = Clinic::publiclyVisible()
             ->whereKey($clinicId)
             ->with([
                 'city',
+                // Hero "clinic header" mode needs categories + live stories.
+                'categories',
+                'stories',
                 'services' => fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->orderBy('sort_order'),
                 'doctors',
                 'offers' => fn ($q) => $q->orderByDesc('is_featured')->orderByDesc('starts_at'),
@@ -97,7 +105,17 @@ class LandingPageRenderService
             ])
             ->withAvg('googleReviews', 'rating')
             ->withCount('googleReviews')
+            // Public tallies shown in the clinic hero.
+            ->withCount(['followers', 'customers', 'bookings'])
             ->first();
+
+        // Package-driven verified badge (mirrors ClinicController::show) so the
+        // hero renders identically when used as a landing header section.
+        if ($clinic) {
+            $clinic->setAttribute('is_verified_badge', app(\App\Services\FeatureGate::class)->hasVerifiedBadge($clinic));
+        }
+
+        return $clinic;
     }
 
     /** The ordered, publicly-visible complexes in a comparison page. */

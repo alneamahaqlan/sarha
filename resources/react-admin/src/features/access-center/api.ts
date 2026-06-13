@@ -25,6 +25,16 @@ export interface QueueItem {
   route: string;
 }
 
+export interface LandingRequest {
+  landing_page_id: number;
+  clinic_id: number;
+  clinic_name: string | null;
+  title: string | null;
+  slug: string;
+  preview_url: string;
+  submitted_at: string | null;
+}
+
 export interface ClinicGates {
   id: number;
   name: string;
@@ -45,7 +55,7 @@ export const accessCenterApi = {
     (await apiClient.get<{ data: { gates: GateMeta[] } }>('/admin/access-center/meta')).data.data,
 
   pending: async () =>
-    (await apiClient.get<{ data: { pending: PendingItem[]; queues: QueueItem[] } }>('/admin/access-center/pending')).data.data,
+    (await apiClient.get<{ data: { pending: PendingItem[]; queues: QueueItem[]; landing_requests: LandingRequest[] } }>('/admin/access-center/pending')).data.data,
 
   clinics: async (search: string) =>
     (await apiClient.get<{ data: ClinicGates[] }>('/admin/access-center/clinics', {
@@ -57,4 +67,7 @@ export const accessCenterApi = {
 
   action: async (gate: string, clinicId: number, action: GateAction, reason?: string) =>
     (await apiClient.post(`/admin/access-center/gates/${gate}/clinics/${clinicId}/action`, { action, ...(reason ? { reason } : {}) })).data,
+
+  landingAction: async (pageId: number, action: 'approve' | 'reject', reason?: string) =>
+    (await apiClient.post(`/admin/access-center/landing-pages/${pageId}/action`, { action, ...(reason ? { reason } : {}) })).data,
 };

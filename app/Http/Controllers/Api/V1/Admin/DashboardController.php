@@ -160,7 +160,8 @@ class DashboardController extends Controller
                         ->sum(fn ($g) => Clinic::where($g['status'], 'pending')->count())
                     + \App\Models\CategoryRequest::where('status', 'pending')->count()
                     + \App\Models\CatalogService::where('status', 'pending')->count()
-                    + \App\Models\ClinicCampaign::where('type', 'managed')->where('managed_status', 'submitted')->count(),
+                    + \App\Models\ClinicCampaign::where('type', 'managed')->where('managed_status', 'submitted')->count()
+                    + \App\Models\LandingPage::where('approval_status', 'pending')->whereNotNull('owner_clinic_id')->count(),
                 // Sales leads whose follow-up time has passed (still open).
                 'sales_followups_overdue' => \App\Models\SalesLead::whereNotNull('next_follow_up_at')
                     ->where('next_follow_up_at', '<=', now())

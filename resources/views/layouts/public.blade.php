@@ -44,8 +44,14 @@
 </head>
 <body class="bg-cream antialiased">
 
-{{-- Navigation (admin-managed links via navigation_links + LayoutComposer) --}}
-@include('layouts.partials.header')
+{{-- Navigation (admin-managed links via navigation_links + LayoutComposer).
+     Landing pages may override the header per-page ($lpHeader); the landing
+     chrome partial delegates back here for the "default" mode. --}}
+@isset($lpHeader)
+    @include('public.landing.partials.chrome-header', ['lp' => $lpHeader])
+@else
+    @include('layouts.partials.header')
+@endisset
 
 {{-- Flash messages --}}
 @if(session('success') || session('error'))
@@ -69,8 +75,13 @@
 
 @yield('content')
 
-{{-- Footer (admin-managed columns + contact/social via LayoutComposer) --}}
-@include('layouts.partials.footer')
+{{-- Footer (admin-managed columns + contact/social via LayoutComposer).
+     Landing pages may override the footer per-page ($lpFooter). --}}
+@isset($lpFooter)
+    @include('public.landing.partials.chrome-footer', ['lp' => $lpFooter])
+@else
+    @include('layouts.partials.footer')
+@endisset
 
 {{-- Global AI chat widget --}}
 @livewire('ai-chat')

@@ -177,6 +177,14 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Deletion is rejected at controller level if any clinic is on the package.
         Route::apiResource('subscription-packages', \App\Http\Controllers\Api\V1\Admin\SubscriptionPackageController::class);
 
+        // Badges Center — display badges (manual + automatic rules). Specific
+        // routes precede the resource so they aren't captured by badges/{badge}.
+        Route::get('badges/rules', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'rules'])->name('badges.rules');
+        Route::get('badges/clinics/search', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'searchClinics'])->name('badges.clinics.search');
+        Route::post('badges/recompute', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'recompute'])->name('badges.recompute');
+        Route::post('badges/{badge}/clinics', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'syncClinics'])->name('badges.clinics');
+        Route::apiResource('badges', \App\Http\Controllers\Api\V1\Admin\BadgeController::class);
+
         // UserResource has no Delete in Filament — restrict to index/show/store/update only.
         Route::apiResource('users', UserController::class)->except(['destroy']);
 
@@ -333,6 +341,7 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::get('access-center/clinics',  [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'clinics'])->name('admin.access-center.clinics');
         Route::get('access-center/packages', [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'packages'])->name('admin.access-center.packages');
         Route::post('access-center/gates/{gate}/clinics/{clinic}/action', [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'action'])->name('admin.access-center.action');
+        Route::post('access-center/landing-pages/{landing_page}/action', [\App\Http\Controllers\Api\V1\Admin\AccessCenterController::class, 'landingAction'])->name('admin.access-center.landing-action');
 
         // Abandoned carts (unbooked items) — per-clinic roll-up + drill-down. Read-only.
         Route::get('abandoned-carts', [\App\Http\Controllers\Api\V1\Admin\AbandonedCartController::class, 'index'])->name('admin.abandoned-carts.index');
@@ -686,6 +695,29 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
             Route::post('page-sections/reorder', [ClinicPageSectionController::class, 'reorder'])->name('clinic.page-sections.reorder');
             Route::patch('page-sections/{section}', [ClinicPageSectionController::class, 'update'])
                 ->name('clinic.page-sections.update');
+        });
+
+        // Landing pages — a complex builds profile-style pages for itself
+        // (type forced to `clinic`). Read to browse/preview; manage to
+        // create/edit/submit. Each page is vetted once by the platform admin
+        // (Access Center) before its first public appearance.
+        Route::middleware('clinic.role:landing_pages.view')->group(function () {
+            Route::get('landing-pages', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'index'])->name('clinic.landing-pages.index');
+            Route::get('landing-pages/{landing_page}', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'show'])->name('clinic.landing-pages.show');
+            Route::get('landing-pages/{landing_page}/blocks', [\App\Http\Controllers\Api\V1\Clinic\LandingPageBlockController::class, 'index'])->name('clinic.landing-pages.blocks.index');
+            Route::get('landing-pages/{landing_page}/stats', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'stats'])->name('clinic.landing-pages.stats');
+            Route::get('landing-pages/{landing_page}/customers', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'customers'])->name('clinic.landing-pages.customers');
+        });
+        Route::middleware('clinic.role:landing_pages.manage')->group(function () {
+            Route::post('landing-pages', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'store'])->name('clinic.landing-pages.store');
+            Route::patch('landing-pages/{landing_page}', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'update'])->name('clinic.landing-pages.update');
+            Route::delete('landing-pages/{landing_page}', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'destroy'])->name('clinic.landing-pages.destroy');
+            Route::post('landing-pages/{landing_page}/submit', [\App\Http\Controllers\Api\V1\Clinic\LandingPageController::class, 'submit'])->name('clinic.landing-pages.submit');
+
+            Route::post('landing-pages/{landing_page}/blocks/reorder', [\App\Http\Controllers\Api\V1\Clinic\LandingPageBlockController::class, 'reorder'])->name('clinic.landing-pages.blocks.reorder');
+            Route::post('landing-pages/{landing_page}/blocks', [\App\Http\Controllers\Api\V1\Clinic\LandingPageBlockController::class, 'store'])->name('clinic.landing-pages.blocks.store');
+            Route::patch('landing-pages/{landing_page}/blocks/{block}', [\App\Http\Controllers\Api\V1\Clinic\LandingPageBlockController::class, 'update'])->name('clinic.landing-pages.blocks.update');
+            Route::delete('landing-pages/{landing_page}/blocks/{block}', [\App\Http\Controllers\Api\V1\Clinic\LandingPageBlockController::class, 'destroy'])->name('clinic.landing-pages.blocks.destroy');
         });
 
         // Team management — owner only.

@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Api\V1\Admin;
 
+use App\Http\Requests\Api\V1\Concerns\LandingChromeRules;
 use App\Models\LandingPage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreLandingPageRequest extends FormRequest
 {
+    use LandingChromeRules;
+
     public function authorize(): bool
     {
         return $this->user('admin') !== null
@@ -16,7 +19,7 @@ class StoreLandingPageRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        return array_merge($this->chromeRules(), [
             'type'          => ['required', Rule::in(LandingPage::TYPES)],
             'status'        => ['nullable', Rule::in(LandingPage::STATUSES)],
             'slug'          => ['required', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', 'unique:landing_pages,slug'],
@@ -65,6 +68,6 @@ class StoreLandingPageRequest extends FormRequest
 
             'schema_markup' => ['nullable', 'array'],
             'schema_type'   => ['nullable', 'string', 'max:100'],
-        ];
+        ]);
     }
 }

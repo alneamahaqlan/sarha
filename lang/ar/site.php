@@ -110,6 +110,7 @@ return [
     'clinic_search_no_results' => 'لا توجد نتائج مطابقة',
     // Hero specialty (category) filter
     'clinic_spec_filter_all' => 'الكل',
+    'clinic_spec_label' => 'التخصصات',
     'clinic_spec_filter_active' => 'عرض تخصص:',
     'clinic_spec_filter_clear' => 'إلغاء التصفية',
     // Instagram-style stories
@@ -717,4 +718,5 @@ return [
     'lp_status_draft'     => 'مسودة',
     'lp_status_published' => 'منشورة',
     'lp_status_archived'  => 'مؤرشفة',
+    'lp_visit_clinic'     => 'زيارة صفحة المجمع',
 ];

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ShieldCheck, Inbox, Building2, Package, ArrowLeft, Check, X, Ban } from 'lucide-react';
+import { ShieldCheck, Inbox, Building2, Package, ArrowLeft, Check, X, Ban, ExternalLink } from 'lucide-react';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
@@ -19,10 +19,10 @@ import {
 } from '@/components/ui/dialog';
 import { useDebouncedValue } from '@/lib/use-debounced-value';
 import {
-  useAccessMeta, useAccessPending, useAccessClinics, useAccessPackages, useGateAction,
+  useAccessMeta, useAccessPending, useAccessClinics, useAccessPackages, useGateAction, useLandingRequestAction,
 } from '../hooks';
 import type {
-  GateMeta, GateStatus, PendingItem, ClinicGates, FlagValue,
+  GateMeta, GateStatus, PendingItem, ClinicGates, FlagValue, LandingRequest,
 } from '../api';
 
 const STATUS_VARIANT: Record<GateStatus, 'warning' | 'success' | 'danger' | 'muted'> = {
@@ -48,6 +48,7 @@ export function AccessCenterPage() {
   const { data: pending } = useAccessPending();
   const pendingCount = pending?.pending.length ?? 0;
   const queueCount = pending?.queues.reduce((s, q) => s + q.count, 0) ?? 0;
+  const landingCount = pending?.landing_requests.length ?? 0;
 
   return (
     <div className="space-y-6">
@@ -64,9 +65,9 @@ export function AccessCenterPage() {
           <TabsTrigger value="inbox" className="gap-1.5">
             <Inbox className="h-4 w-4" />
             {t('access_center.tab_inbox')}
-            {pendingCount + queueCount > 0 && (
+            {pendingCount + queueCount + landingCount > 0 && (
               <span className="ms-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--color-primary)] px-1 text-[11px] font-bold text-white">
-                {pendingCount + queueCount}
+                {pendingCount + queueCount + landingCount}
               </span>
             )}
           </TabsTrigger>
@@ -148,6 +149,9 @@ function InboxTab() {
         </Table>
       </div>
 
+      {/* Landing-page approval requests (per-page, actionable inline + preview). */}
+      <LandingRequestsSection requests={data?.landing_requests ?? []} loading={isLoading} />
+
       {/* External request queues (different shapes — deep-link to their pages). */}
       <div className="space-y-2">
         <h2 className="text-sm font-semibold text-[var(--color-muted-foreground)]">{t('access_center.other_queues')}</h2>
@@ -205,6 +209,103 @@ function RejectDialog({ item, onClose }: { item: PendingItem; onClose: () => voi
         <div className="space-y-1.5">
           <Label htmlFor="reason">{t('access_center.reject_reason')}</Label>
           <Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
+          <Button variant="destructive" onClick={submit} disabled={act.isPending}>
+            {act.isPending ? t('common.loading') : t('access_center.reject')}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function LandingRequestsSection({ requests, loading }: { requests: LandingRequest[]; loading: boolean }) {
+  const { t } = useTranslation();
+  const act = useLandingRequestAction();
+  const [rejecting, setRejecting] = useState<LandingRequest | null>(null);
+
+  const approve = async (req: LandingRequest) => {
+    try {
+      await act.mutateAsync({ pageId: req.landing_page_id, action: 'approve' });
+      toast.success(t('access_center.done'));
+    } catch (e) {
+      toast.error(extractMessage(e, t('errors.generic')));
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <h2 className="text-sm font-semibold text-[var(--color-muted-foreground)]">{t('access_center.landing_requests')}</h2>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t('access_center.col_clinic')}</TableHead>
+            <TableHead>{t('access_center.col_landing_page')}</TableHead>
+            <TableHead className="text-end">{t('common.actions')}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableRow><TableCell colSpan={3} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.loading')}</TableCell></TableRow>
+          ) : requests.length === 0 ? (
+            <TableRow><TableCell colSpan={3} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('access_center.no_landing_requests')}</TableCell></TableRow>
+          ) : (
+            requests.map((req) => (
+              <TableRow key={req.landing_page_id}>
+                <TableCell className="font-medium">{req.clinic_name ?? `#${req.clinic_id}`}</TableCell>
+                <TableCell>
+                  <a href={req.preview_url} target="_blank" rel="noopener" className="inline-flex items-center gap-1 hover:underline">
+                    {req.title || req.slug}
+                    <ExternalLink className="h-3.5 w-3.5 text-[var(--color-muted-foreground)]" />
+                  </a>
+                </TableCell>
+                <TableCell className="text-end">
+                  <div className="flex justify-end gap-1">
+                    <Button size="sm" disabled={act.isPending} onClick={() => approve(req)} className="gap-1">
+                      <Check className="h-4 w-4" />{t('access_center.approve')}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setRejecting(req)} className="gap-1">
+                      <X className="h-4 w-4" />{t('access_center.reject')}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+
+      {rejecting && <LandingRejectDialog req={rejecting} onClose={() => setRejecting(null)} />}
+    </div>
+  );
+}
+
+function LandingRejectDialog({ req, onClose }: { req: LandingRequest; onClose: () => void }) {
+  const { t } = useTranslation();
+  const act = useLandingRequestAction();
+  const [reason, setReason] = useState('');
+
+  const submit = async () => {
+    try {
+      await act.mutateAsync({ pageId: req.landing_page_id, action: 'reject', reason });
+      toast.success(t('access_center.rejected'));
+      onClose();
+    } catch (e) {
+      toast.error(extractMessage(e, t('errors.generic')));
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t('access_center.reject_title')}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-1.5">
+          <Label htmlFor="lp-reason">{t('access_center.reject_reason')}</Label>
+          <Textarea id="lp-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>{t('common.cancel')}</Button>
