@@ -204,6 +204,8 @@
             <p>@lang('site.no_results_subtitle')</p>
         </div>
     @else
+        {{-- Warm the badge memo once for the page so each card's forCard() is a memory hit (no N+1). --}}
+        @php app(\App\Services\ClinicBadgeService::class)->forClinics($clinics->getCollection()->pluck('id')->all(), 'cards'); @endphp
         <div class="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
             @foreach($clinics as $clinic)
                 <div class="relative">

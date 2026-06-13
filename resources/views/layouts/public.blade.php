@@ -23,10 +23,11 @@
     <meta property="og:image" content="@yield('og_image', asset('images/og-default.png'))">
     <meta property="og:url" content="{{ url()->current() }}">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {{-- Brand fonts: Readex Pro (headings), IBM Plex Sans Arabic (body), Inter (latin), JetBrains Mono (numerics/code) --}}
-    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- Brand fonts are now self-hosted (see resources/css/fonts.css + public/fonts/),
+         so there's no render-blocking Google Fonts round-trip. Preload only the two
+         hot Arabic subsets (body 400 + headings) so first paint has its glyphs. --}}
+    <link rel="preload" href="{{ asset('fonts/ibm-plex-sans-arabic-400-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/readex-pro-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>

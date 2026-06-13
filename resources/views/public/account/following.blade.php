@@ -64,6 +64,8 @@
                     </a>
                 </div>
             @else
+                {{-- Warm the badge memo once so each card's forCard() is a memory hit (no N+1). --}}
+                @php app(\App\Services\ClinicBadgeService::class)->forClinics($clinics->getCollection()->pluck('id')->all(), 'cards'); @endphp
                 <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                     @foreach($clinics as $clinic)
                         @include('public.partials.clinic-card', ['clinic' => $clinic, 'badgeContext' => $clinics->getCollection()])

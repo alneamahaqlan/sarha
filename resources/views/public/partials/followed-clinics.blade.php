@@ -18,6 +18,8 @@
         </div>
         {{-- 2-up on mobile (was full-width) to match the offers strip; items
              beyond 6 hide until sm, with "عرض المزيد" opening the full page. --}}
+        {{-- Warm the badge memo once so each card's forCard() is a memory hit (no N+1). --}}
+        @php app(\App\Services\ClinicBadgeService::class)->forClinics($followedClinics->pluck('id')->all(), 'cards'); @endphp
         <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 items-stretch">
             @foreach($followedClinics as $i => $clinic)
                 <div class="reveal {{ $i >= 6 ? 'hidden sm:block' : '' }}" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">

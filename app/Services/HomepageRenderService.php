@@ -21,6 +21,15 @@ use Illuminate\Support\Facades\Cache;
  */
 class HomepageRenderService
 {
+    /**
+     * Section types whose data depends on the *current viewer* (their follows),
+     * so they must never be cached across requests — resolved fresh every time.
+     */
+    private const PERSONALIZED_TYPES = ['followed_offers', 'followed_clinics'];
+
+    /** Short TTL (seconds) for the per-section data cache — bounds staleness of offers/prices. */
+    private const DATA_CACHE_TTL = 120;
+
     /** @return Collection<int, array{section: HomepageSection, data: array}> */
     public function build(): Collection
     {
@@ -30,9 +39,20 @@ class HomepageRenderService
             fn () => HomepageSection::renderable()->with('bannerSlides')->get(),
         );
 
+        $locale = app()->getLocale();
+
         return $sections->map(fn (HomepageSection $s) => [
             'section' => $s,
-            'data'    => $this->dataFor($s),
+            // Personalised sections resolve per-request; everything else is
+            // shared across visitors, so cache its (DB-heavy) data for a short
+            // window to keep the homepage off the database on every hit.
+            'data'    => in_array($s->type, self::PERSONALIZED_TYPES, true)
+                ? $this->dataFor($s)
+                : Cache::remember(
+                    "home:section:{$s->id}:{$locale}",
+                    self::DATA_CACHE_TTL,
+                    fn () => $this->dataFor($s),
+                ),
         ]);
     }
 
