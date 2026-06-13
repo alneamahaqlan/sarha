@@ -381,6 +381,25 @@ return [
     'followed_offers_subtitle' => 'The latest live offers from the complexes you chose to follow',
     'followed_clinics_title' => 'Complexes you follow',
     'followed_clinics_subtitle' => 'All your favourite complexes in one place to keep up with their latest',
+    'followed_show_more' => 'Show more',
+    // Full followed-offers page
+    'followed_offers_page_title' => 'Offers from complexes you follow',
+    'followed_offers_page_subtitle' => 'All live offers from the complexes you follow — with search and filters',
+    'followed_offers_empty' => 'No live offers from the complexes you follow right now.',
+    'followed_offers_empty_filtered' => 'No offers match your search or selected filters.',
+    'followed_offers_search_ph' => 'Search offers…',
+    // Full followed-clinics page
+    'followed_clinics_page_title' => 'Complexes you follow',
+    'followed_clinics_page_subtitle' => 'Every complex you chose to follow — with search and filters',
+    'followed_clinics_empty' => 'You are not following any complex yet.',
+    'followed_clinics_empty_filtered' => 'No complexes match your search or selected filters.',
+    'followed_clinics_search_ph' => 'Search complexes…',
+    // Shared filter UI (followed pages)
+    'followed_filter_city' => 'All cities',
+    'followed_filter_category' => 'All specialties',
+    'followed_filter_clinic' => 'All complexes',
+    'followed_filter_apply' => 'Apply',
+    'followed_filter_reset' => 'Clear filters',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'Save to favorites',
@@ -537,7 +556,7 @@ return [
 
     // Auth (OTP)
     'login_title' => 'Sign in',
-    'login_subtitle' => 'Sign in with your phone number',
+    'login_subtitle' => 'Sign in or create your account with your phone number',
     'send_otp' => 'Send verification code',
     'otp_label' => 'Verification code',
     'otp_sent_to' => 'A code has been sent to :phone',
@@ -615,6 +634,7 @@ Do not share this code with anyone. Valid for 5 minutes.',
     'change_phone' => 'Change phone number',
     'create_clinic_account' => 'Create a new clinic account',
     'otp_invalid' => 'Invalid or expired verification code',
+    'session_expired_retry' => 'The page expired, please try again.',
     'dev_code' => '[dev: :code]',
     'account_blocked' => 'Your account is suspended. Please contact support.',
     'phone_invalid' => 'Phone must start with 05 and be 10 digits long',

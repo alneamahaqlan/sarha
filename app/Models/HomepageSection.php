@@ -32,6 +32,9 @@ class HomepageSection extends Model
         'categories', 'category_offers', 'ai_highlight',
         'how_it_works', 'clinic_list', 'map', 'cta',
         'price_quote', 'faqs',
+        // Personalised strips — only render for a signed-in customer who
+        // follows complexes (self-hide otherwise). See [[clinic-follow-feature]].
+        'followed_offers', 'followed_clinics',
     ];
 
     /** Max Q&A rows a `faqs` section stores / renders (config.faqs). */

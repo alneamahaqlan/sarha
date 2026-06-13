@@ -4,7 +4,7 @@
 @endphp
 
 <a href="{{ route('clinic.show', $clinic->slug) }}"
-   class="bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden block group relative">
+   class="bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full group relative">
 
     {{-- Smart badges overlay --}}
     @if(! empty($badges))
@@ -54,7 +54,7 @@
         </div>
     @endif
 
-    <div class="p-4">
+    <div class="p-4 flex-1 flex flex-col">
         <div class="flex items-start justify-between mb-2 gap-2">
             <h3 class="font-display font-bold text-charcoal group-hover:text-sage-600 transition-colors leading-snug">
                 {{ $clinic->name }}
@@ -103,7 +103,7 @@
 
         {{-- Starting price — shown whenever the list query loaded min_price --}}
         @if(! is_null($clinic->min_price ?? null))
-            <p class="mt-3 text-sm font-semibold text-sage-700">
+            <p class="mt-auto pt-3 text-sm font-semibold text-sage-700">
                 {{ __('site.starting_from', ['amount' => number_format($clinic->min_price)]) }} <x-riyal />
             </p>
         @endif

@@ -3335,7 +3335,9 @@
       "map":                 "Complexes map",
       "cta_for_clinics":     "Register-your-complex CTA",
       "price_quote":         "Custom price quote CTA",
-      "faqs":                "FAQ"
+      "faqs":                "FAQ",
+      "followed_offers":     "Offers from complexes the customer follows",
+      "followed_clinics":    "Complexes the customer follows"
     },
     "type_hero":            "Hero with search",
     "type_stats":           "Animated stats",
@@ -3351,6 +3353,8 @@
     "type_cta":             "Call-to-action",
     "type_price_quote":     "Custom price quote CTA",
     "type_faqs":            "FAQ accordion",
+    "type_followed_offers":  "Followed offers (per-customer)",
+    "type_followed_clinics": "Followed complexes (per-customer)",
     "faqs_label":           "Questions & answers",
     "faqs_hint":            "Add up to 5 FAQs. Only complete pairs (question + answer) show on the homepage.",
     "faq_question":         "Question",

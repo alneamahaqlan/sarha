@@ -28,6 +28,10 @@ class HomepageSectionsSeeder extends Seeder
 
             // ── New sections (inserted before "categories") ─────────
             ['banner',              'banner',          30, null, ['interval' => 5]],
+            // Personalised strips — right after the banner. Self-hide for
+            // guests / non-followers. Admin can reorder/toggle from the CMS.
+            ['followed_offers',     'followed_offers',  32, 8,   null],
+            ['followed_clinics',    'followed_clinics', 34, 12,  null],
             ['offers',              'offers',          40, 8,    ['min_discount' => 10]],
             ['articles',            'articles',        50, 6,    ['only_published' => true]],
             ['category_offers_1',   'category_offers', 60, 6,    ['category_slug' => 'dentistry']],
@@ -55,24 +59,29 @@ class HomepageSectionsSeeder extends Seeder
             ['cta_for_clinics',     'cta',            160, null, null],
         ];
 
+        // Insert-only-if-missing: re-running adds new sections (e.g. the
+        // personalised "followed" strips) without clobbering an admin's
+        // reordering / toggles / title overrides on existing rows.
         foreach ($sections as [$key, $type, $order, $limit, $config]) {
-            DB::table('homepage_sections')->updateOrInsert(
-                ['key' => $key],
-                [
-                    'type'                    => $type,
-                    'is_active'               => true,
-                    'sort_order'              => $order,
-                    'item_limit'              => $limit,
-                    'banner_interval_seconds' => $type === 'banner' ? 5 : null,
-                    'show_on_mobile'          => true,
-                    'show_on_desktop'         => true,
-                    'starts_at'               => null,
-                    'ends_at'                 => null,
-                    'config'                  => $config ? json_encode($config, JSON_UNESCAPED_UNICODE) : null,
-                    'updated_at'              => $now,
-                    'created_at'              => DB::raw("COALESCE((SELECT created_at FROM homepage_sections AS hs WHERE hs.`key` = '" . addslashes($key) . "' LIMIT 1), '" . $now->toDateTimeString() . "')"),
-                ]
-            );
+            if (DB::table('homepage_sections')->where('key', $key)->exists()) {
+                continue;
+            }
+
+            DB::table('homepage_sections')->insert([
+                'key'                     => $key,
+                'type'                    => $type,
+                'is_active'               => true,
+                'sort_order'              => $order,
+                'item_limit'              => $limit,
+                'banner_interval_seconds' => $type === 'banner' ? 5 : null,
+                'show_on_mobile'          => true,
+                'show_on_desktop'         => true,
+                'starts_at'               => null,
+                'ends_at'                 => null,
+                'config'                  => $config ? json_encode($config, JSON_UNESCAPED_UNICODE) : null,
+                'created_at'              => $now,
+                'updated_at'              => $now,
+            ]);
         }
 
         // Seed a few demo banner slides if the banner section just got created

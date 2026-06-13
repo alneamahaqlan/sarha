@@ -91,6 +91,14 @@ class OtpController extends Controller
 
     public function verifyOtp(Request $request)
     {
+        // A duplicate submit can land right after the first one already
+        // logged the user in (the session was migrated and the OTP marked
+        // used). Don't reject the second request — just forward the
+        // now-authenticated user to where they were headed.
+        if (auth('web')->check()) {
+            return redirect()->intended(route('home'));
+        }
+
         $request->validate([
             'phone' => 'required|string|max:20',
             'code' => 'required|string|size:6',

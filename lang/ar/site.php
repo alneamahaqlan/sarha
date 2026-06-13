@@ -381,6 +381,25 @@ return [
     'followed_offers_subtitle' => 'أحدث العروض السارية من المجمعات التي اخترت متابعتها',
     'followed_clinics_title' => 'المجمعات التي تتابعها',
     'followed_clinics_subtitle' => 'كل مجمعاتك المفضلة في مكان واحد لمتابعة جديدها',
+    'followed_show_more' => 'عرض المزيد',
+    // Full followed-offers page
+    'followed_offers_page_title' => 'عروض المجمعات التي تتابعها',
+    'followed_offers_page_subtitle' => 'كل العروض السارية من المجمعات التي تتابعها — مع بحث وفلترة',
+    'followed_offers_empty' => 'لا توجد عروض سارية من المجمعات التي تتابعها حالياً.',
+    'followed_offers_empty_filtered' => 'لا توجد عروض مطابقة لبحثك أو الفلاتر المختارة.',
+    'followed_offers_search_ph' => 'ابحث في العروض…',
+    // Full followed-clinics page
+    'followed_clinics_page_title' => 'المجمعات التي تتابعها',
+    'followed_clinics_page_subtitle' => 'كل المجمعات التي اخترت متابعتها — مع بحث وفلترة',
+    'followed_clinics_empty' => 'لم تتابع أي مجمع بعد.',
+    'followed_clinics_empty_filtered' => 'لا توجد مجمعات مطابقة لبحثك أو الفلاتر المختارة.',
+    'followed_clinics_search_ph' => 'ابحث في المجمعات…',
+    // Shared filter UI (followed pages)
+    'followed_filter_city' => 'كل المدن',
+    'followed_filter_category' => 'كل التخصصات',
+    'followed_filter_clinic' => 'كل المجمعات',
+    'followed_filter_apply' => 'تطبيق',
+    'followed_filter_reset' => 'مسح الفلاتر',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'حفظ في المفضلة',
@@ -535,7 +554,7 @@ return [
 
     // Auth (OTP)
     'login_title' => 'تسجيل الدخول',
-    'login_subtitle' => 'سجّل دخولك برقم هاتفك',
+    'login_subtitle' => 'سجّل دخولك أو أنشئ حسابك برقم هاتفك',
     'send_otp' => 'إرسال رمز التحقق',
     'otp_label' => 'رمز التحقق',
     'otp_sent_to' => 'تم إرسال رمز التحقق إلى :phone',
@@ -613,6 +632,7 @@ return [
     'change_phone' => 'تغيير رقم الهاتف',
     'create_clinic_account' => 'إنشاء حساب مجمع جديد',
     'otp_invalid' => 'رمز التحقق غير صحيح أو منتهي الصلاحية',
+    'session_expired_retry' => 'انتهت صلاحية الصفحة، يرجى المحاولة مرة أخرى.',
     'dev_code' => '[تطوير: :code]',
     'account_blocked' => 'حسابك معلّق، يرجى التواصل مع الإدارة',
     'phone_invalid' => 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام',

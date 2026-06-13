@@ -134,6 +134,10 @@ Route::middleware('auth:web')->group(function () {
     Route::patch('/account', [AccountController::class, 'update'])->name('account.update');
     Route::get('/account/bookings', [AccountController::class, 'bookings'])->name('account.bookings');
     Route::get('/account/favorites', [AccountController::class, 'favorites'])->name('account.favorites');
+    // Full, searchable/filterable lists for the homepage "followed" strips
+    // (the strips themselves cap mobile to 6 and link here for the rest).
+    Route::get('/account/following', [AccountController::class, 'following'])->name('account.following');
+    Route::get('/account/following/offers', [AccountController::class, 'followingOffers'])->name('account.following.offers');
     Route::get('/account/quotes', [AccountController::class, 'quotes'])->name('account.quotes');
     Route::get('/account/complaints', [AccountController::class, 'complaints'])->name('account.complaints');
     Route::post('/account/complaints', [AccountController::class, 'storeComplaint'])->name('account.complaints.store');

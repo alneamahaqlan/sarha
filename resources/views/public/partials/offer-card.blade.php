@@ -9,7 +9,44 @@
 
     Expects: $offer (App\Models\Offer), $clinic, $large (bool)
 --}}
+{{-- Countdown Alpine factory — defined once per page, wherever offer-card is
+     used (homepage, clinic profile, similar strips…), so the card is fully
+     self-contained and never depends on another partial loading the script. --}}
+@once
+    @push('scripts')
+    <script>
+        function offerCountdown(endsAtIso) {
+            return {
+                endsAt: new Date(endsAtIso).getTime(),
+                label: '', urgent: false, _timer: null,
+                update() {
+                    const ms = this.endsAt - Date.now();
+                    if (ms <= 0) {
+                        this.label = @json(__('site.offer_countdown_expired'));
+                        this.urgent = true;
+                        if (this._timer) { clearInterval(this._timer); }
+                        return;
+                    }
+                    const hours = Math.floor(ms / (1000 * 60 * 60));
+                    if (hours < 1) {
+                        this.label = @json(__('site.offer_countdown_ending'));
+                        this.urgent = true;
+                    } else if (hours < 24) {
+                        this.label = @json(__('site.offer_countdown_hours')).replace(':h', hours);
+                        this.urgent = true;
+                    } else {
+                        this.label = @json(__('site.offer_countdown_days')).replace(':d', Math.floor(hours / 24));
+                        this.urgent = false;
+                    }
+                },
+                start() { this.update(); this._timer = setInterval(() => this.update(), 60_000); },
+            };
+        }
+    </script>
+    @endpush
+@endonce
 @php
+    $large = $large ?? false;
     $imageUrl  = $offer->effectiveImage()
         ? \Illuminate\Support\Facades\Storage::url($offer->effectiveImage())
         : null;
@@ -25,7 +62,7 @@
         ? $offer->service->categories->pluck('id')->all() : [];
 @endphp
 
-<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+<div class="relative bg-white rounded-3xl shadow-soft hover:shadow-soft-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col h-full"
      @if($spec ?? false) x-show="$store.spec.show(@js($specCats))" @endif>
     {{-- Save + compare are siblings of (not nested in) the navigation links so
          tapping them never triggers a page change. flex-col-reverse keeps the
@@ -33,12 +70,20 @@
     <div class="absolute bottom-3 end-3 z-20 flex flex-col-reverse gap-1.5">
         <x-save-button :model="$offer" type="offer" />
         <x-compare-toggle type="offer" :id="$offer->id" :name="$offer->title" />
+        <x-add-to-cart-button :model="$offer" type="offer" :clinic="$clinic" compact />
     </div>
 
-    <a href="{{ $offerHref }}" class="relative block {{ $large ? 'aspect-[16/9]' : 'aspect-[4/3]' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-4xl">
+    {{-- Fixed, compact image height (not width-driven aspect-ratio) so cards
+         stay small and uniform across every grid width — and an empty
+         placeholder never balloons into a huge coloured block. --}}
+    <a href="{{ $offerHref }}" class="relative block {{ $large ? 'h-48' : 'h-32 sm:h-36' }} bg-gradient-to-br from-sage-mist to-gold-whisper flex items-center justify-center text-3xl">
         @if($imageUrl)
             <img src="{{ $imageUrl }}" alt="{{ $offer->title }}" loading="lazy"
                  class="absolute inset-0 w-full h-full object-cover">
+        @elseif($offer->service && $offer->service->relationLoaded('categories') && $offer->service->categories->first()?->emoji)
+            <span aria-hidden="true">{{ $offer->service->categories->first()->emoji }}</span>
+        @else
+            <x-icon name="sparkles" class="w-8 h-8 text-sage-600/30" />
         @endif
         @if($discount)
             <span class="absolute top-3 start-3 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
@@ -95,7 +140,7 @@
         </div>
 
         <a href="{{ $offerHref }}"
-           class="mt-3 inline-flex items-center justify-center gap-1.5 min-h-touch bg-sage-600 hover:bg-sage-700 text-white {{ $large ? 'text-sm px-4' : 'text-xs px-2' }} font-semibold py-2.5 rounded-lg shadow-sm transition-colors">
+           class="mt-auto inline-flex items-center justify-center gap-1.5 min-h-touch bg-sage-600 hover:bg-sage-700 text-white {{ $large ? 'text-sm px-4' : 'text-xs px-2' }} font-semibold py-2.5 rounded-lg shadow-sm transition-colors">
             <x-icon name="eye" class="w-4 h-4" />
             @lang('site.home_view_offer')
         </a>

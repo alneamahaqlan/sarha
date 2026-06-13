@@ -12,7 +12,9 @@ export type HomepageSectionType =
   | 'map'
   | 'cta'
   | 'price_quote'
-  | 'faqs';
+  | 'faqs'
+  | 'followed_offers'
+  | 'followed_clinics';
 
 /** A single Q&A row stored in a `faqs` section's config.faqs bag. */
 export interface HomepageFaqItem {

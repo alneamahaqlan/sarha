@@ -4,12 +4,6 @@
 
 @section('content')
 
-{{-- Personalised "complexes you follow" strips — their live offers first,
-     then the complexes themselves. Shown only to signed-in followers; both
-     partials self-hide when the collection is empty. --}}
-@include('public.partials.followed-offers')
-@include('public.partials.followed-clinics')
-
 {{-- ===================== HOMEPAGE CMS LOOP =====================
      Every section here is a row in homepage_sections, ordered by sort_order
      and filtered by HomepageSection::renderable() (active + within

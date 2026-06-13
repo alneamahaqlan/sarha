@@ -48,6 +48,11 @@ class HomepageRenderService
             'categories'      => ['categories' => $this->categories($s->item_limit ?? 14)],
             'category_offers' => $this->categoryOffersData($s),
             'clinic_list'     => $this->clinicListData($s),
+            // Personalised: the signed-in customer's followed complexes + their
+            // live offers. Resolved per-request (build()'s data map isn't
+            // cached) so it always reflects the current viewer's follows.
+            'followed_offers'  => ['offers'  => $this->followedOffers($s->item_limit ?? 8)],
+            'followed_clinics' => ['clinics' => $this->followedClinics($s->item_limit ?? 12)],
             'map'             => ['mapClinics' => $this->mapClinics($s->item_limit ?? 200)],
             'faqs'            => ['faqs' => $this->faqs($s)],
             // Static sections (hero already covered above; the rest are pure markup).
@@ -165,6 +170,66 @@ class HomepageRenderService
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->orderByDesc('published_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** Memoised ids of the complexes the current viewer follows (empty for guests). */
+    private ?Collection $followedIds = null;
+
+    private function followedClinicIds(): Collection
+    {
+        if ($this->followedIds !== null) {
+            return $this->followedIds;
+        }
+        $user = auth('web')->user();
+
+        return $this->followedIds = $user
+            ? $user->following()->pluck('clinics.id')
+            : collect();
+    }
+
+    /** Live offers across the viewer's followed complexes (empty → section self-hides). */
+    private function followedOffers(int $limit): Collection
+    {
+        $ids = $this->followedClinicIds();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Offer::query()
+            ->runningNow()
+            ->whereIn('clinic_id', $ids)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with([
+                'clinic:id,name,slug,city_id',
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** The viewer's followed complexes (still publicly visible). */
+    private function followedClinics(int $limit): Collection
+    {
+        $ids = $this->followedClinicIds();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
+
+        return Clinic::publiclyVisible()
+            ->whereIn('clinics.id', $ids)
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
+            ->rankedForListing()
             ->limit($limit)
             ->get();
     }

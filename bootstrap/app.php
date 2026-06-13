@@ -96,5 +96,24 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => $e->getMessage() ?: 'HTTP error.',
                 ], $e->getStatusCode());
             }
+
+            // A 419 on a web POST is almost always a stale form or a double
+            // submit (e.g. the OTP "verify" tapped twice: the first request
+            // logged the user in and migrated the session, so the second
+            // arrives with a now-deleted session cookie → token mismatch).
+            // Laravel has already mapped the TokenMismatchException to a 419
+            // HttpException by the time render callbacks run, so we key off
+            // the status here. Never show the scary "Page Expired" page: if
+            // the user is in fact already authenticated, send them on their
+            // way; otherwise bounce back to the form with a notice.
+            if ($e->getStatusCode() === 419) {
+                if (auth('web')->check()) {
+                    return redirect()->intended(route('home'));
+                }
+
+                return redirect()->back()
+                    ->withInput($request->except('_token', 'code', 'password'))
+                    ->with('error', __('site.session_expired_retry'));
+            }
         });
     })->create();
