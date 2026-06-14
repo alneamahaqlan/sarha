@@ -1885,24 +1885,36 @@
     "assign_clinics": "Assigned complexes",
     "search_clinics": "Search for a complex…",
     "no_clinics": "No complexes assigned yet.",
+    "target_types": "Applies to",
+    "description_ar": "Description (Arabic)",
+    "description_en": "Description (English)",
+    "description_hint": "Optional — shown as a tooltip and on the homepage strip.",
+    "assign_targets": "Manual assignment",
+    "search_targets": "Search…",
+    "no_targets": "Nothing assigned yet.",
     "delete_title": "Delete badge",
-    "delete_confirm": "Delete the badge \"{{name}}\"? It will be removed from all complexes.",
+    "delete_confirm": "Delete the badge \"{{name}}\"? It will be removed from all entities.",
     "col_badge": "Badge",
     "col_mode": "Mode",
     "col_placement": "Placement",
-    "col_assigned": "Complexes",
+    "col_assigned": "Assignments",
     "param": {
       "window_days": "Window (days)",
       "top_n": "Winners (top N)",
       "min": "Minimum",
       "min_rating": "Min rating",
-      "min_reviews": "Min reviews"
+      "min_reviews": "Min reviews",
+      "min_discount": "Min discount %",
+      "within_days": "Within (days)"
     },
     "rule_name": {
       "most_booked": "Most booked",
       "fastest_growing": "Fastest growing",
       "most_followed": "Most followed",
-      "top_rated": "Top rated"
+      "top_rated": "Top rated",
+      "biggest_discount": "Biggest discount",
+      "ending_soon": "Ending soon",
+      "most_booked_service": "Most requested"
     }
   },
   "clinic_stats": {
@@ -3337,7 +3349,8 @@
       "price_quote":         "Custom price quote CTA",
       "faqs":                "FAQ",
       "followed_offers":     "Offers from complexes the customer follows",
-      "followed_clinics":    "Complexes the customer follows"
+      "followed_clinics":    "Complexes the customer follows",
+      "badged":              "Badge-carrying entities"
     },
     "type_hero":            "Hero with search",
     "type_stats":           "Animated stats",
@@ -3355,6 +3368,14 @@
     "type_faqs":            "FAQ accordion",
     "type_followed_offers":  "Followed offers (per-customer)",
     "type_followed_clinics": "Followed complexes (per-customer)",
+    "type_badged":          "Badge-carrying entities",
+    "badge":                "Badge",
+    "target_type":          "Content type",
+    "target_clinic":        "Complexes",
+    "target_offer":         "Offers",
+    "target_service":       "Services",
+    "target_doctor":        "Doctors",
+    "badged_hint":          "Shows entities of this type carrying the chosen badge.",
     "faqs_label":           "Questions & answers",
     "faqs_hint":            "Add up to 5 FAQs. Only complete pairs (question + answer) show on the homepage.",
     "faq_question":         "Question",

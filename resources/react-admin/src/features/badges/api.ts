@@ -1,5 +1,5 @@
 import { apiClient } from '@/lib/api-client';
-import type { Badge, BadgeFormValues, BadgeMeta, ClinicLite } from './types';
+import type { Badge, BadgeFormValues, BadgeMeta, BadgeTargetType, TargetLite } from './types';
 
 const BASE = '/admin/badges';
 
@@ -15,9 +15,9 @@ export const badgesApi = {
   },
   recompute: async (): Promise<Record<string, number>> =>
     (await apiClient.post<{ data: { summary: Record<string, number> } }>(`${BASE}/recompute`)).data.data.summary,
-  syncClinics: async (id: number, clinicIds: number[]): Promise<void> => {
-    await apiClient.post(`${BASE}/${id}/clinics`, { clinic_ids: clinicIds });
+  syncTargets: async (id: number, type: BadgeTargetType, ids: number[]): Promise<void> => {
+    await apiClient.post(`${BASE}/${id}/targets`, { type, ids });
   },
-  searchClinics: async (search: string): Promise<ClinicLite[]> =>
-    (await apiClient.get<{ data: ClinicLite[] }>(`${BASE}/clinics/search`, { params: { search } })).data.data,
+  searchTargets: async (type: BadgeTargetType, search: string): Promise<TargetLite[]> =>
+    (await apiClient.get<{ data: TargetLite[] }>(`${BASE}/targets/search`, { params: { type, search } })).data.data,
 };

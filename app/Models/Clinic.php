@@ -318,7 +318,7 @@ class Clinic extends Authenticatable
      */
     public function badges()
     {
-        return $this->belongsToMany(Badge::class, 'badge_clinic')
+        return $this->morphToMany(Badge::class, 'badgeable')
             ->withPivot(['source', 'expires_at'])
             ->withTimestamps();
     }

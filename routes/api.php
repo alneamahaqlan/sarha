@@ -180,9 +180,9 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Badges Center — display badges (manual + automatic rules). Specific
         // routes precede the resource so they aren't captured by badges/{badge}.
         Route::get('badges/rules', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'rules'])->name('badges.rules');
-        Route::get('badges/clinics/search', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'searchClinics'])->name('badges.clinics.search');
+        Route::get('badges/targets/search', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'searchTargets'])->name('badges.targets.search');
         Route::post('badges/recompute', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'recompute'])->name('badges.recompute');
-        Route::post('badges/{badge}/clinics', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'syncClinics'])->name('badges.clinics');
+        Route::post('badges/{badge}/targets', [\App\Http\Controllers\Api\V1\Admin\BadgeController::class, 'syncTargets'])->name('badges.targets');
         Route::apiResource('badges', \App\Http\Controllers\Api\V1\Admin\BadgeController::class);
 
         // UserResource has no Delete in Filament — restrict to index/show/store/update only.

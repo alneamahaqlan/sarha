@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Badge;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Doctor;
 use App\Models\HomepageSection;
 use App\Models\Offer;
 use App\Models\Service;
@@ -75,6 +77,7 @@ class HomepageRenderService
             'followed_clinics' => ['clinics' => $this->followedClinics($s->item_limit ?? 12)],
             'map'             => ['mapClinics' => $this->mapClinics($s->item_limit ?? 200)],
             'faqs'            => ['faqs' => $this->faqs($s)],
+            'badged'          => $this->badgedData($s),
             // Static sections (hero already covered above; the rest are pure markup).
             'ai_highlight', 'how_it_works', 'cta' => [],
             default => [],
@@ -250,6 +253,112 @@ class HomepageRenderService
             ->withCount('bookings')
             ->withMin(['services as min_price' => $minPrice], 'price')
             ->rankedForListing()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Entities carrying the admin-chosen badge. Reads config.badge_key +
+     * config.target_type; returns the matching, publicly-visible entities for
+     * the badged.blade.php partial (empty → section self-hides).
+     */
+    private function badgedData(HomepageSection $s): array
+    {
+        $key  = data_get($s->config, 'badge_key');
+        $type = data_get($s->config, 'target_type', 'clinic');
+        $limit = $s->item_limit ?? 8;
+
+        $badge = $key ? Badge::active()->where('key', $key)->first() : null;
+        if (! $badge) {
+            return ['targetType' => $type, 'items' => collect(), 'badge' => null];
+        }
+
+        // Non-expired pivot rows only (manual + auto).
+        $notExpired = fn ($q) => $q->where(fn ($qq) => $qq
+            ->whereNull('badgeables.expires_at')->orWhere('badgeables.expires_at', '>', now()));
+
+        $items = match ($type) {
+            'offer'   => $this->badgedOffers($badge, $notExpired, $limit),
+            'service' => $this->badgedServices($badge, $notExpired, $limit),
+            'doctor'  => $this->badgedDoctors($badge, $notExpired, $limit),
+            default   => $this->badgedClinics($badge, $notExpired, $limit),
+        };
+
+        return ['targetType' => $type, 'items' => $items, 'badge' => $badge];
+    }
+
+    private function badgedClinics(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->clinics())->pluck('clinics.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
+
+        return Clinic::publiclyVisible()
+            ->whereIn('clinics.id', $ids)
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
+            ->rankedForListing()
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedOffers(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->offers())->pluck('offers.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Offer::query()
+            ->runningNow()
+            ->whereIn('id', $ids)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with([
+                'clinic' => fn ($c) => $c->select('id', 'name', 'slug', 'city_id', 'cart_status', 'cart_storefront_enabled')
+                    ->withAvg('googleReviews', 'rating'),
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedServices(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->services())->pluck('services.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Service::query()
+            ->whereIn('services.id', $ids)
+            ->where('is_active', true)
+            ->where('approval_status', 'approved')
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with(['clinic:id,name,slug', 'categories:id,name,name_en,slug,emoji'])
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedDoctors(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->doctors())->pluck('doctors.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Doctor::query()
+            ->whereIn('doctors.id', $ids)
+            ->where('is_active', true)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with(['clinic:id,name,slug'])
             ->limit($limit)
             ->get();
     }

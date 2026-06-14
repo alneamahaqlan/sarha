@@ -1885,24 +1885,36 @@
     "assign_clinics": "المجمعات المعيَّنة",
     "search_clinics": "ابحث عن مجمع…",
     "no_clinics": "لم تُعيَّن أي مجمعات بعد.",
+    "target_types": "يُطبَّق على",
+    "description_ar": "وصف (عربي)",
+    "description_en": "وصف (إنجليزي)",
+    "description_hint": "اختياري — يظهر كتلميح وفي شريط الصفحة الرئيسية.",
+    "assign_targets": "إسناد يدوي",
+    "search_targets": "ابحث…",
+    "no_targets": "لا يوجد إسناد بعد.",
     "delete_title": "حذف الشارة",
-    "delete_confirm": "هل تريد حذف الشارة «{{name}}»؟ سيُزال تعيينها من كل المجمعات.",
+    "delete_confirm": "هل تريد حذف الشارة «{{name}}»؟ سيُزال تعيينها من كل الكيانات.",
     "col_badge": "الشارة",
     "col_mode": "النوع",
     "col_placement": "مكان العرض",
-    "col_assigned": "المجمعات",
+    "col_assigned": "الإسنادات",
     "param": {
       "window_days": "نافذة الأيام",
       "top_n": "عدد الفائزين",
       "min": "الحد الأدنى",
       "min_rating": "أدنى تقييم",
-      "min_reviews": "أدنى عدد تقييمات"
+      "min_reviews": "أدنى عدد تقييمات",
+      "min_discount": "أدنى نسبة خصم",
+      "within_days": "خلال (أيام)"
     },
     "rule_name": {
       "most_booked": "الأكثر حجزًا",
       "fastest_growing": "الأسرع نموًا",
       "most_followed": "الأكثر متابعة",
-      "top_rated": "الأعلى تقييمًا"
+      "top_rated": "الأعلى تقييمًا",
+      "biggest_discount": "أكبر خصم",
+      "ending_soon": "ينتهي قريبًا",
+      "most_booked_service": "الأكثر طلبًا"
     }
   },
   "clinic_stats": {
@@ -3337,7 +3349,8 @@
       "price_quote":         "طلب عرض سعر مخصص",
       "faqs":                "الأسئلة الشائعة",
       "followed_offers":     "عروض المجمعات التي يتابعها العميل",
-      "followed_clinics":    "المجمعات التي يتابعها العميل"
+      "followed_clinics":    "المجمعات التي يتابعها العميل",
+      "badged":              "كيانات حاملة لشارة"
     },
     "type_hero":            "بانر ترحيبي مع بحث",
     "type_stats":           "إحصائيات متحركة",
@@ -3355,6 +3368,14 @@
     "type_faqs":            "أسئلة وأجوبة",
     "type_followed_offers":  "عروض متابَعة (مخصّص للعميل)",
     "type_followed_clinics": "مجمعات متابَعة (مخصّص للعميل)",
+    "type_badged":          "كيانات حاملة لشارة",
+    "badge":                "الشارة",
+    "target_type":          "نوع المحتوى",
+    "target_clinic":        "مجمعات",
+    "target_offer":         "عروض",
+    "target_service":       "خدمات",
+    "target_doctor":        "أطباء",
+    "badged_hint":          "يعرض الكيانات الحاملة للشارة المختارة من هذا النوع.",
     "faqs_label":           "الأسئلة والأجوبة",
     "faqs_hint":            "أضِف حتى 5 أسئلة شائعة. تظهر الأسئلة المكتملة فقط (سؤال + جواب) في الصفحة الرئيسية.",
     "faq_question":         "السؤال",

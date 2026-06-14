@@ -12,16 +12,17 @@ use Illuminate\Database\Eloquent\Model;
 class Badge extends Model
 {
     protected $fillable = [
-        'key', 'label_ar', 'label_en', 'icon', 'color',
-        'placement', 'mode', 'rule_key', 'rule_params', 'is_active', 'sort_order',
+        'key', 'target_types', 'label_ar', 'label_en', 'description_ar', 'description_en',
+        'icon', 'color', 'placement', 'mode', 'rule_key', 'rule_params', 'is_active', 'sort_order',
     ];
 
     protected function casts(): array
     {
         return [
-            'rule_params' => 'array',
-            'is_active'   => 'boolean',
-            'sort_order'  => 'integer',
+            'target_types' => 'array',
+            'rule_params'  => 'array',
+            'is_active'    => 'boolean',
+            'sort_order'   => 'integer',
         ];
     }
 
@@ -30,11 +31,29 @@ class Badge extends Model
 
     public const PLACEMENTS = ['header', 'cards', 'both'];
 
+    /** Polymorphic assignments across every badgeable kind. */
     public function clinics()
     {
-        return $this->belongsToMany(Clinic::class, 'badge_clinic')
-            ->withPivot(['source', 'expires_at'])
-            ->withTimestamps();
+        return $this->morphedByMany(Clinic::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])->withTimestamps();
+    }
+
+    public function offers()
+    {
+        return $this->morphedByMany(Offer::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])->withTimestamps();
+    }
+
+    public function services()
+    {
+        return $this->morphedByMany(Service::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])->withTimestamps();
+    }
+
+    public function doctors()
+    {
+        return $this->morphedByMany(Doctor::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])->withTimestamps();
     }
 
     public function scopeActive(Builder $q): Builder
@@ -46,5 +65,11 @@ class Badge extends Model
     public function label(): string
     {
         return app()->getLocale() === 'en' ? $this->label_en : $this->label_ar;
+    }
+
+    /** Localized description (may be null). */
+    public function description(): ?string
+    {
+        return app()->getLocale() === 'en' ? $this->description_en : $this->description_ar;
     }
 }
