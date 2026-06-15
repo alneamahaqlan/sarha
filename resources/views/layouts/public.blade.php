@@ -16,6 +16,12 @@
         <meta name="robots" content="@yield('meta_robots')">
     @endif
 
+    {{-- Brand tab icon (favicon). SVG scales crisply on every tab/zoom;
+         the brand mark = sage "د" + gold dot (matches <x-logo>). --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+    <meta name="theme-color" content="#2D6A5C">
+
     {{-- Open Graph (pages override via @section('og_*'); image falls back to the platform default) --}}
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:title" content="@yield('og_title', __('site.brand'))">
