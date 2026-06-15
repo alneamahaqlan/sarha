@@ -2,12 +2,15 @@
 
 namespace App\Http\Requests\Api\V1\Admin;
 
+use App\Http\Requests\Api\V1\Concerns\LandingChromeRules;
 use App\Models\LandingPage;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateLandingPageRequest extends FormRequest
 {
+    use LandingChromeRules;
+
     public function authorize(): bool
     {
         $page = $this->route('landing_page');
@@ -20,7 +23,7 @@ class UpdateLandingPageRequest extends FormRequest
     {
         $id = $this->route('landing_page')->id;
 
-        return [
+        return array_merge($this->chromeRules(), [
             // type is immutable after creation (it determines the seeded block
             // set + linked entity); slug stays editable but must remain unique.
             'status'        => ['nullable', Rule::in(LandingPage::STATUSES)],
@@ -69,6 +72,6 @@ class UpdateLandingPageRequest extends FormRequest
 
             'schema_markup' => ['nullable', 'array'],
             'schema_type'   => ['nullable', 'string', 'max:100'],
-        ];
+        ]);
     }
 }

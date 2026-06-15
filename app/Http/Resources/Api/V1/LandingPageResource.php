@@ -38,6 +38,11 @@ class LandingPageResource extends JsonResource
             'whatsapp_enabled'   => (bool) $this->whatsapp_enabled,
             'call_enabled'       => (bool) $this->call_enabled,
 
+            'header_mode'        => $this->header_mode,
+            'footer_mode'        => $this->footer_mode,
+            'header_config'      => $this->header_config,
+            'footer_config'      => $this->footer_config,
+
             'seo_title_ar'       => $this->seo_title_ar,
             'seo_title_en'       => $this->seo_title_en,
             'seo_description_ar' => $this->seo_description_ar,
@@ -57,6 +62,13 @@ class LandingPageResource extends JsonResource
 
             'total_views'        => (int) $this->total_views,
             'total_conversions'  => (int) $this->total_conversions,
+
+            // Clinic ownership + one-time approval gate (clinic-built pages).
+            'owner_clinic_id'    => $this->owner_clinic_id,
+            'approval_status'    => $this->approval_status,
+            'approval_reason'    => $this->approval_reason,
+            'submitted_at'       => $this->submitted_at?->toIso8601String(),
+            'reviewed_at'        => $this->reviewed_at?->toIso8601String(),
 
             'comparison_clinic_ids' => $this->whenLoaded('clinics', fn () => $this->clinics->pluck('id')->all()),
             'blocks'             => LandingPageBlockResource::collection($this->whenLoaded('blocks')),

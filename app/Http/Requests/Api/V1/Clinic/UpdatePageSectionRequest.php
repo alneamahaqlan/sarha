@@ -22,7 +22,36 @@ class UpdatePageSectionRequest extends FormRequest
             'title_ar'   => ['nullable', 'string', 'max:255'],
             'title_en'   => ['nullable', 'string', 'max:255'],
             'item_limit' => ['nullable', 'integer', 'min:1', 'max:50'],
+
+            // Free-form content bag — currently only the `faqs` section uses
+            // it: up to FAQ_LIMIT { question, answer } rows.
+            'content'              => ['nullable', 'array', 'max:'.ClinicPageSection::FAQ_LIMIT],
+            'content.*.question'   => ['required_with:content.*.answer', 'nullable', 'string', 'max:255'],
+            'content.*.answer'     => ['required_with:content.*.question', 'nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /**
+     * Drop blank Q&A rows before validation so the admin can leave unused
+     * slots empty without tripping the required_with pairing, and so we
+     * never persist empty placeholders that the public page would render.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! is_array($this->input('content'))) {
+            return;
+        }
+
+        $clean = collect($this->input('content'))
+            ->map(fn ($row) => [
+                'question' => is_array($row) ? trim((string) ($row['question'] ?? '')) : '',
+                'answer'   => is_array($row) ? trim((string) ($row['answer'] ?? '')) : '',
+            ])
+            ->filter(fn ($row) => $row['question'] !== '' || $row['answer'] !== '')
+            ->values()
+            ->all();
+
+        $this->merge(['content' => $clean]);
     }
 
     public function withValidator(Validator $validator): void

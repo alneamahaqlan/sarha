@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Models\Badge;
 use App\Models\Category;
 use App\Models\City;
 use App\Models\Clinic;
+use App\Models\Doctor;
 use App\Models\HomepageSection;
 use App\Models\Offer;
 use App\Models\Service;
@@ -21,6 +23,15 @@ use Illuminate\Support\Facades\Cache;
  */
 class HomepageRenderService
 {
+    /**
+     * Section types whose data depends on the *current viewer* (their follows),
+     * so they must never be cached across requests — resolved fresh every time.
+     */
+    private const PERSONALIZED_TYPES = ['followed_offers', 'followed_clinics'];
+
+    /** Short TTL (seconds) for the per-section data cache — bounds staleness of offers/prices. */
+    private const DATA_CACHE_TTL = 120;
+
     /** @return Collection<int, array{section: HomepageSection, data: array}> */
     public function build(): Collection
     {
@@ -30,9 +41,20 @@ class HomepageRenderService
             fn () => HomepageSection::renderable()->with('bannerSlides')->get(),
         );
 
+        $locale = app()->getLocale();
+
         return $sections->map(fn (HomepageSection $s) => [
             'section' => $s,
-            'data'    => $this->dataFor($s),
+            // Personalised sections resolve per-request; everything else is
+            // shared across visitors, so cache its (DB-heavy) data for a short
+            // window to keep the homepage off the database on every hit.
+            'data'    => in_array($s->type, self::PERSONALIZED_TYPES, true)
+                ? $this->dataFor($s)
+                : Cache::remember(
+                    "home:section:{$s->id}:{$locale}",
+                    self::DATA_CACHE_TTL,
+                    fn () => $this->dataFor($s),
+                ),
         ]);
     }
 
@@ -48,11 +70,38 @@ class HomepageRenderService
             'categories'      => ['categories' => $this->categories($s->item_limit ?? 14)],
             'category_offers' => $this->categoryOffersData($s),
             'clinic_list'     => $this->clinicListData($s),
+            // Personalised: the signed-in customer's followed complexes + their
+            // live offers. Resolved per-request (build()'s data map isn't
+            // cached) so it always reflects the current viewer's follows.
+            'followed_offers'  => ['offers'  => $this->followedOffers($s->item_limit ?? 8)],
+            'followed_clinics' => ['clinics' => $this->followedClinics($s->item_limit ?? 12)],
             'map'             => ['mapClinics' => $this->mapClinics($s->item_limit ?? 200)],
+            'faqs'            => ['faqs' => $this->faqs($s)],
+            'badged'          => $this->badgedData($s),
             // Static sections (hero already covered above; the rest are pure markup).
             'ai_highlight', 'how_it_works', 'cta' => [],
             default => [],
         };
+    }
+
+    /**
+     * Clean, fully-filled Q&A rows from the section's config bag, capped at
+     * HomepageSection::FAQ_LIMIT. Drops any half-filled / empty rows so the
+     * partial only ever renders complete pairs.
+     *
+     * @return array<int, array{question: string, answer: string}>
+     */
+    private function faqs(HomepageSection $s): array
+    {
+        return collect(data_get($s->config, 'faqs', []))
+            ->map(fn ($row) => [
+                'question' => trim((string) data_get($row, 'question', '')),
+                'answer'   => trim((string) data_get($row, 'answer', '')),
+            ])
+            ->filter(fn ($row) => $row['question'] !== '' && $row['answer'] !== '')
+            ->take(HomepageSection::FAQ_LIMIT)
+            ->values()
+            ->all();
     }
 
     // ── data builders ──────────────────────────────────────────────────────
@@ -144,6 +193,172 @@ class HomepageRenderService
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now())
             ->orderByDesc('published_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** Memoised ids of the complexes the current viewer follows (empty for guests). */
+    private ?Collection $followedIds = null;
+
+    private function followedClinicIds(): Collection
+    {
+        if ($this->followedIds !== null) {
+            return $this->followedIds;
+        }
+        $user = auth('web')->user();
+
+        return $this->followedIds = $user
+            ? $user->following()->pluck('clinics.id')
+            : collect();
+    }
+
+    /** Live offers across the viewer's followed complexes (empty → section self-hides). */
+    private function followedOffers(int $limit): Collection
+    {
+        $ids = $this->followedClinicIds();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Offer::query()
+            ->runningNow()
+            ->whereIn('clinic_id', $ids)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with([
+                'clinic:id,name,slug,city_id',
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /** The viewer's followed complexes (still publicly visible). */
+    private function followedClinics(int $limit): Collection
+    {
+        $ids = $this->followedClinicIds();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
+
+        return Clinic::publiclyVisible()
+            ->whereIn('clinics.id', $ids)
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
+            ->rankedForListing()
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Entities carrying the admin-chosen badge. Reads config.badge_key +
+     * config.target_type; returns the matching, publicly-visible entities for
+     * the badged.blade.php partial (empty → section self-hides).
+     */
+    private function badgedData(HomepageSection $s): array
+    {
+        $key  = data_get($s->config, 'badge_key');
+        $type = data_get($s->config, 'target_type', 'clinic');
+        $limit = $s->item_limit ?? 8;
+
+        $badge = $key ? Badge::active()->where('key', $key)->first() : null;
+        if (! $badge) {
+            return ['targetType' => $type, 'items' => collect(), 'badge' => null];
+        }
+
+        // Non-expired pivot rows only (manual + auto).
+        $notExpired = fn ($q) => $q->where(fn ($qq) => $qq
+            ->whereNull('badgeables.expires_at')->orWhere('badgeables.expires_at', '>', now()));
+
+        $items = match ($type) {
+            'offer'   => $this->badgedOffers($badge, $notExpired, $limit),
+            'service' => $this->badgedServices($badge, $notExpired, $limit),
+            'doctor'  => $this->badgedDoctors($badge, $notExpired, $limit),
+            default   => $this->badgedClinics($badge, $notExpired, $limit),
+        };
+
+        return ['targetType' => $type, 'items' => $items, 'badge' => $badge];
+    }
+
+    private function badgedClinics(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->clinics())->pluck('clinics.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+        $minPrice = fn ($q) => $q->where('is_active', true)->where('approval_status', 'approved')->whereNotNull('price');
+
+        return Clinic::publiclyVisible()
+            ->whereIn('clinics.id', $ids)
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
+            ->rankedForListing()
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedOffers(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->offers())->pluck('offers.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Offer::query()
+            ->runningNow()
+            ->whereIn('id', $ids)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with([
+                'clinic' => fn ($c) => $c->select('id', 'name', 'slug', 'city_id', 'cart_status', 'cart_storefront_enabled')
+                    ->withAvg('googleReviews', 'rating'),
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedServices(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->services())->pluck('services.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Service::query()
+            ->whereIn('services.id', $ids)
+            ->where('is_active', true)
+            ->where('approval_status', 'approved')
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with(['clinic:id,name,slug', 'categories:id,name,name_en,slug,emoji'])
+            ->limit($limit)
+            ->get();
+    }
+
+    private function badgedDoctors(Badge $badge, callable $notExpired, int $limit): Collection
+    {
+        $ids = $notExpired($badge->doctors())->pluck('doctors.id');
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Doctor::query()
+            ->whereIn('doctors.id', $ids)
+            ->where('is_active', true)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->with(['clinic:id,name,slug'])
             ->limit($limit)
             ->get();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasDemoData;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Cache;
  */
 class LandingPage extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasDemoData;
 
     protected $fillable = [
         'type', 'status', 'slug', 'title_ar', 'title_en', 'internal_name',
@@ -27,10 +28,14 @@ class LandingPage extends Model
         'published_at', 'starts_at', 'ends_at',
         'cta_label_ar', 'cta_label_en', 'cta_url', 'cta_style',
         'whatsapp_phone', 'call_phone', 'whatsapp_enabled', 'call_enabled',
+        'header_mode', 'footer_mode', 'header_config', 'footer_config',
         'seo_title_ar', 'seo_title_en', 'seo_description_ar', 'seo_description_en',
         'seo_keywords', 'canonical_url', 'meta_robots', 'in_sitemap',
         'og_title_ar', 'og_title_en', 'og_description_ar', 'og_description_en',
         'schema_markup', 'schema_type', 'schema_version', 'created_by',
+        // Clinic ownership + one-time approval gate (see scopePubliclyLive).
+        'owner_clinic_id', 'approval_status', 'approval_reason',
+        'submitted_at', 'reviewed_at', 'approval_reviewed_by',
     ];
 
     protected function casts(): array
@@ -39,8 +44,12 @@ class LandingPage extends Model
             'published_at'     => 'datetime',
             'starts_at'        => 'datetime',
             'ends_at'          => 'datetime',
+            'submitted_at'     => 'datetime',
+            'reviewed_at'      => 'datetime',
             'whatsapp_enabled' => 'boolean',
             'call_enabled'     => 'boolean',
+            'header_config'    => 'array',
+            'footer_config'    => 'array',
             'in_sitemap'       => 'boolean',
             'schema_markup'    => 'array',
             'schema_version'   => 'integer',
@@ -53,6 +62,19 @@ class LandingPage extends Model
 
     public const STATUSES = ['draft', 'published', 'archived'];
 
+    /**
+     * One-time approval lifecycle for clinic-owned pages. Admin-built pages are
+     * created `approved` and never leave it. Public visibility requires
+     * `approved` regardless of who owns the page (see scopePubliclyLive).
+     */
+    public const APPROVAL_STATUSES = ['draft', 'pending', 'approved', 'rejected'];
+
+    /** Footer chrome modes: platform default, logo-only, fully custom, or hidden. */
+    public const CHROME_MODES = ['default', 'minimal', 'custom', 'none'];
+
+    /** Header adds a 5th mode: render the linked clinic's full profile hero. */
+    public const HEADER_CHROME_MODES = ['default', 'minimal', 'custom', 'none', 'clinic'];
+
     /** The block types the builder can place. Order here is unimportant. */
     public const BLOCK_TYPES = [
         'hero', 'services', 'offers', 'doctors', 'gallery',
@@ -64,12 +86,19 @@ class LandingPage extends Model
         return "landing_page:blocks:v1:{$id}";
     }
 
-    /** A page that is live right now: published and within its publish window. */
+    /** A page that is live right now: approved, published and within its window. */
     public function scopePubliclyLive(Builder $query): Builder
     {
         return $query->where('status', 'published')
+            ->where('approval_status', 'approved')
             ->where(fn ($q) => $q->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
             ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>=', now()));
+    }
+
+    /** Pages owned by a given complex (clinic-built, as opposed to admin-built). */
+    public function scopeOwnedBy(Builder $query, int $clinicId): Builder
+    {
+        return $query->where('owner_clinic_id', $clinicId);
     }
 
     public function blocks(): HasMany
@@ -117,6 +146,18 @@ class LandingPage extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(Admin::class, 'created_by');
+    }
+
+    /** The complex that owns this page (clinic-built pages only; else null). */
+    public function ownerClinic(): BelongsTo
+    {
+        return $this->belongsTo(Clinic::class, 'owner_clinic_id');
+    }
+
+    /** The admin who approved/rejected this clinic-built page. */
+    public function approvalReviewer(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'approval_reviewed_by');
     }
 
     /** Locale-aware title — falls back to Arabic when the English value is blank. */

@@ -4,6 +4,7 @@ use Database\Seeders\BookingsCrmSeeder;
 use Database\Seeders\ClinicTeamSeeder;
 use Database\Seeders\DemoSeeder;
 use Database\Seeders\EdgeCaseScenarioSeeder;
+use Database\Seeders\LandingPageSeeder;
 use Database\Seeders\MassiveCityCoverageSeeder;
 use Database\Seeders\RelativesAndProxyBookingsSeeder;
 use Database\Seeders\UserActivityPatternsSeeder;
@@ -76,6 +77,9 @@ return [
         'user_visit_sessions',
         'clinic_impressions',
         'service_impressions',
+        // ── Marketing landing pages (soft-hideable; blocks are children) ──
+        'landing_pages',
+        'landing_page_blocks',
     ],
 
     /*
@@ -95,6 +99,7 @@ return [
         'articles',
         'google_reviews',
         'before_after_photos',
+        'landing_pages',
     ],
 
     /*
@@ -108,6 +113,7 @@ return [
         'package_service'          => ['package_id' => 'packages'],
         'price_quote_request_city' => ['price_quote_request_id' => 'price_quote_requests'],
         'favorites'                => ['clinic_id'  => 'clinics'],
+        'landing_page_clinics'     => ['landing_page_id' => 'landing_pages'],
     ],
 
     /*
@@ -205,6 +211,14 @@ return [
             'label_en' => 'Bookings CRM data',
             'desc_ar'  => 'وسوم وتصنيفات للعملاء وموظفون مسؤولون عن الحجوزات وعملاء مميّزون — لتجربة لوحة إدارة الحجوزات (الكانبان).',
             'desc_en'  => 'Customer tags, VIP customers and booking assignees — to test the bookings Kanban board.',
+        ],
+        'landing_pages' => [
+            'seeder'   => LandingPageSeeder::class,
+            'heavy'    => false,
+            'label_ar' => 'صفحات الهبوط التسويقية',
+            'label_en' => 'Marketing landing pages',
+            'desc_ar'  => '١٠ صفحات هبوط متنوّعة (مجمع، عرض، مدينة، تخصص، مقارنة، مخصّصة) بأنماط هيدر/فوتر مختلفة — لتجربة بانية صفحات الهبوط وإحصاءاتها.',
+            'desc_en'  => '10 varied landing pages (clinic, offer, city, category, comparison, custom) with different header/footer styles — to test the landing-page builder and analytics.',
         ],
     ],
 ];

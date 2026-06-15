@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, Coins, Wallet, CheckCircle2, PackageCheck, Users2, Hourglass, XCircle, Clapperboard } from 'lucide-react';
+import { Bell, CalendarCheck, DollarSign, Eye, Info, MessageCircle, MousePointerClick, Navigation, Phone, Search, TrendingUp, Sparkles, ChevronDown, ChevronUp, UserCheck, UserPlus, Users, Users2, Coins, Wallet, CheckCircle2, PackageCheck, Hourglass, XCircle, Clapperboard } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -22,8 +22,25 @@ export function ClinicStatsView({ data }: { data: ClinicStatsFull }) {
   const s = data.summary;
   const c = data.comparison;
 
+  const lifetime = data.lifetime;
+
   return (
     <div className="space-y-6">
+      {/* Audience — all-time tallies mirrored on the public header */}
+      {lifetime && (
+        <div>
+          <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-[var(--color-muted-foreground)]">
+            <Users className="h-4 w-4" />
+            {t('clinic_stats.audience_title')}
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Card icon={UserPlus} tone="primary" label={t('clinic_stats.followers')} value={nf.format(lifetime.followers)} tooltip={t('clinic_stats.followers_tooltip')} />
+            <Card icon={Users} tone="info" label={t('clinic_stats.customers')} value={nf.format(lifetime.customers)} tooltip={t('clinic_stats.customers_tooltip')} />
+            <Card icon={CalendarCheck} tone="success" label={t('clinic_stats.bookings_total')} value={nf.format(lifetime.bookings)} tooltip={t('clinic_stats.bookings_total_tooltip')} />
+          </div>
+        </div>
+      )}
+
       {/* ── 1) الظهور والوصول — how many people reached the clinic ── */}
       <section>
         <h2 className="mb-3 text-base font-bold">{t('clinic_stats.section_reach')}</h2>

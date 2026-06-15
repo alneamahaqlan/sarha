@@ -60,6 +60,14 @@ class Service extends Model
         return $this->belongsTo(Clinic::class);
     }
 
+    /** Display badges (Badges Center) attached to this service. */
+    public function badges()
+    {
+        return $this->morphToMany(Badge::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])
+            ->withTimestamps();
+    }
+
     /** The canonical catalog entry this service is an instance of (nullable). */
     public function catalogService(): BelongsTo
     {

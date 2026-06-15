@@ -20,7 +20,8 @@ import { useDebouncedValue } from '@/lib/use-debounced-value';
 
 import { useLandingPages, useDeleteLandingPage } from '../hooks';
 import { LandingPageForm } from '../components/LandingPageForm';
-import { LANDING_STATUSES, LANDING_TYPES, type LandingPage } from '../types';
+import { useLandingScope } from '../scope';
+import { LANDING_APPROVAL_STATUSES, LANDING_STATUSES, LANDING_TYPES, type LandingPage } from '../types';
 
 const STATUS_VARIANT: Record<string, 'success' | 'muted' | 'warning'> = {
   published: 'success',
@@ -28,15 +29,25 @@ const STATUS_VARIANT: Record<string, 'success' | 'muted' | 'warning'> = {
   archived: 'warning',
 };
 
+const APPROVAL_VARIANT: Record<string, 'success' | 'muted' | 'warning' | 'danger'> = {
+  approved: 'success',
+  pending: 'warning',
+  rejected: 'danger',
+  draft: 'muted',
+};
+
 export function LandingPagesIndex() {
   const { t } = useTranslation();
   const { can } = useAuth();
   const navigate = useNavigate();
+  const { scope, basePath, canCreate, canDelete } = useLandingScope();
+  const isClinic = scope === 'clinic';
 
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebouncedValue(search, 300);
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [approvalFilter, setApprovalFilter] = useState('');
   const [page, setPage] = useState(1);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<LandingPage | null>(null);
@@ -47,9 +58,11 @@ export function LandingPagesIndex() {
       per_page: 30,
       search: debouncedSearch.trim() || undefined,
       sort: '-created_at',
-      filter: { type: typeFilter || undefined, status: statusFilter || undefined },
+      filter: isClinic
+        ? { approval_status: approvalFilter || undefined }
+        : { type: typeFilter || undefined, status: statusFilter || undefined },
     }),
-    [page, debouncedSearch, typeFilter, statusFilter],
+    [page, debouncedSearch, typeFilter, statusFilter, approvalFilter, isClinic],
   );
   const { data, isLoading, isFetching } = useLandingPages(queryParams);
   const del = useDeleteLandingPage();
@@ -72,7 +85,7 @@ export function LandingPagesIndex() {
           <h1 className="text-2xl font-semibold">{t('landing_pages.title')}</h1>
           <p className="text-sm text-[var(--color-muted-foreground)]">{t('landing_pages.subtitle')}</p>
         </div>
-        {can('landing_pages.create') && (
+        {can(canCreate) && (
           <Button onClick={() => setCreating(true)}>
             <Plus className="h-4 w-4" />
             {t('landing_pages.create')}
@@ -85,21 +98,30 @@ export function LandingPagesIndex() {
           <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--color-muted-foreground)]" />
           <Input className="ps-9" placeholder={t('common.search')} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
         </div>
-        <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} className="w-44">
-          <option value="">{t('landing_pages.all_types')}</option>
-          {LANDING_TYPES.map((tp) => <option key={tp} value={tp}>{t(`landing_pages.types.${tp}`)}</option>)}
-        </Select>
-        <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="w-44">
-          <option value="">{t('landing_pages.all_statuses')}</option>
-          {LANDING_STATUSES.map((s) => <option key={s} value={s}>{t(`landing_pages.statuses.${s}`)}</option>)}
-        </Select>
+        {isClinic ? (
+          <Select value={approvalFilter} onChange={(e) => { setApprovalFilter(e.target.value); setPage(1); }} className="w-44">
+            <option value="">{t('landing_pages.all_approval')}</option>
+            {LANDING_APPROVAL_STATUSES.map((s) => <option key={s} value={s}>{t(`landing_pages.approval.${s}`)}</option>)}
+          </Select>
+        ) : (
+          <>
+            <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} className="w-44">
+              <option value="">{t('landing_pages.all_types')}</option>
+              {LANDING_TYPES.map((tp) => <option key={tp} value={tp}>{t(`landing_pages.types.${tp}`)}</option>)}
+            </Select>
+            <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }} className="w-44">
+              <option value="">{t('landing_pages.all_statuses')}</option>
+              {LANDING_STATUSES.map((s) => <option key={s} value={s}>{t(`landing_pages.statuses.${s}`)}</option>)}
+            </Select>
+          </>
+        )}
       </div>
 
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>{t('landing_pages.page_title')}</TableHead>
-            <TableHead>{t('landing_pages.type')}</TableHead>
+            <TableHead>{isClinic ? t('landing_pages.approval_status') : t('landing_pages.type')}</TableHead>
             <TableHead>{t('landing_pages.slug')}</TableHead>
             <TableHead>{t('landing_pages.status')}</TableHead>
             <TableHead className="text-end">{t('landing_pages.views')}</TableHead>
@@ -113,9 +135,13 @@ export function LandingPagesIndex() {
             <TableRow><TableCell colSpan={6} className="py-8 text-center text-[var(--color-muted-foreground)]">{t('common.no_data')}</TableCell></TableRow>
           ) : (
             data.data.map((row) => (
-              <TableRow key={row.id} className="cursor-pointer" onClick={() => navigate(`/admin/landing-pages/${row.id}`)}>
+              <TableRow key={row.id} className="cursor-pointer" onClick={() => navigate(`${basePath}/${row.id}`)}>
                 <TableCell className="font-medium">{row.internal_name || row.title_ar || `#${row.id}`}</TableCell>
-                <TableCell>{t(`landing_pages.types.${row.type}`)}</TableCell>
+                <TableCell>
+                  {isClinic
+                    ? <Badge variant={APPROVAL_VARIANT[row.approval_status ?? 'draft']}>{t(`landing_pages.approval.${row.approval_status ?? 'draft'}`)}</Badge>
+                    : t(`landing_pages.types.${row.type}`)}
+                </TableCell>
                 <TableCell className="text-[var(--color-muted-foreground)]" dir="ltr">
                   <a href={`/l/${row.slug}`} target="_blank" rel="noopener" className="inline-flex items-center gap-1 hover:underline" onClick={(e) => e.stopPropagation()}>
                     /l/{row.slug}<ExternalLink className="h-3 w-3" />
@@ -125,10 +151,10 @@ export function LandingPagesIndex() {
                 <TableCell className="text-end tabular-nums">{row.total_views.toLocaleString('ar-SA-u-nu-latn')}</TableCell>
                 <TableCell className="text-end" onClick={(e) => e.stopPropagation()}>
                   <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => navigate(`/admin/landing-pages/${row.id}`)} aria-label={t('common.edit')}>
+                    <Button variant="ghost" size="icon" onClick={() => navigate(`${basePath}/${row.id}`)} aria-label={t('common.edit')}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    {can('landing_pages.delete') && (
+                    {can(canDelete) && (
                       <Button variant="ghost" size="icon" className="text-[var(--color-destructive)]" onClick={() => setDeleting(row)} aria-label={t('common.delete')}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -158,7 +184,7 @@ export function LandingPagesIndex() {
             <DialogDescription className="sr-only">{t('landing_pages.subtitle')}</DialogDescription>
           </DialogHeader>
           <LandingPageForm
-            onSuccess={(saved) => { setCreating(false); navigate(`/admin/landing-pages/${saved.id}`); }}
+            onSuccess={(saved) => { setCreating(false); navigate(`${basePath}/${saved.id}`); }}
             onCancel={() => setCreating(false)}
           />
         </DialogContent>

@@ -16,6 +16,12 @@
         <meta name="robots" content="@yield('meta_robots')">
     @endif
 
+    {{-- Brand tab icon (favicon). SVG scales crisply on every tab/zoom;
+         the brand mark = sage "د" + gold dot (matches <x-logo>). --}}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.svg') }}">
+    <meta name="theme-color" content="#2D6A5C">
+
     {{-- Open Graph (pages override via @section('og_*'); image falls back to the platform default) --}}
     <meta property="og:type" content="@yield('og_type', 'website')">
     <meta property="og:title" content="@yield('og_title', __('site.brand'))">
@@ -23,10 +29,11 @@
     <meta property="og:image" content="@yield('og_image', asset('images/og-default.png'))">
     <meta property="og:url" content="{{ url()->current() }}">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    {{-- Brand fonts: Readex Pro (headings), IBM Plex Sans Arabic (body), Inter (latin), JetBrains Mono (numerics/code) --}}
-    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- Brand fonts are now self-hosted (see resources/css/fonts.css + public/fonts/),
+         so there's no render-blocking Google Fonts round-trip. Preload only the two
+         hot Arabic subsets (body 400 + headings) so first paint has its glyphs. --}}
+    <link rel="preload" href="{{ asset('fonts/ibm-plex-sans-arabic-400-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('fonts/readex-pro-arabic.woff2') }}" as="font" type="font/woff2" crossorigin>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
@@ -44,8 +51,14 @@
 </head>
 <body class="bg-cream antialiased">
 
-{{-- Navigation (admin-managed links via navigation_links + LayoutComposer) --}}
-@include('layouts.partials.header')
+{{-- Navigation (admin-managed links via navigation_links + LayoutComposer).
+     Landing pages may override the header per-page ($lpHeader); the landing
+     chrome partial delegates back here for the "default" mode. --}}
+@isset($lpHeader)
+    @include('public.landing.partials.chrome-header', ['lp' => $lpHeader])
+@else
+    @include('layouts.partials.header')
+@endisset
 
 {{-- Flash messages --}}
 @if(session('success') || session('error'))
@@ -69,8 +82,13 @@
 
 @yield('content')
 
-{{-- Footer (admin-managed columns + contact/social via LayoutComposer) --}}
-@include('layouts.partials.footer')
+{{-- Footer (admin-managed columns + contact/social via LayoutComposer).
+     Landing pages may override the footer per-page ($lpFooter). --}}
+@isset($lpFooter)
+    @include('public.landing.partials.chrome-footer', ['lp' => $lpFooter])
+@else
+    @include('layouts.partials.footer')
+@endisset
 
 {{-- Global AI chat widget --}}
 @livewire('ai-chat')

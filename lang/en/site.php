@@ -110,6 +110,7 @@ return [
     'clinic_search_no_results' => 'No matching results',
     // Hero specialty (category) filter
     'clinic_spec_filter_all' => 'All',
+    'clinic_spec_label' => 'Specialties',
     'clinic_spec_filter_active' => 'Specialty:',
     'clinic_spec_filter_clear' => 'Clear filter',
     // Instagram-style stories
@@ -265,6 +266,8 @@ return [
     'tab_reviews' => 'Reviews',
     'tab_articles' => 'Blog',
     'tab_about' => 'About',
+    'faqs_title' => 'Frequently asked questions',
+    'faqs_subtitle' => 'Answers to what visitors ask most',
     'directions_open_maps' => 'Open in Google Maps',
     'no_articles_yet' => 'No published posts yet',
     'view_more_services' => 'View all services',
@@ -360,6 +363,43 @@ return [
     'favorite_removed' => 'Removed from favorites',
     'favorite_add' => 'Add to favorites',
     'favorite_remove' => 'Remove from favorites',
+
+    // Follow a complex (Instagram-style) + public header tallies
+    'follow' => 'Follow',
+    'following' => 'Following',
+    'follow_added' => 'You now follow this complex',
+    'follow_removed' => 'You unfollowed this complex',
+    'followers' => 'Followers',
+    'customers' => 'Customers',
+    'bookings_made' => 'Bookings',
+    'specialties' => 'Specialties',
+    'specialties_count' => ':count specialties',
+
+    // Personalised homepage strips for signed-in followers
+    'followed_eyebrow' => 'You follow',
+    'followed_offers_title' => 'Offers from complexes you follow',
+    'followed_offers_subtitle' => 'The latest live offers from the complexes you chose to follow',
+    'followed_clinics_title' => 'Complexes you follow',
+    'followed_clinics_subtitle' => 'All your favourite complexes in one place to keep up with their latest',
+    'followed_show_more' => 'Show more',
+    // Full followed-offers page
+    'followed_offers_page_title' => 'Offers from complexes you follow',
+    'followed_offers_page_subtitle' => 'All live offers from the complexes you follow — with search and filters',
+    'followed_offers_empty' => 'No live offers from the complexes you follow right now.',
+    'followed_offers_empty_filtered' => 'No offers match your search or selected filters.',
+    'followed_offers_search_ph' => 'Search offers…',
+    // Full followed-clinics page
+    'followed_clinics_page_title' => 'Complexes you follow',
+    'followed_clinics_page_subtitle' => 'Every complex you chose to follow — with search and filters',
+    'followed_clinics_empty' => 'You are not following any complex yet.',
+    'followed_clinics_empty_filtered' => 'No complexes match your search or selected filters.',
+    'followed_clinics_search_ph' => 'Search complexes…',
+    // Shared filter UI (followed pages)
+    'followed_filter_city' => 'All cities',
+    'followed_filter_category' => 'All specialties',
+    'followed_filter_clinic' => 'All complexes',
+    'followed_filter_apply' => 'Apply',
+    'followed_filter_reset' => 'Clear filters',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'Save to favorites',
@@ -518,7 +558,7 @@ return [
 
     // Auth (OTP)
     'login_title' => 'Sign in',
-    'login_subtitle' => 'Sign in with your phone number',
+    'login_subtitle' => 'Sign in or create your account with your phone number',
     'send_otp' => 'Send verification code',
     'otp_label' => 'Verification code',
     'otp_sent_to' => 'A code has been sent to :phone',
@@ -605,6 +645,7 @@ Do not share this code with anyone. Valid for 5 minutes.',
     'name_required' => 'Please enter your name (at least 2 characters).',
     'name_step_intro' => 'Welcome! Complete your name to create your account.',
     'name_step_submit' => 'Continue & create account',
+    'session_expired_retry' => 'The page expired, please try again.',
     'dev_code' => '[dev: :code]',
     'account_blocked' => 'Your account is suspended. Please contact support.',
     'phone_invalid' => 'Phone must start with 05 and be 10 digits long',
@@ -710,4 +751,5 @@ Do not share this code with anyone. Valid for 5 minutes.',
     'lp_status_draft'     => 'Draft',
     'lp_status_published' => 'Published',
     'lp_status_archived'  => 'Archived',
+    'lp_visit_clinic'     => 'Visit the clinic page',
 ];

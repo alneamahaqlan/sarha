@@ -97,6 +97,14 @@ class OtpController extends Controller
 
     public function verifyOtp(Request $request)
     {
+        // A duplicate submit can land right after the first one already
+        // logged the user in (the session was migrated and the OTP marked
+        // used). Don't reject the second request — just forward the
+        // now-authenticated user to where they were headed.
+        if (auth('web')->check()) {
+            return redirect()->intended(route('home'));
+        }
+
         $request->validate([
             'phone' => 'required|string|max:20',
             'code' => 'required|string|size:6',
@@ -212,6 +220,12 @@ class OtpController extends Controller
     private function completeLogin(Request $request, User $user)
     {
         auth('web')->login($user, remember: true);
+
+        // A guest who tapped "Follow" on a complex is finishing login now —
+        // apply the stashed follow so the action they initiated completes.
+        if ($clinicId = session()->pull('pending_follow')) {
+            $user->following()->syncWithoutDetaching([$clinicId]);
+        }
 
         // Feed the super-admin "comprehensive user profile" timeline.
         $tracker = app(UserActivityLogger::class);

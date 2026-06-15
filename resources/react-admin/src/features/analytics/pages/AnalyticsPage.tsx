@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import {
-  BarChart3, Bell, Eye, Info, MousePointerClick, MessageCircle, MessageSquare,
-  Navigation, Phone, Search, Sparkles, TrendingUp, Users, UserCheck, Building2, CreditCard, Filter,
-  Layers, Target, CalendarCheck, Coins, PackageCheck, Users2, Hourglass, XCircle,
+  BarChart3, Bell, CalendarCheck, Coins, DollarSign, Eye, Info, MousePointerClick, MessageCircle, MessageSquare,
+  Navigation, Phone, Search, Sparkles, TrendingUp, Users, UserCheck, UserPlus, Users2, Building2, CreditCard, Filter,
+  Layers, Target, PackageCheck, Hourglass, XCircle,
 } from 'lucide-react';
 import {
   Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -94,6 +94,14 @@ function AnalyticsContent({ data, nf, locale }: { data: AnalyticsData; nf: Intl.
           hint={t('clinic_stats.pending_income_hint', { value: fmtMoney(ss.pending_income, locale) })} tooltip={t('clinic_stats.pending_tooltip')} />
         <Card icon={XCircle} tone="warning" label={t('clinic_stats.lost_income')} value={<Money value={ss.lost_income} locale={locale} />}
           hint={t('clinic_stats.lost_services_hint', { count: ss.lost_services })} tooltip={t('clinic_stats.lost_income_tooltip')} />
+      </div>
+
+      {/* Audience — all-time tallies mirrored on clinic headers */}
+      <SectionTitle icon={Users}>{t('analytics.audience_title')}</SectionTitle>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <Card icon={UserPlus} tone="primary" label={t('analytics.total_followers')} value={nf.format(p.total_followers)} />
+        <Card icon={Users} tone="info" label={t('analytics.total_customers')} value={nf.format(p.total_customers)} hint={t('analytics.total_customers_hint')} />
+        <Card icon={CalendarCheck} tone="success" label={t('analytics.total_bookings')} value={nf.format(p.total_bookings)} />
       </div>
 
       {/* Visibility & engagement KPIs */}

@@ -13,14 +13,20 @@ class ClinicPageSection extends Model
 
     protected $fillable = [
         'clinic_id', 'key', 'is_active', 'sort_order',
-        'title_ar', 'title_en', 'item_limit',
+        'title_ar', 'title_en', 'item_limit', 'content',
     ];
 
     protected $casts = [
         'is_active'  => 'boolean',
         'sort_order' => 'integer',
         'item_limit' => 'integer',
+        // Free-form bag — only the `faqs` section uses it (an array of
+        // { question, answer } rows authored by the clinic admin).
+        'content'    => 'array',
     ];
+
+    /** Max Q&A rows the `faqs` section will store / render. */
+    public const FAQ_LIMIT = 5;
 
     /**
      * The fixed set of section keys. Order here is the default render order
@@ -37,6 +43,7 @@ class ClinicPageSection extends Model
         'google_reviews',
         'articles',
         'about',
+        'faqs',
         'contact_info',
         'working_hours',
         'social_links',

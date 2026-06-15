@@ -27,3 +27,12 @@ export function useGateAction() {
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });
 }
+
+export function useLandingRequestAction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { pageId: number; action: 'approve' | 'reject'; reason?: string }) =>
+      accessCenterApi.landingAction(v.pageId, v.action, v.reason),
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+}

@@ -103,6 +103,98 @@ class AccountController extends Controller
     }
 
     /**
+     * Full, searchable/filterable list of the complexes the customer follows.
+     * The homepage strip caps mobile to 6 and links here for the rest.
+     */
+    public function following(Request $request)
+    {
+        $user = auth('web')->user();
+        $ids  = $user->following()->pluck('clinics.id');
+
+        $q       = trim((string) $request->query('q', ''));
+        $cityId  = $request->query('city');
+        $catSlug = $request->query('category');
+
+        $minPrice = fn ($qq) => $qq->where('is_active', true)
+            ->where('approval_status', 'approved')
+            ->whereNotNull('price');
+
+        $clinics = Clinic::publiclyVisible()
+            ->whereIn('clinics.id', $ids)
+            ->when($q !== '', fn ($qq) => $qq->where('clinics.name', 'like', "%{$q}%"))
+            ->when($cityId, fn ($qq) => $qq->where('clinics.city_id', $cityId))
+            ->when($catSlug, fn ($qq) => $qq->whereHas('categories', fn ($c) => $c->where('slug', $catSlug)))
+            ->with(['city', 'categories'])
+            ->withAvg('googleReviews', 'rating')
+            ->withCount('bookings')
+            ->withMin(['services as min_price' => $minPrice], 'price')
+            ->rankedForListing()
+            ->paginate(12)
+            ->withQueryString();
+
+        // Filter options drawn from the followed set only, so every choice
+        // actually narrows the list (no dead options).
+        $followed   = Clinic::whereIn('id', $ids)
+            ->with(['city:id,name,name_en', 'categories:id,name,name_en,slug'])
+            ->get();
+        $cities     = $followed->pluck('city')->filter()->unique('id')->sortBy('name')->values();
+        $categories = $followed->pluck('categories')->flatten()->unique('id')->sortBy('name')->values();
+
+        return view('public.account.following', compact(
+            'clinics', 'cities', 'categories', 'q', 'cityId', 'catSlug', 'user',
+        ));
+    }
+
+    /**
+     * Full, searchable/filterable list of live offers across the complexes
+     * the customer follows. Companion to following() for the offers strip.
+     */
+    public function followingOffers(Request $request)
+    {
+        $user = auth('web')->user();
+        $ids  = $user->following()->pluck('clinics.id');
+
+        $q        = trim((string) $request->query('q', ''));
+        $catSlug  = $request->query('category');
+        $clinicId = $request->query('clinic');
+
+        $offers = Offer::query()
+            ->runningNow()
+            ->whereIn('clinic_id', $ids)
+            ->whereHas('clinic', fn ($c) => $c->publiclyVisible())
+            ->when($q !== '', fn ($qq) => $qq->where('title', 'like', "%{$q}%"))
+            ->when($clinicId, fn ($qq) => $qq->where('clinic_id', $clinicId))
+            ->when($catSlug, fn ($qq) => $qq->whereHas('service.categories', fn ($c) => $c->where('slug', $catSlug)))
+            ->with([
+                'clinic:id,name,slug,city_id',
+                'clinic.city:id,name',
+                'service:id,name,image',
+                'service.categories:id,name,name_en,slug,emoji',
+            ])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('starts_at')
+            ->paginate(12)
+            ->withQueryString();
+
+        // Filter options: followed complexes + only the categories that
+        // actually have a service in those complexes.
+        $clinics    = Clinic::whereIn('id', $ids)->orderBy('name')->get(['id', 'name']);
+        $categories = \App\Models\Category::query()
+            ->whereIn('id', function ($sub) use ($ids) {
+                $sub->select('cs.category_id')
+                    ->from('category_service as cs')
+                    ->join('services as sv', 'sv.id', '=', 'cs.service_id')
+                    ->whereIn('sv.clinic_id', $ids);
+            })
+            ->orderBy('name')
+            ->get(['id', 'name', 'name_en', 'slug']);
+
+        return view('public.account.following-offers', compact(
+            'offers', 'clinics', 'categories', 'q', 'catSlug', 'clinicId', 'user',
+        ));
+    }
+
+    /**
      * Toggle a saved service/offer for the current customer. Resolves the
      * target withTrashed so un-saving a since-deleted item still works.
      */
@@ -336,6 +428,33 @@ class AccountController extends Controller
         }
 
         return back()->with('success', $favorited ? __('site.favorite_added') : __('site.favorite_removed'));
+    }
+
+    /**
+     * Follow / unfollow a complex. Reachable by guests: a guest is sent
+     * through the OTP login with the intended follow stashed in the
+     * session, then OtpController applies it and returns them here.
+     */
+    public function toggleFollow(Clinic $clinic)
+    {
+        $user = auth('web')->user();
+
+        if (! $user) {
+            // Remember the intent + where to come back to, then push the
+            // guest into the OTP login. Mirrors pending_booking / pending_quote.
+            session()->put('pending_follow', $clinic->id);
+            session()->put('url.intended', route('clinic.show', $clinic->slug));
+
+            return redirect()->route('login');
+        }
+
+        if ($user->isFollowing($clinic)) {
+            $user->following()->detach($clinic->id);
+            return back()->with('success', __('site.follow_removed'));
+        }
+
+        $user->following()->syncWithoutDetaching([$clinic->id]);
+        return back()->with('success', __('site.follow_added'));
     }
 
     /**

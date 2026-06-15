@@ -22,36 +22,38 @@
                 @lang('site.home_no_articles')
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{-- Compact, uniform cards — 2 per row on mobile (was 1 big), with a
+                 fixed image height so they match the offer cards. --}}
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                 @foreach($articles as $i => $article)
                     <article class="reveal bg-white rounded-2xl ring-1 ring-gray-100 hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-col" style="--reveal-delay:{{ ($i % 3) * 100 }}ms">
-                        <a href="{{ route('article.show', $article->slug) }}" class="block aspect-[16/9] bg-gradient-to-br from-sage-mist to-gold-whisper relative">
+                        <a href="{{ route('article.show', $article->slug) }}" class="block h-28 sm:h-44 bg-gradient-to-br from-sage-mist to-gold-whisper relative">
                             @if($article->cover_image ?? false)
                                 <img src="{{ \Illuminate\Support\Facades\Storage::url($article->cover_image) }}"
                                      alt="{{ $article->title }}"
                                      class="absolute inset-0 w-full h-full object-cover" loading="lazy">
                             @else
-                                <span class="absolute inset-0 flex items-center justify-center text-5xl">📝</span>
+                                <span class="absolute inset-0 flex items-center justify-center text-4xl">📝</span>
                             @endif
                         </a>
-                        <div class="p-5 flex-1 flex flex-col">
+                        <div class="p-3 sm:p-5 flex-1 flex flex-col">
                             <a href="{{ route('article.show', $article->slug) }}" class="block">
-                                <h3 class="font-display font-bold text-lg text-charcoal hover:text-sage-700 transition-colors line-clamp-2">{{ $article->title }}</h3>
+                                <h3 class="font-display font-bold text-sm sm:text-lg text-charcoal hover:text-sage-700 transition-colors line-clamp-2">{{ $article->title }}</h3>
                             </a>
                             @if($article->meta_description)
-                                <p class="text-sm text-gray-500 mt-2 line-clamp-3 flex-1">{{ $article->meta_description }}</p>
+                                <p class="hidden sm:block text-sm text-gray-500 mt-2 line-clamp-3 flex-1">{{ $article->meta_description }}</p>
                             @endif
-                            <div class="mt-4 flex items-center justify-between text-xs text-gray-500">
-                                <div>
+                            <div class="mt-2 sm:mt-4 flex items-center justify-between gap-1 text-[11px] sm:text-xs text-gray-500">
+                                <div class="min-w-0">
                                     @if($article->clinic)
-                                        <span class="inline-flex items-center gap-1">
-                                            <x-icon name="building" class="w-3.5 h-3.5" />
+                                        <span class="inline-flex items-center gap-1 min-w-0">
+                                            <x-icon name="building" class="w-3.5 h-3.5 shrink-0" />
                                             <span class="line-clamp-1">{{ $article->clinic->name }}</span>
                                         </span>
                                     @endif
                                 </div>
                                 @if($article->published_at)
-                                    <time datetime="{{ $article->published_at->toIso8601String() }}">{{ $article->published_at->translatedFormat('d M Y') }}</time>
+                                    <time class="shrink-0" datetime="{{ $article->published_at->toIso8601String() }}">{{ $article->published_at->translatedFormat('d M Y') }}</time>
                                 @endif
                             </div>
                         </div>

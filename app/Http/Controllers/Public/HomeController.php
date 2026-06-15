@@ -59,7 +59,7 @@ class HomeController extends Controller
             $type = $row['section']->type ?? null;
             $data = $row['data'] ?? [];
 
-            if ($type === 'clinic_list' && ! empty($data['clinics'])) {
+            if (in_array($type, ['clinic_list', 'followed_clinics'], true) && ! empty($data['clinics'])) {
                 foreach ($data['clinics'] as $clinic) {
                     if ($clinic?->id) {
                         $clinicIds[] = $clinic->id;
@@ -67,7 +67,7 @@ class HomeController extends Controller
                 }
             }
 
-            if (in_array($type, ['offers', 'category_offers'], true) && ! empty($data['offers'])) {
+            if (in_array($type, ['offers', 'category_offers', 'followed_offers'], true) && ! empty($data['offers'])) {
                 foreach ($data['offers'] as $offer) {
                     if ($offer?->service) {
                         $services[] = $offer->service;

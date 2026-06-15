@@ -65,6 +65,11 @@ class DatabaseSeeder extends Seeder
         // idempotent (pages upsert, nav links seed-once) — always wanted.
         $this->call(StaticContentSeeder::class);
 
+        // 10 varied marketing landing pages (one of every type + every
+        // header/footer chrome style). Needs clinics/cities/categories/offers,
+        // all seeded above. Stamped so the Seeder Center can manage them.
+        DemoBatch::wrap('landing_pages', fn () => $this->call(LandingPageSeeder::class));
+
         // ── Heavy demo data — opt out via SEED_HEAVY=0 in .env ─────────────
         if (env('SEED_HEAVY', true)) {
             DemoBatch::wrap('massive_city', fn () => $this->call(MassiveCityCoverageSeeder::class));

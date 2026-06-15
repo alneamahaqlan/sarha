@@ -73,6 +73,22 @@ class User extends Authenticatable
         return $this->favorites()->where('clinics.id', $clinic->id)->exists();
     }
 
+    /**
+     * Clinics this customer follows (Instagram-style). Separate pivot from
+     * `favorites`: a follow subscribes the customer to the clinic's new
+     * offers on their homepage and counts toward the clinic's public
+     * follower tally.
+     */
+    public function following()
+    {
+        return $this->belongsToMany(Clinic::class, 'clinic_follows')->withTimestamps();
+    }
+
+    public function isFollowing(Clinic $clinic): bool
+    {
+        return $this->following()->where('clinics.id', $clinic->id)->exists();
+    }
+
     /** Saved services + offers (polymorphic). */
     public function savedItems()
     {

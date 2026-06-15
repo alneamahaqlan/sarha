@@ -14,50 +14,6 @@
     $regular  = $activeOffers->where('is_featured', false)->values();
 @endphp
 
-@once
-    @push('scripts')
-    <script>
-        // Alpine factory used by every offer-card on the page. Ticks once
-        // per minute (offer windows are measured in hours/days, not
-        // seconds — so 60s saves a bunch of setInterval churn).
-        function offerCountdown(endsAtIso) {
-            return {
-                endsAt: new Date(endsAtIso).getTime(),
-                label: '',
-                urgent: false,
-                _timer: null,
-                update() {
-                    const now = Date.now();
-                    const ms  = this.endsAt - now;
-                    if (ms <= 0) {
-                        this.label = @json(__('site.offer_countdown_expired'));
-                        this.urgent = true;
-                        if (this._timer) { clearInterval(this._timer); }
-                        return;
-                    }
-                    const hours = Math.floor(ms / (1000 * 60 * 60));
-                    if (hours < 1) {
-                        this.label = @json(__('site.offer_countdown_ending'));
-                        this.urgent = true;
-                    } else if (hours < 24) {
-                        this.label = @json(__('site.offer_countdown_hours')).replace(':h', hours);
-                        this.urgent = true;
-                    } else {
-                        const days = Math.floor(hours / 24);
-                        this.label = @json(__('site.offer_countdown_days')).replace(':d', days);
-                        this.urgent = false;
-                    }
-                },
-                start() {
-                    this.update();
-                    this._timer = setInterval(() => this.update(), 60_000);
-                },
-            };
-        }
-    </script>
-    @endpush
-@endonce
-
 @if($activeOffers->isEmpty())
     <div class="bg-white rounded-xl shadow-sm p-10 text-center text-gray-400">
         @lang('site.no_offers_yet')
@@ -66,9 +22,9 @@
     @if($featured->isNotEmpty())
         <div class="space-y-4">
             <h2 class="text-lg font-bold text-gray-800">@lang('site.featured_offers_title')</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-{{ min($featured->count(), 3) }} gap-4">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 @foreach($featured as $offer)
-                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => true, 'spec' => $spec ?? false])
+                    @include('public.partials.offer-card', ['offer' => $offer, 'clinic' => $clinic, 'large' => false, 'spec' => $spec ?? false])
                 @endforeach
             </div>
         </div>

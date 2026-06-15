@@ -46,6 +46,15 @@
             </div>
             <h1 class="text-2xl font-bold text-gray-800 mt-1">{{ $service->name }}</h1>
 
+            @php $serviceBadges = app(\App\Services\ClinicBadgeService::class)->forService($service, 'header'); @endphp
+            @if(! empty($serviceBadges))
+                <div class="mt-2 flex flex-wrap gap-1">
+                    @foreach($serviceBadges as $b)
+                        @include('public.partials.badge-chip', ['badge' => $b])
+                    @endforeach
+                </div>
+            @endif
+
             {{-- Category chips + sub-clinic --}}
             <div class="mt-2 flex flex-wrap gap-2">
                 @foreach($service->categories as $cat)

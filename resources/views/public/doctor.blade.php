@@ -29,6 +29,14 @@
             @if($doctor->specialty)
                 <p class="text-sage-600 font-medium mt-1">{{ $doctor->specialty }}</p>
             @endif
+            @php $doctorBadges = app(\App\Services\ClinicBadgeService::class)->forDoctor($doctor, 'header'); @endphp
+            @if(! empty($doctorBadges))
+                <div class="mt-2 flex flex-wrap gap-1">
+                    @foreach($doctorBadges as $b)
+                        @include('public.partials.badge-chip', ['badge' => $b])
+                    @endforeach
+                </div>
+            @endif
             <div class="mt-2">
                 @include('public.partials.impressions-badge', ['clinic' => $clinic])
             </div>

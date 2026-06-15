@@ -34,6 +34,9 @@
         @if($hasSubtitle)
             <p class="reveal text-gray-500 text-sm mb-8">@lang('site.' . $subtitleKey)</p>
         @endif
+        {{-- Warm the badge memo once for the whole list so each card's
+             forCard() is a memory hit, not a per-clinic query (no N+1). --}}
+        @php app(\App\Services\ClinicBadgeService::class)->forClinics($clinics->pluck('id')->all(), 'cards'); @endphp
         <div class="grid grid-cols-1 sm:grid-cols-2 {{ $gridCols }} gap-6">
             @foreach($clinics as $i => $clinic)
                 <div class="reveal" style="--reveal-delay:{{ ($i % 4) * 90 }}ms">

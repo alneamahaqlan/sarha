@@ -110,6 +110,7 @@ return [
     'clinic_search_no_results' => 'لا توجد نتائج مطابقة',
     // Hero specialty (category) filter
     'clinic_spec_filter_all' => 'الكل',
+    'clinic_spec_label' => 'التخصصات',
     'clinic_spec_filter_active' => 'عرض تخصص:',
     'clinic_spec_filter_clear' => 'إلغاء التصفية',
     // Instagram-style stories
@@ -265,6 +266,8 @@ return [
     'tab_reviews' => 'التقييمات',
     'tab_articles' => 'المدونة',
     'tab_about' => 'عن المجمع',
+    'faqs_title' => 'الأسئلة الشائعة',
+    'faqs_subtitle' => 'إجابات على أكثر ما يسأل عنه زوّار المجمع',
     'directions_open_maps' => 'افتح في خرائط Google',
     'no_articles_yet' => 'لا توجد تدوينات منشورة بعد',
     'view_more_services' => 'عرض كل الخدمات',
@@ -360,6 +363,43 @@ return [
     'favorite_removed' => 'تمت إزالة المجمع من المفضلة',
     'favorite_add' => 'إضافة للمفضلة',
     'favorite_remove' => 'إزالة من المفضلة',
+
+    // Follow a complex (Instagram-style) + public header tallies
+    'follow' => 'متابعة',
+    'following' => 'متابَع',
+    'follow_added' => 'تمت متابعة المجمع',
+    'follow_removed' => 'تم إلغاء متابعة المجمع',
+    'followers' => 'متابِع',
+    'customers' => 'عميل',
+    'bookings_made' => 'حجز',
+    'specialties' => 'التخصصات',
+    'specialties_count' => 'التخصصات · :count',
+
+    // Personalised homepage strips for signed-in followers
+    'followed_eyebrow' => 'تتابعها',
+    'followed_offers_title' => 'عروض المجمعات التي تتابعها',
+    'followed_offers_subtitle' => 'أحدث العروض السارية من المجمعات التي اخترت متابعتها',
+    'followed_clinics_title' => 'المجمعات التي تتابعها',
+    'followed_clinics_subtitle' => 'كل مجمعاتك المفضلة في مكان واحد لمتابعة جديدها',
+    'followed_show_more' => 'عرض المزيد',
+    // Full followed-offers page
+    'followed_offers_page_title' => 'عروض المجمعات التي تتابعها',
+    'followed_offers_page_subtitle' => 'كل العروض السارية من المجمعات التي تتابعها — مع بحث وفلترة',
+    'followed_offers_empty' => 'لا توجد عروض سارية من المجمعات التي تتابعها حالياً.',
+    'followed_offers_empty_filtered' => 'لا توجد عروض مطابقة لبحثك أو الفلاتر المختارة.',
+    'followed_offers_search_ph' => 'ابحث في العروض…',
+    // Full followed-clinics page
+    'followed_clinics_page_title' => 'المجمعات التي تتابعها',
+    'followed_clinics_page_subtitle' => 'كل المجمعات التي اخترت متابعتها — مع بحث وفلترة',
+    'followed_clinics_empty' => 'لم تتابع أي مجمع بعد.',
+    'followed_clinics_empty_filtered' => 'لا توجد مجمعات مطابقة لبحثك أو الفلاتر المختارة.',
+    'followed_clinics_search_ph' => 'ابحث في المجمعات…',
+    // Shared filter UI (followed pages)
+    'followed_filter_city' => 'كل المدن',
+    'followed_filter_category' => 'كل التخصصات',
+    'followed_filter_clinic' => 'كل المجمعات',
+    'followed_filter_apply' => 'تطبيق',
+    'followed_filter_reset' => 'مسح الفلاتر',
 
     // Saved services & offers (polymorphic favourites)
     'saved_add' => 'حفظ في المفضلة',
@@ -516,7 +556,7 @@ return [
 
     // Auth (OTP)
     'login_title' => 'تسجيل الدخول',
-    'login_subtitle' => 'سجّل دخولك برقم هاتفك',
+    'login_subtitle' => 'سجّل دخولك أو أنشئ حسابك برقم هاتفك',
     'send_otp' => 'إرسال رمز التحقق',
     'otp_label' => 'رمز التحقق',
     'otp_sent_to' => 'تم إرسال رمز التحقق إلى :phone',
@@ -603,6 +643,7 @@ return [
     'name_required' => 'يرجى إدخال اسمك (حرفان على الأقل).',
     'name_step_intro' => 'مرحباً بك! أكمل اسمك لإنشاء حسابك.',
     'name_step_submit' => 'متابعة وإنشاء الحساب',
+    'session_expired_retry' => 'انتهت صلاحية الصفحة، يرجى المحاولة مرة أخرى.',
     'dev_code' => '[تطوير: :code]',
     'account_blocked' => 'حسابك معلّق، يرجى التواصل مع الإدارة',
     'phone_invalid' => 'رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام',
@@ -708,4 +749,5 @@ return [
     'lp_status_draft'     => 'مسودة',
     'lp_status_published' => 'منشورة',
     'lp_status_archived'  => 'مؤرشفة',
+    'lp_visit_clinic'     => 'زيارة صفحة المجمع',
 ];

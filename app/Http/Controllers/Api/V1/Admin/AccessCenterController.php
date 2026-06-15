@@ -7,6 +7,8 @@ use App\Models\CatalogService;
 use App\Models\CategoryRequest;
 use App\Models\Clinic;
 use App\Models\ClinicCampaign;
+use App\Models\LandingPage;
+use App\Models\PlatformNotification;
 use App\Models\SubscriptionPackage;
 use App\Support\ClinicGateRegistry;
 use Illuminate\Http\JsonResponse;
@@ -97,7 +99,31 @@ class AccessCenterController extends Controller
             ],
         ];
 
-        return response()->json(['data' => ['pending' => $items, 'queues' => $queues]]);
+        // Clinic-built landing pages awaiting their one-time approval. Unlike
+        // the gates (a per-clinic status column) these are individual entities,
+        // so they're surfaced as their own inline-actionable list with a live
+        // preview link rather than a per-clinic toggle.
+        $landingRequests = LandingPage::query()
+            ->where('approval_status', 'pending')
+            ->whereNotNull('owner_clinic_id')
+            ->with('ownerClinic:id,name')
+            ->orderByDesc('submitted_at')
+            ->get(['id', 'owner_clinic_id', 'title_ar', 'slug', 'submitted_at'])
+            ->map(fn (LandingPage $p) => [
+                'landing_page_id' => $p->id,
+                'clinic_id'       => $p->owner_clinic_id,
+                'clinic_name'     => $p->ownerClinic?->name,
+                'title'           => $p->title_ar,
+                'slug'            => $p->slug,
+                'preview_url'     => "/l/{$p->slug}",
+                'submitted_at'    => $p->submitted_at?->toIso8601String(),
+            ])->values();
+
+        return response()->json(['data' => [
+            'pending'          => $items,
+            'queues'           => $queues,
+            'landing_requests' => $landingRequests,
+        ]]);
     }
 
     /** Per-clinic view: search clinics and return each gate's current status. */
@@ -180,5 +206,68 @@ class AccessCenterController extends Controller
             'clinic_id' => $clinic->id,
             'status'    => $clinic->{$g['status']},
         ]]);
+    }
+
+    /**
+     * Approve or reject a clinic-built landing page's one-time review. Approve
+     * publishes it (after which the complex's edits are live without further
+     * review); reject records the reason and keeps it hidden. Either way the
+     * owning complex is notified.
+     */
+    public function landingAction(Request $request, LandingPage $landingPage): JsonResponse
+    {
+        $this->authorizeAdmin();
+
+        abort_unless($landingPage->owner_clinic_id !== null, 404);
+
+        $data = $request->validate([
+            'action' => ['required', 'in:approve,reject'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $adminId = auth('admin')->id();
+
+        if ($data['action'] === 'approve') {
+            $landingPage->update([
+                'approval_status'      => 'approved',
+                'approval_reason'      => null,
+                'status'               => 'published',
+                'published_at'         => $landingPage->published_at ?? now(),
+                'reviewed_at'          => now(),
+                'approval_reviewed_by' => $adminId,
+            ]);
+
+            $this->notifyClinic($landingPage, 'landing_page.approved', 'تم اعتماد صفحة الهبوط', "تم نشر صفحة الهبوط: {$landingPage->title_ar}");
+        } else {
+            $landingPage->update([
+                'approval_status'      => 'rejected',
+                'approval_reason'      => $data['reason'] ?? null,
+                'reviewed_at'          => now(),
+                'approval_reviewed_by' => $adminId,
+            ]);
+
+            $this->notifyClinic($landingPage, 'landing_page.rejected', 'تم رفض صفحة الهبوط', "تم رفض صفحة الهبوط: {$landingPage->title_ar}");
+        }
+
+        return response()->json(['data' => [
+            'landing_page_id' => $landingPage->id,
+            'approval_status' => $landingPage->approval_status,
+        ]]);
+    }
+
+    /** Send a decision notification to the complex that owns the page. */
+    private function notifyClinic(LandingPage $page, string $type, string $title, string $body): void
+    {
+        PlatformNotification::create([
+            'notifiable_type' => Clinic::class,
+            'notifiable_id'   => $page->owner_clinic_id,
+            'type'            => $type,
+            'icon'            => 'heroicon-o-rectangle-group',
+            'url'             => '/app/clinic/landing-pages',
+            'priority'        => 'normal',
+            'title'           => $title,
+            'body'            => $body,
+            'data'            => ['landing_page_id' => $page->id],
+        ]);
     }
 }

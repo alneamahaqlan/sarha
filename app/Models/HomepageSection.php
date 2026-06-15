@@ -31,8 +31,16 @@ class HomepageSection extends Model
         'hero', 'stats', 'banner', 'offers', 'articles',
         'categories', 'category_offers', 'ai_highlight',
         'how_it_works', 'clinic_list', 'map', 'cta',
-        'price_quote',
+        'price_quote', 'faqs',
+        // Personalised strips — only render for a signed-in customer who
+        // follows complexes (self-hide otherwise). See [[clinic-follow-feature]].
+        'followed_offers', 'followed_clinics',
+        // Entities (clinics/offers/…) carrying an admin-chosen badge.
+        'badged',
     ];
+
+    /** Max Q&A rows a `faqs` section stores / renders (config.faqs). */
+    public const FAQ_LIMIT = 5;
 
     public const CACHE_KEY = 'homepage:sections:v1';
     public const CACHE_TTL = 600; // 10 min

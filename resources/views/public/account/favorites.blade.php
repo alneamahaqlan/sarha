@@ -33,6 +33,8 @@
             @if($favorites->total() > 0)
                 <section>
                     <h2 class="text-lg font-bold text-gray-800 mb-4">@lang('site.account_fav_clinics')</h2>
+                    {{-- Warm the badge memo once so each card's forCard() is a memory hit (no N+1). --}}
+                    @php app(\App\Services\ClinicBadgeService::class)->forClinics($favorites->getCollection()->pluck('id')->all(), 'cards'); @endphp
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         @foreach($favorites as $clinic)
                             <div class="relative">

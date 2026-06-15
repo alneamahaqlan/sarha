@@ -9,6 +9,8 @@
                 ['route' => 'account.complaints','label' => 'site.account_my_complaints','icon' => 'warning'],
                 ['route' => 'account.reports',   'label' => 'site.account_my_reports',   'icon' => 'warning'],
                 ['route' => 'account.favorites', 'label' => 'site.account_my_favorites', 'icon' => 'star'],
+                ['route' => 'account.following', 'label' => 'site.followed_clinics_page_title', 'icon' => 'user-plus'],
+                ['route' => 'account.following.offers', 'label' => 'site.followed_offers_page_title', 'icon' => 'sparkles'],
             ];
         @endphp
         @foreach($items as $item)

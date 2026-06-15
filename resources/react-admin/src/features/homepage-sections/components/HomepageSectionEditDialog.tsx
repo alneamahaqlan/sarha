@@ -14,12 +14,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useCategoryLookup } from '@/features/lookups/hooks';
+import { useBadges } from '@/features/badges/hooks';
 
 import { useUpdateHomepageSection } from '../hooks';
-import type { HomepageSection, HomepageSectionFormValues } from '../types';
+import type { HomepageFaqItem, HomepageSection, HomepageSectionFormValues } from '../types';
+
+/** Max Q&A rows a faqs section stores — mirrors HomepageSection::FAQ_LIMIT. */
+const FAQ_LIMIT = 5;
+
+/** Pad stored FAQ rows out to FAQ_LIMIT fixed slots for editing. */
+function toFaqSlots(faqs: HomepageFaqItem[] | undefined): HomepageFaqItem[] {
+  const rows = Array.isArray(faqs) ? faqs.slice(0, FAQ_LIMIT) : [];
+  while (rows.length < FAQ_LIMIT) rows.push({ question: '', answer: '' });
+  return rows;
+}
 
 interface Props {
   section: HomepageSection;
@@ -38,6 +50,10 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
   const { t } = useTranslation();
   const update = useUpdateHomepageSection(section.id);
   const { data: categories } = useCategoryLookup();
+  const isBadged = section.type === 'badged';
+  const { data: badges } = useBadges();
+
+  const isFaq = section.type === 'faqs';
 
   const [form, setForm] = useState<HomepageSectionFormValues>({
     title_ar: section.title_ar ?? '',
@@ -51,8 +67,10 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
     ends_at: toLocal(section.ends_at) || null,
     config: section.config ?? {},
   });
+  const [faqs, setFaqs] = useState<HomepageFaqItem[]>(() => toFaqSlots(section.config?.faqs));
 
   useEffect(() => {
+    setFaqs(toFaqSlots(section.config?.faqs));
     setForm({
       title_ar: section.title_ar ?? '',
       title_en: section.title_en ?? '',
@@ -67,15 +85,25 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
     });
   }, [section]);
 
+  const setFaq = (idx: number, field: keyof HomepageFaqItem, value: string) =>
+    setFaqs((rows) => rows.map((r, i) => (i === idx ? { ...r, [field]: value } : r)));
+
   const onSubmit = async () => {
     try {
+      // For faqs sections, fold the (cleaned) Q&A rows into config.faqs.
+      const config = { ...(form.config ?? {}) };
+      if (isFaq) {
+        config.faqs = faqs
+          .map((r) => ({ question: r.question.trim(), answer: r.answer.trim() }))
+          .filter((r) => r.question !== '' && r.answer !== '');
+      }
       const payload: HomepageSectionFormValues = {
         ...form,
         title_ar: form.title_ar?.trim() ? form.title_ar : null,
         title_en: form.title_en?.trim() ? form.title_en : null,
         starts_at: form.starts_at ? new Date(form.starts_at).toISOString() : null,
         ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
-        config: form.config && Object.keys(form.config).length > 0 ? form.config : null,
+        config: Object.keys(config).length > 0 ? config : null,
       };
       await update.mutateAsync(payload);
       toast.success(t('homepage_sections.saved', 'تم حفظ السكشن'));
@@ -154,6 +182,7 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
           </div>
 
           {/* ── Item limit ─────────────────────────────────────── */}
+          {!isFaq && (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="item_limit">{t('homepage_sections.item_limit', 'عدد العناصر المعروضة')}</Label>
@@ -189,6 +218,44 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
               </div>
             )}
           </div>
+          )}
+
+          {/* ── FAQ editor (faqs type) ─────────────────────────── */}
+          {isFaq && (
+            <div className="space-y-3">
+              <div>
+                <Label>{t('homepage_sections.faqs_label', 'الأسئلة والأجوبة')}</Label>
+                <p className="text-xs text-[var(--color-muted-foreground)] mt-0.5">
+                  {t(
+                    'homepage_sections.faqs_hint',
+                    'أضِف حتى 5 أسئلة شائعة. تظهر الأسئلة المكتملة فقط (سؤال + جواب) في الصفحة الرئيسية.',
+                  )}
+                </p>
+              </div>
+              {faqs.map((faq, idx) => (
+                <div key={idx} className="space-y-1.5 rounded-md border border-[var(--color-border)] p-3">
+                  <Label htmlFor={`faq-q-${idx}`} className="text-xs">
+                    {t('homepage_sections.faq_question', 'السؤال')} {idx + 1}
+                  </Label>
+                  <Input
+                    id={`faq-q-${idx}`}
+                    value={faq.question}
+                    onChange={(e) => setFaq(idx, 'question', e.target.value)}
+                    placeholder={t('homepage_sections.faq_question_placeholder', 'مثال: كيف أحجز موعداً؟')}
+                    maxLength={255}
+                  />
+                  <Textarea
+                    id={`faq-a-${idx}`}
+                    value={faq.answer}
+                    onChange={(e) => setFaq(idx, 'answer', e.target.value)}
+                    placeholder={t('homepage_sections.faq_answer_placeholder', 'الإجابة…')}
+                    maxLength={2000}
+                    rows={2}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* ── Type-specific config ───────────────────────────── */}
           {isCategoryOffers && (
@@ -257,6 +324,53 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
                   })
                 }
               />
+            </div>
+          )}
+
+          {isBadged && (
+            <div className="space-y-3 rounded-md border border-[var(--color-border)] p-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="badge_key">{t('homepage_sections.badge', 'الشارة')}</Label>
+                <Select
+                  id="badge_key"
+                  value={form.config?.badge_key ?? ''}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      config: { ...(form.config ?? {}), badge_key: e.target.value || null },
+                    })
+                  }
+                >
+                  <option value="">— {t('common.select', 'اختر')} —</option>
+                  {(badges ?? []).map((b) => (
+                    <option key={b.id} value={b.key}>{b.label_ar} ({b.key})</option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="target_type">{t('homepage_sections.target_type', 'نوع المحتوى')}</Label>
+                <Select
+                  id="target_type"
+                  value={form.config?.target_type ?? 'clinic'}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      config: {
+                        ...(form.config ?? {}),
+                        target_type: e.target.value as 'clinic' | 'offer' | 'service' | 'doctor',
+                      },
+                    })
+                  }
+                >
+                  <option value="clinic">{t('homepage_sections.target_clinic', 'مجمعات')}</option>
+                  <option value="offer">{t('homepage_sections.target_offer', 'عروض')}</option>
+                  <option value="service">{t('homepage_sections.target_service', 'خدمات')}</option>
+                  <option value="doctor">{t('homepage_sections.target_doctor', 'أطباء')}</option>
+                </Select>
+                <p className="text-xs text-[var(--color-muted-foreground)]">
+                  {t('homepage_sections.badged_hint', 'يعرض الكيانات الحاملة للشارة المختارة من هذا النوع.')}
+                </p>
+              </div>
             </div>
           )}
 

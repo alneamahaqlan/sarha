@@ -1,112 +1,136 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { landingPagesApi, type LandingPageListParams, type ReorderPayload } from './api/landing-pages.api';
-import type { BlockType, LandingPageBlock, LandingPageFormValues, SeoFormValues } from './types';
+import { type LandingPageListParams, type ReorderPayload } from './api/landing-pages.api';
+import { useLandingScope } from './scope';
+import type { BlockType, ChromeFormValues, LandingPageBlock, LandingPageFormValues, SeoFormValues } from './types';
 
-const KEY = ['admin', 'landing-pages'] as const;
-
+/**
+ * All hooks resolve their API client + query-cache namespace from the active
+ * LandingScope (admin by default, clinic when wrapped in LandingScopeProvider),
+ * so the admin + clinic panels share one set of hooks.
+ */
 export function useLandingPages(params: LandingPageListParams = {}) {
+  const { api, keyBase } = useLandingScope();
   return useQuery({
-    queryKey: [...KEY, 'list', params],
-    queryFn: () => landingPagesApi.list(params),
+    queryKey: [...keyBase, 'list', params],
+    queryFn: () => api.list(params),
   });
 }
 
 export function useLandingPage(id: number | null) {
+  const { api, keyBase } = useLandingScope();
   return useQuery({
-    queryKey: [...KEY, 'detail', id],
-    queryFn: () => landingPagesApi.get(id as number),
+    queryKey: [...keyBase, 'detail', id],
+    queryFn: () => api.get(id as number),
     enabled: id !== null,
   });
 }
 
 export function useCreateLandingPage() {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (values: LandingPageFormValues) => landingPagesApi.create(values),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    mutationFn: (values: LandingPageFormValues) => api.create(values),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keyBase }),
   });
 }
 
 export function useUpdateLandingPage(id: number) {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (values: Partial<LandingPageFormValues & SeoFormValues>) => landingPagesApi.update(id, values),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    mutationFn: (values: Partial<LandingPageFormValues & SeoFormValues & ChromeFormValues>) => api.update(id, values),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keyBase }),
+  });
+}
+
+export function useSubmitLandingPage() {
+  const { api, keyBase } = useLandingScope();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.submit(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keyBase }),
   });
 }
 
 export function useDeleteLandingPage() {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => landingPagesApi.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+    mutationFn: (id: number) => api.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keyBase }),
   });
 }
 
 // ── Blocks ──
 
-const blocksKey = (pageId: number) => [...KEY, 'blocks', pageId] as const;
-
 export function useLandingPageBlocks(pageId: number | null) {
+  const { api, keyBase } = useLandingScope();
   return useQuery({
-    queryKey: blocksKey(pageId ?? 0),
-    queryFn: () => landingPagesApi.blocks(pageId as number),
+    queryKey: [...keyBase, 'blocks', pageId ?? 0],
+    queryFn: () => api.blocks(pageId as number),
     enabled: pageId !== null,
   });
 }
 
 export function useAddBlock(pageId: number) {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (type: BlockType) => landingPagesApi.addBlock(pageId, type),
-    onSuccess: () => qc.invalidateQueries({ queryKey: blocksKey(pageId) }),
+    mutationFn: (type: BlockType) => api.addBlock(pageId, type),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...keyBase, 'blocks', pageId] }),
   });
 }
 
 export function useUpdateBlock(pageId: number) {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (args: { blockId: number; values: Partial<Pick<LandingPageBlock, 'is_visible' | 'sort_order' | 'config'>> }) =>
-      landingPagesApi.updateBlock(pageId, args.blockId, args.values),
-    onSuccess: () => qc.invalidateQueries({ queryKey: blocksKey(pageId) }),
+      api.updateBlock(pageId, args.blockId, args.values),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...keyBase, 'blocks', pageId] }),
   });
 }
 
 export function useDeleteBlock(pageId: number) {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (blockId: number) => landingPagesApi.deleteBlock(pageId, blockId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: blocksKey(pageId) }),
+    mutationFn: (blockId: number) => api.deleteBlock(pageId, blockId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...keyBase, 'blocks', pageId] }),
   });
 }
 
 export function useLandingStats(pageId: number | null, range?: { from?: string; to?: string }) {
+  const { api, keyBase } = useLandingScope();
   return useQuery({
-    queryKey: [...KEY, 'stats', pageId, range],
-    queryFn: () => landingPagesApi.stats(pageId as number, range),
+    queryKey: [...keyBase, 'stats', pageId, range],
+    queryFn: () => api.stats(pageId as number, range),
     enabled: pageId !== null,
   });
 }
 
 export function useReorderBlocks(pageId: number) {
+  const { api, keyBase } = useLandingScope();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: ReorderPayload) => landingPagesApi.reorderBlocks(pageId, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: blocksKey(pageId) }),
+    mutationFn: (payload: ReorderPayload) => api.reorderBlocks(pageId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...keyBase, 'blocks', pageId] }),
   });
 }
 
 export function useGenerateLanding() {
+  const { api } = useLandingScope();
   return useMutation({
     mutationFn: (input: { clinic_id?: number | null; service?: string; city_id?: number | null; category_id?: number | null }) =>
-      landingPagesApi.generate(input),
+      api.generate(input),
   });
 }
 
 export function useLandingCustomers(pageId: number | null, params: { page?: number; per_page?: number; search?: string; status?: string } = {}) {
+  const { api, keyBase } = useLandingScope();
   return useQuery({
-    queryKey: [...KEY, 'customers', pageId, params],
-    queryFn: () => landingPagesApi.customers(pageId as number, params),
+    queryKey: [...keyBase, 'customers', pageId, params],
+    queryFn: () => api.customers(pageId as number, params),
     enabled: pageId !== null,
   });
 }

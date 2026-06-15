@@ -41,6 +41,7 @@ const NavigationLinksIndex   = lazy(() => import('@/features/navigation-links/pa
 const LandingPagesIndex      = lazy(() => import('@/features/landing-pages/pages/LandingPagesIndex').then(m => ({ default: m.LandingPagesIndex })));
 const LandingPageEditor      = lazy(() => import('@/features/landing-pages/pages/LandingPageEditor').then(m => ({ default: m.LandingPageEditor })));
 const AiCenterPage           = lazy(() => import('@/features/ai-center/pages/AiCenterPage').then(m => ({ default: m.AiCenterPage })));
+const BadgesIndex            = lazy(() => import('@/features/badges/pages/BadgesIndex').then(m => ({ default: m.BadgesIndex })));
 const UsersIndex          = lazy(() => import('@/features/users/pages/UsersIndex').then(m => ({ default: m.UsersIndex })));
 const UserProfilePage     = lazy(() => import('@/features/users/pages/UserProfilePage').then(m => ({ default: m.UserProfilePage })));
 const AdminsIndex         = lazy(() => import('@/features/admins/pages/AdminsIndex').then(m => ({ default: m.AdminsIndex })));
@@ -85,6 +86,8 @@ const AdminCustomerReportsIndex = lazy(() => import('@/features/customer-reports
 const ClinicBeforeAfterIndex = lazy(() => import('@/features/clinic/before-after/pages/ClinicBeforeAfterIndex').then(m => ({ default: m.ClinicBeforeAfterIndex })));
 const ClinicStoriesIndex = lazy(() => import('@/features/clinic/stories/pages/ClinicStoriesIndex').then(m => ({ default: m.ClinicStoriesIndex })));
 const ClinicCategoryRequestsIndex = lazy(() => import('@/features/clinic/category-requests/pages/ClinicCategoryRequestsIndex').then(m => ({ default: m.ClinicCategoryRequestsIndex })));
+const ClinicLandingPagesIndex = lazy(() => import('@/features/clinic/landing-pages/pages/ClinicLandingPagesIndex').then(m => ({ default: m.ClinicLandingPagesIndex })));
+const ClinicLandingPageEditor = lazy(() => import('@/features/clinic/landing-pages/pages/ClinicLandingPageEditor').then(m => ({ default: m.ClinicLandingPageEditor })));
 const ClinicBookingsKanban = lazy(() => import('@/features/clinic/bookings/kanban/pages/ClinicBookingsKanban').then(m => ({ default: m.ClinicBookingsKanban })));
 const ClinicQuotesIndex   = lazy(() => import('@/features/clinic/price-quotes/pages/ClinicQuotesIndex').then(m => ({ default: m.ClinicQuotesIndex })));
 const ClinicArticlesIndex = lazy(() => import('@/features/clinic/articles/pages/ClinicArticlesIndex').then(m => ({ default: m.ClinicArticlesIndex })));
@@ -165,6 +168,7 @@ export function AppRoutes() {
               <Route path="admins" element={<AdminsIndex />} />
               <Route path="subscriptions" element={<SubscriptionsIndex />} />
               <Route path="subscription-packages" element={<PackagesIndex />} />
+              <Route path="badges" element={<BadgesIndex />} />
               <Route path="price-quotes" element={<PriceQuotesIndex />} />
               <Route path="audit-logs" element={<AuditLogsIndex />} />
               <Route path="system-settings" element={<SystemSettingsIndex />} />
@@ -211,6 +215,8 @@ export function AppRoutes() {
               <Route path="before-after" element={<RoleGuard ability="before_after.view"><ClinicBeforeAfterIndex /></RoleGuard>} />
               <Route path="stories" element={<RoleGuard ability="stories.view"><ClinicStoriesIndex /></RoleGuard>} />
               <Route path="category-requests" element={<RoleGuard ability="category_requests.view"><ClinicCategoryRequestsIndex /></RoleGuard>} />
+              <Route path="landing-pages" element={<RoleGuard ability="landing_pages.view"><ClinicLandingPagesIndex /></RoleGuard>} />
+              <Route path="landing-pages/:id" element={<RoleGuard ability="landing_pages.view"><ClinicLandingPageEditor /></RoleGuard>} />
               <Route path="bookings" element={<RoleGuard ability="bookings.view"><ClinicBookingsKanban /></RoleGuard>} />
               <Route path="customers" element={<RoleGuard ability="customers.view"><ClinicCustomersIndex /></RoleGuard>} />
               <Route path="customers/:id" element={<RoleGuard ability="customers.view"><ClinicCustomerProfile /></RoleGuard>} />

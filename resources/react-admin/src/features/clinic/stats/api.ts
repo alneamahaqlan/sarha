@@ -113,6 +113,8 @@ export interface ClinicStatsFull {
   articles_performance: StatsArticleRow[];
   best_days: { top_visits_weekday: number | null; top_requests_weekday: number | null };
   recommendation: string;
+  /** All-time tallies (range-independent), mirrored on the public header. */
+  lifetime: { followers: number; customers: number; bookings: number };
 }
 
 export function rangeToParams(range: StatsRange): Record<string, string | number> {
