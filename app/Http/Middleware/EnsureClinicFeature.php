@@ -23,7 +23,8 @@ class EnsureClinicFeature
 {
     /** feature name → FeatureGate predicate. */
     private const FEATURES = [
-        'crm' => 'hasCrmAccess',
+        'crm'     => 'hasCrmAccess',
+        'rewards' => 'hasRewardsAccess',
     ];
 
     public function handle(Request $request, Closure $next, string $feature)

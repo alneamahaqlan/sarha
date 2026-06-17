@@ -75,6 +75,22 @@ export const bookingKanbanApi = {
     return res.data.data;
   },
 
+  /**
+   * Confirm / revoke the patient's physical attendance. Independent of
+   * status — never moves the card between columns. Confirm is idempotent
+   * server-side; the response is the full booking resource but callers
+   * just invalidate the board to pick up the new attendance state.
+   */
+  confirmAttendance: async (id: number) => {
+    const res = await apiClient.post(`/clinic/bookings/${id}/attendance`);
+    return res.data.data;
+  },
+
+  revokeAttendance: async (id: number) => {
+    const res = await apiClient.delete(`/clinic/bookings/${id}/attendance`);
+    return res.data.data;
+  },
+
   addTag: async (id: number, scope: 'booking' | 'customer', label: string, color: TagColor): Promise<TagDto> => {
     const res = await apiClient.post<{ data: TagDto }>(`/clinic/bookings/${id}/tags`, { scope, label, color });
     return res.data.data;

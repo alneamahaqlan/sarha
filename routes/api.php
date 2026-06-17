@@ -232,6 +232,10 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::post('complaints/{complaint}/reopen', [ComplaintController::class, 'reopen'])->name('complaints.reopen');
         Route::apiResource('complaints', ComplaintController::class);
 
+        // Verified-review moderation — the reported queue + hide(spam/abuse)/dismiss.
+        Route::get('review-moderation', [\App\Http\Controllers\Api\V1\Admin\AdminVerifiedReviewController::class, 'index'])->name('admin.review-moderation.index');
+        Route::post('review-moderation/{review}/moderate', [\App\Http\Controllers\Api\V1\Admin\AdminVerifiedReviewController::class, 'moderate'])->name('admin.review-moderation.moderate');
+
         // SalesLead — convert delegates to SalesLeadService (DB::transaction).
         Route::post('sales-leads/{salesLead}/convert', [SalesLeadController::class, 'convert'])->name('sales-leads.convert');
         // Lead timeline — list + log a manual activity (call/whatsapp/note/...).
@@ -531,6 +535,11 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         // Assignment.
         Route::patch('bookings/{booking}/assignee', [\App\Http\Controllers\Api\V1\Clinic\BookingAssignmentController::class, 'update'])->name('clinic.bookings.assignee.update');
 
+        // Attendance — an independent signal (did the patient show up?),
+        // distinct from the status enum. Idempotent confirm + revoke.
+        Route::post('bookings/{booking}/attendance',   [\App\Http\Controllers\Api\V1\Clinic\BookingAttendanceController::class, 'confirm'])->name('clinic.bookings.attendance.confirm');
+        Route::delete('bookings/{booking}/attendance', [\App\Http\Controllers\Api\V1\Clinic\BookingAttendanceController::class, 'revoke'])->name('clinic.bookings.attendance.revoke');
+
         // Service line items taken on a card (purchased services + per-customer
         // net price). Card value = sum of these. Same write gate as booking edits.
         Route::post('bookings/{booking}/services',                       [\App\Http\Controllers\Api\V1\Clinic\BookingServiceController::class, 'store'])->name('clinic.bookings.services.store');
@@ -733,5 +742,33 @@ Route::prefix('v1')->middleware(['api.locale'])->group(function () {
         Route::middleware('clinic.role:team_activity.view')->group(function () {
             Route::get('team-activity', [\App\Http\Controllers\Api\V1\Clinic\TeamActivityController::class, 'index'])->name('clinic.team-activity.index');
         });
+
+        // Cashback rewards — gated by the rewards package feature. Rule
+        // config + issued-voucher list + manual grant + reception redeem.
+        // Isolation via query filter + RewardVoucherPolicy.
+        Route::middleware('clinic.feature:rewards')->group(function () {
+            // Configure the grant rule + issue manual grants — owner/coordinator.
+            Route::middleware('clinic.role:rewards.manage')->group(function () {
+                Route::get('rewards/rule',  [\App\Http\Controllers\Api\V1\Clinic\ClinicRewardRuleController::class, 'show'])->name('clinic.rewards.rule.show');
+                Route::put('rewards/rule',  [\App\Http\Controllers\Api\V1\Clinic\ClinicRewardRuleController::class, 'update'])->name('clinic.rewards.rule.update');
+                Route::post('rewards',      [\App\Http\Controllers\Api\V1\Clinic\ClinicRewardVoucherController::class, 'store'])->name('clinic.rewards.store');
+            });
+            // View the issued vouchers — reception and up.
+            Route::middleware('clinic.role:rewards.view')->group(function () {
+                Route::get('rewards', [\App\Http\Controllers\Api\V1\Clinic\ClinicRewardVoucherController::class, 'index'])->name('clinic.rewards.index');
+            });
+            // Redeem at the desk — reception and up.
+            Route::middleware('clinic.role:rewards.redeem')->group(function () {
+                Route::post('rewards/{voucher}/redeem', [\App\Http\Controllers\Api\V1\Clinic\ClinicRewardVoucherController::class, 'redeem'])->name('clinic.rewards.redeem');
+            });
+        });
+
+        // Verified reviews — the clinic's reviews + its public reply.
+        // Always-on (no feature gate); isolation via policy. Reply ADDS
+        // only — it never alters or hides the review (non-coercive).
+        Route::get('verified-reviews', [\App\Http\Controllers\Api\V1\Clinic\ClinicVerifiedReviewController::class, 'index'])->name('clinic.verified-reviews.index');
+        Route::post('verified-reviews/{review}/reply', [\App\Http\Controllers\Api\V1\Clinic\ClinicVerifiedReviewController::class, 'reply'])->name('clinic.verified-reviews.reply');
+        // Flag spam/abuse for admin review (does NOT hide the review).
+        Route::post('verified-reviews/{review}/report', [\App\Http\Controllers\Api\V1\Clinic\ClinicVerifiedReviewController::class, 'report'])->name('clinic.verified-reviews.report');
     });
 });

@@ -29,6 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('saerha:rollup-landing-stats')->dailyAt('02:30');
         // Recompute automatic badges (most booked / fastest growing …) daily.
         $schedule->command('saerha:badges-recompute')->dailyAt('03:00');
+        // Expire lapsed cashback vouchers + nudge holders whose vouchers
+        // are about to expire.
+        $schedule->command('saerha:dispatch-reward-expiry-reminders')->dailyAt('07:00');
+        // Invite patients to leave a verified review a while after their
+        // confirmed visit (hourly so it lands soon after the delay window).
+        $schedule->command('saerha:dispatch-review-invitations')->hourly();
+        // Win-back: weekly nudge for idle, still-unused reward vouchers
+        // (distinct from the expiry reminder; has its own cooldown).
+        $schedule->command('saerha:dispatch-reward-reactivation-reminders')->weekly();
     })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*', headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR

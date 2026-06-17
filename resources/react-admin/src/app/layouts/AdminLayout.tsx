@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { RouteErrorBoundary } from '@/app/components/RouteErrorBoundary';
-import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2, ShoppingCart, Heart, Database, Layers, Award } from 'lucide-react';
+import { LogOut, Languages, MapPin, LayoutDashboard, Tag, Tags, Users, Shield, Sparkles, Calendar, AlertTriangle, Filter, Building2, CreditCard, DollarSign, ShieldCheck, Cog, Megaphone, FileText, BarChart3, Home, MessageSquareWarning, Bot, Package, MessageCircle, ClipboardList, Radar, FileStack, Link2, ShoppingCart, Heart, Database, Layers, Award, Star } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 
 import { useAuth } from '@/app/providers/AuthProvider';
@@ -27,6 +27,7 @@ const adminNav = [
       { to: '/admin/favorites', label: 'nav.favorites', icon: Heart },
       { to: '/admin/bookings', label: 'nav.bookings', icon: Calendar },
       { to: '/admin/complaints', label: 'nav.complaints', icon: AlertTriangle, badge: 'complaints' as keyof AdminNavBadges },
+      { to: '/admin/review-moderation', label: 'nav.review_moderation', icon: Star },
       { to: '/admin/clinic-reports', label: 'nav.clinic_reports', icon: MessageSquareWarning, badge: 'clinic_reports' as keyof AdminNavBadges },
       { to: '/admin/customer-reports', label: 'nav.customer_reports', icon: MessageSquareWarning, badge: 'customer_reports' as keyof AdminNavBadges },
       { to: '/admin/price-quotes', label: 'nav.price_quotes', icon: DollarSign, badge: 'price_quotes' as keyof AdminNavBadges },

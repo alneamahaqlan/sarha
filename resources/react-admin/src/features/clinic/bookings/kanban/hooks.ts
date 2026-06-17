@@ -72,6 +72,22 @@ export function useLogActivity(id: number) {
   });
 }
 
+export function useConfirmAttendance(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => bookingKanbanApi.confirmAttendance(id),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
+export function useRevokeAttendance(id: number) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => bookingKanbanApi.revokeAttendance(id),
+    onSuccess: () => invalidateKanban(qc),
+  });
+}
+
 export function useAddTag(id: number) {
   const qc = useQueryClient();
   return useMutation({

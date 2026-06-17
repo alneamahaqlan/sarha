@@ -41,10 +41,21 @@ enum NotificationEvent: string
 
     // ── User-side events ───────────────────────────────────────────
     case BOOKING_CONFIRMED          = 'booking_confirmed';
+    // The clinic confirmed the patient physically attended — a gentle
+    // "thanks for visiting" sent to the account holder (if any).
+    case BOOKING_ATTENDED           = 'booking_attended';
     case COMPLAINT_REPLIED          = 'complaint_replied';
     case QUOTE_REPLIED              = 'quote_replied';
     // The customer left items unbooked in their cart — gentle nudge to finish.
     case CART_REMINDER_DUE          = 'cart_reminder_due';
+    // Cashback rewards (phase 1) — all land the customer on their rewards list.
+    case REWARD_GRANTED             = 'reward_granted';
+    case REWARD_TRANSFERRED         = 'reward_transferred';
+    case REWARD_EXPIRING_SOON       = 'reward_expiring_soon';
+    // Idle, still-unused reward — a gentle "come back and use it" nudge.
+    case REWARD_AVAILABLE           = 'reward_available';
+    // Verified reviews (phase 2) — post-visit invitation to rate.
+    case REVIEW_INVITATION          = 'review_invitation';
 
     // ── Admin-side events ──────────────────────────────────────────
     case CLINIC_PENDING_APPROVAL    = 'clinic_pending_approval';
@@ -71,9 +82,15 @@ enum NotificationEvent: string
             self::TASK_REMINDER_DUE => Clinic::class,
 
             self::BOOKING_CONFIRMED,
+            self::BOOKING_ATTENDED,
             self::COMPLAINT_REPLIED,
             self::QUOTE_REPLIED,
-            self::CART_REMINDER_DUE => User::class,
+            self::CART_REMINDER_DUE,
+            self::REWARD_GRANTED,
+            self::REWARD_TRANSFERRED,
+            self::REWARD_EXPIRING_SOON,
+            self::REWARD_AVAILABLE,
+            self::REVIEW_INVITATION => User::class,
 
             self::CLINIC_PENDING_APPROVAL,
             self::AI_EMERGENCY,
@@ -96,11 +113,17 @@ enum NotificationEvent: string
             self::TASK_REMINDER_DUE,
             self::SALES_FOLLOWUP_DUE,
             self::CART_REMINDER_DUE,
+            self::REWARD_EXPIRING_SOON,
             self::SUBSCRIPTION_EXPIRING_SOON => NotificationPriority::HIGH,
 
             self::QUOTE_CREATED,
+            self::BOOKING_ATTENDED,
             self::COMPLAINT_REPLIED,
             self::QUOTE_REPLIED,
+            self::REWARD_GRANTED,
+            self::REWARD_TRANSFERRED,
+            self::REWARD_AVAILABLE,
+            self::REVIEW_INVITATION,
             self::SUBSCRIPTION_ACTIVATED,
             self::SUBSCRIPTION_CANCELLED => NotificationPriority::NORMAL,
         };
@@ -111,12 +134,16 @@ enum NotificationEvent: string
     {
         return match ($this) {
             self::BOOKING_CREATED, self::BOOKING_CONFIRMED => 'calendar',
+            self::BOOKING_ATTENDED                         => 'calendar-check',
             self::BOOKING_CANCELLED_BY_USER                => 'calendar-x',
             self::COMPLAINT_CREATED, self::COMPLAINT_REPLIED => 'alert-triangle',
             self::QUOTE_CREATED, self::QUOTE_REPLIED         => 'dollar-sign',
             self::CONTACT_REMINDER_DUE                       => 'phone-call',
             self::TASK_REMINDER_DUE                          => 'list-checks',
             self::CART_REMINDER_DUE                          => 'shopping-bag',
+            self::REWARD_GRANTED, self::REWARD_TRANSFERRED, self::REWARD_AVAILABLE => 'gift',
+            self::REWARD_EXPIRING_SOON                       => 'clock',
+            self::REVIEW_INVITATION                          => 'star',
             self::CLINIC_PENDING_APPROVAL                    => 'building-2',
             self::AI_EMERGENCY                               => 'siren',
             self::SALES_FOLLOWUP_DUE                         => 'phone-call',
@@ -165,10 +192,22 @@ enum NotificationEvent: string
             // General task — always lands on the tasks/reminders page.
             self::TASK_REMINDER_DUE => '/app/clinic/reminders',
 
-            self::BOOKING_CONFIRMED  => '/account/bookings',
+            self::BOOKING_CONFIRMED,
+            self::BOOKING_ATTENDED   => '/account/bookings',
             self::COMPLAINT_REPLIED  => '/account/complaints',
             self::QUOTE_REPLIED      => '/account/quotes',
             self::CART_REMINDER_DUE  => '/cart',
+
+            self::REWARD_GRANTED,
+            self::REWARD_TRANSFERRED,
+            self::REWARD_EXPIRING_SOON,
+            self::REWARD_AVAILABLE => '/account/rewards',
+
+            // Deep-link straight to the review form when we know which one;
+            // otherwise the account reviews list.
+            self::REVIEW_INVITATION => isset($data['review_id'])
+                ? '/review/' . urlencode((string) $data['review_id'])
+                : '/account/reviews',
 
             self::CLINIC_PENDING_APPROVAL => '/app/admin/clinics?status=pending',
 

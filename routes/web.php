@@ -83,6 +83,14 @@ Route::get('/booking/{reference}', [ClinicController::class, 'bookingConfirmatio
     ->where('reference', '[A-Z0-9-]+')
     ->name('booking.confirmation');
 
+// Verified review submission — reachable by an authed owner OR a signed
+// link sent by SMS (authorization is checked inside the controller, so
+// the routes stay open to guests). Form + submit.
+Route::get('/review/{review}', [\App\Http\Controllers\Public\ReviewController::class, 'form'])
+    ->whereNumber('review')->name('review.form');
+Route::post('/review/{review}', [\App\Http\Controllers\Public\ReviewController::class, 'submit'])
+    ->whereNumber('review')->middleware('throttle:12,1')->name('review.submit');
+
 // Standalone detail pages, scoped under the complex slug for context.
 // Clicking an offer lands on its detail page (not booking) — the page's
 // own CTA deep-links to booking.
@@ -142,6 +150,12 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/account/following', [AccountController::class, 'following'])->name('account.following');
     Route::get('/account/following/offers', [AccountController::class, 'followingOffers'])->name('account.following.offers');
     Route::get('/account/quotes', [AccountController::class, 'quotes'])->name('account.quotes');
+    // Cashback rewards owned by the account (list + transfer by phone).
+    Route::get('/account/rewards', [AccountController::class, 'rewards'])->name('account.rewards');
+    Route::post('/account/rewards/{voucher}/transfer', [AccountController::class, 'transferReward'])
+        ->name('account.rewards.transfer');
+    // Verified reviews the account can leave / has left.
+    Route::get('/account/reviews', [\App\Http\Controllers\Public\ReviewController::class, 'mine'])->name('account.reviews');
     Route::get('/account/complaints', [AccountController::class, 'complaints'])->name('account.complaints');
     Route::post('/account/complaints', [AccountController::class, 'storeComplaint'])->name('account.complaints.store');
     // Customer-side platform reports — separate from complaints because they

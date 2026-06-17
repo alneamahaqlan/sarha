@@ -10,14 +10,18 @@ use App\Models\Booking;
 use App\Models\Clinic;
 use App\Models\ClinicStat;
 use App\Models\OtpCode;
+use App\Models\PlatformCustomer;
 use App\Models\PriceQuoteRequest;
 use App\Models\Relative;
+use App\Models\RewardVoucher;
 use App\Services\ClinicPageBuilderService;
 use App\Services\FeatureGate;
 use App\Services\ImpressionTrackerService;
+use App\Services\RewardService;
 use App\Services\SimilarityService;
 use App\Services\SmsService;
 use App\Services\UserActivityLogger;
+use App\Support\PhoneNormalizer;
 use Illuminate\Http\Request;
 
 class ClinicController extends Controller
@@ -60,10 +64,18 @@ class ClinicController extends Controller
                 'beforeAfterPhotos.subClinic:id,name,name_en',
                 'articles' => fn($q) => $q->where('is_published', true)->latest()->limit(6),
                 'googleReviews' => fn($q) => $q->where('is_visible', true)->latest('reviewed_at')->limit(20),
+                // Verified (attendance-backed) reviews — published + visible only.
+                'verifiedReviews' => fn($q) => $q->visible()->with('doctor:id,name')->latest('submitted_at')->limit(20),
                 'workingHours' => fn($q) => $q->orderBy('day_of_week'),
             ])
             ->withAvg('googleReviews', 'rating')
             ->withCount('googleReviews')
+            // Verified-review aggregates (visible only): headline clinic
+            // average + count, plus the softer doctor average (doctor is
+            // patient-selected, so it's only over reviews that rated one).
+            ->withCount(['verifiedReviews as verified_reviews_count' => fn($q) => $q->visible()])
+            ->withAvg(['verifiedReviews as verified_clinic_avg' => fn($q) => $q->visible()], 'clinic_rating')
+            ->withAvg(['verifiedReviews as verified_doctor_avg' => fn($q) => $q->visible()->whereNotNull('doctor_rating')], 'doctor_rating')
             // Instagram-style public header tallies: followers / customers
             // (anyone who booked via the platform or was imported into the
             // CRM) / bookings made.
@@ -166,9 +178,49 @@ class ClinicController extends Controller
             : collect();
         $relativeTypes = Relative::TYPES;
 
+        // Cashback vouchers the logged-in customer can apply to THIS booking
+        // — owned by them, for this clinic, active, and matching the service
+        // context (preselected service or the offer's service) when known.
+        $rewardVouchers = auth('web')->check()
+            ? $this->matchingRewardVouchers($clinic, $service?->id ?? $offer?->service_id)
+            : collect();
+
         return view('public.booking-form', compact(
-            'clinic', 'service', 'offer', 'identity', 'relatives', 'relativeTypes',
+            'clinic', 'service', 'offer', 'identity', 'relatives', 'relativeTypes', 'rewardVouchers',
         ));
+    }
+
+    /**
+     * The logged-in customer's active vouchers usable on this clinic,
+     * optionally narrowed to a service context. Empty for guests / no
+     * platform identity. Ownership is by the platform identity (phone).
+     */
+    private function matchingRewardVouchers(Clinic $clinic, ?int $contextServiceId)
+    {
+        $user = auth('web')->user();
+        $platform = PlatformCustomer::where('user_id', $user->id)->first()
+            ?? PlatformCustomer::where('phone', PhoneNormalizer::normalizeOrSelf($user->phone))->first();
+        if (! $platform) {
+            return collect();
+        }
+
+        $vouchers = RewardVoucher::where('platform_customer_id', $platform->id)
+            ->where('clinic_id', $clinic->id)
+            ->where('status', RewardVoucher::STATUS_ACTIVE)
+            ->with(['offer:id,title,service_id', 'service:id,name'])
+            ->latest()
+            ->get()
+            ->filter(fn (RewardVoucher $v) => ! $v->isExpired());
+
+        if ($contextServiceId) {
+            $vouchers = $vouchers->filter(function (RewardVoucher $v) use ($contextServiceId) {
+                return $v->type === RewardVoucher::TYPE_FREE_SERVICE
+                    ? (int) $v->service_id === (int) $contextServiceId
+                    : (int) ($v->offer?->service_id) === (int) $contextServiceId;
+            });
+        }
+
+        return $vouchers->values();
     }
 
     public function book(Request $request, string $slug)
@@ -192,6 +244,9 @@ class ClinicController extends Controller
         $rules = [
             'service_id' => 'nullable|exists:services,id',
             'notes'      => 'nullable|string|max:1000',
+            // Optional cashback voucher the customer applies to this booking.
+            // Reserved (not consumed) here; reception redeems it at the visit.
+            'reward_voucher_code' => 'nullable|string|max:16',
         ];
 
         if ($mode === 'self') {
@@ -224,9 +279,11 @@ class ClinicController extends Controller
         // skips OTP. First-time guests must verify once (registers them).
         if ($this->customerVerified($request, $validated['customer_phone'])) {
             $booking = $this->createBooking($clinic, $validated);
+            $rewardFeedback = $this->applyRewardVoucher($clinic, $booking, $validated['reward_voucher_code'] ?? null);
 
             return redirect()->route('booking.confirmation', $booking->reference_code)
-                ->withCookie($this->identityCookie($validated['customer_name'], $validated['customer_phone']));
+                ->withCookie($this->identityCookie($validated['customer_name'], $validated['customer_phone']))
+                ->with('reward_feedback', $rewardFeedback);
         }
 
         // First-time: generate + send OTP, stash the pending booking, show the step.
@@ -292,10 +349,63 @@ class ClinicController extends Controller
         auth('web')->login($user, true);
 
         $booking = $this->createBooking($clinic, $pending);
+        $rewardFeedback = $this->applyRewardVoucher($clinic, $booking, $pending['reward_voucher_code'] ?? null);
         session()->forget('pending_booking');
 
         return redirect()->route('booking.confirmation', $booking->reference_code)
-            ->withCookie($this->identityCookie($pending['customer_name'], $pending['customer_phone']));
+            ->withCookie($this->identityCookie($pending['customer_name'], $pending['customer_phone']))
+            ->with('reward_feedback', $rewardFeedback);
+    }
+
+    /**
+     * Reserve a cashback voucher against this booking (the customer
+     * "applied" it). The voucher stays active until reception redeems it
+     * at the visit — see RewardService::apply. The booking always stands;
+     * the return value is FLASHED to the confirmation page so the customer
+     * sees whether the reward applied and, if not, exactly why (no silent
+     * skip). Returns null when no code was supplied.
+     *
+     * @return array{ok: bool, text: string}|null
+     */
+    private function applyRewardVoucher(Clinic $clinic, Booking $booking, ?string $code): ?array
+    {
+        $code = trim((string) $code);
+        if ($code === '') {
+            return null;
+        }
+
+        $voucher = RewardVoucher::where('code', $code)->where('clinic_id', $clinic->id)
+            ->with(['offer:id,title,service_id', 'service:id,name'])
+            ->first();
+        if (! $voucher) {
+            return ['ok' => false, 'text' => __('rewards.errors.reward_not_found')];
+        }
+
+        // Ownership is REQUIRED, not just "not-mismatched": the voucher must
+        // belong to the booking's own customer — by normalized phone OR by
+        // shared PlatformCustomer identity. A positive match on at least one
+        // is mandatory, so knowing a code can never apply someone else's
+        // voucher. Gifting stays exclusive to the transfer flow.
+        $voucherPhone = PhoneNormalizer::normalizeOrSelf($voucher->phone);
+        $bookingPhone = PhoneNormalizer::normalizeOrSelf($booking->customer_phone);
+        $bookingPlatformId = $booking->customer?->platform_customer_id;
+
+        $ownsByPhone    = $voucherPhone && $bookingPhone && $voucherPhone === $bookingPhone;
+        $ownsByIdentity = $voucher->platform_customer_id && $bookingPlatformId
+            && (int) $voucher->platform_customer_id === (int) $bookingPlatformId;
+
+        if (! $ownsByPhone && ! $ownsByIdentity) {
+            return ['ok' => false, 'text' => __('rewards.errors.reward_not_owned')];
+        }
+
+        try {
+            app(RewardService::class)->apply($voucher, $booking);
+            return ['ok' => true, 'text' => __('site.reward_apply_ok', ['desc' => $voucher->describe()])];
+        } catch (\RuntimeException $e) {
+            // Inactive / expired / service-or-offer mismatch — the booking
+            // stands; surface the reason via the gate's localized message.
+            return ['ok' => false, 'text' => __('rewards.errors.' . $e->getMessage())];
+        }
     }
 
     /**

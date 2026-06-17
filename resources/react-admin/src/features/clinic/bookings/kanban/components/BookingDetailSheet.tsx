@@ -17,6 +17,7 @@ import { CardAutoTags } from './CardAutoTags';
 import { CardHeatBar } from './CardHeatBar';
 import { CardSuggestions } from './CardSuggestions';
 import { QuickActionsBar } from './QuickActionsBar';
+import { AttendanceControl } from './AttendanceControl';
 import { ActivityTimeline } from './ActivityTimeline';
 import { AssigneePicker } from './AssigneePicker';
 import { TagsManager } from './TagsManager';
@@ -152,6 +153,13 @@ export function BookingDetailSheet({ bookingId, customerPhone, onClose }: Props)
                 </div>
 
                 <BookingServicesEditor bookingId={data.id} services={data.services} value={data.value} />
+
+                <AttendanceControl
+                  bookingId={data.id}
+                  isAttended={data.is_attended}
+                  attendedAt={data.attended_at}
+                  attendedBy={data.attended_by}
+                />
 
                 <section className="space-y-2">
                   <div className="text-xs font-semibold">{t('clinic_bookings_kanban.detail.quick_actions')}</div>

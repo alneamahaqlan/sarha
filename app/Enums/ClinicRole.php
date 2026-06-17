@@ -42,6 +42,9 @@ enum ClinicRole: string
                 'category_requests.*',
                 'landing_pages.*',
                 'page_builder.*', 'profile.view',
+                // Cashback rewards — coordinators configure the rule, grant,
+                // view, and redeem.
+                'rewards.*',
             ],
             self::RECEPTION => [
                 'bookings.*', 'complaints.*', 'price_quotes.*',
@@ -54,6 +57,9 @@ enum ClinicRole: string
                 'reminders.*',
                 // Reception also chases abandoned carts (view + outreach + convert).
                 'cart_leads.*',
+                // Reception sees + REDEEMS cashback vouchers at the desk, but
+                // does NOT configure the grant rule or issue manual grants.
+                'rewards.view', 'rewards.redeem',
                 'profile.view',
             ],
         };
@@ -140,6 +146,9 @@ enum ClinicRole: string
             'reminders.view', 'reminders.create', 'reminders.manage',
             // Patient campaigns (segment + manual WhatsApp outreach)
             'campaigns.view', 'campaigns.manage',
+            // Cashback rewards — view/redeem (reception+) vs manage (config +
+            // manual grant; coordinator/owner only).
+            'rewards.view', 'rewards.redeem', 'rewards.manage',
             // Owner-only domains
             'subscription.view', 'subscription.manage',
             'team.view', 'team.manage',

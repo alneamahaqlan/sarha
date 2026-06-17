@@ -148,7 +148,8 @@ class AuthController extends Controller
             // enforces via clinic.feature middleware — this is cosmetic.
             $gate = app(\App\Services\FeatureGate::class);
             $payload['features'] = [
-                'crm' => $gate->hasCrmAccess($user),
+                'crm'     => $gate->hasCrmAccess($user),
+                'rewards' => $gate->hasRewardsAccess($user),
             ];
         }
 

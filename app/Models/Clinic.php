@@ -341,6 +341,12 @@ class Clinic extends Authenticatable
         return $this->hasMany(GoogleReview::class);
     }
 
+    /** Verified (attendance-backed) reviews left by patients. */
+    public function verifiedReviews()
+    {
+        return $this->hasMany(VerifiedReview::class);
+    }
+
     public function subscriptions()
     {
         return $this->hasMany(Subscription::class);

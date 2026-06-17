@@ -55,6 +55,9 @@ class FeatureGate
         // operational surface they already had. Admin opts a package
         // OUT to make CRM a paid differentiator.
         'crm_enabled'                 => true,
+        // Cashback rewards default OFF — a new monetizable retention
+        // feature the admin opts a package INTO per the rollout.
+        'rewards_enabled'             => false,
     ];
 
     // ─────────────────────────── Limits (int|null = unlimited) ───────────────────────────
@@ -73,6 +76,7 @@ class FeatureGate
     public function canPublishOffers(Clinic $clinic): bool        { return (bool) $this->value($clinic, 'allow_offers_packages'); }
     public function canShowDoctorsAndBeforeAfter(Clinic $clinic): bool { return (bool) $this->value($clinic, 'allow_doctors_before_after'); }
     public function hasCrmAccess(Clinic $clinic): bool            { return (bool) $this->value($clinic, 'crm_enabled'); }
+    public function hasRewardsAccess(Clinic $clinic): bool        { return (bool) $this->value($clinic, 'rewards_enabled'); }
 
     public function aiAssistantPriority(Clinic $clinic): int      { return (int) $this->value($clinic, 'ai_assistant_priority'); }
     public function analyticsLevel(Clinic $clinic): string        { return (string) $this->value($clinic, 'analytics_level'); }
@@ -165,6 +169,7 @@ class FeatureGate
                 'allow_offers_packages'     => $this->canPublishOffers($clinic),
                 'allow_doctors_before_after'=> $this->canShowDoctorsAndBeforeAfter($clinic),
                 'crm_enabled'               => $this->hasCrmAccess($clinic),
+                'rewards_enabled'           => $this->hasRewardsAccess($clinic),
             ],
         ];
     }

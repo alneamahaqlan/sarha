@@ -305,6 +305,36 @@
                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">{{ old('notes', $notesPrefill) }}</textarea>
                     </div>
 
+                    {{-- Cashback voucher — members pick one of their matching
+                         rewards; guests can enter a gift code. The effect is
+                         informational (no payment gateway); reception collects
+                         the discount manually at the visit. The booking always
+                         goes through; the confirmation page reports whether the
+                         reward applied (and why not, if it didn't). --}}
+                    <div class="border border-sage-200 bg-sage-50/40 rounded-xl p-4">
+                        <p class="text-sm font-semibold text-sage-800 mb-2 flex items-center gap-1.5">
+                            <x-icon name="gift" class="w-4 h-4" /> @lang('site.reward_picker_title')
+                        </p>
+                        @auth('web')
+                            @if($rewardVouchers->isNotEmpty())
+                                <x-form.select name="reward_voucher_code">
+                                    <option value="">@lang('site.reward_picker_none')</option>
+                                    @foreach($rewardVouchers as $rv)
+                                        <option value="{{ $rv->code }}" @selected(old('reward_voucher_code') === $rv->code)>{{ $rv->describe() }}</option>
+                                    @endforeach
+                                </x-form.select>
+                                <p class="text-xs text-gray-500 mt-1.5">@lang('site.reward_picker_hint')</p>
+                            @else
+                                <p class="text-xs text-gray-500">@lang('site.reward_picker_none_available')</p>
+                            @endif
+                        @else
+                            <input type="text" name="reward_voucher_code" value="{{ old('reward_voucher_code') }}"
+                                   placeholder="RWD-XXXXXX" dir="ltr" maxlength="16"
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sage-400">
+                            <p class="text-xs text-gray-500 mt-1.5">@lang('site.reward_picker_guest_hint')</p>
+                        @endguest
+                    </div>
+
                     @guest('web')
                         <p class="text-xs text-gray-500">@lang('site.otp_step_terms')</p>
                     @endguest
