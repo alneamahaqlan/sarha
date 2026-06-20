@@ -63,15 +63,13 @@ class OtpController extends Controller
 
         $existing = User::where('phone', $phone)->first();
         if ($existing && ! $existing->is_active) {
-            return back()->withErrors(['phone' => __('site.account_blocked')])->withInput();
+            return $this->fail($request, 'phone', __('site.account_blocked'));
         }
 
         // Per-phone send guard: stops a number from being SMS-bombed even
         // across rotating IPs (route throttle only covers per-IP).
         if ($wait = OtpCode::throttleSend($phone, 'login')) {
-            return back()
-                ->withErrors(['phone' => __('site.otp_too_many', ['seconds' => $wait])])
-                ->withInput();
+            return $this->fail($request, 'phone', __('site.otp_too_many', ['seconds' => $wait]), ['retry_after' => $wait]);
         }
 
         $otp = OtpCode::generate($phone);
@@ -81,12 +79,20 @@ class OtpController extends Controller
         // / when unconfigured, so dev never blocks.
         $dispatcher->send($phone, $otp->code);
 
-        // In development, also flash the code so testers can log in without SMS/WhatsApp.
-        if (app()->isLocal()) {
-            return back()->with('otp_sent', true)->with('dev_code', $otp->code)->withInput();
+        // In development, also surface the code so testers can log in without SMS/WhatsApp.
+        $devCode = app()->isLocal() ? $otp->code : null;
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'ok'       => true,
+                'message'  => __('site.otp_sent_to', ['phone' => $phone]),
+                'dev_code' => $devCode,
+                'cooldown' => 60, // mirrors the 60s between-sends guard in OtpCode::throttleSend
+            ]);
         }
 
-        return back()->with('otp_sent', true)->withInput();
+        // Non-JS fallback: original flash-based two-step page.
+        return back()->with('otp_sent', true)->with('dev_code', $devCode)->withInput();
     }
 
     public function verifyOtp(Request $request)
@@ -104,28 +110,115 @@ class OtpController extends Controller
             'code' => 'required|string|size:6',
         ]);
 
+        // Fetch the latest live code for this phone WITHOUT matching on the
+        // entered digits — we need the record itself to count wrong tries.
         $otp = OtpCode::where('phone', $request->phone)
-            ->where('code', $request->code)
             ->where('is_used', false)
             ->where('expires_at', '>', now())
             ->latest()
             ->first();
 
+        // No active code (never sent, expired, or already burned by too many
+        // wrong tries) → the user must request a fresh one.
         if (! $otp) {
-            return back()->withErrors(['code' => __('site.otp_invalid')])->withInput();
+            return $this->fail($request, 'code', __('site.otp_expired_request_new'), ['must_resend' => true]);
+        }
+
+        // Wrong code: count the try and either tell them how many remain or,
+        // once the cap is hit, burn the code so they must resend. The client
+        // stays on the OTP step throughout — it never bounces back to phone entry.
+        if ($otp->code !== $request->code) {
+            $remaining = $otp->registerFailedAttempt();
+
+            $message = $remaining > 0
+                ? __('site.otp_invalid_attempts', ['count' => $remaining])
+                : __('site.otp_too_many_attempts');
+
+            return $this->fail($request, 'code', $message, [
+                'remaining'   => $remaining,
+                'must_resend' => $remaining === 0,
+            ]);
         }
 
         $otp->update(['is_used' => true]);
 
-        $user = User::firstOrCreate(
-            ['phone' => $request->phone],
-            ['name' => __('admin.widgets.default_user_name'), 'is_active' => true]
-        );
+        $user = User::where('phone', $request->phone)->first();
 
-        if (! $user->is_active) {
-            return back()->withErrors(['phone' => __('site.account_blocked')])->withInput();
+        // Returning user → straight in.
+        if ($user) {
+            if (! $user->is_active) {
+                return $this->fail($request, 'phone', __('site.account_blocked'));
+            }
+
+            return $this->completeLogin($request, $user);
         }
 
+        // New user (JS flow): defer account creation until they give a name.
+        // Remember that THIS phone passed OTP so completeProfile() can trust it
+        // without re-verifying — it lives server-side, the client can't forge it.
+        if ($request->wantsJson()) {
+            $request->session()->put('otp_verified_phone', $request->phone);
+
+            return response()->json(['ok' => true, 'needs_name' => true, 'redirect' => null]);
+        }
+
+        // Non-JS fallback: the name step can't be driven without JS, so create
+        // the account with a placeholder and let the user edit it later.
+        $user = User::create([
+            'phone'     => $request->phone,
+            'name'      => __('admin.widgets.default_user_name'),
+            'is_active' => true,
+        ]);
+
+        return $this->completeLogin($request, $user);
+    }
+
+    /**
+     * Second leg of new-user signup: the name is mandatory, and the account is
+     * only created now (so we never persist half-formed, nameless users). The
+     * caller is authorized solely by the OTP-verified phone stashed in the
+     * session by {@see verifyOtp()} — no separate auth needed.
+     */
+    public function completeProfile(Request $request)
+    {
+        $phone = $request->session()->get('otp_verified_phone');
+
+        // No verified phone → they never passed OTP (or the session expired).
+        if (! $phone) {
+            return $this->fail($request, 'name', __('site.otp_expired_request_new'), ['must_restart' => true]);
+        }
+
+        $request->validate([
+            'name' => 'required|string|min:2|max:60',
+        ], [
+            'name.required' => __('site.name_required'),
+            'name.min'      => __('site.name_required'),
+        ]);
+
+        // firstOrCreate guards against a double-submit racing two accounts.
+        $user = User::firstOrCreate(
+            ['phone' => $phone],
+            ['name' => trim($request->input('name')), 'is_active' => true]
+        );
+        if (blank($user->name)) {
+            $user->update(['name' => trim($request->input('name'))]);
+        }
+
+        $request->session()->forget('otp_verified_phone');
+
+        if (! $user->is_active) {
+            return $this->fail($request, 'phone', __('site.account_blocked'));
+        }
+
+        return $this->completeLogin($request, $user);
+    }
+
+    /**
+     * Log the user in, feed the activity timeline, and hand back the return-to
+     * URL — as JSON for the AJAX flow or a redirect for the form fallback.
+     */
+    private function completeLogin(Request $request, User $user)
+    {
         auth('web')->login($user, remember: true);
 
         // A guest who tapped "Follow" on a complex is finishing login now —
@@ -140,7 +233,30 @@ class OtpController extends Controller
         $tracker->logOtpVerified($request, $user->id, 'login');
         $tracker->logLogin($request, $user->id);
 
-        return redirect()->intended(route('home'));
+        // Pull the stored return-to (set in showLogin) for both transports so
+        // the JSON client and the form fallback land on the same page.
+        $target = $request->session()->pull('url.intended', route('home'));
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'redirect' => $target]);
+        }
+
+        return redirect()->to($target);
+    }
+
+    /**
+     * Uniform failure response: a 422 JSON payload for the AJAX login flow,
+     * or the classic redirect-back-with-errors for the non-JS fallback. The
+     * $extra keys (remaining / must_resend / retry_after) let the client
+     * decide whether to keep the user on the OTP step or re-enable resend.
+     */
+    private function fail(Request $request, string $field, string $message, array $extra = [])
+    {
+        if ($request->wantsJson()) {
+            return response()->json(array_merge(['ok' => false, 'message' => $message], $extra), 422);
+        }
+
+        return back()->withErrors([$field => $message])->withInput();
     }
 
     public function logout(Request $request)

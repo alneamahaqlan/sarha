@@ -3,6 +3,7 @@
 namespace App\Services\Messaging\Gateways;
 
 use App\Contracts\Messaging\WhatsAppGateway;
+use App\Models\SystemSetting;
 use App\Models\WhatsAppSender;
 use App\Support\SaudiPhone;
 use Illuminate\Support\Facades\Http;
@@ -22,7 +23,11 @@ class WappiGateway implements WhatsAppGateway
     {
         $recipient = SaudiPhone::toInternational($phone);
 
-        if (app()->isLocal() || ! $sender->hasCredentials()) {
+        // In local we only log by default so dev never blocks. The admin can
+        // flip `otp_whatsapp_send_in_local` to force a real send for testing.
+        // Production always sends. A sender without credentials always logs.
+        $sendInLocal = (bool) SystemSetting::get('otp_whatsapp_send_in_local', false);
+        if ((app()->isLocal() && ! $sendInLocal) || ! $sender->hasCredentials()) {
             Log::info("[WhatsApp dev via {$sender->phone}] to {$recipient}: {$message}");
 
             return true;

@@ -7,12 +7,16 @@ use Illuminate\Support\Facades\RateLimiter;
 
 class OtpCode extends Model
 {
-    protected $fillable = ['phone', 'code', 'purpose', 'is_used', 'expires_at'];
+    /** Wrong-code tries allowed on a single OTP before it is burned. */
+    public const MAX_ATTEMPTS = 3;
+
+    protected $fillable = ['phone', 'code', 'purpose', 'is_used', 'attempts', 'expires_at'];
 
     protected function casts(): array
     {
         return [
             'is_used' => 'boolean',
+            'attempts' => 'integer',
             'expires_at' => 'datetime',
         ];
     }
@@ -20,6 +24,26 @@ class OtpCode extends Model
     public function isValid(): bool
     {
         return !$this->is_used && $this->expires_at->isFuture();
+    }
+
+    /**
+     * Record one wrong-code try. Burns the code (marks it used so it can never
+     * be guessed again) once the attempt cap is hit. Returns the number of
+     * tries still remaining — 0 means the user must request a fresh code.
+     */
+    public function registerFailedAttempt(): int
+    {
+        $this->increment('attempts');
+
+        $remaining = self::MAX_ATTEMPTS - $this->attempts;
+
+        if ($remaining <= 0) {
+            $this->update(['is_used' => true]);
+
+            return 0;
+        }
+
+        return $remaining;
     }
 
     /**

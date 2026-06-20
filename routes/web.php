@@ -125,6 +125,9 @@ Route::middleware('guest:web')->group(function () {
     Route::get('/login', [OtpController::class, 'showLogin'])->name('login');
     Route::post('/login/send-otp', [OtpController::class, 'sendOtp'])->middleware('throttle:8,1')->name('login.otp');
     Route::post('/login/verify', [OtpController::class, 'verifyOtp'])->middleware('throttle:15,1')->name('login.verify');
+    // New users complete their name here; authorized by the OTP-verified phone
+    // held in the session (set in verifyOtp), so it stays a guest route.
+    Route::post('/login/complete-profile', [OtpController::class, 'completeProfile'])->middleware('throttle:15,1')->name('login.complete');
 });
 Route::post('/logout', [OtpController::class, 'logout'])->name('logout');
 
