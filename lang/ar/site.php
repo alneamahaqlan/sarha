@@ -356,7 +356,6 @@ return [
     // Verified reviews — public profile section
     'verified_reviews_title' => 'التقييمات الموثّقة',
     'verified_reviews_subtitle' => 'من مرضى حضروا فعلًا — حضور مؤكَّد عبر صرحة.',
-    'verified_badge' => 'موثّق',
     'verified_reviews_count_label' => ':count تقييم موثّق',
     'verified_doctor_avg_label' => 'متوسط تقييم الأطباء: :avg',
     'verified_review_doctor' => 'الطبيب :name:',
@@ -617,7 +616,6 @@ return [
     'otp_step_terms' => 'بتأكيد رمز التحقق فإنك توافق على شروط وأحكام المنصة وسياسة الخصوصية.',
     'otp_code_label' => 'رمز التحقق',
     'otp_verify_submit' => 'تأكيد ومتابعة الحجز',
-    'otp_sent_to' => 'تم إرسال رمز التحقق إلى :phone',
     'booking_session_expired' => 'انتهت صلاحية الجلسة، يرجى إعادة إدخال بيانات الحجز.',
     'otp_too_many' => 'لقد طلبت رمز التحقق عدة مرات. يرجى الانتظار :seconds ثانية ثم المحاولة مرة أخرى.',
     'featured' => 'مميزة',

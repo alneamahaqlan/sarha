@@ -356,7 +356,6 @@ return [
     // Verified reviews — public profile section
     'verified_reviews_title' => 'Verified reviews',
     'verified_reviews_subtitle' => 'From patients who actually attended — visits confirmed via Sarha.',
-    'verified_badge' => 'Verified',
     'verified_reviews_count_label' => ':count verified reviews',
     'verified_doctor_avg_label' => 'Doctors average: :avg',
     'verified_review_doctor' => 'Dr. :name:',
@@ -619,7 +618,6 @@ return [
     'otp_step_terms' => 'By confirming the code you agree to the platform terms & conditions and privacy policy.',
     'otp_code_label' => 'Verification code',
     'otp_verify_submit' => 'Confirm & continue booking',
-    'otp_sent_to' => 'A verification code was sent to :phone',
     'booking_session_expired' => 'Your session expired, please re-enter your booking details.',
     'otp_too_many' => 'You have requested the verification code too many times. Please wait :seconds seconds and try again.',
     'featured' => 'Featured',
