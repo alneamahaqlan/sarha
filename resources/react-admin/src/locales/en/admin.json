@@ -60,6 +60,7 @@
     "navigation_links": "Header & footer links",
     "bookings": "Bookings",
     "complaints": "Complaints",
+    "review_moderation": "Review moderation",
     "clinic_reports": "Complex reports",
     "customer_reports": "Customer reports",
     "sales_leads": "Sales leads",
@@ -1387,6 +1388,8 @@
     "tracking": "Tracking & Pixels",
     "cart": "Shopping cart",
     "abandoned_carts": "Abandoned carts",
+    "rewards": "Rewards",
+    "reviews": "Reviews",
     "subscription": "Subscription",
     "profile": "Complex profile",
     "team": "My team",
@@ -1394,9 +1397,130 @@
       "my_services": "Manage my services",
       "bookings": "Bookings & customers",
       "crm": "Customers (CRM)",
+      "rewards": "Rewards",
       "articles": "Content & blog",
       "team": "Team management",
       "settings": "Settings"
+    }
+  },
+  "clinic_rewards": {
+    "title": "Cashback rewards",
+    "subtitle": "Reward customers for attending with discount vouchers or free services — drives repeat visits and referrals.",
+    "feature_off": "The rewards feature is not enabled on your plan. Contact admin to enable it.",
+    "tab": { "vouchers": "Vouchers", "rule": "Grant rule" },
+    "type": { "offer_discount": "Offer discount", "free_service": "Free service" },
+    "discount": { "percent": "Percent %", "amount": "Fixed amount" },
+    "status": { "active": "Available", "used": "Used", "expired": "Expired", "void": "Void" },
+    "desc": {
+      "free_service": "Free service: {{service}}",
+      "offer_percent": "{{value}}% off “{{offer}}”",
+      "offer_amount": "{{value}} SAR off “{{offer}}”"
+    },
+    "rule": {
+      "subtitle": "When enabled, every attendance-confirmed booking grants the customer a voucher of the shape below.",
+      "enabled": "Enable automatic granting",
+      "enabled_hint": "The voucher is granted automatically when the customer's attendance is confirmed.",
+      "type": "Reward type",
+      "type_placeholder": "Choose a type…",
+      "offer": "Offer",
+      "offer_placeholder": "Choose an offer…",
+      "service": "Service",
+      "service_placeholder": "Choose a service…",
+      "discount_type": "Discount type",
+      "discount_value": "Discount value",
+      "validity_days": "Validity (days)",
+      "validity_placeholder": "e.g. 30",
+      "validity_hint": "Leave empty for a voucher with no expiry."
+    },
+    "filter": {
+      "status": "Status",
+      "all": "All",
+      "search": "Search",
+      "search_placeholder": "Code or phone…"
+    },
+    "col": {
+      "code": "Code",
+      "customer": "Customer",
+      "reward": "Reward",
+      "status": "Status",
+      "expires": "Expires",
+      "actions": "Actions"
+    },
+    "empty": "No vouchers.",
+    "page_of": "Page {{current}} of {{total}}",
+    "grant": {
+      "cta": "Grant voucher",
+      "title": "Grant a voucher to a customer",
+      "phone": "Customer mobile",
+      "expires_in_days": "Expires in (days)",
+      "submit": "Grant",
+      "granted": "Voucher granted"
+    },
+    "redeem": {
+      "cta": "Redeem",
+      "title": "Redeem voucher",
+      "confirm": "Redeem voucher {{code}}? The discounted amount is collected manually.",
+      "booking_id": "Booking ID (optional)",
+      "booking_id_hint": "Leave empty for a standalone redemption",
+      "submit": "Confirm redemption",
+      "done": "Voucher redeemed"
+    }
+  },
+  "admin_review_moderation": {
+    "title": "Verified review moderation",
+    "subtitle": "Review reported reviews only.",
+    "guard_notice": "Hiding is for spam/abuse only, with a documented reason. A genuine negative review stays public and is never hidden.",
+    "tab_pending": "Pending review",
+    "tab_decided": "Decided",
+    "empty": "No reports.",
+    "report_label": "Report reason",
+    "reported_by": "Reported by: {{name}}",
+    "dismiss": "Dismiss report",
+    "dismissed": "Report dismissed — review stays",
+    "hide": "Hide",
+    "hidden": "Review hidden",
+    "hide_title": "Hide review (spam/abuse)",
+    "hide_notice": "For spam/abuse only. A genuine negative review must not be hidden.",
+    "hide_reason": "Reason for hiding (required)",
+    "hide_reason_placeholder": "Document the reason (spam/abuse)…",
+    "hide_confirm": "Confirm hide",
+    "decided_hidden": "Hidden",
+    "decided_dismissed": "Report dismissed"
+  },
+  "clinic_reviews": {
+    "title": "Verified reviews",
+    "subtitle": "Reviews from patients who actually attended. You can reply publicly — you can’t edit or hide a review.",
+    "empty": "No reviews yet.",
+    "anon": "Patient",
+    "verified": "Verified",
+    "your_reply": "Your reply",
+    "reply_cta": "Reply publicly",
+    "reply_placeholder": "Write a public reply to this review…",
+    "reply_saved": "Reply saved",
+    "page_of": "Page {{current}} of {{total}}",
+    "filter": {
+      "rating": "Rating",
+      "all": "All",
+      "replied": "Reply",
+      "not_replied": "Not replied",
+      "replied_yes": "Replied"
+    },
+    "report": {
+      "cta": "Report",
+      "title": "Report an abusive review",
+      "notice": "Reporting only flags for admin review — it does NOT hide the review. A genuine negative review is not a valid reason.",
+      "reason": "Reason",
+      "reason_spam": "Spam",
+      "reason_abuse": "Abuse / insults",
+      "reason_fake": "Fake",
+      "reason_other": "Other",
+      "note": "Details (optional)",
+      "note_placeholder": "Explain why you’re reporting…",
+      "submit": "Send report",
+      "sent": "Report sent for review",
+      "under_review": "Under admin review",
+      "decided_hidden": "Hidden by admin decision",
+      "decided_dismissed": "Report dismissed — review stays"
     }
   },
   "clinic_reminders": {
@@ -2625,6 +2749,17 @@
       "attended": "Attended",
       "no_show": "No show",
       "cancelled": "Cancelled"
+    },
+    "attendance": {
+      "badge": "Checked in",
+      "section_title": "Attendance",
+      "attended": "Attendance confirmed",
+      "confirm": "Confirm attendance",
+      "confirmed_toast": "Attendance recorded",
+      "undo": "Undo",
+      "revoked_toast": "Attendance reverted",
+      "by_at": "by {{name}} · {{time}}",
+      "at": "{{time}}"
     },
     "tag": {
       "vip": "VIP",

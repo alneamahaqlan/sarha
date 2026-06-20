@@ -51,6 +51,10 @@ return [
             'title' => 'Booking confirmed',
             'body'  => ':clinic confirmed your booking :reference_code.',
         ],
+        'booking_attended' => [
+            'title' => 'Thanks for visiting 🌟',
+            'body'  => 'Your attendance for booking :reference_code at :clinic was recorded. We hope you had a great visit!',
+        ],
         'complaint_replied' => [
             'title' => 'Reply on your complaint',
             'body'  => ':clinic replied to your complaint.',
@@ -62,6 +66,26 @@ return [
         'cart_reminder_due' => [
             'title' => 'You have items in your cart',
             'body'  => 'You have :count item(s) waiting in your cart — finish booking now.',
+        ],
+        'reward_granted' => [
+            'title' => 'You earned a reward 🎁',
+            'body'  => 'You received a reward from :clinic. Code :code — view it in your account.',
+        ],
+        'reward_transferred' => [
+            'title' => 'A reward was transferred to you 🎁',
+            'body'  => ':clinic reward was transferred to you. Code :code — view it in your account.',
+        ],
+        'reward_expiring_soon' => [
+            'title' => 'Your reward expires soon',
+            'body'  => 'Your :clinic reward (:code) expires in :days days — use it before it lapses.',
+        ],
+        'review_invitation' => [
+            'title' => 'How was your visit? ⭐',
+            'body'  => 'We’d love your feedback on your visit to :clinic. Rate your experience — it helps others.',
+        ],
+        'reward_available' => [
+            'title' => 'You have a reward waiting 🎁',
+            'body'  => 'Your :clinic reward is still available (:code). Use it on your next visit.',
         ],
 
         // ── Admin-side ────────────────────────────────────────────────
@@ -95,9 +119,15 @@ return [
         'contact_reminder_due'      => 'You have a customer to contact',
         'task_reminder_due'         => 'You have a task due',
         'booking_confirmed'         => 'Your booking was confirmed',
+        'booking_attended'          => 'Thanks for visiting',
         'complaint_replied'         => 'Your complaint got a reply',
         'quote_replied'             => 'Your quote request got a reply',
         'cart_reminder_due'         => 'You have items waiting in your cart',
+        'reward_granted'            => 'You earned a new reward',
+        'reward_transferred'        => 'A reward was transferred to you',
+        'reward_expiring_soon'      => 'Your reward expires soon',
+        'review_invitation'         => 'Rate your recent visit',
+        'reward_available'          => 'You have an available reward waiting',
         'clinic_pending_approval'   => 'A new complex is awaiting approval',
         'ai_emergency'              => 'Alert: AI emergency conversation',
         'sales_followup_due'        => 'You have an overdue lead follow-up',

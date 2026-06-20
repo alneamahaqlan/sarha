@@ -60,6 +60,7 @@
     "navigation_links": "روابط الهيدر والفوتر",
     "bookings": "الحجوزات",
     "complaints": "الشكاوى",
+    "review_moderation": "إشراف التقييمات",
     "clinic_reports": "بلاغات المجمعات",
     "customer_reports": "بلاغات العملاء",
     "sales_leads": "العملاء المحتملون",
@@ -1387,6 +1388,8 @@
     "tracking": "التتبّع والبكسلات",
     "cart": "السلة",
     "abandoned_carts": "السلات المتروكة",
+    "rewards": "المكافآت",
+    "reviews": "التقييمات",
     "subscription": "الاشتراك",
     "profile": "ملف المجمع",
     "team": "فريقي",
@@ -1394,9 +1397,130 @@
       "my_services": "إدارة خدماتي",
       "bookings": "الحجوزات والعملاء",
       "crm": "إدارة العملاء (CRM)",
+      "rewards": "المكافآت",
       "articles": "المحتوى والمدونة",
       "team": "إدارة الفريق",
       "settings": "الإعدادات"
+    }
+  },
+  "clinic_rewards": {
+    "title": "مكافآت الكاش باك",
+    "subtitle": "كافئ عملاءك عند حضورهم بقسائم خصم أو خدمات مجانية — تزيد التكرار والإحالة.",
+    "feature_off": "ميزة المكافآت غير مفعّلة في باقتك. تواصل مع الإدارة لتفعيلها.",
+    "tab": { "vouchers": "القسائم", "rule": "قاعدة المنح" },
+    "type": { "offer_discount": "خصم على عرض", "free_service": "خدمة مجانية" },
+    "discount": { "percent": "نسبة %", "amount": "مبلغ ثابت" },
+    "status": { "active": "متاحة", "used": "مستخدمة", "expired": "منتهية", "void": "ملغاة" },
+    "desc": {
+      "free_service": "خدمة مجانية: {{service}}",
+      "offer_percent": "خصم {{value}}% على «{{offer}}»",
+      "offer_amount": "خصم {{value}} ريال على «{{offer}}»"
+    },
+    "rule": {
+      "subtitle": "عند تفعيلها، كل حجز يُؤكَّد حضوره يَمنح العميل قسيمة بالشكل المحدّد أدناه.",
+      "enabled": "تفعيل المنح التلقائي",
+      "enabled_hint": "تُمنح القسيمة تلقائيًا عند تأكيد حضور العميل.",
+      "type": "نوع المكافأة",
+      "type_placeholder": "اختر النوع…",
+      "offer": "العرض",
+      "offer_placeholder": "اختر عرضًا…",
+      "service": "الخدمة",
+      "service_placeholder": "اختر خدمة…",
+      "discount_type": "نوع الخصم",
+      "discount_value": "قيمة الخصم",
+      "validity_days": "أيام الصلاحية",
+      "validity_placeholder": "مثال: 30",
+      "validity_hint": "اتركه فارغًا لقسيمة بلا تاريخ انتهاء."
+    },
+    "filter": {
+      "status": "الحالة",
+      "all": "الكل",
+      "search": "بحث",
+      "search_placeholder": "كود أو رقم جوال…"
+    },
+    "col": {
+      "code": "الكود",
+      "customer": "العميل",
+      "reward": "المكافأة",
+      "status": "الحالة",
+      "expires": "تنتهي",
+      "actions": "إجراءات"
+    },
+    "empty": "لا توجد قسائم.",
+    "page_of": "صفحة {{current}} من {{total}}",
+    "grant": {
+      "cta": "منح قسيمة",
+      "title": "منح قسيمة لعميل",
+      "phone": "جوال العميل",
+      "expires_in_days": "تنتهي خلال (أيام)",
+      "submit": "منح",
+      "granted": "تم منح القسيمة"
+    },
+    "redeem": {
+      "cta": "صرف",
+      "title": "صرف القسيمة",
+      "confirm": "تأكيد صرف القسيمة {{code}}؟ يُحصّل المبلغ المخفَّض يدويًا.",
+      "booking_id": "رقم الحجز (اختياري)",
+      "booking_id_hint": "اتركه فارغًا للصرف المباشر",
+      "submit": "تأكيد الصرف",
+      "done": "تم صرف القسيمة"
+    }
+  },
+  "admin_review_moderation": {
+    "title": "إشراف التقييمات الموثّقة",
+    "subtitle": "مراجعة التقييمات المبلَّغ عنها فقط.",
+    "guard_notice": "الإخفاء للسبام/الإساءة فقط بسبب موثَّق. التقييم السلبي الصادق يبقى علنيًا ولا يُخفى.",
+    "tab_pending": "بانتظار المراجعة",
+    "tab_decided": "تمت المراجعة",
+    "empty": "لا توجد بلاغات.",
+    "report_label": "سبب البلاغ",
+    "reported_by": "أبلغ: {{name}}",
+    "dismiss": "رفض البلاغ",
+    "dismissed": "تم رفض البلاغ — التقييم باقٍ",
+    "hide": "إخفاء",
+    "hidden": "تم إخفاء التقييم",
+    "hide_title": "إخفاء تقييم (سبام/إساءة)",
+    "hide_notice": "للسبام/الإساءة فقط. لا يجوز إخفاء تقييم سلبي صادق.",
+    "hide_reason": "سبب الإخفاء (إلزامي)",
+    "hide_reason_placeholder": "وثّق سبب الإخفاء (سبام/إساءة)…",
+    "hide_confirm": "تأكيد الإخفاء",
+    "decided_hidden": "أُخفي",
+    "decided_dismissed": "رُفض البلاغ"
+  },
+  "clinic_reviews": {
+    "title": "التقييمات الموثّقة",
+    "subtitle": "تقييمات مرضى حضروا فعلًا. يمكنك الرد علنًا — لا يمكنك تعديل التقييم أو إخفاءه.",
+    "empty": "لا توجد تقييمات بعد.",
+    "anon": "مريض",
+    "verified": "موثّق",
+    "your_reply": "ردّك",
+    "reply_cta": "رد علنًا",
+    "reply_placeholder": "اكتب ردًّا علنيًّا على هذا التقييم…",
+    "reply_saved": "تم حفظ الرد",
+    "page_of": "صفحة {{current}} من {{total}}",
+    "filter": {
+      "rating": "التقييم",
+      "all": "الكل",
+      "replied": "الرد",
+      "not_replied": "بلا رد",
+      "replied_yes": "تم الرد"
+    },
+    "report": {
+      "cta": "إبلاغ",
+      "title": "الإبلاغ عن تقييم مسيء",
+      "notice": "الإبلاغ يُرسل للمراجعة فقط ولا يُخفي التقييم. التقييم السلبي الصادق ليس سببًا صالحًا.",
+      "reason": "السبب",
+      "reason_spam": "سبام",
+      "reason_abuse": "إساءة/تجريح",
+      "reason_fake": "مزيّف",
+      "reason_other": "أخرى",
+      "note": "تفاصيل (اختياري)",
+      "note_placeholder": "وضّح سبب البلاغ…",
+      "submit": "إرسال البلاغ",
+      "sent": "تم إرسال البلاغ للمراجعة",
+      "under_review": "تحت مراجعة الإدارة",
+      "decided_hidden": "أُخفي بقرار الإدارة",
+      "decided_dismissed": "رُفض البلاغ — التقييم باقٍ"
     }
   },
   "clinic_reminders": {
@@ -2625,6 +2749,17 @@
       "attended": "حضر",
       "no_show": "لم يحضر",
       "cancelled": "ملغى"
+    },
+    "attendance": {
+      "badge": "حضر فعليًا",
+      "section_title": "الحضور",
+      "attended": "تم تأكيد الحضور",
+      "confirm": "تأكيد الحضور",
+      "confirmed_toast": "تم تسجيل الحضور",
+      "undo": "تراجع",
+      "revoked_toast": "تم التراجع عن الحضور",
+      "by_at": "بواسطة {{name}} · {{time}}",
+      "at": "{{time}}"
     },
     "tag": {
       "vip": "VIP",

@@ -48,6 +48,7 @@ const AdminsIndex         = lazy(() => import('@/features/admins/pages/AdminsInd
 const ServicesIndex       = lazy(() => import('@/features/services/pages/ServicesIndex').then(m => ({ default: m.ServicesIndex })));
 const BookingsIndex       = lazy(() => import('@/features/bookings/pages/BookingsIndex').then(m => ({ default: m.BookingsIndex })));
 const ComplaintsIndex     = lazy(() => import('@/features/complaints/pages/ComplaintsIndex').then(m => ({ default: m.ComplaintsIndex })));
+const AdminReviewModerationIndex = lazy(() => import('@/features/admin/review-moderation/pages/AdminReviewModerationIndex').then(m => ({ default: m.AdminReviewModerationIndex })));
 const SalesLeadsIndex     = lazy(() => import('@/features/sales-leads/pages/SalesLeadsIndex').then(m => ({ default: m.SalesLeadsIndex })));
 const ClinicsIndex        = lazy(() => import('@/features/clinics/pages/ClinicsIndex').then(m => ({ default: m.ClinicsIndex })));
 const ClinicStatsPage     = lazy(() => import('@/features/clinics/pages/ClinicStatsPage').then(m => ({ default: m.ClinicStatsPage })));
@@ -107,6 +108,8 @@ const ClinicCampaignRunner = lazy(() => import('@/features/clinic/campaigns/page
 const ClinicTrackingPage = lazy(() => import('@/features/clinic/tracking/pages/ClinicTrackingPage').then(m => ({ default: m.ClinicTrackingPage })));
 const ClinicCartPage     = lazy(() => import('@/features/clinic/cart/pages/ClinicCartPage').then(m => ({ default: m.ClinicCartPage })));
 const ClinicAbandonedCartsIndex = lazy(() => import('@/features/clinic/abandoned-carts/pages/ClinicAbandonedCartsIndex').then(m => ({ default: m.ClinicAbandonedCartsIndex })));
+const ClinicRewardsIndex = lazy(() => import('@/features/clinic/rewards/pages/ClinicRewardsIndex').then(m => ({ default: m.ClinicRewardsIndex })));
+const ClinicReviewsIndex = lazy(() => import('@/features/clinic/reviews/pages/ClinicReviewsIndex').then(m => ({ default: m.ClinicReviewsIndex })));
 
 function PageFallback() {
   return (
@@ -153,6 +156,7 @@ export function AppRoutes() {
               <Route path="clinics/:id/structure" element={<ClinicStructurePage />} />
               <Route path="bookings" element={<BookingsIndex />} />
               <Route path="complaints" element={<ComplaintsIndex />} />
+              <Route path="review-moderation" element={<AdminReviewModerationIndex />} />
               <Route path="sales-leads" element={<SalesLeadsIndex />} />
               <Route path="users" element={<UsersIndex />} />
               <Route path="users/:id" element={<UserProfilePage />} />
@@ -235,6 +239,13 @@ export function AppRoutes() {
               <Route path="tracking" element={<RoleGuard ability="tracking.view"><ClinicTrackingPage /></RoleGuard>} />
               <Route path="cart" element={<RoleGuard ability="cart.view"><ClinicCartPage /></RoleGuard>} />
               <Route path="abandoned-carts" element={<RoleGuard ability="cart_leads.view"><ClinicAbandonedCartsIndex /></RoleGuard>} />
+              {/* Rewards: feature-gated (no role ability) — the page itself
+                  shows a notice when the rewards feature is off; the API is
+                  enforced server-side via clinic.feature:rewards. */}
+              <Route path="rewards" element={<ClinicRewardsIndex />} />
+              {/* Verified reviews — always-on (no feature/role gate); the
+                  API enforces clinic isolation via VerifiedReviewPolicy. */}
+              <Route path="reviews" element={<ClinicReviewsIndex />} />
               <Route path="team" element={<RoleGuard ability="team.view"><ClinicTeamIndex /></RoleGuard>} />
               <Route path="team-activity" element={<RoleGuard ability="team_activity.view"><ClinicTeamActivityPage /></RoleGuard>} />
             </Route>

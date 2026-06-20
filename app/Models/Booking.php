@@ -84,6 +84,7 @@ class Booking extends Model
         'user_id', 'booker_user_id', 'relative_id',
         'service_id', 'customer_name', 'customer_phone', 'notes', 'status',
         'clinic_notes', 'appointment_at', 'source', 'acquisition_source',
+        'attended_at', 'attended_by_type', 'attended_by_id', 'attended_by_name',
         'assignee_type', 'assignee_id', 'stage_id',
         'created_by_type', 'created_by_id', 'created_by_name',
         'landing_page_id', 'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term',
@@ -93,6 +94,7 @@ class Booking extends Model
     {
         return [
             'appointment_at' => 'datetime',
+            'attended_at'    => 'datetime',
         ];
     }
 
@@ -118,6 +120,25 @@ class Booking extends Model
     public function createdBy()
     {
         return $this->morphTo('created_by');
+    }
+
+    /**
+     * Who confirmed the patient's physical attendance — the Clinic owner
+     * or a ClinicTeamMember. Null until attendance is stamped, and for
+     * rows attended via a background process with no clinic session.
+     */
+    public function attendedBy()
+    {
+        return $this->morphTo('attended_by');
+    }
+
+    /**
+     * Whether the patient's attendance has been confirmed. An
+     * INDEPENDENT signal — distinct from the status enum and the Kanban.
+     */
+    public function isAttended(): bool
+    {
+        return ! is_null($this->attended_at);
     }
 
     public static function generateReferenceCode(): string

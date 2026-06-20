@@ -40,6 +40,14 @@ class BookingKanbanCardResource extends JsonResource
             'status'         => $this->status,
             'kanban_column'  => $this->kanbanColumn(),
             'sub_badge'      => $this->subBadge(),
+            // Real attendance signal — independent of status/sub_badge.
+            'attended_at'    => $this->attended_at?->toIso8601String(),
+            'is_attended'    => ! is_null($this->attended_at),
+            'attended_by'    => $this->attended_at ? [
+                'type' => $this->attended_by_type ? class_basename($this->attended_by_type) : null,
+                'id'   => $this->attended_by_id,
+                'name' => $this->attended_by_name,
+            ] : null,
             'appointment_at' => $this->appointment_at?->toIso8601String(),
             'created_at'     => $this->created_at?->toIso8601String(),
             'acquisition_source' => $this->acquisition_source,

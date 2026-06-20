@@ -24,6 +24,7 @@ use App\Observers\PriceQuoteReplyObserver;
 use App\Observers\PriceQuoteRequestObserver;
 use App\View\Composers\LayoutComposer;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -111,6 +112,19 @@ class AppServiceProvider extends ServiceProvider
 
         // Every new clinic gets its "خدمات أخرى" catch-all service.
         Clinic::observe(\App\Observers\ClinicCatchallServiceObserver::class);
+
+        // Customer-lifecycle loop — phase 1 (cashback) subscribes to the
+        // phase-0 attendance seam. Confirm mints the clinic's reward;
+        // revoke voids an unused one. Listeners swallow their own errors
+        // so rewards never break attendance.
+        Event::listen(\App\Events\BookingAttendanceConfirmed::class, \App\Listeners\GrantRewardOnAttendance::class);
+        Event::listen(\App\Events\BookingAttendanceRevoked::class, \App\Listeners\VoidRewardOnAttendanceRevoked::class);
+
+        // Phase 2 (verified reviews) — same attendance seam. Confirm opens
+        // review eligibility (pending row); revoke deletes it if still
+        // unsubmitted (published reviews survive).
+        Event::listen(\App\Events\BookingAttendanceConfirmed::class, \App\Listeners\CreateReviewEligibilityOnAttendance::class);
+        Event::listen(\App\Events\BookingAttendanceRevoked::class, \App\Listeners\DeletePendingReviewOnAttendanceRevoked::class);
 
         // Article publishing limit enforcement
         Article::observe(ArticleObserver::class);

@@ -63,6 +63,10 @@ return [
             'title' => 'تم تأكيد حجزك',
             'body'  => 'المجمع :clinic أكّد حجزك رقم :reference_code.',
         ],
+        'booking_attended' => [
+            'title' => 'شكراً لزيارتك 🌟',
+            'body'  => 'تم تسجيل حضورك لموعدك :reference_code لدى :clinic. نتمنى لك تجربة موفّقة!',
+        ],
         'complaint_replied' => [
             'title' => 'رد على شكواك',
             'body'  => 'المجمع :clinic رد على شكواك.',
@@ -74,6 +78,26 @@ return [
         'cart_reminder_due' => [
             'title' => 'لديك عناصر في السلة',
             'body'  => 'لديك :count عنصر في سلتك بانتظار الحجز — أكمل حجزك الآن.',
+        ],
+        'reward_granted' => [
+            'title' => 'مكافأة جديدة لك 🎁',
+            'body'  => 'حصلت على مكافأة من المجمع :clinic. كودها :code — اطّلع عليها في حسابك.',
+        ],
+        'reward_transferred' => [
+            'title' => 'وصلتك مكافأة محوّلة 🎁',
+            'body'  => 'حُوّلت إليك مكافأة من المجمع :clinic. كودها :code — اطّلع عليها في حسابك.',
+        ],
+        'reward_expiring_soon' => [
+            'title' => 'مكافأتك توشك على الانتهاء',
+            'body'  => 'مكافأتك من المجمع :clinic (:code) تنتهي خلال :days يوم — استخدمها قبل فواتها.',
+        ],
+        'review_invitation' => [
+            'title' => 'كيف كانت زيارتك؟ ⭐',
+            'body'  => 'يسعدنا رأيك في زيارتك للمجمع :clinic. قيّم تجربتك — رأيك يساعد غيرك.',
+        ],
+        'reward_available' => [
+            'title' => 'لديك مكافأة بانتظارك 🎁',
+            'body'  => 'مكافأتك من المجمع :clinic ما زالت متاحة (:code). استخدمها في زيارتك القادمة.',
         ],
 
         // ── Admin-side ────────────────────────────────────────────────
@@ -111,9 +135,15 @@ return [
         'contact_reminder_due'      => 'لديك تذكير بالتواصل مع عميل',
         'task_reminder_due'         => 'لديك مهمة مستحقة',
         'booking_confirmed'         => 'تم تأكيد حجزك',
+        'booking_attended'          => 'شكراً لزيارتك',
         'complaint_replied'         => 'تم الرد على شكواك',
         'quote_replied'             => 'تم الرد على طلب سعرك',
         'cart_reminder_due'         => 'لديك عناصر في سلتك بانتظار الحجز',
+        'reward_granted'            => 'حصلت على مكافأة جديدة',
+        'reward_transferred'        => 'وصلتك مكافأة محوّلة',
+        'reward_expiring_soon'      => 'مكافأتك توشك على الانتهاء',
+        'review_invitation'         => 'قيّم زيارتك الأخيرة',
+        'reward_available'          => 'لديك مكافأة متاحة بانتظارك',
         'clinic_pending_approval'   => 'تسجيل مجمع جديد ينتظر الموافقة',
         'ai_emergency'              => 'تنبيه: محادثة طوارئ من المساعد الذكي',
         'sales_followup_due'        => 'لديك متابعة عميل محتمل متأخرة',

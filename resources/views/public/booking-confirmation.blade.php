@@ -24,6 +24,14 @@ window.sarhaTrack && window.sarhaTrack('submit_booking', { clinic_id: {{ (int) $
         <h1 class="text-3xl font-bold text-gray-900 mb-2">@lang('site.booking_confirmed_title')</h1>
         <p class="text-gray-500 mb-8">@lang('site.booking_confirmed_subtitle')</p>
 
+        {{-- Cashback voucher outcome (flashed from the booking flow). Green
+             when applied, amber with the reason when it couldn't be. --}}
+        @if($fb = session('reward_feedback'))
+            <div class="mb-8 rounded-xl border px-4 py-3 text-sm text-start {{ $fb['ok'] ? 'border-green-200 bg-green-50 text-green-800' : 'border-amber-200 bg-amber-50 text-amber-800' }}">
+                {{ $fb['text'] }}
+            </div>
+        @endif
+
         <div class="bg-sage-50 border-2 border-sage-200 rounded-xl p-5 mb-8">
             <p class="text-xs text-sage-700 uppercase tracking-wider mb-1">@lang('site.booking_reference_label')</p>
             <p class="text-2xl font-bold text-sage-900 font-mono tracking-wider" dir="ltr">

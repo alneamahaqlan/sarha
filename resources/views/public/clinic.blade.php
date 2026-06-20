@@ -101,6 +101,13 @@
         @include('public.partials.clinic-hero', ['clinic' => $clinic])
     @endif
 
+    {{-- Verified reviews — a platform-trust section shown for every clinic
+         that has any (independent of the page-builder tabs), so it never
+         depends on per-clinic config. Hidden only when there are none. --}}
+    @if(($clinic->verified_reviews_count ?? 0) > 0)
+        <div class="mb-8">@include('public.partials.verified-reviews')</div>
+    @endif
+
     {{-- Tabs — only renders if at least one tab section is active. --}}
     @if($activeTabs->isNotEmpty())
     @php

@@ -6,8 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Clinic;
 use App\Models\Complaint;
 use App\Models\Offer;
+use App\Models\PlatformCustomer;
 use App\Models\Relative;
+use App\Models\RewardVoucher;
 use App\Models\Service;
+use App\Services\RewardService;
+use App\Support\PhoneNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -79,6 +83,80 @@ class AccountController extends Controller
         return view('public.account.bookings', compact(
             'bookings', 'user', 'bookingsCount', 'favoritesCount', 'filter',
         ));
+    }
+
+    /**
+     * Cashback rewards owned by this account's platform identity (keyed by
+     * phone). Grouped into usable / used / lapsed for the view. Vouchers
+     * are owned by the PlatformCustomer so they survive across clinics and
+     * appear here the moment a phone-transfer lands.
+     */
+    public function rewards()
+    {
+        $user = auth('web')->user();
+        $platform = $this->currentPlatformCustomer($user);
+
+        $vouchers = $platform
+            ? RewardVoucher::where('platform_customer_id', $platform->id)
+                ->with(['clinic:id,name,slug', 'offer:id,title', 'service:id,name'])
+                ->latest()
+                ->get()
+            : collect();
+
+        $active  = $vouchers->filter(fn (RewardVoucher $v) => $v->isActive())->values();
+        $used    = $vouchers->where('status', RewardVoucher::STATUS_USED)->values();
+        $lapsed  = $vouchers->filter(fn (RewardVoucher $v) =>
+            in_array($v->status, [RewardVoucher::STATUS_EXPIRED, RewardVoucher::STATUS_VOID], true)
+            || ($v->status === RewardVoucher::STATUS_ACTIVE && $v->isExpired())
+        )->values();
+
+        $bookingsCount  = $user->bookings()->count();
+        $favoritesCount = $user->favorites()->count();
+
+        return view('public.account.rewards', compact(
+            'user', 'active', 'used', 'lapsed', 'bookingsCount', 'favoritesCount',
+        ));
+    }
+
+    /**
+     * Transfer one of the account's active vouchers to another phone. The
+     * voucher stays locked to its clinic with the same expiry; ownership
+     * moves to the target's identity (created if new, who gets an SMS).
+     */
+    public function transferReward(Request $request, RewardVoucher $voucher)
+    {
+        $user = auth('web')->user();
+        $platform = $this->currentPlatformCustomer($user);
+
+        // Ownership: the voucher must belong to THIS account's identity.
+        if (! $platform || (int) $voucher->platform_customer_id !== (int) $platform->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'to_phone' => ['required', 'string', 'regex:/^05\d{8}$/'],
+        ], [
+            'to_phone.regex' => __('site.phone_invalid'),
+        ]);
+
+        try {
+            app(RewardService::class)->transfer($voucher, $validated['to_phone']);
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['to_phone' => __('rewards.errors.' . $e->getMessage())]);
+        }
+
+        return back()->with('success', __('site.reward_transferred_ok'));
+    }
+
+    /** Resolve the account's platform-wide identity (by account link, then phone). */
+    private function currentPlatformCustomer($user): ?PlatformCustomer
+    {
+        $platform = PlatformCustomer::where('user_id', $user->id)->first();
+        if ($platform) {
+            return $platform;
+        }
+        $phone = PhoneNormalizer::normalizeOrSelf($user->phone);
+        return $phone ? PlatformCustomer::where('phone', $phone)->first() : null;
     }
 
     public function favorites()

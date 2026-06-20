@@ -5,6 +5,8 @@
             $items = [
                 ['route' => 'account.show',      'label' => 'site.account_profile',      'icon' => 'user'],
                 ['route' => 'account.bookings',  'label' => 'site.account_my_bookings',  'icon' => 'calendar'],
+                ['route' => 'account.rewards',   'label' => 'site.account_my_rewards',   'icon' => 'gift'],
+                ['route' => 'account.reviews',   'label' => 'site.account_my_reviews',   'icon' => 'star'],
                 ['route' => 'account.quotes',    'label' => 'site.account_my_quotes',    'icon' => 'clipboard'],
                 ['route' => 'account.complaints','label' => 'site.account_my_complaints','icon' => 'warning'],
                 ['route' => 'account.reports',   'label' => 'site.account_my_reports',   'icon' => 'warning'],

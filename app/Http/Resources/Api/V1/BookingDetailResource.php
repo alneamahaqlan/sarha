@@ -35,6 +35,14 @@ class BookingDetailResource extends JsonResource
             'clinic_notes'   => $this->clinic_notes,
             'status'         => $this->status,
             'kanban_column'  => $this->kanbanColumn(),
+            // Real attendance signal — independent of status/kanban_column.
+            'attended_at'    => $this->attended_at?->toIso8601String(),
+            'is_attended'    => ! is_null($this->attended_at),
+            'attended_by'    => $this->attended_at ? [
+                'type' => $this->attended_by_type ? class_basename($this->attended_by_type) : null,
+                'id'   => $this->attended_by_id,
+                'name' => $this->attended_by_name,
+            ] : null,
             'appointment_at' => $this->appointment_at?->toIso8601String(),
             'source'         => $this->source,
             'acquisition_source' => $this->acquisition_source,

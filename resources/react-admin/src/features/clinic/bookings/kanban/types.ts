@@ -64,6 +64,17 @@ export interface AssigneePayload {
   role: string;
 }
 
+/**
+ * Who confirmed the patient's physical attendance — present only while
+ * the booking is attended. An INDEPENDENT signal, separate from status
+ * and the status-derived `sub_badge`.
+ */
+export interface AttendedBy {
+  type: string | null;
+  id: number | null;
+  name: string | null;
+}
+
 export interface AutoTags {
   is_vip: boolean;
   is_repeat: boolean;
@@ -133,6 +144,10 @@ export interface KanbanCard {
   status: BookingStatus;
   kanban_column: KanbanColumn;
   sub_badge: SubBadge | null;
+  /** Real attendance signal — independent of status/sub_badge. */
+  is_attended: boolean;
+  attended_at: string | null;
+  attended_by: AttendedBy | null;
   appointment_at: string | null;
   created_at: string;
   acquisition_source: AcquisitionSource;
@@ -305,6 +320,10 @@ export interface BookingDetail {
   clinic_notes: string | null;
   status: BookingStatus;
   kanban_column: KanbanColumn;
+  /** Real attendance signal — independent of status/kanban_column. */
+  is_attended: boolean;
+  attended_at: string | null;
+  attended_by: AttendedBy | null;
   appointment_at: string | null;
   source: string;
   acquisition_source: AcquisitionSource;

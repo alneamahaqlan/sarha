@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { AlertTriangle, Check, Clock, User, UserCheck } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, Check, Clock, User, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslation } from '@/app/providers/LocaleProvider';
@@ -123,6 +123,16 @@ export function BookingCard({ card, onOpen }: Props) {
                 onChange={canManage && card.customer_id ? setPriority : undefined}
               />
             </span>
+            {card.is_attended && (
+              <Badge
+                variant="success"
+                className="gap-0.5 px-1.5 text-[10px]"
+                title={t('clinic_bookings_kanban.attendance.attended')}
+              >
+                <CalendarCheck className="h-3 w-3" />
+                {t('clinic_bookings_kanban.attendance.badge')}
+              </Badge>
+            )}
             {subBadgeLabel && <Badge variant="muted" className="px-1.5 text-[10px]">{subBadgeLabel}</Badge>}
           </div>
         </div>
