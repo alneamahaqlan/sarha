@@ -2,7 +2,11 @@
      Each card: image (fallback to linked service's image or category emoji),
      discount %, price, clinic, CTA → booking form for service-linked offers
      or the clinic page for general promos. --}}
-@php $offers = $data['offers'] ?? collect(); @endphp
+@php
+    $offers = $data['offers'] ?? collect();
+    // Pre-warm offer badges in one query so each offer-card resolves from memo.
+    app(\App\Services\ClinicBadgeService::class)->forTargets(\App\Models\Offer::class, $offers->pluck('id')->all(), 'cards');
+@endphp
 <section class="py-20 md:py-28 px-4 bg-gradient-to-b from-white to-sage-mist/30">
     <div class="max-w-7xl mx-auto">
         <div class="flex items-end justify-between mb-8">

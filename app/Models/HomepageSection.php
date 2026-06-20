@@ -35,6 +35,8 @@ class HomepageSection extends Model
         // Personalised strips — only render for a signed-in customer who
         // follows complexes (self-hide otherwise). See [[clinic-follow-feature]].
         'followed_offers', 'followed_clinics',
+        // Entities (clinics/offers/…) carrying an admin-chosen badge.
+        'badged',
     ];
 
     /** Max Q&A rows a `faqs` section stores / renders (config.faqs). */

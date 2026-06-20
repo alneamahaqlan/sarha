@@ -30,6 +30,14 @@ class Doctor extends Model
         return $this->belongsTo(Clinic::class);
     }
 
+    /** Display badges (Badges Center) attached to this doctor. */
+    public function badges()
+    {
+        return $this->morphToMany(Badge::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])
+            ->withTimestamps();
+    }
+
     public function subClinic()
     {
         return $this->belongsTo(SubClinic::class);

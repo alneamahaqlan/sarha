@@ -58,6 +58,14 @@ class Offer extends Model
         return $this->belongsTo(Service::class);
     }
 
+    /** Display badges (Badges Center) attached to this offer. */
+    public function badges()
+    {
+        return $this->morphToMany(Badge::class, 'badgeable')
+            ->withPivot(['source', 'expires_at'])
+            ->withTimestamps();
+    }
+
     /**
      * Public visibility: active + within the running window. The clinic
      * page builder calls this; the admin UI does NOT, since admins want to

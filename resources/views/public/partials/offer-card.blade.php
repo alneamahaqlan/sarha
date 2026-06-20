@@ -112,6 +112,16 @@
             </p>
         @endif
 
+        {{-- Badges Center chips for this offer (memoised; pre-warmed in list sections). --}}
+        @php $offerBadges = app(\App\Services\ClinicBadgeService::class)->forOffer($offer); @endphp
+        @if(! empty($offerBadges))
+            <div class="flex flex-wrap gap-1 mt-2">
+                @foreach($offerBadges as $b)
+                    @include('public.partials.badge-chip', ['badge' => $b])
+                @endforeach
+            </div>
+        @endif
+
         @if($offer->description && $large)
             <p class="text-sm text-gray-500 mt-2 line-clamp-2">{{ $offer->description }}</p>
         @endif

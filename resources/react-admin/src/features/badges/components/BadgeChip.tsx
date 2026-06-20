@@ -1,24 +1,35 @@
 import {
-  Bell, Building2, Calendar, CheckCircle2, Clock, Eye, Flame, Heart, Lightbulb,
-  Sparkles, Star, TrendingUp, Trophy, UserPlus, Users, Zap, type LucideIcon,
+  BadgeCheck, BadgePercent, Bell, Building2, Calendar, CheckCircle2, Clock, Eye, Flame,
+  Gift, GraduationCap, Heart, Lightbulb, Megaphone, Rocket, ShieldCheck, Sparkles, Star,
+  Tag, ThumbsUp, Ticket, TrendingUp, Trophy, UserPlus, Users, Zap, type LucideIcon,
 } from 'lucide-react';
 
-/** Badge icon key → lucide component. Keys mirror the Blade x-icon set. */
+/** Badge icon key → lucide component. Keys mirror the Blade x-icon set + BadgeIcons.php. */
 export const BADGE_ICON_MAP: Record<string, LucideIcon> = {
   'star-solid': Star,
   'check-circle': CheckCircle2,
-  bell: Bell,
-  calendar: Calendar,
-  users: Users,
-  'user-plus': UserPlus,
+  'check-badge': BadgeCheck,
+  'shield-check': ShieldCheck,
   trophy: Trophy,
   fire: Flame,
   'trending-up': TrendingUp,
-  sparkles: Sparkles,
+  'rocket-launch': Rocket,
   bolt: Zap,
+  sparkles: Sparkles,
   'heart-solid': Heart,
+  'hand-thumb-up': ThumbsUp,
+  users: Users,
+  'user-plus': UserPlus,
   eye: Eye,
+  calendar: Calendar,
   clock: Clock,
+  bell: Bell,
+  tag: Tag,
+  'receipt-percent': BadgePercent,
+  gift: Gift,
+  ticket: Ticket,
+  megaphone: Megaphone,
+  'academic-cap': GraduationCap,
   building: Building2,
   'light-bulb': Lightbulb,
 };

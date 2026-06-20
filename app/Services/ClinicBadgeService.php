@@ -4,94 +4,127 @@ namespace App\Services;
 
 use App\Models\Badge;
 use App\Models\Clinic;
+use App\Models\Doctor;
+use App\Models\Offer;
+use App\Models\Service;
 use App\Support\BadgeRuleRegistry;
+use App\Support\BadgeTargets;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Resolves the display badges (Badges Center) shown publicly for one or many
- * complexes, and recomputes the automatic ones.
+ * Resolves the display badges (Badges Center) shown publicly for any badgeable
+ * entity (clinic / offer / service / doctor), and recomputes the automatic ones.
  *
- * Render-ready shape per badge: ['key', 'label', 'icon', 'color'].
+ * Despite the legacy name, this service is polymorphic: forClinics/forCard are
+ * thin wrappers over the generic forTargets(). Render-ready shape per badge:
+ * ['key', 'label', 'icon', 'color', 'description'].
  */
 class ClinicBadgeService
 {
-    /**
-     * Active, non-expired badges for a set of complexes, filtered by where
-     * they're allowed to show. Returns [clinic_id => array<badge>] — batched
-     * so card lists don't N+1.
-     *
-     * @param  array<int>  $clinicIds
-     * @param  'header'|'cards'  $placement
-     * @return array<int, array<int, array{key:string,label:string,icon:string,color:string}>>
-     */
-    /** Request-level memo keyed by "placement:clinic_id" to avoid N+1 on card lists. */
+    /** Request-level memo keyed by "type:placement:id" to avoid N+1 on card lists. */
     private static array $memo = [];
 
-    public function forClinics(array $clinicIds, string $placement = 'header'): array
+    /**
+     * Active, non-expired badges for a set of entities of one type, filtered by
+     * placement. Returns [id => array<badge>] — batched so card lists don't N+1.
+     *
+     * @param  class-string  $type       full model class (App\Models\Clinic, …)
+     * @param  array<int>    $ids
+     * @param  'header'|'cards'  $placement
+     * @return array<int, array<int, array{key:string,label:string,icon:string,color:string,description:?string}>>
+     */
+    public function forTargets(string $type, array $ids, string $placement = 'header'): array
     {
-        $clinicIds = array_values(array_unique(array_filter(array_map('intval', $clinicIds))));
-        if (empty($clinicIds)) {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+        if (empty($ids)) {
             return [];
         }
 
-        // Only query the IDs we haven't resolved for this placement yet.
-        $missing = array_values(array_filter($clinicIds, fn ($id) => ! array_key_exists("{$placement}:{$id}", self::$memo)));
+        $missing = array_values(array_filter(
+            $ids,
+            fn ($id) => ! array_key_exists("{$type}:{$placement}:{$id}", self::$memo),
+        ));
 
         if (! empty($missing)) {
             $places = $placement === 'cards' ? ['cards', 'both'] : ['header', 'both'];
 
-            $rows = DB::table('badge_clinic as bc')
-                ->join('badges as b', 'b.id', '=', 'bc.badge_id')
-                ->whereIn('bc.clinic_id', $missing)
+            $rows = DB::table('badgeables as ba')
+                ->join('badges as b', 'b.id', '=', 'ba.badge_id')
+                ->where('ba.badgeable_type', $type)
+                ->whereIn('ba.badgeable_id', $missing)
                 ->where('b.is_active', true)
                 ->whereIn('b.placement', $places)
                 ->where(function ($q) {
-                    $q->whereNull('bc.expires_at')->orWhere('bc.expires_at', '>', now());
+                    $q->whereNull('ba.expires_at')->orWhere('ba.expires_at', '>', now());
                 })
                 ->orderBy('b.sort_order')
                 ->orderBy('b.id')
-                ->get(['bc.clinic_id', 'b.key', 'b.label_ar', 'b.label_en', 'b.icon', 'b.color']);
+                ->get(['ba.badgeable_id', 'b.key', 'b.label_ar', 'b.label_en', 'b.description_ar', 'b.description_en', 'b.icon', 'b.color']);
 
             $en = app()->getLocale() === 'en';
             $built = [];
             foreach ($rows as $r) {
-                $built[(int) $r->clinic_id][] = [
-                    'key'   => $r->key,
-                    'label' => $en ? $r->label_en : $r->label_ar,
-                    'icon'  => $r->icon,
-                    'color' => $r->color,
+                $built[(int) $r->badgeable_id][] = [
+                    'key'         => $r->key,
+                    'label'       => $en ? $r->label_en : $r->label_ar,
+                    'description' => $en ? $r->description_en : $r->description_ar,
+                    'icon'        => $r->icon,
+                    'color'       => $r->color,
                 ];
             }
-            // Memo every requested id (empty array included) so misses don't re-query.
             foreach ($missing as $id) {
-                self::$memo["{$placement}:{$id}"] = $built[$id] ?? [];
+                self::$memo["{$type}:{$placement}:{$id}"] = $built[$id] ?? [];
             }
         }
 
         $out = [];
-        foreach ($clinicIds as $id) {
-            $out[$id] = self::$memo["{$placement}:{$id}"];
+        foreach ($ids as $id) {
+            $out[$id] = self::$memo["{$type}:{$placement}:{$id}"];
         }
 
         return $out;
     }
 
+    // ── clinic helpers (kept for the existing public blades) ────────────────
+
+    public function forClinics(array $clinicIds, string $placement = 'header'): array
+    {
+        return $this->forTargets(Clinic::class, $clinicIds, $placement);
+    }
+
     /** Card badges for a single complex (memoised). */
     public function forCard(Clinic $clinic): array
     {
-        return $this->forClinics([$clinic->id], 'cards')[$clinic->id] ?? [];
+        return $this->forTargets(Clinic::class, [$clinic->id], 'cards')[$clinic->id] ?? [];
     }
 
     /** Header badges for a single complex. */
     public function forClinic(Clinic $clinic): array
     {
-        return $this->forClinics([$clinic->id], 'header')[$clinic->id] ?? [];
+        return $this->forTargets(Clinic::class, [$clinic->id], 'header')[$clinic->id] ?? [];
+    }
+
+    // ── other entity helpers ────────────────────────────────────────────────
+
+    public function forOffer(Offer $offer, string $placement = 'cards'): array
+    {
+        return $this->forTargets(Offer::class, [$offer->id], $placement)[$offer->id] ?? [];
+    }
+
+    public function forService(Service $service, string $placement = 'cards'): array
+    {
+        return $this->forTargets(Service::class, [$service->id], $placement)[$service->id] ?? [];
+    }
+
+    public function forDoctor(Doctor $doctor, string $placement = 'cards'): array
+    {
+        return $this->forTargets(Doctor::class, [$doctor->id], $placement)[$doctor->id] ?? [];
     }
 
     /**
-     * Re-evaluate every active AUTO badge and replace its auto-assigned rows.
-     * Manual assignments (source = 'manual') are never touched. Returns a
-     * per-badge count of winners for the command's summary.
+     * Re-evaluate every active AUTO badge and replace its auto-assigned rows for
+     * the rule's target type. Manual assignments (source='manual') are never
+     * touched. Returns a per-badge count of winners for the command summary.
      *
      * @return array<string,int>
      */
@@ -105,14 +138,23 @@ class ClinicBadgeService
             ->get();
 
         foreach ($autoBadges as $badge) {
-            $winners = $badge->is_active
+            $rule = BadgeRuleRegistry::get($badge->rule_key);
+            $targetClass = $rule ? BadgeTargets::classFor($rule['target_type'] ?? 'clinic') : null;
+
+            $winners = ($badge->is_active && $rule && $targetClass)
                 ? BadgeRuleRegistry::resolve($badge->rule_key, $badge->rule_params ?? [])
                 : collect();
 
-            DB::transaction(function () use ($badge, $winners) {
-                // Drop only this badge's previous AUTO winners.
-                DB::table('badge_clinic')
+            if (! $targetClass) {
+                $summary[$badge->key] = 0;
+                continue;
+            }
+
+            DB::transaction(function () use ($badge, $winners, $targetClass) {
+                // Drop only this badge's previous AUTO winners for this type.
+                DB::table('badgeables')
                     ->where('badge_id', $badge->id)
+                    ->where('badgeable_type', $targetClass)
                     ->where('source', 'auto')
                     ->delete();
 
@@ -120,27 +162,29 @@ class ClinicBadgeService
                     return;
                 }
 
-                $now = now();
-                $rows = $winners->map(fn ($cid) => [
-                    'badge_id'   => $badge->id,
-                    'clinic_id'  => $cid,
-                    'source'     => 'auto',
-                    'expires_at' => null,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ])->all();
-
-                // Skip clinics already holding this badge manually (unique key).
-                $manual = DB::table('badge_clinic')
+                // Skip entities already holding this badge manually (unique key).
+                $manual = DB::table('badgeables')
                     ->where('badge_id', $badge->id)
+                    ->where('badgeable_type', $targetClass)
                     ->where('source', 'manual')
-                    ->pluck('clinic_id')
+                    ->pluck('badgeable_id')
                     ->all();
 
-                $rows = array_filter($rows, fn ($r) => ! in_array($r['clinic_id'], $manual, true));
+                $now = now();
+                $rows = $winners
+                    ->reject(fn ($id) => in_array($id, $manual, true))
+                    ->map(fn ($id) => [
+                        'badge_id'       => $badge->id,
+                        'badgeable_type' => $targetClass,
+                        'badgeable_id'   => $id,
+                        'source'         => 'auto',
+                        'expires_at'     => null,
+                        'created_at'     => $now,
+                        'updated_at'     => $now,
+                    ])->values()->all();
 
                 if (! empty($rows)) {
-                    DB::table('badge_clinic')->insert(array_values($rows));
+                    DB::table('badgeables')->insert($rows);
                 }
             });
 

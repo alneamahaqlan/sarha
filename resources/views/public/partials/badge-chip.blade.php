@@ -14,6 +14,7 @@
     ];
     $cls = $palette[$badge['color'] ?? 'gold'] ?? $palette['gold'];
 @endphp
-<span class="inline-flex items-center gap-1 {{ $cls }} px-2 py-0.5 rounded-full text-xs font-semibold">
+<span class="inline-flex items-center gap-1 {{ $cls }} px-2 py-0.5 rounded-full text-xs font-semibold"
+    @if(! empty($badge['description'])) title="{{ $badge['description'] }}" @endif>
     <x-icon :name="$badge['icon'] ?? 'star-solid'" class="w-3.5 h-3.5" /> {{ $badge['label'] }}
 </span>

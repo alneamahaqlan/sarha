@@ -14,7 +14,8 @@ export type HomepageSectionType =
   | 'price_quote'
   | 'faqs'
   | 'followed_offers'
-  | 'followed_clinics';
+  | 'followed_clinics'
+  | 'badged';
 
 /** A single Q&A row stored in a `faqs` section's config.faqs bag. */
 export interface HomepageFaqItem {
@@ -41,6 +42,10 @@ export interface HomepageSectionConfig {
   only_published?: boolean;
   interval?: number;
   faqs?: HomepageFaqItem[];
+  /** `badged` section: which badge + entity kind to showcase. */
+  badge_key?: string | null;
+  target_type?: 'clinic' | 'offer' | 'service' | 'doctor';
+  layout?: 'cards' | 'strip';
 }
 
 export interface HomepageSection {

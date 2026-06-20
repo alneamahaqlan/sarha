@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/app/providers/LocaleProvider';
 import { extractMessage } from '@/lib/api-client';
 import { useCategoryLookup } from '@/features/lookups/hooks';
+import { useBadges } from '@/features/badges/hooks';
 
 import { useUpdateHomepageSection } from '../hooks';
 import type { HomepageFaqItem, HomepageSection, HomepageSectionFormValues } from '../types';
@@ -49,6 +50,8 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
   const { t } = useTranslation();
   const update = useUpdateHomepageSection(section.id);
   const { data: categories } = useCategoryLookup();
+  const isBadged = section.type === 'badged';
+  const { data: badges } = useBadges();
 
   const isFaq = section.type === 'faqs';
 
@@ -321,6 +324,53 @@ export function HomepageSectionEditDialog({ section, onClose, onOpenSlides }: Pr
                   })
                 }
               />
+            </div>
+          )}
+
+          {isBadged && (
+            <div className="space-y-3 rounded-md border border-[var(--color-border)] p-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="badge_key">{t('homepage_sections.badge', 'الشارة')}</Label>
+                <Select
+                  id="badge_key"
+                  value={form.config?.badge_key ?? ''}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      config: { ...(form.config ?? {}), badge_key: e.target.value || null },
+                    })
+                  }
+                >
+                  <option value="">— {t('common.select', 'اختر')} —</option>
+                  {(badges ?? []).map((b) => (
+                    <option key={b.id} value={b.key}>{b.label_ar} ({b.key})</option>
+                  ))}
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="target_type">{t('homepage_sections.target_type', 'نوع المحتوى')}</Label>
+                <Select
+                  id="target_type"
+                  value={form.config?.target_type ?? 'clinic'}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      config: {
+                        ...(form.config ?? {}),
+                        target_type: e.target.value as 'clinic' | 'offer' | 'service' | 'doctor',
+                      },
+                    })
+                  }
+                >
+                  <option value="clinic">{t('homepage_sections.target_clinic', 'مجمعات')}</option>
+                  <option value="offer">{t('homepage_sections.target_offer', 'عروض')}</option>
+                  <option value="service">{t('homepage_sections.target_service', 'خدمات')}</option>
+                  <option value="doctor">{t('homepage_sections.target_doctor', 'أطباء')}</option>
+                </Select>
+                <p className="text-xs text-[var(--color-muted-foreground)]">
+                  {t('homepage_sections.badged_hint', 'يعرض الكيانات الحاملة للشارة المختارة من هذا النوع.')}
+                </p>
+              </div>
             </div>
           )}
 

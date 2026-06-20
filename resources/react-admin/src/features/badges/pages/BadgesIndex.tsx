@@ -148,7 +148,9 @@ function ActiveToggle({ badge }: { badge: Badge }) {
       onCheckedChange={async (checked) => {
         try {
           await update.mutateAsync({
-            key: badge.key, label_ar: badge.label_ar, label_en: badge.label_en,
+            key: badge.key, target_types: badge.target_types,
+            label_ar: badge.label_ar, label_en: badge.label_en,
+            description_ar: badge.description_ar, description_en: badge.description_en,
             icon: badge.icon, color: badge.color, placement: badge.placement,
             mode: badge.mode, rule_key: badge.rule_key, rule_params: badge.rule_params,
             is_active: checked, sort_order: badge.sort_order,
